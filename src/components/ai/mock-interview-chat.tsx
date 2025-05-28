@@ -43,7 +43,7 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem }) => {
   const [micPermission, setMicPermission] = useState<'prompt' | 'granted' | 'denied'>('prompt');
   const [isBrowserUnsupported, setIsBrowserUnsupported] = useState(false);
 
-  const [isTTSEnabled, setIsTTSEnabled] = useState(true);
+  const [isTTSEnabled, setIsTTSEnabled] = useState(false);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
