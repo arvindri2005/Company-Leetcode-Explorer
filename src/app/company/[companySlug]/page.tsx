@@ -395,15 +395,16 @@ export async function generateStaticParams() {
   try {
     const { getAllCompanySlugs } = await import('@/lib/data'); 
     const companySlugs = await getAllCompanySlugs();
+    console.log('[generateStaticParams /company/[companySlug]] Generating slugs:', companySlugs);
     if (!companySlugs || companySlugs.length === 0) {
-      
+      console.warn('[generateStaticParams /company/[companySlug]] No company slugs found to generate static pages.');
       return [];
     }
     return companySlugs.map((slug) => ({
       companySlug: slug,
     }));
   } catch (error) {
-    console.error("Error in generateStaticParams for company pages:", error);
+    console.error("[generateStaticParams /company/[companySlug]] Error fetching company slugs:", error);
     return [];
   }
 }
