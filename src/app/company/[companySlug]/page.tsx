@@ -8,23 +8,23 @@ import FlashcardGenerator from '@/components/ai/flashcard-generator';
 import CompanyStrategyGenerator from '@/components/ai/company-strategy-generator';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Building2, ExternalLink, BarChart3, BookOpen, Brain, Target, Users, Calendar, ChevronLeft } from 'lucide-react';
+import { ArrowLeft, Building2, ExternalLink, BarChart3, BookOpen, Brain, Target, Users, Calendar, ChevronLeft, AlertTriangle, PlusSquare } from 'lucide-react';
 import Image from 'next/image';
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
-import { auth } from '@/lib/firebase'; // To get current user for initial fetch
+import { auth } from '@/lib/firebase'; 
 import { fetchProblemsForCompanyPage } from '@/app/actions/problem.actions';
 
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
-const INITIAL_ITEMS_PER_PAGE = 15; // Or whatever your desired page size is
+const INITIAL_ITEMS_PER_PAGE = 15;
 
 interface CompanyPageProps {
   params: { companySlug: string };
-  searchParams?: { page?: string; /* other future params like initial filters */ };
+  searchParams?: { page?: string; };
 }
 
 export async function generateMetadata({ params }: CompanyPageProps): Promise<Metadata> {
@@ -36,7 +36,6 @@ export async function generateMetadata({ params }: CompanyPageProps): Promise<Me
     };
   }
 
-  // Fetch initial page to get problem count for metadata
   const initialProblemData = await getProblemsByCompanyFromDb(company.id, { page: 1, pageSize: 1 });
   const problemCount = initialProblemData?.totalProblems || 0;
   const title = `${company.name} - LeetCode Problems & Interview Prep (${problemCount} Problems)`;
@@ -76,12 +75,25 @@ export async function generateMetadata({ params }: CompanyPageProps): Promise<Me
       type: 'profile',
       url: `${APP_URL}/company/${company.slug}`,
       images: company.logo ? [{ url: company.logo, alt: `${company.name} logo` }] : [],
+      siteName: 'Company LeetCode Explorer',
     },
     alternates: {
       canonical: `${APP_URL}/company/${company.slug}`,
     },
     other: {
-       "script[type=\"application/ld+json\"]": JSON.stringify(breadcrumbList),
+       "script[type=\"application/ld+json\"]": JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "ProfilePage",
+          "mainEntity": {
+            "@type": "Organization",
+            "name": company.name,
+            "url": `${APP_URL}/company/${company.slug}`,
+            "logo": company.logo,
+            "description": company.description,
+            "sameAs": company.website ? [company.website] : undefined
+          },
+          "breadcrumb": breadcrumbList,
+       }),
     }
   };
 }
@@ -107,23 +119,15 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
     );
   }
 
-  // For AI Grouping section, we still need all problems.
-  // Consider if this should also be paginated or handled differently if it becomes a performance issue.
-  // For now, fetching all for AI Grouping and stats.
   const allProblemsForAIAndStats = await getProblemsByCompanyFromDb(company.id, { pageSize: 10000 });
-
-
-  // Initial fetch for the ProblemList component
-  const initialPage = searchParams?.page ? parseInt(searchParams.page, 10) : 1;
-  const currentUser = auth.currentUser; // This will be null during SSR build / if not using server-side auth state
-                                       // For robust user data on SSR, proper session management is key.
-                                       // For now, ProblemList will fetch user data client-side on interaction if needed.
   
-  // Default filters for initial load
+  const initialPage = searchParams?.page ? parseInt(searchParams.page, 10) : 1;
+  const currentUser = auth.currentUser; 
+  
   const initialFilters: ProblemListFilters = {
     difficultyFilter: 'all',
     lastAskedFilter: 'all',
-    statusFilter: 'all', // User-specific, so 'all' for initial server load unless user is passed
+    statusFilter: 'all', 
     searchTerm: '',
     sortKey: 'title',
   };
@@ -133,23 +137,25 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
     page: initialPage,
     pageSize: INITIAL_ITEMS_PER_PAGE,
     filters: initialFilters,
-    userId: currentUser?.uid, // Pass user ID if available, otherwise ProblemList handles client-side fetches
+    userId: currentUser?.uid, 
   });
   
   let initialProblems: LeetCodeProblem[] = [];
   let initialTotalPages = 1;
   let initialCurrentPage = 1;
+  let initialProblemDataError: string | null = null;
 
-  if (!('error' in initialPaginatedProblemsData)) {
+  if ('error' in initialPaginatedProblemsData) {
+    console.error("Error fetching initial problems for company page:", initialPaginatedProblemsData.error);
+    initialProblemDataError = initialPaginatedProblemsData.error;
+    // Keep initialProblems as empty array, totalPages as 1, currentPage as 1
+  } else {
     initialProblems = initialPaginatedProblemsData.problems;
     initialTotalPages = initialPaginatedProblemsData.totalPages;
     initialCurrentPage = initialPaginatedProblemsData.currentPage;
-  } else {
-    console.error("Error fetching initial problems for company page:", initialPaginatedProblemsData.error);
-    // Handle error case, e.g., show a message or empty list
   }
   
-  const hasProblems = allProblemsForAIAndStats.totalProblems > 0;
+  const hasProblemsForStats = allProblemsForAIAndStats.totalProblems > 0;
 
 
   return (
@@ -198,7 +204,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
                   <h1 className="text-xl sm:text-2xl font-bold truncate">
                     {company.name}
                   </h1>
-                  {hasProblems && (
+                  {hasProblemsForStats && (
                     <Badge variant="secondary" className="text-xs flex-shrink-0">
                       {allProblemsForAIAndStats.totalProblems} Problems
                     </Badge>
@@ -221,25 +227,34 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
                       Website
                     </Link>
                   )}
-                  {hasProblems && (
-                    <div className="hidden sm:flex items-center gap-2">
-                      <Button size="sm" variant="outline" className="h-7 text-xs">
-                        <BarChart3 className="h-3 w-3 mr-1" />
-                        Analytics
-                      </Button>
-                      <Button size="sm" variant="outline" className="h-7 text-xs">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        Plan
-                      </Button>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {hasProblems ? (
+        {initialProblemDataError && (
+          <Card className="my-4 border-destructive bg-destructive/10">
+            <CardHeader>
+              <CardTitle className="text-destructive flex items-center text-lg">
+                <AlertTriangle className="mr-2 h-5 w-5" />
+                Failed to Load Problems
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-destructive/90 text-sm">
+                We encountered an issue trying to load the problems for {company.name}.
+                This might be a temporary issue with our services or with accessing the data.
+              </p>
+              <p className="text-xs text-destructive/70 mt-2">Error details: {initialProblemDataError}</p>
+              <Button variant="outline" size="sm" className="mt-3" onClick={() => window.location.reload()}>
+                Try Refreshing
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {!initialProblemDataError && hasProblemsForStats ? (
           <>
             <div className="mb-4">
               <Suspense fallback={<div className="animate-pulse h-96 bg-muted rounded-lg" />}>
@@ -267,16 +282,6 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
                       <span className="hidden sm:inline">Strategy</span>
                     </TabsTrigger>
                   </TabsList>
-                  <div className="flex sm:hidden gap-2">
-                    <Button size="sm" variant="outline" className="flex-1 h-8 text-xs">
-                      <BarChart3 className="h-3 w-3 mr-1" />
-                      Analytics
-                    </Button>
-                    <Button size="sm" variant="outline" className="flex-1 h-8 text-xs">
-                      <Calendar className="h-3 w-3 mr-1" />
-                      Plan
-                    </Button>
-                  </div>
                 </div>
               </div>
 
@@ -355,27 +360,31 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
             </Tabs>
           </>
         ) : (
-          <Card className="text-center py-8">
-            <CardContent>
-              <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <h2 className="text-lg font-semibold mb-2">No Problems Available</h2>
-              <p className="text-muted-foreground text-sm mb-4 max-w-sm mx-auto">
-                We don't have coding problems for {company.name} yet. Check back later or explore other companies.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-2 justify-center max-w-xs mx-auto">
-                <Button asChild variant="outline" size="sm" className="flex-1">
-                  <Link href="/companies">
-                    <ChevronLeft className="h-4 w-4 mr-1" />
-                    Browse Companies
-                  </Link>
-                </Button>
-                <Button variant="secondary" size="sm" className="flex-1">
-                  <Target className="h-4 w-4 mr-1" />
-                  Request Problems
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          !initialProblemDataError && ( // Only show "No Problems Available" if there wasn't a loading error
+            <Card className="text-center py-8">
+              <CardContent>
+                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                <h2 className="text-lg font-semibold mb-2">No Problems Available</h2>
+                <p className="text-muted-foreground text-sm mb-4 max-w-sm mx-auto">
+                  We don't have coding problems for {company.name} yet. You can help by adding some!
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2 justify-center max-w-xs mx-auto">
+                  <Button asChild variant="outline" size="sm" className="flex-1">
+                    <Link href="/companies">
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Browse Companies
+                    </Link>
+                  </Button>
+                  <Button asChild variant="secondary" size="sm" className="flex-1">
+                    <Link href="/submit-problem">
+                      <PlusSquare className="h-4 w-4 mr-1" />
+                      Add Problem
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )
         )}
       </div>
     </div>
@@ -384,10 +393,10 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
 
 export async function generateStaticParams() {
   try {
-    const { getAllCompanySlugs } = await import('@/lib/data'); // Use named import
+    const { getAllCompanySlugs } = await import('@/lib/data'); 
     const companySlugs = await getAllCompanySlugs();
     if (!companySlugs || companySlugs.length === 0) {
-      console.warn("generateStaticParams for company pages: No company slugs found.");
+      
       return [];
     }
     return companySlugs.map((slug) => ({
