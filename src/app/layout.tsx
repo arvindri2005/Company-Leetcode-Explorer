@@ -7,6 +7,7 @@ import Header from '@/components/layout/header';
 import { AuthProvider } from '@/contexts/auth-context'; // Import AuthProvider
 import { ThemeProvider } from '@/components/theme-provider'; // Import ThemeProvider
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from "@vercel/analytics/next"
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -46,6 +47,7 @@ export default function RootLayout({
               <main className="flex-grow container mx-auto px-4 py-8">
                 {children}
                 <SpeedInsights/>
+                <Analytics/>
               </main>
               <Toaster />
             </div>
