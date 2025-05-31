@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { LeetCodeProblem, ProblemStatus, SimilarProblemDetail, GenerateProblemInsightsOutput } from '@/types';
@@ -28,6 +29,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 interface ProblemCardProps {
   problem: LeetCodeProblem;
+  companySlug: string;
   initialIsBookmarked?: boolean;
   onBookmarkChanged?: (problemId: string, newStatus: boolean) => void;
   problemStatus?: ProblemStatus;
@@ -36,7 +38,7 @@ interface ProblemCardProps {
 
 const ProblemStatusIcon: React.FC<{ status: ProblemStatus }> = ({ status }) => {
   if (status === 'none' || !PROBLEM_STATUS_DISPLAY[status]) return null;
-  
+
   const statusConfig = {
     solved: { Icon: CheckCircle2, bgColor: 'bg-green-50', borderColor: 'border-green-200' },
     attempted: { Icon: Pencil, bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200' },
@@ -74,6 +76,7 @@ const ProblemStatusIcon: React.FC<{ status: ProblemStatus }> = ({ status }) => {
 
 const ProblemCard: React.FC<ProblemCardProps> = ({
   problem,
+  companySlug,
   initialIsBookmarked = false,
   onBookmarkChanged,
   problemStatus = 'none',
@@ -100,160 +103,166 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
   useEffect(() => { setCurrentStatus(problemStatus); }, [problemStatus]);
 
   const handleFindSimilar = async () => {
-    setIsLoadingSimilar(true); 
+    setIsLoadingSimilar(true);
     setSimilarProblems(null);
-    toast({ 
-      title: '🔍 Finding Similar Problems', 
-      description: `AI is analyzing "${problem.title}" for similar patterns...` 
+    toast({
+      title: '🔍 Finding Similar Problems',
+      description: `AI is analyzing "${problem.title}" for similar patterns...`
     });
-    
-    const result = await performSimilarQuestionSearch(problem);
+
+    const result = await performSimilarQuestionSearch(problem.slug, problem.companySlug || companySlug);
     setIsLoadingSimilar(false);
-    
+
     if (result && 'error' in result) {
-      toast({ 
-        title: 'Search Failed', 
-        description: result.error, 
-        variant: 'destructive' 
+      toast({
+        title: 'Search Failed',
+        description: result.error,
+        variant: 'destructive'
       });
     } else if (result && result.similarProblems) {
-      setSimilarProblems(result.similarProblems); 
+      setSimilarProblems(result.similarProblems);
       setIsSimilarDialogSharedOpen(true);
-      toast({ 
-        title: '✨ Similar Problems Found!', 
-        description: `Discovered ${result.similarProblems.length} related problem(s).` 
+      toast({
+        title: '✨ Similar Problems Found!',
+        description: `Discovered ${result.similarProblems.length} related problem(s).`
       });
-    } else { 
-      setSimilarProblems([]); 
-      setIsSimilarDialogSharedOpen(true); 
-      toast({ 
-        title: 'No Matches Found', 
-        description: 'This problem appears to be unique!' 
-      }); 
+    } else {
+      setSimilarProblems([]);
+      setIsSimilarDialogSharedOpen(true);
+      toast({
+        title: 'No Matches Found',
+        description: 'This problem appears to be unique!'
+      });
     }
   };
 
   const handleGenerateInsights = async () => {
-    setIsLoadingInsights(true); 
+    setIsLoadingInsights(true);
     setProblemInsights(null);
-    toast({ 
-      title: '🧠 Generating AI Insights', 
+    toast({
+      title: '🧠 Generating AI Insights',
       description: `Analyzing key concepts and strategies for "${problem.title}"...`
     });
-    
+
     const result = await generateProblemInsightsAction(problem);
     setIsLoadingInsights(false);
-    
+
     if (result && 'error' in result) {
-      toast({ 
-        title: 'Insights Generation Failed', 
-        description: result.error, 
-        variant: 'destructive' 
+      toast({
+        title: 'Insights Generation Failed',
+        description: result.error,
+        variant: 'destructive'
       });
     } else if (result) {
       setProblemInsights(result);
       setIsInsightsDialogOpen(true);
-      toast({ 
-        title: '💡 Insights Ready!', 
-        description: 'AI has analyzed the problem structure and hints.' 
+      toast({
+        title: '💡 Insights Ready!',
+        description: 'AI has analyzed the problem structure and hints.'
       });
     } else {
-      toast({ 
-        title: 'Generation Error', 
-        description: 'Could not generate insights for this problem.', 
-        variant: 'destructive' 
+      toast({
+        title: 'Generation Error',
+        description: 'Could not generate insights for this problem.',
+        variant: 'destructive'
       });
     }
   };
 
   const handleToggleBookmark = async () => {
-    if (!user) { 
-      toast({ 
-        title: 'Authentication Required', 
-        description: 'Please sign in to bookmark problems.', 
-        variant: 'destructive' 
-      }); 
-      return; 
+    if (!user) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please sign in to bookmark problems.',
+        variant: 'destructive'
+      });
+      return;
     }
-    
+
     if (isTogglingBookmark) return;
-    setIsTogglingBookmark(true); 
+    setIsTogglingBookmark(true);
     const oldStatus = isBookmarked;
-    setIsBookmarked(!oldStatus); // Optimistic update
-    
+    setIsBookmarked(!oldStatus);
+
     try {
-      const result = await toggleBookmarkProblemAction(user.uid, problem.id);
+
+      const effectiveCompanySlug = problem.companySlug || companySlug;
+      const result = await toggleBookmarkProblemAction(user.uid, problem.id, effectiveCompanySlug, problem.slug);
       if (result.success) {
         setIsBookmarked(result.isBookmarked ?? oldStatus);
-        toast({ 
-          title: result.isBookmarked ? '⭐ Bookmarked!' : '📖 Bookmark Removed', 
-          description: `"${problem.title}" ${result.isBookmarked ? 'saved to' : 'removed from'} your collection.` 
+        toast({
+          title: result.isBookmarked ? '⭐ Bookmarked!' : '📖 Bookmark Removed',
+          description: `"${problem.title}" ${result.isBookmarked ? 'saved to' : 'removed from'} your collection.`
         });
         onBookmarkChanged?.(problem.id, result.isBookmarked ?? oldStatus);
-      } else { 
-        setIsBookmarked(oldStatus); 
-        toast({ 
-          title: 'Bookmark Error', 
-          description: result.error || 'Failed to update bookmark.', 
-          variant: 'destructive' 
-        }); 
+      } else {
+        setIsBookmarked(oldStatus);
+        toast({
+          title: 'Bookmark Error',
+          description: result.error || 'Failed to update bookmark.',
+          variant: 'destructive'
+        });
       }
-    } catch (error) { 
-      setIsBookmarked(oldStatus); 
-      toast({ 
-        title: 'Connection Error', 
-        description: 'Please check your connection and try again.', 
-        variant: 'destructive' 
-      }); 
-    } finally { 
-      setIsTogglingBookmark(false); 
+    } catch (error) {
+      setIsBookmarked(oldStatus);
+      toast({
+        title: 'Connection Error',
+        description: 'Please check your connection and try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsTogglingBookmark(false);
     }
   };
 
   const handleStatusUpdate = async (newStatus: ProblemStatus) => {
-    if (!user) { 
-      toast({ 
-        title: 'Authentication Required', 
-        description: 'Please sign in to track your progress.', 
-        variant: 'destructive' 
-      }); 
-      return; 
+    if (!user) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please sign in to track your progress.',
+        variant: 'destructive'
+      });
+      return;
     }
-    
+
     if (isUpdatingStatus) return;
-    setIsUpdatingStatus(true); 
+    setIsUpdatingStatus(true);
     const oldUiStatus = currentStatus;
-    setCurrentStatus(newStatus); // Optimistic UI update
-    
+    setCurrentStatus(newStatus);
+
     try {
-      const result = await setProblemStatusAction(user.uid, problem.id, newStatus);
+
+      const effectiveCompanySlug = problem.companySlug || companySlug;
+      const result = await setProblemStatusAction(user.uid, problem.id, newStatus, effectiveCompanySlug, problem.slug);
       if (result.success) {
-        const statusLabel = newStatus === 'none' ? 'cleared' : 
+        const statusLabel = newStatus === 'none' ? 'cleared' :
           `marked as ${PROBLEM_STATUS_OPTIONS.find(opt => opt.value === newStatus)?.label}`;
-        toast({ 
-          title: '✅ Status Updated!', 
-          description: `"${problem.title}" ${statusLabel}.` 
+        toast({
+          title: '✅ Status Updated!',
+          description: `"${problem.title}" ${statusLabel}.`
         });
         onProblemStatusChange?.(problem.id, newStatus);
-      } else { 
-        setCurrentStatus(oldUiStatus); 
-        toast({ 
-          title: 'Update Failed', 
-          description: result.error || 'Failed to update status.', 
-          variant: 'destructive' 
-        }); 
+      } else {
+        setCurrentStatus(oldUiStatus);
+        toast({
+          title: 'Update Failed',
+          description: result.error || 'Failed to update status.',
+          variant: 'destructive'
+        });
       }
-    } catch (error) { 
-      setCurrentStatus(oldUiStatus); 
-      toast({ 
-        title: 'Connection Error', 
-        description: 'Please check your connection and try again.', 
-        variant: 'destructive' 
-      }); 
-    } finally { 
-      setIsUpdatingStatus(false); 
+    } catch (error) {
+      setCurrentStatus(oldUiStatus);
+      toast({
+        title: 'Connection Error',
+        description: 'Please check your connection and try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
+
+  const problemTags = problem.tags || []; // Ensure problemTags is an array
 
   return (
     <>
@@ -263,12 +272,11 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
         "border-border/50 hover:border-primary/20",
         "bg-gradient-to-br from-card via-card to-muted/5"
       )}>
-        {/* Status Indicator Stripe */}
         {currentStatus !== 'none' && (
           <div className={cn(
             "absolute top-0 left-0 right-0 h-1 rounded-t-lg transition-all duration-300",
             currentStatus === 'solved' && "bg-green-500",
-            currentStatus === 'attempted' && "bg-yellow-500", 
+            currentStatus === 'attempted' && "bg-yellow-500",
             currentStatus === 'todo' && "bg-blue-500"
           )} />
         )}
@@ -295,17 +303,17 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                 )}
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2 flex-shrink-0">
               {user && (
                 <TooltipProvider delayDuration={300}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={handleToggleBookmark} 
-                        disabled={isTogglingBookmark} 
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleToggleBookmark}
+                        disabled={isTogglingBookmark}
                         className={cn(
                           "h-9 w-9 rounded-full transition-all duration-200",
                           "hover:bg-primary/10 hover:scale-110",
@@ -318,8 +326,8 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                         ) : (
                           <Star className={cn(
                             "h-4 w-4 transition-all duration-200",
-                            isBookmarked 
-                              ? "fill-yellow-400 text-yellow-400 scale-110" 
+                            isBookmarked
+                              ? "fill-yellow-400 text-yellow-400 scale-110"
                               : "text-muted-foreground hover:text-yellow-400 hover:scale-110"
                           )} />
                         )}
@@ -337,29 +345,27 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
         </CardHeader>
 
         <CardContent className="flex-grow space-y-4">
-          {/* Tags Section */}
-          {problem.tags.length > 0 && (
+          {problemTags.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Tag className="h-3.5 w-3.5 text-muted-foreground" />
                 <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Topics ({problem.tags.length})
+                  Topics ({problemTags.length})
                 </h4>
               </div>
               <div className="flex flex-wrap gap-1.5">
-                {problem.tags.slice(0, 6).map(tag => (
+                {problemTags.slice(0, 6).map(tag => (
                   <TagBadge key={tag} tag={tag} />
                 ))}
-                {problem.tags.length > 6 && (
+                {problemTags.length > 6 && (
                   <Badge variant="outline" className="text-xs">
-                    +{problem.tags.length - 6} more
+                    +{problemTags.length - 6} more
                   </Badge>
                 )}
               </div>
             </div>
           )}
 
-          {/* Quick Stats */}
           <div className="flex items-center justify-between pt-2 border-t border-border/30">
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
               <div className="flex items-center gap-1">
@@ -377,46 +383,42 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
         </CardContent>
 
         <CardFooter className="p-4 pt-2">
-          {/* Action Buttons - Responsive Grid */}
           <div className="w-full space-y-3">
-            {/* Primary Actions Row */}
             <div className="grid grid-cols-2 gap-2">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button 
-                      asChild 
-                      variant="default" 
-                      size="sm" 
-                      className="w-full font-medium"
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="w-full font-medium flex items-center justify-center gap-2"
+                      disabled={!problem.link}
+                      onClick={() => {
+                        if (problem.link) {
+                          window.open(problem.link, '_blank', 'noopener,noreferrer');
+                        }
+                      }}
                     >
-                      <Link 
-                        href={problem.link} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        <span className="hidden sm:inline">Solve Problem</span>
-                        <span className="sm:hidden">Solve</span>
-                      </Link>
+                      <ExternalLink className="h-4 w-4" />
+                      <span className="hidden sm:inline">Solve Problem</span>
+                      <span className="sm:hidden">Solve</span>
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent><p>Open in LeetCode</p></TooltipContent>
+                  <TooltipContent><p>{problem.link ? "Open in LeetCode" : "Link unavailable"}</p></TooltipContent>
                 </Tooltip>
               </TooltipProvider>
 
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button 
-                      asChild 
-                      variant="secondary" 
-                      size="sm" 
+                    <Button
+                      asChild
+                      variant="secondary"
+                      size="sm"
                       className="w-full font-medium"
                     >
-                      <Link 
-                        href={`/mock-interview/${problem.id}`}
+                      <Link
+                        href={`/mock-interview/${problem.companySlug || companySlug}/${problem.slug}`}
                         className="flex items-center justify-center gap-2"
                       >
                         <Bot className="h-4 w-4" />
@@ -430,7 +432,6 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
               </TooltipProvider>
             </div>
 
-            {/* Secondary Actions Row */}
             <div className={cn(
               "grid gap-2",
               user ? "grid-cols-3" : "grid-cols-2"
@@ -438,10 +439,10 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={handleFindSimilar} 
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleFindSimilar}
                       disabled={isLoadingSimilar}
                       className="w-full text-xs"
                     >
@@ -460,10 +461,10 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={handleGenerateInsights} 
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleGenerateInsights}
                       disabled={isLoadingInsights}
                       className="w-full text-xs"
                     >
@@ -485,9 +486,9 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <DropdownMenuTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             disabled={isUpdatingStatus}
                             className="w-full text-xs"
                           >
@@ -507,9 +508,9 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                     <DropdownMenuLabel>Progress Status</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {PROBLEM_STATUS_OPTIONS.map(opt => (
-                      <DropdownMenuItem 
-                        key={opt.value} 
-                        onSelect={() => handleStatusUpdate(opt.value)} 
+                      <DropdownMenuItem
+                        key={opt.value}
+                        onSelect={() => handleStatusUpdate(opt.value)}
                         disabled={currentStatus === opt.value || isUpdatingStatus}
                         className="flex items-center gap-2"
                       >
@@ -532,23 +533,22 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
         </CardFooter>
       </Card>
 
-      {/* Dialogs */}
       {isSimilarDialogSharedOpen && (
-        <SimilarProblemsDialog 
-          isOpen={isSimilarDialogSharedOpen} 
-          onClose={() => setIsSimilarDialogSharedOpen(false)} 
-          currentProblemTitle={problem.title} 
-          similarProblems={similarProblems || []} 
-          isLoading={isLoadingSimilar} 
+        <SimilarProblemsDialog
+          isOpen={isSimilarDialogSharedOpen}
+          onClose={() => setIsSimilarDialogSharedOpen(false)}
+          currentProblemTitle={problem.title}
+          similarProblems={similarProblems || []}
+          isLoading={isLoadingSimilar}
         />
       )}
       {isInsightsDialogOpen && (
-        <ProblemInsightsDialog 
-          isOpen={isInsightsDialogOpen} 
-          onClose={() => setIsInsightsDialogOpen(false)} 
-          problemTitle={problem.title} 
-          insights={problemInsights} 
-          isLoading={isLoadingInsights} 
+        <ProblemInsightsDialog
+          isOpen={isInsightsDialogOpen}
+          onClose={() => setIsInsightsDialogOpen(false)}
+          problemTitle={problem.title}
+          insights={problemInsights}
+          isLoading={isLoadingInsights}
         />
       )}
     </>

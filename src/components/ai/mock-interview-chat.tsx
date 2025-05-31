@@ -18,6 +18,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface MockInterviewChatProps {
   problem: LeetCodeProblem;
+  companySlug: string; 
 }
 
 interface UIMessage extends ChatMessage {
@@ -30,7 +31,7 @@ interface UIMessage extends ChatMessage {
 const SpeechRecognition = (typeof window !== 'undefined') ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null;
 const speechSynthesis = (typeof window !== 'undefined') ? window.speechSynthesis : null;
 
-const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem }) => {
+const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem, companySlug }) => {
   const [conversation, setConversation] = useState<UIMessage[]>([]);
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -66,7 +67,8 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem }) => {
   const startInterview = useCallback(async () => {
     setIsLoading(true);
     setConversation([]);
-    const result = await handleInterviewTurn(problem.id, [], "Let's begin the interview.");
+    // Use problem.companySlug and problem.slug
+    const result = await handleInterviewTurn(problem.companySlug, problem.slug, [], "Let's begin the interview.");
     
     let initialMessages: UIMessage[] = [];
     if (result.interviewerResponse) {
@@ -83,12 +85,12 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem }) => {
     }
     setConversation(initialMessages);
     setIsLoading(false);
-  }, [problem.id, problem.title, toast, isTTSEnabled, isBrowserUnsupported]);
+  }, [problem.slug, problem.companySlug, problem.title, toast, isTTSEnabled, isBrowserUnsupported]);
 
   useEffect(() => {
     startInterview();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run on mount
+  }, []); 
 
 
   const scrollToBottom = () => {
@@ -105,15 +107,15 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem }) => {
   const speakText = (text: string) => {
     if (!speechSynthesis || !isTTSEnabled) return;
     if (speechSynthesis.speaking) {
-      speechSynthesis.cancel(); // Cancel any ongoing speech
+      speechSynthesis.cancel(); 
     }
-    // Remove markdown for cleaner speech
-    const plainText = text.replace(/```[\s\S]*?```/g, 'Code block.') // Replace code blocks
-                         .replace(/`[^`]+`/g, 'Inline code.')    // Replace inline code
-                         .replace(/(\*\*|__)(.*?)\1/g, '$2')    // Bold
-                         .replace(/(\*|_)(.*?)\1/g, '$2')      // Italics
-                         .replace(/#+\s/g, '')                 // Headers
-                         .replace(/\[.*?\]\(.*?\)/g, 'Link.'); // Links
+    
+    const plainText = text.replace(/```[\s\S]*?```/g, 'Code block.') 
+                         .replace(/`[^`]+`/g, 'Inline code.')    
+                         .replace(/(\*\*|__)(.*?)\1/g, '$2')    
+                         .replace(/(\*|_)(.*?)\1/g, '$2')      
+                         .replace(/#+\s/g, '')                 
+                         .replace(/\[.*?\]\(.*?\)/g, 'Link.'); 
     utteranceRef.current = new SpeechSynthesisUtterance(plainText);
     speechSynthesis.speak(utteranceRef.current);
   };
@@ -140,15 +142,15 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem }) => {
     const newUserMessage: UIMessage = { id: Date.now().toString(), role: 'user', content: messageContent.trim() };
     setConversation(prev => [...prev, newUserMessage]);
     
-    // Prepare history for AI: exclude the `id` and `suggestedFollowUps` from UIMessage
     const historyForAI: ChatMessage[] = conversation.map(({id, role, content}) => ({role, content}));
     historyForAI.push({role: 'user', content: newUserMessage.content});
 
 
     setUserInput(''); 
     setIsLoading(true);
-
-    const result = await handleInterviewTurn(problem.id, historyForAI.slice(0, -1), newUserMessage.content);
+    
+    // Use problem.companySlug and problem.slug
+    const result = await handleInterviewTurn(problem.companySlug, problem.slug, historyForAI.slice(0, -1), newUserMessage.content);
     setIsLoading(false);
 
     if (result.interviewerResponse) {

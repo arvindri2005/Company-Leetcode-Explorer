@@ -1,20 +1,76 @@
+
 import CompanyList from '@/components/company/company-list';
 import { getCompanies } from '@/lib/data';
 import { Separator } from '@/components/ui/separator';
+import type { Metadata } from 'next';
 
 const ITEMS_PER_PAGE = 9;
+// Define a base URL, ideally from an environment variable
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
+
 
 interface CompaniesPageProps {
   searchParams?: {
-    page?: string; // Page param is no longer directly used by HomePage for pagination controls
+    page?: string; 
     search?: string;
   };
 }
 
-export const metadata = {
-  title: 'Explore Companies | Company LeetCode Explorer',
-  description: 'Find and explore LeetCode problems by company. Search and filter to find the most relevant companies for your interview preparation.',
-};
+export async function generateMetadata({ searchParams }: CompaniesPageProps): Promise<Metadata> {
+  const searchTerm = searchParams?.search || '';
+  const pageTitle = searchTerm 
+    ? `Search Results for "${searchTerm}" | Company LeetCode Explorer` 
+    : 'Explore Companies & Interview Problems | Company LeetCode Explorer';
+  const pageDescription = searchTerm
+    ? `Find companies matching "${searchTerm}" and their associated LeetCode interview problems.`
+    : 'Browse, search, and filter companies to find LeetCode problems frequently asked in their technical interviews. Prepare effectively for your next coding interview.';
+
+  const breadcrumbList = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": `${APP_URL}/`
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Companies",
+        "item": `${APP_URL}/companies`
+      }
+    ]
+  };
+  if (searchTerm) {
+    breadcrumbList.itemListElement.push({
+        "@type": "ListItem",
+        "position": 3,
+        "name": `Search: "${searchTerm}"`,
+        "item": `${APP_URL}/companies?search=${encodeURIComponent(searchTerm)}`
+      });
+  }
+
+
+  return {
+    title: pageTitle,
+    description: pageDescription,
+    openGraph: {
+      title: pageTitle,
+      description: pageDescription,
+      url: `${APP_URL}/companies${searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : ''}`,
+      type: 'website', // Changed from: searchTerm ? 'searchresults' : 'website'
+    },
+    alternates: {
+      canonical: `${APP_URL}/companies${searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : ''}`,
+    },
+    other: {
+      "script[type=\"application/ld+json\"]": JSON.stringify(breadcrumbList),
+    }
+  };
+}
+
 
 export default async function CompaniesPage({ searchParams }: CompaniesPageProps) {
   const initialPage = 1;

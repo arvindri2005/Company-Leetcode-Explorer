@@ -1,5 +1,6 @@
-import { getCompanyById, getProblemsByCompany, getCompanies as getAllCompaniesForStaticParams } from '@/lib/data';
-import type { Company, LeetCodeProblem } from '@/types';
+
+import { getCompanyBySlug, getProblemsByCompanyFromDb } from '@/lib/data';
+import type { Company, LeetCodeProblem, ProblemListFilters, PaginatedProblemsResponse } from '@/types';
 import ProblemList from '@/components/problem/problem-list';
 import AIGroupingSection from '@/components/ai/ai-grouping-section';
 import CompanyProblemStats from '@/components/company/company-problem-stats';
@@ -13,66 +14,80 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Building2, ExternalLink, BarChart3, BookOpen, Brain, Target, Users, Calendar, ChevronLeft } from 'lucide-react';
 import Image from 'next/image';
 import { Suspense } from 'react';
+import type { Metadata } from 'next';
+import { auth } from '@/lib/firebase'; // To get current user for initial fetch
+import { fetchProblemsForCompanyPage } from '@/app/actions/problem.actions';
+
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
+const INITIAL_ITEMS_PER_PAGE = 15; // Or whatever your desired page size is
 
 interface CompanyPageProps {
-  params: { companyId: string };
+  params: { companySlug: string };
+  searchParams?: { page?: string; /* other future params like initial filters */ };
 }
 
-// Compact loading skeletons
-function CompanyHeaderSkeleton() {
-  return (
-    <div className="animate-pulse space-y-3">
-      <div className="h-3 w-24 bg-muted rounded" />
-      <div className="flex items-center gap-3">
-        <div className="h-10 w-10 bg-muted rounded-lg" />
-        <div className="space-y-2 flex-1">
-          <div className="h-6 w-40 bg-muted rounded" />
-          <div className="h-3 w-60 bg-muted rounded" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function StatsSkeleton() {
-  return (
-    <div className="space-y-4">
-      {/* Key metrics skeleton */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="animate-pulse bg-muted rounded-lg p-4">
-            <div className="h-3 w-12 bg-muted-foreground/20 rounded mb-2" />
-            <div className="h-6 w-8 bg-muted-foreground/20 rounded" />
-          </div>
-        ))}
-      </div>
-      
-      {/* Charts skeleton */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="animate-pulse bg-muted rounded-lg h-64" />
-        <div className="animate-pulse bg-muted rounded-lg h-64" />
-      </div>
-    </div>
-  );
-}
-
-export async function generateMetadata({ params }: CompanyPageProps) {
-  const company = await getCompanyById(params.companyId);
+export async function generateMetadata({ params }: CompanyPageProps): Promise<Metadata> {
+  const company = await getCompanyBySlug(params.companySlug);
   if (!company) {
-    return { title: 'Company Not Found' };
+    return {
+      title: 'Company Not Found',
+      description: 'The requested company page does not exist.',
+    };
   }
-  
-  const problems = await getProblemsByCompany(params.companyId);
-  
-  return { 
-    title: `${company.name} - LeetCode Problems & Interview Prep`,
-    description: `Explore ${company.name} coding interview questions, problem patterns, and preparation strategies. ${problems?.length || 0} problems available.`
+
+  // Fetch initial page to get problem count for metadata
+  const initialProblemData = await getProblemsByCompanyFromDb(company.id, { page: 1, pageSize: 1 });
+  const problemCount = initialProblemData?.totalProblems || 0;
+  const title = `${company.name} - LeetCode Problems & Interview Prep (${problemCount} Problems)`;
+  const description = `Explore ${company.name}'s coding interview questions, common problem patterns, and AI-powered preparation strategies. ${problemCount} LeetCode problems available.`;
+
+  const breadcrumbList = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": `${APP_URL}/`
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Companies",
+        "item": `${APP_URL}/companies`
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": company.name,
+        "item": `${APP_URL}/company/${company.slug}`
+      }
+    ]
+  };
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'profile',
+      url: `${APP_URL}/company/${company.slug}`,
+      images: company.logo ? [{ url: company.logo, alt: `${company.name} logo` }] : [],
+    },
+    alternates: {
+      canonical: `${APP_URL}/company/${company.slug}`,
+    },
+    other: {
+       "script[type=\"application/ld+json\"]": JSON.stringify(breadcrumbList),
+    }
   };
 }
 
-export default async function CompanyPage({ params }: CompanyPageProps) {
-  const company = await getCompanyById(params.companyId);
-  const problems = await getProblemsByCompany(params.companyId);
+export default async function CompanyPage({ params, searchParams }: CompanyPageProps) {
+  const company = await getCompanyBySlug(params.companySlug);
 
   if (!company) {
     return (
@@ -80,11 +95,11 @@ export default async function CompanyPage({ params }: CompanyPageProps) {
         <Building2 className="h-12 w-12 text-muted-foreground mb-3" />
         <h1 className="text-xl font-semibold mb-2">Company Not Found</h1>
         <p className="text-muted-foreground text-sm mb-4 max-w-sm">
-          The company you're looking for doesn't exist or may have been removed.
+          The company you're looking for (slug: {params.companySlug}) doesn't exist or may have been removed.
         </p>
         <Button asChild variant="outline" size="sm">
-          <Link href="/">
-            <ChevronLeft className="h-4 w-4 mr-1" /> 
+          <Link href="/companies">
+            <ChevronLeft className="h-4 w-4 mr-1" />
             Back to Companies
           </Link>
         </Button>
@@ -92,51 +107,92 @@ export default async function CompanyPage({ params }: CompanyPageProps) {
     );
   }
 
-  const hasProblems = problems.length > 0;
+  // For AI Grouping section, we still need all problems.
+  // Consider if this should also be paginated or handled differently if it becomes a performance issue.
+  // For now, fetching all for AI Grouping and stats.
+  const allProblemsForAIAndStats = await getProblemsByCompanyFromDb(company.id, { pageSize: 10000 });
+
+
+  // Initial fetch for the ProblemList component
+  const initialPage = searchParams?.page ? parseInt(searchParams.page, 10) : 1;
+  const currentUser = auth.currentUser; // This will be null during SSR build / if not using server-side auth state
+                                       // For robust user data on SSR, proper session management is key.
+                                       // For now, ProblemList will fetch user data client-side on interaction if needed.
+  
+  // Default filters for initial load
+  const initialFilters: ProblemListFilters = {
+    difficultyFilter: 'all',
+    lastAskedFilter: 'all',
+    statusFilter: 'all', // User-specific, so 'all' for initial server load unless user is passed
+    searchTerm: '',
+    sortKey: 'title',
+  };
+
+  const initialPaginatedProblemsData = await fetchProblemsForCompanyPage({
+    companyId: company.id,
+    page: initialPage,
+    pageSize: INITIAL_ITEMS_PER_PAGE,
+    filters: initialFilters,
+    userId: currentUser?.uid, // Pass user ID if available, otherwise ProblemList handles client-side fetches
+  });
+  
+  let initialProblems: LeetCodeProblem[] = [];
+  let initialTotalPages = 1;
+  let initialCurrentPage = 1;
+
+  if (!('error' in initialPaginatedProblemsData)) {
+    initialProblems = initialPaginatedProblemsData.problems;
+    initialTotalPages = initialPaginatedProblemsData.totalPages;
+    initialCurrentPage = initialPaginatedProblemsData.currentPage;
+  } else {
+    console.error("Error fetching initial problems for company page:", initialPaginatedProblemsData.error);
+    // Handle error case, e.g., show a message or empty list
+  }
+  
+  const hasProblems = allProblemsForAIAndStats.totalProblems > 0;
+
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-4 max-w-6xl">
-        {/* Compact Header */}
         <div className="mb-4">
-          {/* Breadcrumb */}
           <nav className="flex items-center gap-1 text-xs text-muted-foreground mb-3">
             <Link href="/" className="hover:text-foreground transition-colors">
+              Home
+            </Link>
+            <span>/</span>
+            <Link href="/companies" className="hover:text-foreground transition-colors">
               Companies
             </Link>
             <span>/</span>
             <span className="text-foreground font-medium truncate">{company.name}</span>
           </nav>
-
-          {/* Back Button */}
           <Button asChild variant="ghost" size="sm" className="mb-3 -ml-2">
-            <Link href="/">
-              <ChevronLeft className="h-4 w-4 mr-1" /> 
-              <span className="hidden sm:inline">Back</span>
+            <Link href="/companies">
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Back to Companies</span>
             </Link>
           </Button>
         </div>
-        
-        {/* Compact Company Header */}
+
         <Card className="mb-4">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
-              {/* Logo */}
               {company.logo ? (
-                <Image 
-                  src={company.logo} 
-                  alt={`${company.name} logo`} 
-                  width={48} 
-                  height={48} 
+                <Image
+                  src={company.logo}
+                  alt={`${company.name} logo`}
+                  width={48}
+                  height={48}
                   className="rounded-lg border bg-background p-1 flex-shrink-0"
+                  data-ai-hint={`${company.name} logo`}
+                  priority
                 />
               ) : (
                 <div className="h-12 w-12 rounded-lg border bg-muted/50 flex items-center justify-center flex-shrink-0">
                   <Building2 className="h-6 w-6 text-primary" />
                 </div>
               )}
-              
-              {/* Company Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <h1 className="text-xl sm:text-2xl font-bold truncate">
@@ -144,30 +200,27 @@ export default async function CompanyPage({ params }: CompanyPageProps) {
                   </h1>
                   {hasProblems && (
                     <Badge variant="secondary" className="text-xs flex-shrink-0">
-                      {problems.length}
+                      {allProblemsForAIAndStats.totalProblems} Problems
                     </Badge>
                   )}
                 </div>
-                
                 {company.description && (
                   <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2 mb-2">
                     {company.description}
                   </p>
                 )}
-                
                 <div className="flex items-center gap-3">
                   {company.website && (
-                    <Link 
-                      href={company.website} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
+                    <Link
+                      href={company.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
                     >
                       <ExternalLink className="h-3 w-3" />
                       Website
                     </Link>
                   )}
-                  
                   {hasProblems && (
                     <div className="hidden sm:flex items-center gap-2">
                       <Button size="sm" variant="outline" className="h-7 text-xs">
@@ -188,14 +241,11 @@ export default async function CompanyPage({ params }: CompanyPageProps) {
 
         {hasProblems ? (
           <>
-            {/* Compact Stats */}
             <div className="mb-4">
-              <Suspense fallback={<StatsSkeleton />}>
-                <CompanyProblemStats problems={problems} />
+              <Suspense fallback={<div className="animate-pulse h-96 bg-muted rounded-lg" />}>
+                <CompanyProblemStats problems={allProblemsForAIAndStats.problems} />
               </Suspense>
             </div>
-
-            {/* Compact Tabs */}
             <Tabs defaultValue="problems" className="w-full">
               <div className="mb-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -217,8 +267,6 @@ export default async function CompanyPage({ params }: CompanyPageProps) {
                       <span className="hidden sm:inline">Strategy</span>
                     </TabsTrigger>
                   </TabsList>
-
-                  {/* Mobile Quick Actions */}
                   <div className="flex sm:hidden gap-2">
                     <Button size="sm" variant="outline" className="flex-1 h-8 text-xs">
                       <BarChart3 className="h-3 w-3 mr-1" />
@@ -238,12 +286,20 @@ export default async function CompanyPage({ params }: CompanyPageProps) {
                     <CardTitle className="flex items-center gap-2 text-base">
                       <BookOpen className="h-4 w-4" />
                       Interview Problems
-                      <Badge variant="outline" className="text-xs">{problems.length}</Badge>
+                      <Badge variant="outline" className="text-xs">{allProblemsForAIAndStats.totalProblems}</Badge>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
                     <Suspense fallback={<div className="animate-pulse h-48 bg-muted rounded" />}>
-                      <ProblemList problems={problems} />
+                       <ProblemList
+                        companyId={company.id}
+                        companySlug={company.slug}
+                        initialProblems={initialProblems}
+                        initialTotalPages={initialTotalPages}
+                        initialCurrentPage={initialCurrentPage}
+                        itemsPerPage={INITIAL_ITEMS_PER_PAGE}
+                        initialFilters={initialFilters}
+                      />
                     </Suspense>
                   </CardContent>
                 </Card>
@@ -259,7 +315,7 @@ export default async function CompanyPage({ params }: CompanyPageProps) {
                   </CardHeader>
                   <CardContent className="pt-0">
                     <Suspense fallback={<div className="animate-pulse h-48 bg-muted rounded" />}>
-                      <AIGroupingSection problems={problems} companyName={company.name} />
+                      <AIGroupingSection problems={allProblemsForAIAndStats.problems} companyName={company.name} companySlug={company.slug} />
                     </Suspense>
                   </CardContent>
                 </Card>
@@ -275,7 +331,7 @@ export default async function CompanyPage({ params }: CompanyPageProps) {
                   </CardHeader>
                   <CardContent className="pt-0">
                     <Suspense fallback={<div className="animate-pulse h-48 bg-muted rounded" />}>
-                      <FlashcardGenerator companyId={company.id} companyName={company.name} />
+                      <FlashcardGenerator companyId={company.id} companyName={company.name} companySlug={company.slug} />
                     </Suspense>
                   </CardContent>
                 </Card>
@@ -291,7 +347,7 @@ export default async function CompanyPage({ params }: CompanyPageProps) {
                   </CardHeader>
                   <CardContent className="pt-0">
                     <Suspense fallback={<div className="animate-pulse h-48 bg-muted rounded" />}>
-                      <CompanyStrategyGenerator companyId={company.id} companyName={company.name} />
+                      <CompanyStrategyGenerator companyId={company.id} companyName={company.name} companySlug={company.slug} />
                     </Suspense>
                   </CardContent>
                 </Card>
@@ -299,7 +355,6 @@ export default async function CompanyPage({ params }: CompanyPageProps) {
             </Tabs>
           </>
         ) : (
-          /* Compact No Problems State */
           <Card className="text-center py-8">
             <CardContent>
               <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
@@ -309,7 +364,7 @@ export default async function CompanyPage({ params }: CompanyPageProps) {
               </p>
               <div className="flex flex-col sm:flex-row gap-2 justify-center max-w-xs mx-auto">
                 <Button asChild variant="outline" size="sm" className="flex-1">
-                  <Link href="/">
+                  <Link href="/companies">
                     <ChevronLeft className="h-4 w-4 mr-1" />
                     Browse Companies
                   </Link>
@@ -329,19 +384,17 @@ export default async function CompanyPage({ params }: CompanyPageProps) {
 
 export async function generateStaticParams() {
   try {
-    const companiesData = await getAllCompaniesForStaticParams({ pageSize: 1000 });
-    const companies = companiesData.companies;
-    
-    if (!companies || companies.length === 0) {
-      console.warn("generateStaticParams: No companies found, static paths might not be generated correctly.");
+    const { getAllCompanySlugs } = await import('@/lib/data'); // Use named import
+    const companySlugs = await getAllCompanySlugs();
+    if (!companySlugs || companySlugs.length === 0) {
+      console.warn("generateStaticParams for company pages: No company slugs found.");
       return [];
     }
-    
-    return companies.map((company) => ({
-      companyId: company.id,
+    return companySlugs.map((slug) => ({
+      companySlug: slug,
     }));
   } catch (error) {
-    console.error("Error in generateStaticParams:", error);
+    console.error("Error in generateStaticParams for company pages:", error);
     return [];
   }
 }

@@ -1,5 +1,6 @@
 
 import type { User as FirebaseUser } from 'firebase/auth';
+import { z } from 'zod'; // Import Zod
 
 /**
  * Represents the periods when a LeetCode problem was reportedly last asked.
@@ -39,9 +40,14 @@ export interface LeetCodeProblem {
   difficulty: 'Easy' | 'Medium' | 'Hard';
   link: string;
   tags: string[];
-  companyId: string;
+  companyId: string; // ID of the company this problem is primarily associated with in *this* app
+  companySlug: string; // Slug of the company this problem is primarily associated with
+  slug: string; // Problem's own slug
   lastAskedPeriod?: LastAskedPeriod;
   normalizedTitle: string;
+  // Optional fields for UI, augmented after fetching user-specific data
+  isBookmarked?: boolean;
+  currentStatus?: ProblemStatus;
 }
 
 /**
@@ -51,6 +57,7 @@ export interface Company {
   id: string;
   name: string;
   normalizedName?: string;
+  slug: string; // Ensure slug is always present
   logo?: string;
   description?: string;
   website?: string;
@@ -61,6 +68,7 @@ export interface Company {
  */
 export interface AIProblemInput {
   title: string;
+  slug: string; // Slug for the problem
   difficulty: 'Easy' | 'Medium' | 'Hard';
   link: string;
   tags: string[];
@@ -69,39 +77,32 @@ export interface AIProblemInput {
 // --- Types for Find Similar Questions Flow ---
 /**
  * Represents the current problem's details for the similar questions AI flow.
+ * This type might be more aligned with the AI flow's internal Zod schema now.
  */
-export interface CurrentProblemInput {
+export interface CurrentProblemInput { // This might be less used if flow exports its Zod type
   title: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   tags: string[];
-}
-
-/**
- * Represents a candidate problem's details for the similar questions AI flow.
- */
-export interface CandidateProblemInput {
-  id: string;
-  title: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  tags: string[];
-  link: string;
+  slug?: string;
 }
 
 /**
  * Detailed information about a problem identified as similar by the AI.
+ * This is used by components like SimilarProblemsDialog.
  */
 export interface SimilarProblemDetail {
   title: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
+  difficulty?: 'Easy' | 'Medium' | 'Hard'; // Optional as AI might not always know
+  platform: string; // e.g., "LeetCode", "CodingNinjas"
   link: string;
-  tags: string[];
+  tags?: string[]; // Optional as AI might not always know
   similarityReason: string;
 }
 
 /**
- * Output structure for the "Find Similar Questions" AI flow.
+ * Output structure for the "Find Similar Questions" AI flow, used by components.
  */
-export interface FindSimilarQuestionsOutput {
+export interface FindSimilarQuestionsOutput { // This might be less used if flow exports its Zod type
   similarProblems: SimilarProblemDetail[];
 }
 
@@ -212,12 +213,23 @@ export interface GenerateCompanyStrategyInput {
 }
 
 /**
- * Represents a key topic to focus on, including a reason for its importance.
+ * Zod schema for a key topic to focus on.
  */
-export interface FocusTopic {
-  topic: string;
-  reason: string;
-}
+export const FocusTopicSchema = z.object({
+  topic: z.string().describe("A key topic or concept to focus on (e.g., 'Dynamic Programming', 'Graph Traversal', 'System Design Fundamentals for Scalability')."),
+  reason: z.string().describe("A brief explanation (1-2 sentences) of why this topic is particularly relevant for interviews at this company, based on the provided problem data and target role level if specified."),
+});
+export type FocusTopic = z.infer<typeof FocusTopicSchema>;
+
+
+/**
+ * Zod schema for a single actionable item in a strategy todo list.
+ */
+export const StrategyTodoItemSchema = z.object({
+  text: z.string().describe("A single, concise, actionable task for the user to complete."),
+  isCompleted: z.boolean().default(false).describe("Whether the task is completed. Defaults to false."),
+});
+export type StrategyTodoItem = z.infer<typeof StrategyTodoItemSchema>;
 
 /**
  * Output structure for the "Generate Company Strategy" AI flow.
@@ -225,6 +237,7 @@ export interface FocusTopic {
 export interface GenerateCompanyStrategyOutput {
   preparationStrategy: string;
   focusTopics: FocusTopic[];
+  todoItems: StrategyTodoItem[];
 }
 
 // --- User Authentication and Profile Types ---
@@ -252,12 +265,13 @@ export interface AuthContextType {
   syncUserProfileIfNeeded: (firebaseUser: FirebaseUser) => Promise<void>;
 }
 
-/**
- * Represents a bookmarked problem by a user.
- */
-export interface BookmarkedProblem {
+
+/** Information stored for each bookmarked problem, including slugs for link generation. */
+export interface BookmarkedProblemInfo {
   problemId: string;
-  bookmarkedAt: Date; // Or Firestore Timestamp
+  companySlug: string;
+  problemSlug: string;
+  bookmarkedAt?: Date; // Or Firestore Timestamp
 }
 
 // --- Types for Personalized Progress Tracking ---
@@ -287,14 +301,16 @@ export const PROBLEM_STATUS_DISPLAY: Record<Exclude<ProblemStatus, 'none'>, { la
 };
 
 /**
- * Represents a user's progress status for a specific problem.
- * The 'none' status is typically represented by the absence of a record in the database.
+ * Information stored for each problem a user has marked with a status.
  */
-export interface UserProblemStatus {
-  problemId: string;
-  status: Exclude<ProblemStatus, 'none'>;
-  updatedAt: Date; // Or Firestore Timestamp
+export interface UserProblemStatusInfo {
+  problemId: string; // Not explicitly stored as key is problemId, but useful for type clarity
+  status: ProblemStatus;
+  companySlug: string;
+  problemSlug: string;
+  updatedAt?: Date; // Or Firestore Timestamp
 }
+
 
 // --- Types for AI Problem Insights Flow ---
 /**
@@ -315,4 +331,38 @@ export interface GenerateProblemInsightsOutput {
   commonDataStructures: string[];
   commonAlgorithms: string[];
   highLevelHint: string;
+}
+
+/**
+ * Represents a saved strategy todo list for a user and a company.
+ * This now also includes the preparation strategy and focus topics.
+ */
+export interface SavedStrategyTodoList {
+  companyId: string; // The ID of the company this list is for
+  companyName: string;
+  savedAt: Date; // Or Firestore Timestamp
+  preparationStrategy: string;
+  focusTopics: FocusTopic[];
+  items: StrategyTodoItem[]; // 'items' is used for the todo list for consistency with previous naming
+}
+
+// --- Types for Problem List Pagination & Filtering ---
+export type DifficultyFilter = 'all' | LeetCodeProblem['difficulty'];
+export type SortKey = 'title' | 'difficulty' | 'lastAsked';
+export type LastAskedFilter = 'all' | LastAskedPeriod;
+export type StatusFilter = ProblemStatus | 'all';
+
+export interface ProblemListFilters {
+  difficultyFilter: DifficultyFilter;
+  lastAskedFilter: LastAskedFilter;
+  statusFilter: StatusFilter;
+  searchTerm: string;
+  sortKey: SortKey;
+}
+
+export interface PaginatedProblemsResponse {
+  problems: LeetCodeProblem[];
+  totalProblems: number;
+  totalPages: number;
+  currentPage: number;
 }

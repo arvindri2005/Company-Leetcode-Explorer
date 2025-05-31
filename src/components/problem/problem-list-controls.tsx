@@ -1,17 +1,18 @@
 
 'use client';
 
-import type { LeetCodeProblem, LastAskedPeriod, ProblemStatus } from '@/types';
+import type { LeetCodeProblem, LastAskedPeriod, ProblemStatus, DifficultyFilter, SortKey, LastAskedFilter, StatusFilter } from '@/types'; // Import types directly
 import { lastAskedPeriodOptions, PROBLEM_STATUS_OPTIONS } from '@/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Filter, ArrowUpDown, CalendarDays, Search, CheckSquare } from 'lucide-react';
 
-export type DifficultyFilter = 'all' | 'Easy' | 'Medium' | 'Hard';
-export type SortKey = 'title' | 'difficulty' | 'lastAsked';
-export type LastAskedFilter = 'all' | LastAskedPeriod;
-export type StatusFilter = ProblemStatus | 'all'; // 'all' for no status filter
+// These types are now directly imported from @/types
+// export type DifficultyFilter = 'all' | 'Easy' | 'Medium' | 'Hard';
+// export type SortKey = 'title' | 'difficulty' | 'lastAsked';
+// export type LastAskedFilter = 'all' | LastAskedPeriod;
+// export type StatusFilter = ProblemStatus | 'all';
 
 interface ProblemListControlsProps {
   difficultyFilter: DifficultyFilter;
@@ -20,12 +21,12 @@ interface ProblemListControlsProps {
   onSortKeyChange: (key: SortKey) => void;
   lastAskedFilter: LastAskedFilter;
   onLastAskedFilterChange: (filter: LastAskedFilter) => void;
-  statusFilter: StatusFilter; // New prop
-  onStatusFilterChange: (filter: StatusFilter) => void; // New prop
+  statusFilter: StatusFilter;
+  onStatusFilterChange: (filter: StatusFilter) => void;
   searchTerm: string;
   onSearchTermChange: (term: string) => void;
-  problemCount: number;
-  showStatusFilter?: boolean; // To conditionally show this filter
+  problemCount: number; // Number of currently displayed problems
+  showStatusFilter?: boolean;
 }
 
 const ProblemListControls: React.FC<ProblemListControlsProps> = ({
@@ -40,9 +41,9 @@ const ProblemListControls: React.FC<ProblemListControlsProps> = ({
   searchTerm,
   onSearchTermChange,
   problemCount,
-  showStatusFilter = false, // Default to false if not provided
+  showStatusFilter = false,
 }) => {
-  const statusOptionsToDisplay = PROBLEM_STATUS_OPTIONS.filter(opt => opt.value !== 'none'); // Exclude 'none' as a direct filter option, 'No Status' will handle that
+  const statusOptionsToDisplay = PROBLEM_STATUS_OPTIONS.filter(opt => opt.value !== 'none');
 
   return (
     <div className="mb-6 p-4 bg-card rounded-lg shadow space-y-4">
@@ -117,7 +118,7 @@ const ProblemListControls: React.FC<ProblemListControlsProps> = ({
                        {option.label}
                      </SelectItem>
                   ))}
-                  <SelectItem value="none">No Status</SelectItem> {/* For problems without a set status */}
+                  <SelectItem value="none">No Status</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -142,7 +143,7 @@ const ProblemListControls: React.FC<ProblemListControlsProps> = ({
           </div>
         </div>
         <div className="text-sm text-muted-foreground text-right mt-2 sm:mt-0 whitespace-nowrap">
-          Showing {problemCount} problem{problemCount !== 1 ? 's' : ''}
+          Displaying {problemCount} problem{problemCount !== 1 ? 's' : ''}
         </div>
       </div>
     </div>

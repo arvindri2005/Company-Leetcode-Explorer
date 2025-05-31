@@ -16,9 +16,10 @@ import { Separator } from '@/components/ui/separator';
 interface AIGroupingSectionProps {
   problems: LeetCodeProblem[];
   companyName: string;
+  companySlug: string; // Added companySlug
 }
 
-const AIGroupingSection: React.FC<AIGroupingSectionProps> = ({ problems, companyName }) => {
+const AIGroupingSection: React.FC<AIGroupingSectionProps> = ({ problems, companyName, companySlug }) => {
   const [groupedData, setGroupedData] = useState<GroupQuestionsOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -33,6 +34,7 @@ const AIGroupingSection: React.FC<AIGroupingSectionProps> = ({ problems, company
 
     const problemInputs: AIProblemInput[] = problems.map(p => ({
       title: p.title,
+      slug: p.slug, // Ensure slug is included
       difficulty: p.difficulty,
       link: p.link,
       tags: p.tags,
@@ -57,7 +59,7 @@ const AIGroupingSection: React.FC<AIGroupingSectionProps> = ({ problems, company
   };
 
   if (problems.length === 0) {
-    return null; // Don't show AI section if no problems
+    return null; 
   }
 
   return (
@@ -104,14 +106,23 @@ const AIGroupingSection: React.FC<AIGroupingSectionProps> = ({ problems, company
                   <AccordionContent className="pt-2">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-2 bg-muted/30 rounded-md">
                       {group.questions.map((problemData, index) => {
-                        // Find the original problem to reuse ProblemCard
-                        // Note: AI output might slightly differ, so we match by title and link as best effort
-                        const originalProblem = problems.find(p => p.title === problemData.title && p.link === problemData.link);
+                        const originalProblem = problems.find(p => p.slug === problemData.slug && p.title === problemData.title);
                         const displayProblem: LeetCodeProblem = originalProblem ? 
-                          { ...originalProblem, ...problemData } : 
-                          { id: `ai-${group.groupName}-${index}`, companyId: '', ...problemData };
+                          { ...originalProblem, ...problemData, companySlug: originalProblem.companySlug || companySlug } : 
+                          { 
+                            id: `ai-${group.groupName}-${index}`, 
+                            companyId: '', // This is problematic, as companyId is needed internally by some components
+                                            // For AI Grouping, we're primarily concerned with display.
+                                            // The companySlug prop of AIGroupingSection can be passed to ProblemCard.
+                            companySlug: companySlug, 
+                            ...problemData 
+                          };
                         
-                        return <ProblemCard key={`${group.groupName}-${problemData.title}-${index}`} problem={displayProblem} />;
+                        return <ProblemCard 
+                                  key={`${group.groupName}-${problemData.slug}-${index}`} 
+                                  problem={displayProblem}
+                                  companySlug={displayProblem.companySlug} // Pass companySlug
+                               />;
                       })}
                     </div>
                   </AccordionContent>

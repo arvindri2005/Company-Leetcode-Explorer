@@ -128,7 +128,7 @@ const Header = () => {
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[280px] p-0 flex flex-col">
+            <SheetContent side="right" className="w-[280px] p-0 flex flex-col">
               <SheetHeader className="p-4 border-b">
                 <SheetTitle asChild>
                   <Link 

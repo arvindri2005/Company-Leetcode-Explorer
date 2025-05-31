@@ -4,12 +4,12 @@
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Mail, CalendarDays, ShieldCheck, Bookmark, Loader2, CheckCircle2, Pencil, ListTodo, BarChart3, Edit, Save, X } from 'lucide-react';
+import { User, Mail, CalendarDays, ShieldCheck, Bookmark, Loader2, CheckCircle2, Pencil, ListTodo, MoreVertical, Edit, Save, X, BarChart3, Brain, FolderKanban } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,12 +17,17 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { signOut, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
-import type { LeetCodeProblem, ProblemStatus } from '@/types';
+import type { LeetCodeProblem, ProblemStatus, BookmarkedProblemInfo, UserProblemStatusInfo, SavedStrategyTodoList, StrategyTodoItem } from '@/types';
 import { PROBLEM_STATUS_DISPLAY } from '@/types';
-import { getUsersBookmarkedProblemIdsAction, getProblemDetailsBatchAction, getAllUserProblemStatusesAction, updateUserDisplayNameInFirestore } from '@/app/actions';
+import { getUsersBookmarkedProblemsInfoAction, getAllUserProblemStatusesAction, updateUserDisplayNameInFirestore, getUserStrategyTodoListsAction, updateStrategyTodoItemStatusAction } from '@/app/actions';
 import ProblemCard from '@/components/problem/problem-card';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Checkbox } from '@/components/ui/checkbox'; // Import Checkbox
+import { cn } from '@/lib/utils';
 
 interface ProblemWithStatus extends LeetCodeProblem {
   status?: ProblemStatus;
@@ -38,13 +43,18 @@ export default function ProfilePage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const [bookmarkedProblemIds, setBookmarkedProblemIds] = useState<Set<string>>(new Set());
-  const [bookmarkedProblems, setBookmarkedProblems] = useState<ProblemWithStatus[]>([]);
+  const [bookmarkedProblemsInfo, setBookmarkedProblemsInfo] = useState<BookmarkedProblemInfo[]>([]);
+  const [bookmarkedProblemDetails, setBookmarkedProblemDetails] = useState<ProblemWithStatus[]>([]);
   const [isLoadingBookmarks, setIsLoadingBookmarks] = useState(false);
 
-  const [problemStatuses, setProblemStatuses] = useState<Record<string, ProblemStatus>>({});
-  const [problemsWithStatus, setProblemsWithStatus] = useState<ProblemWithStatus[]>([]);
+  const [problemStatuses, setProblemStatuses] = useState<Record<string, UserProblemStatusInfo>>({});
+  const [problemsWithStatusDetails, setProblemsWithStatusDetails] = useState<ProblemWithStatus[]>([]);
   const [isLoadingStatuses, setIsLoadingStatuses] = useState(false);
+
+  const [strategyTodoLists, setStrategyTodoLists] = useState<SavedStrategyTodoList[]>([]);
+  const [isLoadingStrategyTodoLists, setIsLoadingStrategyTodoLists] = useState(false);
+  const [updatingTodoItemId, setUpdatingTodoItemId] = useState<string | null>(null); // For individual item loading state
+
 
   const [isEditingDisplayName, setIsEditingDisplayName] = useState(false);
   const [isSubmittingDisplayName, setIsSubmittingDisplayName] = useState(false);
@@ -68,25 +78,32 @@ export default function ProfilePage() {
     const fetchBookmarkedData = async () => {
       if (user?.uid) {
         setIsLoadingBookmarks(true);
-        const result = await getUsersBookmarkedProblemIdsAction(user.uid);
-        let ids: string[] = [];
+        const result = await getUsersBookmarkedProblemsInfoAction(user.uid);
+        let infoList: BookmarkedProblemInfo[] = [];
         if (Array.isArray(result)) {
-          ids = result;
-          setBookmarkedProblemIds(new Set(ids));
+          infoList = result;
+          setBookmarkedProblemsInfo(infoList);
         } else {
-          console.error("Error fetching bookmarked IDs:", result.error);
+          console.error("Error fetching bookmarked info:", result.error);
           toast({ title: 'Error', description: 'Could not fetch bookmarked problems.', variant: 'destructive' });
         }
-        if (ids.length > 0) {
-          const problems = await getProblemDetailsBatchAction(ids);
-          setBookmarkedProblems(problems);
+        if (infoList.length > 0) {
+          const detailedProblems = await Promise.all(infoList.map(async (info) => {
+             const tempProblem: Partial<LeetCodeProblem> = {
+                 id: info.problemId,
+                 slug: info.problemSlug,
+                 companySlug: info.companySlug,
+             };
+             return tempProblem as LeetCodeProblem;
+          }));
+          setBookmarkedProblemDetails(detailedProblems as ProblemWithStatus[]);
         } else {
-          setBookmarkedProblems([]);
+          setBookmarkedProblemDetails([]);
         }
         setIsLoadingBookmarks(false);
       } else {
-         setBookmarkedProblemIds(new Set());
-         setBookmarkedProblems([]);
+         setBookmarkedProblemsInfo([]);
+         setBookmarkedProblemDetails([]);
       }
     };
     if (user) fetchBookmarkedData();
@@ -98,30 +115,93 @@ export default function ProfilePage() {
       if (user?.uid) {
         setIsLoadingStatuses(true);
         const statusResult = await getAllUserProblemStatusesAction(user.uid);
-        let currentStatuses: Record<string, ProblemStatus> = {};
+        let currentStatuses: Record<string, UserProblemStatusInfo> = {};
+
         if (typeof statusResult === 'object' && statusResult !== null && !('error' in statusResult)) {
-          currentStatuses = statusResult;
+          currentStatuses = statusResult as Record<string, UserProblemStatusInfo>;
           setProblemStatuses(currentStatuses);
         } else {
           console.error("Error fetching problem statuses:", (statusResult as {error:string}).error);
           toast({ title: 'Error', description: 'Could not fetch problem statuses.', variant: 'destructive' });
         }
         
-        const problemIdsWithStatus = Object.keys(currentStatuses).filter(id => currentStatuses[id] !== 'none');
-        if (problemIdsWithStatus.length > 0) {
-            const problems = await getProblemDetailsBatchAction(problemIdsWithStatus);
-            setProblemsWithStatus(problems.map(p => ({...p, status: currentStatuses[p.id]})));
+        const problemRefsWithStatus = Object.entries(currentStatuses)
+            .filter(([id, info]) => info && info.status !== 'none')
+            .map(([id, info]) => ({ problemId: id, companySlug: info.companySlug, problemSlug: info.problemSlug, status: info.status }));
+
+        if (problemRefsWithStatus.length > 0) {
+            const problems = problemRefsWithStatus.map(ref => ({
+                id: ref.problemId,
+                slug: ref.problemSlug,
+                companySlug: ref.companySlug,
+                status: ref.status,
+            } as ProblemWithStatus));
+            setProblemsWithStatusDetails(problems);
         } else {
-            setProblemsWithStatus([]);
+            setProblemsWithStatusDetails([]);
         }
         setIsLoadingStatuses(false);
       } else {
         setProblemStatuses({});
-        setProblemsWithStatus([]);
+        setProblemsWithStatusDetails([]);
       }
     };
      if (user) fetchStatusData();
   }, [user, toast]);
+
+  // Fetch Strategy Todo Lists
+  useEffect(() => {
+    const fetchStrategyTodoLists = async () => {
+      if (user?.uid) {
+        setIsLoadingStrategyTodoLists(true);
+        const result = await getUserStrategyTodoListsAction(user.uid);
+        if (Array.isArray(result)) {
+          setStrategyTodoLists(result);
+        } else {
+          console.error("Error fetching strategy todo lists:", result.error);
+          toast({ title: 'Error', description: 'Could not fetch saved strategy todo lists.', variant: 'destructive' });
+          setStrategyTodoLists([]);
+        }
+        setIsLoadingStrategyTodoLists(false);
+      } else {
+        setStrategyTodoLists([]);
+      }
+    };
+    if (user) fetchStrategyTodoLists();
+  }, [user, toast]);
+
+  const handleToggleTodoItem = async (companyId: string, itemIndex: number, newStatus: boolean) => {
+    if (!user) return;
+    const todoItemId = `${companyId}-${itemIndex}`;
+    setUpdatingTodoItemId(todoItemId);
+
+    // Optimistic UI update
+    const originalLists = [...strategyTodoLists];
+    setStrategyTodoLists(prevLists =>
+      prevLists.map(list =>
+        list.companyId === companyId
+          ? {
+              ...list,
+              items: list.items.map((item, index) =>
+                index === itemIndex ? { ...item, isCompleted: newStatus } : item
+              ),
+            }
+          : list
+      )
+    );
+
+    const result = await updateStrategyTodoItemStatusAction(user.uid, companyId, itemIndex, newStatus);
+    setUpdatingTodoItemId(null);
+
+    if (result.success) {
+      toast({ title: "To-Do Item Updated", description: `Item status changed for ${originalLists.find(l => l.companyId === companyId)?.companyName} strategy.` });
+    } else {
+      toast({ title: "Update Failed", description: result.error || "Could not update item status.", variant: "destructive" });
+      // Revert optimistic update
+      setStrategyTodoLists(originalLists);
+    }
+  };
+
 
   const handleLogout = async () => {
     try {
@@ -134,21 +214,40 @@ export default function ProfilePage() {
   };
   
   const handleProblemBookmarkChangeOnProfile = (problemId: string, newStatus: boolean) => {
-    setBookmarkedProblemIds(prev => { const newSet = new Set(prev); if(newStatus) newSet.add(problemId); else newSet.delete(problemId); return newSet; });
-    if (!newStatus) setBookmarkedProblems(prev => prev.filter(p => p.id !== problemId));
+    if (newStatus) {
+      // Problem details are partial here, so we don't add to bookmarkedProblemDetails
+      // Just update the info list for count or basic display if any
+      const problemEntry = problemsWithStatusDetails.find(p => p.id === problemId);
+      if (problemEntry) {
+        setBookmarkedProblemsInfo(prev => [...prev, { problemId, companySlug: problemEntry.companySlug!, problemSlug: problemEntry.slug! }]);
+      }
+    } else {
+      setBookmarkedProblemsInfo(prev => prev.filter(info => info.problemId !== problemId));
+      setBookmarkedProblemDetails(prev => prev.filter(p => p.id !== problemId));
+    }
   };
 
   const handleProblemStatusChangeOnProfile = (problemId: string, newStatus: ProblemStatus) => {
-    setProblemStatuses(prev => ({ ...prev, [problemId]: newStatus === 'none' ? undefined : newStatus }));
-    setProblemsWithStatus(prev => {
+    const problemEntry = Object.values(problemStatuses).find(pStatus => pStatus.problemId === problemId) || 
+                         bookmarkedProblemsInfo.find(bInfo => bInfo.problemId === problemId) ||
+                         problemsWithStatusDetails.find(p => p.id === problemId);
+
+
+    if (problemEntry) {
+      setProblemStatuses(prev => ({ 
+        ...prev, 
+        [problemId]: newStatus === 'none' 
+          ? undefined 
+          : { status: newStatus, companySlug: problemEntry.companySlug, problemSlug: problemEntry.problemSlug, updatedAt: new Date() } 
+      }));
+    }
+    setProblemsWithStatusDetails(prev => {
         if (newStatus === 'none') return prev.filter(p => p.id !== problemId);
-        const existingProblem = prev.find(p => p.id === problemId);
-        if (existingProblem) {
-            return prev.map(p => p.id === problemId ? { ...p, status: newStatus } : p);
-        } else {
-             // If problem not in current list (e.g. just changed from none), fetch its details to add it.
-             // This requires async operation, might be better to just filter and let a full re-fetch add it if needed.
-             // For now, keeping it simple: it will show up correctly on next full status fetch or page load.
+        const existing = prev.find(p => p.id === problemId);
+        if (existing) {
+          return prev.map(p => p.id === problemId ? { ...existing, status: newStatus } : p);
+        } else if (problemEntry) { 
+          return [...prev, { id: problemId, slug: problemEntry.problemSlug, companySlug: problemEntry.companySlug, status: newStatus } as ProblemWithStatus];
         }
         return prev;
     });
@@ -167,72 +266,129 @@ export default function ProfilePage() {
     }
     setIsSubmittingDisplayName(true);
     try {
-      // 1. Update Firebase Auth profile
       await updateProfile(auth.currentUser, { displayName: data.displayName });
-
-      // 2. Update Firestore profile
       const firestoreResult = await updateUserDisplayNameInFirestore(user.uid, data.displayName);
       if (firestoreResult.success) {
         toast({ title: 'Display Name Updated!', description: 'Your display name has been successfully updated.' });
         setIsEditingDisplayName(false);
-        // AuthContext will update user.displayName reactively via onAuthStateChanged
       } else {
         toast({ title: 'Firestore Update Failed', description: firestoreResult.error || 'Could not update display name in our records.', variant: 'destructive'});
-        // Optionally revert Firebase Auth profile update here if desired, though usually not critical.
       }
     } catch (error: any) {
       console.error("Error updating display name:", error);
-      let errorMessage = 'An unknown error occurred.';
-      if (error.code) { // Firebase Auth errors
-        errorMessage = error.message;
-      }
-      toast({ title: 'Update Failed', description: errorMessage, variant: 'destructive'});
+      toast({ title: 'Update Failed', description: error.message || 'An unknown error occurred.', variant: 'destructive'});
     } finally {
       setIsSubmittingDisplayName(false);
     }
   };
 
   if (authLoading) {
-    return ( /* Skeleton Loading UI */
+    return ( 
       <section className="space-y-8 max-w-4xl mx-auto">
         <Card className="shadow-lg"><CardHeader><Skeleton className="h-8 w-48 mb-2" /><Skeleton className="h-4 w-64" /></CardHeader>
           <CardContent className="space-y-6"><div className="flex items-center space-x-4"><Skeleton className="h-20 w-20 rounded-full" /><div className="space-y-2"><Skeleton className="h-6 w-40" /><Skeleton className="h-4 w-52" /></div></div>
             <Skeleton className="h-10 w-28 mt-4" />
           </CardContent></Card><Separator />
-        <Skeleton className="h-10 w-1/3 mb-4" /> {/* Tabs skeleton */}
-        <Skeleton className="h-8 w-1/4 mb-2" /> {/* Section title skeleton */}
+        <Skeleton className="h-10 w-1/3 mb-4" />
+        <Skeleton className="h-8 w-1/4 mb-2" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{[1,2,3].map(i => <Skeleton key={i} className="h-60 rounded-lg" />)}</div>
       </section>
     );
   }
-  if (!user) { /* Redirect or show login prompt */
+  if (!user) { 
     return <div className="text-center py-10"><p>Please log in to view your profile.</p><Button onClick={() => router.push('/login')} className="mt-4">Go to Login</Button></div>;
   }
 
   const stats = {
-    solved: problemsWithStatus.filter(p => p.status === 'solved').length,
-    attempted: problemsWithStatus.filter(p => p.status === 'attempted').length,
-    todo: problemsWithStatus.filter(p => p.status === 'todo').length,
+    solved: Object.values(problemStatuses).filter(p => p?.status === 'solved').length,
+    attempted: Object.values(problemStatuses).filter(p => p?.status === 'attempted').length,
+    todo: Object.values(problemStatuses).filter(p => p?.status === 'todo').length,
   };
 
-  const renderProblemList = (list: ProblemWithStatus[], listTitle: string) => (
-    list.length > 0 ? (
+  const renderProblemList = (list: ProblemWithStatus[], listTitle: string, isLoading: boolean) => {
+    if (isLoading) {
+        return <div className="flex justify-center items-center py-10"><Loader2 className="h-10 w-10 animate-spin text-primary" /><p className="ml-3">Loading {listTitle.toLowerCase()}...</p></div>;
+    }
+    if (list.length === 0) {
+        return <p className="text-muted-foreground text-center py-6">No problems {listTitle.toLowerCase()} yet.</p>;
+    }
+    return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {list.map(problem => (
           <ProblemCard 
             key={problem.id} 
-            problem={problem}
-            initialIsBookmarked={bookmarkedProblemIds.has(problem.id)}
+            problem={problem as LeetCodeProblem} 
+            companySlug={problem.companySlug || ''} 
+            initialIsBookmarked={bookmarkedProblemsInfo.some(info => info.problemId === problem.id)}
             onBookmarkChanged={handleProblemBookmarkChangeOnProfile}
-            problemStatus={problemStatuses[problem.id] || 'none'}
+            problemStatus={problemStatuses[problem.id]?.status || 'none'}
             onProblemStatusChange={handleProblemStatusChangeOnProfile}
           />
         ))}
       </div>
-    ) : (
-      <p className="text-muted-foreground text-center py-6">No problems {listTitle.toLowerCase()} yet.</p>
-    )
-  );
+    );
+  };
+
+  const renderStrategyTodoLists = () => {
+    if (isLoadingStrategyTodoLists) {
+      return <div className="flex justify-center items-center py-10"><Loader2 className="h-10 w-10 animate-spin text-primary" /><p className="ml-3">Loading strategy lists...</p></div>;
+    }
+    if (strategyTodoLists.length === 0) {
+      return <p className="text-muted-foreground text-center py-6">No saved strategy To-Do lists found. Generate some from company pages!</p>;
+    }
+    return (
+      <Accordion type="multiple" className="w-full space-y-3">
+        {strategyTodoLists.map((list) => (
+          <AccordionItem value={list.companyId} key={list.companyId} className="border bg-card rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <AccordionTrigger className="p-4 hover:no-underline">
+              <div className="flex flex-col text-left">
+                <span className="text-lg font-semibold text-primary">{list.companyName}</span>
+                <span className="text-xs text-muted-foreground">
+                  Saved on: {new Date(list.savedAt).toLocaleDateString()} - {list.items.length} item(s)
+                </span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="p-4 pt-0">
+              <ul className="space-y-3 bg-muted/30 p-4 rounded-md mt-2">
+                {list.items.map((item, index) => {
+                  const itemId = `${list.companyId}-item-${index}`;
+                  const isItemUpdating = updatingTodoItemId === itemId;
+                  return (
+                    <li key={itemId} className={cn(
+                      "flex items-start gap-3 p-2 rounded-md transition-colors",
+                      item.isCompleted ? "bg-green-500/10" : "hover:bg-primary/5"
+                    )}>
+                      <Checkbox
+                        id={itemId}
+                        checked={item.isCompleted}
+                        onCheckedChange={(checked) => handleToggleTodoItem(list.companyId, index, !!checked)}
+                        disabled={isItemUpdating}
+                        className="mt-1 flex-shrink-0"
+                        aria-label={`Mark as ${item.isCompleted ? 'not ' : ''}completed`}
+                      />
+                      <label
+                        htmlFor={itemId}
+                        className={cn(
+                          "flex-grow prose prose-sm dark:prose-invert max-w-full cursor-pointer",
+                          item.isCompleted && "line-through text-muted-foreground"
+                        )}
+                      >
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ p: 'span' }}>
+                          {item.text}
+                        </ReactMarkdown>
+                      </label>
+                      {isItemUpdating && <Loader2 className="h-4 w-4 animate-spin text-primary flex-shrink-0 ml-auto" />}
+                    </li>
+                  );
+                })}
+              </ul>
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
+    );
+  };
+
 
   return (
     <section className="space-y-8 max-w-5xl mx-auto">
@@ -257,7 +413,6 @@ export default function ProfilePage() {
                       name="displayName"
                       render={({ field }) => (
                         <FormItem>
-                           {/* <FormLabel className="sr-only">Display Name</FormLabel> */}
                           <FormControl>
                             <Input {...field} placeholder="Enter your display name" className="text-lg" />
                           </FormControl>
@@ -309,41 +464,56 @@ export default function ProfilePage() {
       </Card>
       
       <Tabs defaultValue="bookmarks" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-2 mb-6">
-          <TabsTrigger value="bookmarks"><Bookmark className="mr-2 h-4 w-4" />Bookmarks ({bookmarkedProblems.length})</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mb-6">
+          <TabsTrigger value="bookmarks"><Bookmark className="mr-2 h-4 w-4" />Bookmarks ({bookmarkedProblemDetails.length})</TabsTrigger>
           <TabsTrigger value="solved"><CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />Solved ({stats.solved})</TabsTrigger>
           <TabsTrigger value="attempted"><Pencil className="mr-2 h-4 w-4 text-yellow-500" />Attempted ({stats.attempted})</TabsTrigger>
           <TabsTrigger value="todo"><ListTodo className="mr-2 h-4 w-4 text-blue-500" />To-Do ({stats.todo})</TabsTrigger>
+          <TabsTrigger value="strategyLists"><FolderKanban className="mr-2 h-4 w-4" />Strategy Lists ({strategyTodoLists.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="bookmarks">
           <Card><CardHeader><CardTitle>Your Bookmarked Problems</CardTitle></CardHeader>
             <CardContent>
-              {isLoadingBookmarks ? <div className="flex justify-center items-center py-10"><Loader2 className="h-10 w-10 animate-spin text-primary" /><p className="ml-3">Loading bookmarks...</p></div> : renderProblemList(bookmarkedProblems, "bookmarked")}
+              {renderProblemList(bookmarkedProblemDetails, "bookmarked", isLoadingBookmarks)}
             </CardContent>
           </Card>
         </TabsContent>
         <TabsContent value="solved">
             <Card><CardHeader><CardTitle>Solved Problems</CardTitle></CardHeader>
             <CardContent>
-                {isLoadingStatuses ? <div className="flex justify-center items-center py-10"><Loader2 className="h-10 w-10 animate-spin text-primary" /><p className="ml-3">Loading solved problems...</p></div> : renderProblemList(problemsWithStatus.filter(p => p.status === 'solved'), "solved")}
+                {renderProblemList(problemsWithStatusDetails.filter(p => p.status === 'solved'), "solved", isLoadingStatuses)}
             </CardContent></Card>
         </TabsContent>
         <TabsContent value="attempted">
             <Card><CardHeader><CardTitle>Attempted Problems</CardTitle></CardHeader>
             <CardContent>
-                {isLoadingStatuses ? <div className="flex justify-center items-center py-10"><Loader2 className="h-10 w-10 animate-spin text-primary" /><p className="ml-3">Loading attempted problems...</p></div> : renderProblemList(problemsWithStatus.filter(p => p.status === 'attempted'), "attempted")}
+                 {renderProblemList(problemsWithStatusDetails.filter(p => p.status === 'attempted'), "attempted", isLoadingStatuses)}
             </CardContent></Card>
         </TabsContent>
         <TabsContent value="todo">
             <Card><CardHeader><CardTitle>To-Do Problems</CardTitle></CardHeader>
             <CardContent>
-                {isLoadingStatuses ? <div className="flex justify-center items-center py-10"><Loader2 className="h-10 w-10 animate-spin text-primary" /><p className="ml-3">Loading to-do problems...</p></div> : renderProblemList(problemsWithStatus.filter(p => p.status === 'todo'), "to-do")}
+                {renderProblemList(problemsWithStatusDetails.filter(p => p.status === 'todo'), "to-do", isLoadingStatuses)}
             </CardContent></Card>
+        </TabsContent>
+        <TabsContent value="strategyLists">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center">
+                        <Brain className="mr-2 h-5 w-5 text-primary" />
+                        Saved Strategy To-Do Lists
+                    </CardTitle>
+                    <CardDescription>
+                        Actionable AI-generated To-Do lists for company-specific interview preparation. Check off items as you complete them.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {renderStrategyTodoLists()}
+                </CardContent>
+            </Card>
         </TabsContent>
       </Tabs>
     </section>
   );
 }
-
-    

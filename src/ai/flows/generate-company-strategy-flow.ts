@@ -5,17 +5,24 @@
  *
  * This module defines a Genkit flow that takes a company name, a list of LeetCode problems
  * frequently asked by that company, and an optional target role level. It uses an AI model
- * to generate a comprehensive preparation strategy and identify key focus topics.
+ * to generate a comprehensive preparation strategy, identify key focus topics, and create
+ * an actionable todo list.
  *
  * @exports generateCompanyStrategy - An asynchronous function to initiate strategy generation.
  * @exports GenerateCompanyStrategyInput - The Zod inferred type for the input to the flow.
  * @exports GenerateCompanyStrategyOutput - The Zod inferred type for the output from the flow.
- * @exports FocusTopic - The Zod inferred type for a focus topic object (re-exported for convenience).
  */
 
 import {ai} from '@/ai/genkit';
 import {z}from 'genkit';
-import type { CompanyStrategyProblemInput, FocusTopic, TargetRoleLevel } from '@/types'; // FocusTopic and TargetRoleLevel imported
+import { 
+  type CompanyStrategyProblemInput, 
+  FocusTopicSchema, // Import schema
+  type FocusTopic, 
+  type TargetRoleLevel, 
+  StrategyTodoItemSchema, // Import schema
+  type StrategyTodoItem 
+} from '@/types';
 
 const CompanyStrategyProblemInputSchema = z.object({
   title: z.string().describe("The title of the LeetCode problem."),
@@ -33,26 +40,27 @@ const GenerateCompanyStrategyInputSchema = z.object({
 });
 export type GenerateCompanyStrategyInput = z.infer<typeof GenerateCompanyStrategyInputSchema>;
 
-const FocusTopicSchema = z.object({
-  topic: z.string().describe("A key topic or concept to focus on (e.g., 'Dynamic Programming', 'Graph Traversal', 'System Design Fundamentals for Scalability')."),
-  reason: z.string().describe("A brief explanation (1-2 sentences) of why this topic is particularly relevant for interviews at this company, based on the provided problem data and target role level if specified."),
-});
-export type { FocusTopic };
+// FocusTopic type is now imported from @/types
+// StrategyTodoItem type is now imported from @/types
 
 const GenerateCompanyStrategyOutputSchema = z.object({
   preparationStrategy: z.string()
     .describe("A comprehensive, actionable, and personalized preparation strategy for interviewing at this company, formatted in Markdown. This should be at least 3-4 paragraphs and include advice on problem-solving approaches, common pitfalls, and how to leverage the provided problem data for study. Tailor the advice based on the problem difficulties, tags, recency, and target role level if provided."),
-  focusTopics: z.array(FocusTopicSchema)
+  focusTopics: z.array(FocusTopicSchema) // Use imported schema
     .min(3, "Identify at least 3 key focus topics.")
     .max(7, "Identify at most 7 key focus topics.")
     .describe('An array of 3 to 7 key topics or concepts to prioritize, with reasons for each, tailored to the company and target role level.'),
+  todoItems: z.array(StrategyTodoItemSchema) // Use imported schema
+    .min(3, "Generate at least 3 todo items.")
+    .max(10, "Generate at most 10 todo items.")
+    .describe("An array of 3 to 10 specific, actionable to-do items based on the generated strategy to help the candidate prepare effectively. Each item should be concise."),
 });
 export type GenerateCompanyStrategyOutput = z.infer<typeof GenerateCompanyStrategyOutputSchema>;
 
 /**
  * Initiates the AI flow to generate a company-specific interview preparation strategy.
  * @param {GenerateCompanyStrategyInput} input - The company name, list of problems, and optional target role level.
- * @returns {Promise<GenerateCompanyStrategyOutput>} A promise that resolves to the generated strategy and focus topics.
+ * @returns {Promise<GenerateCompanyStrategyOutput>} A promise that resolves to the generated strategy, focus topics, and todo list.
  */
 export async function generateCompanyStrategy(input: GenerateCompanyStrategyInput): Promise<GenerateCompanyStrategyOutput> {
   return generateCompanyStrategyFlow(input);
@@ -77,21 +85,27 @@ LeetCode Problems Data for {{companyName}}:
 Your Task:
 1.  **Generate a Preparation Strategy**:
     *   Create a comprehensive, actionable, and personalized preparation strategy (3-4 paragraphs minimum) for interviewing at {{companyName}}. This strategy should be formatted in Markdown.
-    *   Advise on effective problem-solving approaches based on the patterns observed in the problem data (e.g., if many problems are 'Hard' and involve 'Graphs', suggest focusing on advanced graph algorithms).
+    *   Advise on effective problem-solving approaches based on the patterns observed in the problem data.
     *   Highlight common pitfalls or areas {{companyName}} seems to test frequently.
-    *   Suggest how the candidate can use the provided list of problems and their 'lastAskedPeriod' data for targeted study (e.g., prioritizing more recently asked or high-frequency topics).
+    *   Suggest how the candidate can use the provided list of problems and their 'lastAskedPeriod' data for targeted study.
     *   Mention the importance of understanding underlying concepts versus rote memorization.
-    *   If certain problem difficulties are more prevalent (e.g., many Medium problems), advise on mastering that level.
+    *   If certain problem difficulties are more prevalent, advise on mastering that level.
     *   **If a 'targetRoleLevel' is provided (and not 'general'), incorporate specific advice relevant to that level.**
-        *   For 'internship': Emphasize core DSA (Arrays, Strings, Linked Lists, Hash Tables, basic Trees/Graphs), clear articulation of thought process even on simpler problems, and common behavioral questions for interns (teamwork, learning, passion for tech). Suggest prioritizing Easy/Medium problems.
-        *   For 'new_grad': Highlight expectations for solid DSA skills, comfort with Medium problems, exposure to some Hard problems (especially if aligned with company's frequent tags). Mention potential for introductory system design questions and behavioral questions probing project experiences.
-        *   For 'experienced': Advice should consider depth in DSA, system design expectations, and leadership/behavioral aspects relevant to experienced hires at {{companyName}}.
+        *   For 'internship': Emphasize core DSA, clear articulation, and common behavioral questions. Suggest prioritizing Easy/Medium problems.
+        *   For 'new_grad': Highlight solid DSA skills, comfort with Medium problems, exposure to some Hard problems. Mention potential introductory system design and behavioral questions.
+        *   For 'experienced': Advice should consider depth in DSA, system design, and leadership/behavioral aspects.
 
 2.  **Identify Key Focus Topics**:
-    *   Based on the problem data (tags, difficulties, recency) and the 'targetRoleLevel' (if provided and not 'general'), identify 3 to 7 key technical topics or concepts the candidate should prioritize.
-    *   For each topic, provide a 'topic' name (e.g., "Advanced Array Manipulations", "Backtracking Algorithms", "Concurrency Concepts for {{targetRoleLevel}}s") and a 'reason' (1-2 sentences explaining its relevance to {{companyName}} based on the data and role level).
+    *   Based on the problem data and 'targetRoleLevel', identify 3 to 7 key technical topics or concepts.
+    *   For each topic, provide a 'topic' name and a 'reason' (1-2 sentences explaining its relevance).
 
-Return your response in the specified JSON format, with "preparationStrategy" (Markdown string) and "focusTopics" (array of objects).
+3.  **Generate Actionable Todo List ('todoItems')**:
+    *   Extract 3 to 10 specific, actionable "todo" items from your strategy and focus topics.
+    *   These items should be concise and help the candidate implement the strategy effectively.
+    *   Examples: "Solve 5 Medium array problems frequently asked by {{companyName}}.", "Spend 2 hours this week practicing explaining solutions to {{targetRoleLevel}}-appropriate problems out loud.", "Deep dive into [Specific Focus Topic identified for {{companyName}}] using online resources.", "Review common behavioral questions for the {{targetRoleLevel}} role at {{companyName}}."
+    *   Populate the 'todoItems' array in the output. Each item in the array should be an object with a 'text' field for the task description, and 'isCompleted' set to false.
+
+Return your response in the specified JSON format, with "preparationStrategy" (Markdown string), "focusTopics" (array of objects), and "todoItems" (array of objects).
 Be insightful and provide advice that goes beyond generic study tips. Make it specific to {{companyName}} and the target role level if specified.
 `,
 });
@@ -104,10 +118,11 @@ const generateCompanyStrategyFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    if (!output || !output.preparationStrategy || !output.focusTopics) {
-      // Provide a fallback or throw a more specific error
-      throw new Error("AI failed to generate a company-specific strategy. The output was incomplete or invalid.");
+    if (!output || !output.preparationStrategy || !output.focusTopics || !output.todoItems) {
+      throw new Error("AI failed to generate a complete company-specific strategy. The output was incomplete or invalid.");
     }
     return output;
   }
 );
+
+    

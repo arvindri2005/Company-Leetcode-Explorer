@@ -1,165 +1,222 @@
 
 'use client';
 
-import type { LeetCodeProblem, LastAskedPeriod, ProblemStatus } from '@/types';
-import { useState, useMemo, useEffect } from 'react';
+import type { LeetCodeProblem, ProblemListFilters, PaginatedProblemsResponse } from '@/types';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import ProblemCard from './problem-card';
-import ProblemListControls, { DifficultyFilter, SortKey, LastAskedFilter, StatusFilter } from './problem-list-controls';
+import ProblemListControls from './problem-list-controls';
 import { useAuth } from '@/contexts/auth-context';
-import { getUsersBookmarkedProblemIdsAction, getAllUserProblemStatusesAction } from '@/app/actions';
+import { fetchProblemsForCompanyPage } from '@/app/actions/problem.actions';
 import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProblemListProps {
-  problems: LeetCodeProblem[];
+  companyId: string;
+  companySlug: string;
+  initialProblems: LeetCodeProblem[];
+  initialTotalPages: number;
+  initialCurrentPage: number;
+  itemsPerPage: number;
+  initialFilters: ProblemListFilters; // For initializing filters from server if needed
 }
 
-const ProblemList: React.FC<ProblemListProps> = ({ problems: initialProblems }) => {
-  const [difficultyFilter, setDifficultyFilter] = useState<DifficultyFilter>('all');
-  const [sortKey, setSortKey] = useState<SortKey>('title');
-  const [lastAskedFilter, setLastAskedFilter] = useState<LastAskedFilter>('all');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  
+const ProblemList: React.FC<ProblemListProps> = ({
+  companyId,
+  companySlug,
+  initialProblems,
+  initialTotalPages,
+  initialCurrentPage,
+  itemsPerPage,
+  initialFilters,
+}) => {
   const { user } = useAuth();
-  const [bookmarkedProblemIds, setBookmarkedProblemIds] = useState<Set<string>>(new Set());
-  const [problemStatuses, setProblemStatuses] = useState<Record<string, ProblemStatus>>({});
-  const [isLoadingUserSpecificData, setIsLoadingUserSpecificData] = useState(false);
+  const { toast } = useToast();
+
+  // State for filters, sort, and search term
+  const [filters, setFilters] = useState<ProblemListFilters>(initialFilters);
+  
+  // State for displayed problems and pagination
+  const [displayedProblems, setDisplayedProblems] = useState<LeetCodeProblem[]>(initialProblems);
+  const [currentPage, setCurrentPage] = useState(initialCurrentPage);
+  const [totalPages, setTotalPages] = useState(initialTotalPages);
+  const [isLoading, setIsLoading] = useState(false); // For initial load or filter changes
+  const [isLoadingMore, setIsLoadingMore] = useState(false); // For infinite scroll
+  const [hasMore, setHasMore] = useState(initialCurrentPage < initialTotalPages);
+
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
+
+  // Effect to reset problems when initialProblems prop changes (e.g., from server after filter change)
+  // This is now primarily for the very first load. Subsequent filter changes will fetch page 1.
+  useEffect(() => {
+    setDisplayedProblems(initialProblems);
+    setCurrentPage(initialCurrentPage);
+    setTotalPages(initialTotalPages);
+    setHasMore(initialCurrentPage < initialTotalPages);
+  }, [initialProblems, initialCurrentPage, initialTotalPages]);
+
+
+  const handleFilterChange = useCallback(async (newFilters: Partial<ProblemListFilters>) => {
+    const updatedFilters = { ...filters, ...newFilters };
+    setFilters(updatedFilters);
+    setCurrentPage(1); // Reset to page 1 on any filter change
+    setIsLoading(true);
+    setDisplayedProblems([]); // Clear current problems
+    setHasMore(false); // Assume no more pages until fetch confirms
+
+    try {
+      const result = await fetchProblemsForCompanyPage({
+        companyId,
+        page: 1,
+        pageSize: itemsPerPage,
+        filters: updatedFilters,
+        userId: user?.uid,
+      });
+
+      if ('error' in result) {
+        toast({ title: 'Error Fetching Problems', description: result.error, variant: 'destructive' });
+        setDisplayedProblems([]);
+        setTotalPages(1);
+      } else {
+        setDisplayedProblems(result.problems);
+        setTotalPages(result.totalPages);
+        setCurrentPage(result.currentPage);
+        setHasMore(result.currentPage < result.totalPages);
+      }
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to fetch problems.', variant: 'destructive' });
+      setDisplayedProblems([]);
+      setTotalPages(1);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [companyId, itemsPerPage, user?.uid, toast, filters]);
+
+
+  const loadMoreProblems = useCallback(async () => {
+    if (isLoadingMore || !hasMore) return;
+
+    setIsLoadingMore(true);
+    const nextPageToFetch = currentPage + 1;
+
+    try {
+      const result = await fetchProblemsForCompanyPage({
+        companyId,
+        page: nextPageToFetch,
+        pageSize: itemsPerPage,
+        filters,
+        userId: user?.uid,
+      });
+
+      if ('error' in result) {
+        toast({ title: 'Error Fetching More Problems', description: result.error, variant: 'destructive' });
+        setHasMore(false);
+      } else {
+        setDisplayedProblems(prev => [...prev, ...result.problems]);
+        setCurrentPage(result.currentPage);
+        setTotalPages(result.totalPages); // Update totalPages from server response
+        setHasMore(result.currentPage < result.totalPages);
+      }
+    } catch (e) {
+      toast({ title: 'Error', description: 'Failed to load more problems.', variant: 'destructive' });
+      setHasMore(false);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [isLoadingMore, hasMore, currentPage, itemsPerPage, companyId, filters, user?.uid, toast]);
 
   useEffect(() => {
-    const fetchUserSpecificData = async () => {
-      if (user?.uid) {
-        setIsLoadingUserSpecificData(true);
-        const [bookmarkResult, statusResult] = await Promise.all([
-          getUsersBookmarkedProblemIdsAction(user.uid),
-          getAllUserProblemStatusesAction(user.uid)
-        ]);
-
-        if (Array.isArray(bookmarkResult)) {
-          setBookmarkedProblemIds(new Set(bookmarkResult));
-        } else {
-          console.error("Error fetching bookmarks:", bookmarkResult.error);
-          setBookmarkedProblemIds(new Set());
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading && !isLoadingMore) {
+          loadMoreProblems();
         }
+      },
+      { threshold: 1.0 }
+    );
 
-        if (typeof statusResult === 'object' && statusResult !== null && !('error' in statusResult)) {
-          setProblemStatuses(statusResult);
-        } else {
-          console.error("Error fetching problem statuses:", (statusResult as {error: string}).error);
-          setProblemStatuses({});
-        }
-        setIsLoadingUserSpecificData(false);
-      } else {
-        setBookmarkedProblemIds(new Set());
-        setProblemStatuses({});
-        setIsLoadingUserSpecificData(false);
+    const currentTriggerRef = loadMoreTriggerRef.current;
+    if (currentTriggerRef) {
+      observerRef.current.observe(currentTriggerRef);
+    }
+
+    return () => {
+      if (observerRef.current && currentTriggerRef) {
+        observerRef.current.unobserve(currentTriggerRef);
+      }
+      if (observerRef.current) {
+        observerRef.current.disconnect();
       }
     };
-    fetchUserSpecificData();
-  }, [user]);
-
-  const handleProblemBookmarkChange = (problemId: string, newStatus: boolean) => {
-    setBookmarkedProblemIds(prevIds => {
-      const newSet = new Set(prevIds);
-      if (newStatus) newSet.add(problemId);
-      else newSet.delete(problemId);
-      return newSet;
-    });
-  };
-
-  const handleProblemStatusChange = (problemId: string, newStatus: ProblemStatus) => {
-    setProblemStatuses(prevStatuses => ({
-      ...prevStatuses,
-      [problemId]: newStatus === 'none' ? undefined : newStatus, // Remove if 'none', else update/add
-    }));
-  };
-
-  const difficultyOrder: Record<LeetCodeProblem['difficulty'], number> = { Easy: 1, Medium: 2, Hard: 3 };
-  const lastAskedOrder: Record<LastAskedPeriod, number> = {
-    'last_30_days': 1, 'within_3_months': 2, 'within_6_months': 3, 'older_than_6_months': 4,
-  };
+  }, [hasMore, isLoading, isLoadingMore, loadMoreProblems]);
   
-  const filteredAndSortedProblems = useMemo(() => {
-    let processedProblems = [...initialProblems];
+  // Handler for bookmark changes within ProblemCard
+  const handleProblemBookmarkChange = (problemId: string, newIsBookmarked: boolean) => {
+    setDisplayedProblems(prev => 
+      prev.map(p => p.id === problemId ? { ...p, isBookmarked: newIsBookmarked } : p)
+    );
+  };
 
-    if (difficultyFilter !== 'all') {
-      processedProblems = processedProblems.filter(p => p.difficulty === difficultyFilter);
+  // Handler for status changes within ProblemCard
+  const handleProblemStatusChange = (problemId: string, newStatus: ProblemListFilters['statusFilter']) => {
+     setDisplayedProblems(prev => 
+      prev.map(p => p.id === problemId ? { ...p, currentStatus: newStatus } : p)
+    );
+    // If the status filter is active and the new status doesn't match, refetch to re-apply filter
+    if (filters.statusFilter !== 'all' && filters.statusFilter !== newStatus) {
+        handleFilterChange({ statusFilter: filters.statusFilter }); 
     }
-    if (lastAskedFilter !== 'all') {
-      processedProblems = processedProblems.filter(p => p.lastAskedPeriod === lastAskedFilter);
-    }
-    if (statusFilter !== 'all') {
-      processedProblems = processedProblems.filter(p => {
-        const currentStatus = problemStatuses[p.id] || 'none';
-        return currentStatus === statusFilter;
-      });
-    }
-    if (searchTerm.trim() !== '') {
-      const lowercasedSearchTerm = searchTerm.toLowerCase();
-      processedProblems = processedProblems.filter(p => 
-        p.title.toLowerCase().includes(lowercasedSearchTerm) ||
-        p.tags.some(tag => tag.toLowerCase().includes(lowercasedSearchTerm))
-      );
-    }
+  };
 
-    processedProblems.sort((a, b) => {
-      if (sortKey === 'title') return a.title.localeCompare(b.title);
-      if (sortKey === 'difficulty') return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
-      if (sortKey === 'lastAsked') {
-        const aPeriod = a.lastAskedPeriod ? lastAskedOrder[a.lastAskedPeriod] : Number.MAX_SAFE_INTEGER;
-        const bPeriod = b.lastAskedPeriod ? lastAskedOrder[b.lastAskedPeriod] : Number.MAX_SAFE_INTEGER;
-        return aPeriod - bPeriod;
-      }
-      return 0;
-    });
-    return processedProblems;
-  }, [initialProblems, difficultyFilter, sortKey, lastAskedFilter, statusFilter, searchTerm, problemStatuses, difficultyOrder, lastAskedOrder]);
 
-  if (initialProblems.length === 0) {
-    return <p className="text-center text-muted-foreground py-10">No problems found for this company.</p>;
-  }
-  
   return (
     <div>
       <ProblemListControls
-        difficultyFilter={difficultyFilter}
-        onDifficultyFilterChange={setDifficultyFilter}
-        sortKey={sortKey}
-        onSortKeyChange={setSortKey}
-        lastAskedFilter={lastAskedFilter}
-        onLastAskedFilterChange={setLastAskedFilter}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        searchTerm={searchTerm}
-        onSearchTermChange={setSearchTerm}
-        problemCount={filteredAndSortedProblems.length}
-        showStatusFilter={!!user} // Only show status filter if user is logged in
+        difficultyFilter={filters.difficultyFilter}
+        onDifficultyFilterChange={(value) => handleFilterChange({ difficultyFilter: value })}
+        sortKey={filters.sortKey}
+        onSortKeyChange={(value) => handleFilterChange({ sortKey: value })}
+        lastAskedFilter={filters.lastAskedFilter}
+        onLastAskedFilterChange={(value) => handleFilterChange({ lastAskedFilter: value })}
+        statusFilter={filters.statusFilter}
+        onStatusFilterChange={(value) => handleFilterChange({ statusFilter: value })}
+        searchTerm={filters.searchTerm}
+        onSearchTermChange={(value) => handleFilterChange({ searchTerm: value })}
+        problemCount={displayedProblems.length} // This should be totalProblems matching filter if available from backend
+        showStatusFilter={!!user}
       />
-      {isLoadingUserSpecificData && (
+      {isLoading && displayedProblems.length === 0 ? (
         <div className="flex justify-center items-center py-10">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="ml-2 text-muted-foreground">Loading user data...</p>
+          <p className="ml-2 text-muted-foreground">Loading problems...</p>
         </div>
-      )}
-      {!isLoadingUserSpecificData && filteredAndSortedProblems.length > 0 ? (
+      ) : displayedProblems.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAndSortedProblems.map(problem => (
-            <ProblemCard 
-              key={problem.id} 
+          {displayedProblems.map(problem => (
+            <ProblemCard
+              key={problem.id}
               problem={problem}
-              initialIsBookmarked={bookmarkedProblemIds.has(problem.id)}
+              companySlug={problem.companySlug || companySlug}
+              initialIsBookmarked={problem.isBookmarked}
               onBookmarkChanged={handleProblemBookmarkChange}
-              problemStatus={problemStatuses[problem.id] || 'none'}
+              problemStatus={problem.currentStatus || 'none'}
               onProblemStatusChange={handleProblemStatusChange}
             />
           ))}
         </div>
       ) : (
-         !isLoadingUserSpecificData && (
-            <p className="text-center text-muted-foreground py-10">
-                No problems match the current filters or search term.
-            </p>
-         )
+        <p className="text-center text-muted-foreground py-10">
+          No problems match the current filters or search term.
+        </p>
       )}
+      <div ref={loadMoreTriggerRef} className="h-10 flex items-center justify-center">
+        {isLoadingMore && (
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        )}
+        {!isLoadingMore && !hasMore && displayedProblems.length > 0 && (
+          <p className="text-muted-foreground text-sm">You've reached the end!</p>
+        )}
+      </div>
     </div>
   );
 };

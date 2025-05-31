@@ -3,10 +3,59 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, Bot, Brain, CheckSquare, BarChart3, Search, Sparkles, BookOpenCheck, FileSpreadsheet, Palette, Users, PlusSquare } from 'lucide-react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 
-export const metadata = {
-  title: 'Company LeetCode Explorer | Home',
-  description: 'Showcase of features for the Company LeetCode Explorer - your AI-powered interview preparation hub.',
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
+
+export const metadata: Metadata = {
+  title: 'Company LeetCode Explorer | AI-Powered Interview Prep',
+  description: 'Master LeetCode interviews with AI-driven tools. Explore company-specific problems, engage in mock interviews, generate flashcards, and get personalized prep strategies. Start your journey to acing technical interviews today!',
+  openGraph: {
+    title: 'Company LeetCode Explorer | AI-Powered Interview Prep',
+    description: 'Your ultimate hub for targeted LeetCode interview preparation. AI mock interviews, problem insights, company-specific questions, and more.',
+    type: 'website',
+    url: APP_URL,
+    images: [
+      {
+        url: `${APP_URL}/og-image.png`, // Replace with your actual Open Graph image URL
+        width: 1200,
+        height: 630,
+        alt: 'Company LeetCode Explorer - AI-Powered Interview Prep',
+      },
+      { // Fallback placeholder if the above is not available
+        url: 'https://placehold.co/1200x630.png?text=Company+LeetCode+Explorer',
+        width: 1200,
+        height: 630,
+        alt: 'Company LeetCode Explorer Placeholder Image',
+      }
+    ],
+  },
+  alternates: {
+    canonical: APP_URL,
+  },
+  // twitter: { // Add Twitter specific tags if needed
+  //   card: 'summary_large_image',
+  //   title: 'Company LeetCode Explorer | AI-Powered Interview Prep',
+  //   description: 'Master LeetCode interviews with AI-driven tools for targeted preparation.',
+  //   images: [`${APP_URL}/twitter-image.png`], // Replace with your actual Twitter card image URL
+  // },
+  other: {
+    "script[type=\"application/ld+json\"]": JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "url": APP_URL,
+      "name": "Company LeetCode Explorer",
+      "description": "Master LeetCode interviews with AI-driven tools. Explore company-specific problems, engage in mock interviews, generate flashcards, and get personalized prep strategies.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": `${APP_URL}/companies?search={search_term_string}`
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }),
+  }
 };
 
 interface FeatureCardProps {

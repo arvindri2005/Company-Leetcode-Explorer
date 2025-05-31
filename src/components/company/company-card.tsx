@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card } from '@/components/ui/card';
@@ -65,7 +66,7 @@ const CompanyCard = ({ company }: CompanyCardProps) => {
               company.website ? 'xs:flex-1' : 'xs:w-full'
             }`}
           >
-            <Link href={`/company/${company.id}`}>
+            <Link href={`/company/${company.slug}`}>
               <span className="truncate">View Problems</span>
               <ArrowRight className="ml-1 h-3 w-3 sm:h-3.5 sm:w-3.5 group-hover/btn:translate-x-0.5 transition-transform flex-shrink-0" />
             </Link>

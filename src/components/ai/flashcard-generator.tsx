@@ -16,9 +16,10 @@ import remarkGfm from 'remark-gfm';
 interface FlashcardGeneratorProps {
   companyId: string;
   companyName: string;
+  companySlug: string; // Added to use in toast message if needed, or for future context
 }
 
-const FlashcardGenerator: React.FC<FlashcardGeneratorProps> = ({ companyId, companyName }) => {
+const FlashcardGenerator: React.FC<FlashcardGeneratorProps> = ({ companyId, companyName, companySlug }) => {
   const [flashcards, setFlashcards] = useState<Flashcard[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [activeCardIndex, setActiveCardIndex] = useState<number | null>(null);
