@@ -1,0 +1,23 @@
+
+{
+    "name": "Company LeetCode Explorer",
+    "short_name": "LeetCode Explorer",
+    "description": "Explore LeetCode questions by company, with AI-powered insights.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#E5E2D7",
+    "theme_color": "#F7BC2D",
+    "icons": [
+      {
+        "src": "/android-chrome-192x192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "/android-chrome-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }
+  
