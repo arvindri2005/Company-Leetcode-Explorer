@@ -1,8 +1,8 @@
 
 'use client';
 
-import type { LeetCodeProblem, ProblemListFilters, PaginatedProblemsResponse } from '@/types';
-import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import type { LeetCodeProblem, ProblemListFilters, PaginatedProblemsResponse, ProblemStatus } from '@/types';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import ProblemCard from './problem-card';
 import ProblemListControls from './problem-list-controls';
 import { useAuth } from '@/contexts/auth-context';
@@ -17,7 +17,7 @@ interface ProblemListProps {
   initialTotalPages: number;
   initialCurrentPage: number;
   itemsPerPage: number;
-  initialFilters: ProblemListFilters; // For initializing filters from server if needed
+  initialFilters: ProblemListFilters; 
 }
 
 const ProblemList: React.FC<ProblemListProps> = ({
@@ -32,22 +32,18 @@ const ProblemList: React.FC<ProblemListProps> = ({
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // State for filters, sort, and search term
   const [filters, setFilters] = useState<ProblemListFilters>(initialFilters);
   
-  // State for displayed problems and pagination
   const [displayedProblems, setDisplayedProblems] = useState<LeetCodeProblem[]>(initialProblems);
   const [currentPage, setCurrentPage] = useState(initialCurrentPage);
   const [totalPages, setTotalPages] = useState(initialTotalPages);
-  const [isLoading, setIsLoading] = useState(false); // For initial load or filter changes
-  const [isLoadingMore, setIsLoadingMore] = useState(false); // For infinite scroll
+  const [isLoading, setIsLoading] = useState(false); 
+  const [isLoadingMore, setIsLoadingMore] = useState(false); 
   const [hasMore, setHasMore] = useState(initialCurrentPage < initialTotalPages);
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
 
-  // Effect to reset problems when initialProblems prop changes (e.g., from server after filter change)
-  // This is now primarily for the very first load. Subsequent filter changes will fetch page 1.
   useEffect(() => {
     setDisplayedProblems(initialProblems);
     setCurrentPage(initialCurrentPage);
@@ -56,13 +52,13 @@ const ProblemList: React.FC<ProblemListProps> = ({
   }, [initialProblems, initialCurrentPage, initialTotalPages]);
 
 
-  const handleFilterChange = useCallback(async (newFilters: Partial<ProblemListFilters>) => {
-    const updatedFilters = { ...filters, ...newFilters };
+  const handleFilterChange = useCallback(async (newFiltersApplied: Partial<ProblemListFilters>) => {
+    const updatedFilters = { ...filters, ...newFiltersApplied };
     setFilters(updatedFilters);
-    setCurrentPage(1); // Reset to page 1 on any filter change
+    setCurrentPage(1); 
     setIsLoading(true);
-    setDisplayedProblems([]); // Clear current problems
-    setHasMore(false); // Assume no more pages until fetch confirms
+    setDisplayedProblems([]); 
+    setHasMore(false); 
 
     try {
       const result = await fetchProblemsForCompanyPage({
@@ -92,6 +88,19 @@ const ProblemList: React.FC<ProblemListProps> = ({
     }
   }, [companyId, itemsPerPage, user?.uid, toast, filters]);
 
+  useEffect(() => {
+    const needsUserSpecificDataRefresh =
+      user &&
+      displayedProblems.length > 0 &&
+      displayedProblems.some(p => typeof p.isBookmarked === 'undefined' || typeof p.currentStatus === 'undefined');
+
+    if (needsUserSpecificDataRefresh) {
+      // console.log("User available and problems may lack user-specific data. Refetching page 1 with current filters.");
+      handleFilterChange(filters);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, initialProblems]); // Re-check if user logs in, or if initialProblems change (e.g. page navigation)
+
 
   const loadMoreProblems = useCallback(async () => {
     if (isLoadingMore || !hasMore) return;
@@ -114,7 +123,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
       } else {
         setDisplayedProblems(prev => [...prev, ...result.problems]);
         setCurrentPage(result.currentPage);
-        setTotalPages(result.totalPages); // Update totalPages from server response
+        setTotalPages(result.totalPages); 
         setHasMore(result.currentPage < result.totalPages);
       }
     } catch (e) {
@@ -150,21 +159,24 @@ const ProblemList: React.FC<ProblemListProps> = ({
     };
   }, [hasMore, isLoading, isLoadingMore, loadMoreProblems]);
   
-  // Handler for bookmark changes within ProblemCard
   const handleProblemBookmarkChange = (problemId: string, newIsBookmarked: boolean) => {
     setDisplayedProblems(prev => 
       prev.map(p => p.id === problemId ? { ...p, isBookmarked: newIsBookmarked } : p)
     );
   };
 
-  // Handler for status changes within ProblemCard
-  const handleProblemStatusChange = (problemId: string, newStatus: ProblemListFilters['statusFilter']) => {
+  const handleProblemStatusChange = (problemId: string, newStatus: ProblemStatus) => {
      setDisplayedProblems(prev => 
       prev.map(p => p.id === problemId ? { ...p, currentStatus: newStatus } : p)
     );
-    // If the status filter is active and the new status doesn't match, refetch to re-apply filter
-    if (filters.statusFilter !== 'all' && filters.statusFilter !== newStatus) {
+    if (filters.statusFilter !== 'all' && filters.statusFilter !== newStatus && filters.statusFilter !== 'none' && newStatus === 'none') {
+        // If an active status filter is set and problem status changes to 'none' or a different status
+        // Or if status was 'none' and now matches the filter
         handleFilterChange({ statusFilter: filters.statusFilter }); 
+    } else if (filters.statusFilter !== 'all' && filters.statusFilter === newStatus) {
+        // If status changed TO match the current filter, no need to refetch unless items are removed
+        // but to be safe, or if item order might change:
+        // handleFilterChange({ statusFilter: filters.statusFilter });
     }
   };
 
@@ -182,7 +194,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
         onStatusFilterChange={(value) => handleFilterChange({ statusFilter: value })}
         searchTerm={filters.searchTerm}
         onSearchTermChange={(value) => handleFilterChange({ searchTerm: value })}
-        problemCount={displayedProblems.length} // This should be totalProblems matching filter if available from backend
+        problemCount={displayedProblems.length} 
         showStatusFilter={!!user}
       />
       {isLoading && displayedProblems.length === 0 ? (
@@ -206,7 +218,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
         </div>
       ) : (
         <p className="text-center text-muted-foreground py-10">
-          No problems match the current filters or search term.
+          No problems match the current filters or search term for this company.
         </p>
       )}
       <div ref={loadMoreTriggerRef} className="h-10 flex items-center justify-center">

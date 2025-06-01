@@ -20,13 +20,14 @@ import { useToast } from '@/hooks/use-toast';
 import type { LeetCodeProblem, ProblemStatus, BookmarkedProblemInfo, UserProblemStatusInfo, SavedStrategyTodoList, StrategyTodoItem } from '@/types';
 import { PROBLEM_STATUS_DISPLAY } from '@/types';
 import { getUsersBookmarkedProblemsInfoAction, getAllUserProblemStatusesAction, updateUserDisplayNameInFirestore, getUserStrategyTodoListsAction, updateStrategyTodoItemStatusAction } from '@/app/actions';
+import { getProblemByCompanySlugAndProblemSlug } from '@/lib/data';
 import ProblemCard from '@/components/problem/problem-card';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Checkbox } from '@/components/ui/checkbox'; // Import Checkbox
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 
 interface ProblemWithStatus extends LeetCodeProblem {
@@ -34,31 +35,30 @@ interface ProblemWithStatus extends LeetCodeProblem {
 }
 
 const displayNameFormSchema = z.object({
-  displayName: z.string().min(2, { message: 'Display name must be at least 2 characters.' }).max(50, {message: 'Display name cannot exceed 50 characters.'}),
+  displayName: z.string().min(2, { message: 'Display name must be at least 2 characters.' }).max(50, { message: 'Display name cannot exceed 50 characters.' }),
 });
 type DisplayNameFormValues = z.infer<typeof displayNameFormSchema>;
 
 export default function ProfilePage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, setUser } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
-  const [bookmarkedProblemsInfo, setBookmarkedProblemsInfo] = useState<BookmarkedProblemInfo[]>([]);
   const [bookmarkedProblemDetails, setBookmarkedProblemDetails] = useState<ProblemWithStatus[]>([]);
   const [isLoadingBookmarks, setIsLoadingBookmarks] = useState(false);
 
-  const [problemStatuses, setProblemStatuses] = useState<Record<string, UserProblemStatusInfo>>({});
+  const [problemStatuses, setProblemStatuses] = useState<Record<string, UserProblemStatusInfo>>({}); // Keep this for raw status data
   const [problemsWithStatusDetails, setProblemsWithStatusDetails] = useState<ProblemWithStatus[]>([]);
   const [isLoadingStatuses, setIsLoadingStatuses] = useState(false);
 
   const [strategyTodoLists, setStrategyTodoLists] = useState<SavedStrategyTodoList[]>([]);
   const [isLoadingStrategyTodoLists, setIsLoadingStrategyTodoLists] = useState(false);
-  const [updatingTodoItemId, setUpdatingTodoItemId] = useState<string | null>(null); // For individual item loading state
+  const [updatingTodoItemId, setUpdatingTodoItemId] = useState<string | null>(null);
 
 
   const [isEditingDisplayName, setIsEditingDisplayName] = useState(false);
   const [isSubmittingDisplayName, setIsSubmittingDisplayName] = useState(false);
-  
+
   const displayNameForm = useForm<DisplayNameFormValues>({
     resolver: zodResolver(displayNameFormSchema),
     defaultValues: {
@@ -73,72 +73,69 @@ export default function ProfilePage() {
   }, [user?.displayName, displayNameForm]);
 
 
-  // Fetch Bookmarks
+  // Fetch Bookmarks with full details
   useEffect(() => {
     const fetchBookmarkedData = async () => {
       if (user?.uid) {
         setIsLoadingBookmarks(true);
-        const result = await getUsersBookmarkedProblemsInfoAction(user.uid);
-        let infoList: BookmarkedProblemInfo[] = [];
-        if (Array.isArray(result)) {
-          infoList = result;
-          setBookmarkedProblemsInfo(infoList);
+        const bookmarkInfosResult = await getUsersBookmarkedProblemsInfoAction(user.uid);
+
+        if (Array.isArray(bookmarkInfosResult)) {
+          const detailedProblemsPromises = bookmarkInfosResult.map(async (info) => {
+            if (!info.companySlug || !info.problemSlug) {
+              console.warn(`Skipping bookmark with missing slug data: problemId ${info.problemId}`);
+              return null;
+            }
+            const result = await getProblemByCompanySlugAndProblemSlug(info.companySlug, info.problemSlug);
+            if (result.problem) {
+              return { ...result.problem, isBookmarked: true } as ProblemWithStatus; // Mark as bookmarked
+            }
+            console.warn(`Could not fetch full details for bookmarked problem: company ${info.companySlug}, problem ${info.problemSlug}`);
+            return null;
+          });
+          const detailedProblems = (await Promise.all(detailedProblemsPromises)).filter(Boolean) as ProblemWithStatus[];
+          setBookmarkedProblemDetails(detailedProblems);
         } else {
-          console.error("Error fetching bookmarked info:", result.error);
+          console.error("Error fetching bookmarked info:", bookmarkInfosResult.error);
           toast({ title: 'Error', description: 'Could not fetch bookmarked problems.', variant: 'destructive' });
-        }
-        if (infoList.length > 0) {
-          const detailedProblems = await Promise.all(infoList.map(async (info) => {
-             const tempProblem: Partial<LeetCodeProblem> = {
-                 id: info.problemId,
-                 slug: info.problemSlug,
-                 companySlug: info.companySlug,
-             };
-             return tempProblem as LeetCodeProblem;
-          }));
-          setBookmarkedProblemDetails(detailedProblems as ProblemWithStatus[]);
-        } else {
           setBookmarkedProblemDetails([]);
         }
         setIsLoadingBookmarks(false);
       } else {
-         setBookmarkedProblemsInfo([]);
-         setBookmarkedProblemDetails([]);
+        setBookmarkedProblemDetails([]);
       }
     };
-    if (user) fetchBookmarkedData();
-  }, [user, toast]);
+    if (user && !authLoading) fetchBookmarkedData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, authLoading, toast]);
 
-  // Fetch Problem Statuses
+  // Fetch Problem Statuses with full details
   useEffect(() => {
     const fetchStatusData = async () => {
       if (user?.uid) {
         setIsLoadingStatuses(true);
         const statusResult = await getAllUserProblemStatusesAction(user.uid);
-        let currentStatuses: Record<string, UserProblemStatusInfo> = {};
 
         if (typeof statusResult === 'object' && statusResult !== null && !('error' in statusResult)) {
-          currentStatuses = statusResult as Record<string, UserProblemStatusInfo>;
-          setProblemStatuses(currentStatuses);
-        } else {
-          console.error("Error fetching problem statuses:", (statusResult as {error:string}).error);
-          toast({ title: 'Error', description: 'Could not fetch problem statuses.', variant: 'destructive' });
-        }
-        
-        const problemRefsWithStatus = Object.entries(currentStatuses)
-            .filter(([id, info]) => info && info.status !== 'none')
-            .map(([id, info]) => ({ problemId: id, companySlug: info.companySlug, problemSlug: info.problemSlug, status: info.status }));
+          setProblemStatuses(statusResult as Record<string, UserProblemStatusInfo>); // Keep raw statuses
+          const problemRefsWithStatus = Object.values(statusResult as Record<string, UserProblemStatusInfo>)
+            .filter(info => info && info.status !== 'none' && info.companySlug && info.problemSlug);
 
-        if (problemRefsWithStatus.length > 0) {
-            const problems = problemRefsWithStatus.map(ref => ({
-                id: ref.problemId,
-                slug: ref.problemSlug,
-                companySlug: ref.companySlug,
-                status: ref.status,
-            } as ProblemWithStatus));
-            setProblemsWithStatusDetails(problems);
+          const detailedProblemsPromises = problemRefsWithStatus.map(async (info) => {
+            const result = await getProblemByCompanySlugAndProblemSlug(info.companySlug, info.problemSlug);
+            if (result.problem) {
+              return { ...result.problem, currentStatus: info.status } as ProblemWithStatus;
+            }
+            console.warn(`Could not fetch full details for problem with status: company ${info.companySlug}, problem ${info.problemSlug}`);
+            return null;
+          });
+          const detailedProblems = (await Promise.all(detailedProblemsPromises)).filter(Boolean) as ProblemWithStatus[];
+          setProblemsWithStatusDetails(detailedProblems);
+
         } else {
-            setProblemsWithStatusDetails([]);
+          console.error("Error fetching problem statuses:", (statusResult as { error: string }).error);
+          toast({ title: 'Error', description: 'Could not fetch problem statuses.', variant: 'destructive' });
+          setProblemsWithStatusDetails([]);
         }
         setIsLoadingStatuses(false);
       } else {
@@ -146,8 +143,9 @@ export default function ProfilePage() {
         setProblemsWithStatusDetails([]);
       }
     };
-     if (user) fetchStatusData();
-  }, [user, toast]);
+    if (user && !authLoading) fetchStatusData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, authLoading, toast]);
 
   // Fetch Strategy Todo Lists
   useEffect(() => {
@@ -167,25 +165,25 @@ export default function ProfilePage() {
         setStrategyTodoLists([]);
       }
     };
-    if (user) fetchStrategyTodoLists();
-  }, [user, toast]);
+    if (user && !authLoading) fetchStrategyTodoLists();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, authLoading, toast]);
 
   const handleToggleTodoItem = async (companyId: string, itemIndex: number, newStatus: boolean) => {
     if (!user) return;
     const todoItemId = `${companyId}-${itemIndex}`;
     setUpdatingTodoItemId(todoItemId);
 
-    // Optimistic UI update
     const originalLists = [...strategyTodoLists];
     setStrategyTodoLists(prevLists =>
       prevLists.map(list =>
         list.companyId === companyId
           ? {
-              ...list,
-              items: list.items.map((item, index) =>
-                index === itemIndex ? { ...item, isCompleted: newStatus } : item
-              ),
-            }
+            ...list,
+            items: list.items.map((item, index) =>
+              index === itemIndex ? { ...item, isCompleted: newStatus } : item
+            ),
+          }
           : list
       )
     );
@@ -197,7 +195,6 @@ export default function ProfilePage() {
       toast({ title: "To-Do Item Updated", description: `Item status changed for ${originalLists.find(l => l.companyId === companyId)?.companyName} strategy.` });
     } else {
       toast({ title: "Update Failed", description: result.error || "Could not update item status.", variant: "destructive" });
-      // Revert optimistic update
       setStrategyTodoLists(originalLists);
     }
   };
@@ -212,47 +209,59 @@ export default function ProfilePage() {
       toast({ title: 'Logout Failed', description: 'Could not log you out.', variant: 'destructive' });
     }
   };
-  
+
   const handleProblemBookmarkChangeOnProfile = (problemId: string, newStatus: boolean) => {
-    if (newStatus) {
-      // Problem details are partial here, so we don't add to bookmarkedProblemDetails
-      // Just update the info list for count or basic display if any
-      const problemEntry = problemsWithStatusDetails.find(p => p.id === problemId);
-      if (problemEntry) {
-        setBookmarkedProblemsInfo(prev => [...prev, { problemId, companySlug: problemEntry.companySlug!, problemSlug: problemEntry.slug! }]);
-      }
-    } else {
-      setBookmarkedProblemsInfo(prev => prev.filter(info => info.problemId !== problemId));
+    if (!newStatus) {
       setBookmarkedProblemDetails(prev => prev.filter(p => p.id !== problemId));
+    } else {
+      setBookmarkedProblemDetails(prev => prev.map(p => p.id === problemId ? { ...p, isBookmarked: true } : p));
     }
+    setProblemsWithStatusDetails(prev => prev.map(p => p.id === problemId ? { ...p, isBookmarked: newStatus } : p));
   };
 
   const handleProblemStatusChangeOnProfile = (problemId: string, newStatus: ProblemStatus) => {
-    const problemEntry = Object.values(problemStatuses).find(pStatus => pStatus.problemId === problemId) || 
-                         bookmarkedProblemsInfo.find(bInfo => bInfo.problemId === problemId) ||
-                         problemsWithStatusDetails.find(p => p.id === problemId);
-
-
-    if (problemEntry) {
-      setProblemStatuses(prev => ({ 
-        ...prev, 
-        [problemId]: newStatus === 'none' 
-          ? undefined 
-          : { status: newStatus, companySlug: problemEntry.companySlug, problemSlug: problemEntry.problemSlug, updatedAt: new Date() } 
-      }));
-    }
-    setProblemsWithStatusDetails(prev => {
-        if (newStatus === 'none') return prev.filter(p => p.id !== problemId);
-        const existing = prev.find(p => p.id === problemId);
-        if (existing) {
-          return prev.map(p => p.id === problemId ? { ...existing, status: newStatus } : p);
-        } else if (problemEntry) { 
-          return [...prev, { id: problemId, slug: problemEntry.problemSlug, companySlug: problemEntry.companySlug, status: newStatus } as ProblemWithStatus];
+    if (newStatus === 'none') {
+      setProblemsWithStatusDetails(prev => prev.filter(p => p.id !== problemId));
+    } else {
+      const problemExists = problemsWithStatusDetails.some(p => p.id === problemId);
+      if (problemExists) {
+        setProblemsWithStatusDetails(prev =>
+          prev.map(p => p.id === problemId ? { ...p, currentStatus: newStatus } : p)
+        );
+      } else {
+        // If problem not in list, it implies it was 'none' and now has a status.
+        // Need to fetch its details and add it. This is complex here.
+        // The current approach of refetching if the lists are empty in useEffect will handle this indirectly.
+        // For immediate UI update, one might need to add it optimistically (with partial data) or trigger specific refetch.
+        // For now, relying on statusResult fetch for completeness.
+        const problemFromBookmarks = bookmarkedProblemDetails.find(p => p.id === problemId);
+        if (problemFromBookmarks) {
+          setProblemsWithStatusDetails(prev => [...prev, { ...problemFromBookmarks, currentStatus: newStatus }])
         }
-        return prev;
+      }
+    }
+    setBookmarkedProblemDetails(prev => prev.map(p => p.id === problemId ? { ...p, currentStatus: newStatus } : p));
+
+    setProblemStatuses(prev => {
+      const updated = { ...prev };
+      if (newStatus === 'none') {
+        delete updated[problemId];
+      } else {
+        const problemInfo = bookmarkedProblemDetails.find(p => p.id === problemId) || problemsWithStatusDetails.find(p => p.id === problemId);
+        if (problemInfo) {
+          updated[problemId] = {
+            problemId: problemId,
+            status: newStatus,
+            companySlug: problemInfo.companySlug,
+            problemSlug: problemInfo.slug,
+            updatedAt: new Date()
+          };
+        }
+      }
+      return updated;
     });
   };
-  
+
   const getInitials = (name: string | null | undefined) => {
     if (!name) return 'U';
     const names = name.split(' ');
@@ -261,7 +270,7 @@ export default function ProfilePage() {
 
   const onSubmitDisplayName = async (data: DisplayNameFormValues) => {
     if (!user || !auth.currentUser) {
-      toast({ title: 'Error', description: 'User not authenticated.', variant: 'destructive'});
+      toast({ title: 'Error', description: 'User not authenticated.', variant: 'destructive' });
       return;
     }
     setIsSubmittingDisplayName(true);
@@ -271,19 +280,20 @@ export default function ProfilePage() {
       if (firestoreResult.success) {
         toast({ title: 'Display Name Updated!', description: 'Your display name has been successfully updated.' });
         setIsEditingDisplayName(false);
+        setUser(prev => prev ? { ...prev, displayName: data.displayName } as any : null);
       } else {
-        toast({ title: 'Firestore Update Failed', description: firestoreResult.error || 'Could not update display name in our records.', variant: 'destructive'});
+        toast({ title: 'Firestore Update Failed', description: firestoreResult.error || 'Could not update display name in our records.', variant: 'destructive' });
       }
     } catch (error: any) {
       console.error("Error updating display name:", error);
-      toast({ title: 'Update Failed', description: error.message || 'An unknown error occurred.', variant: 'destructive'});
+      toast({ title: 'Update Failed', description: error.message || 'An unknown error occurred.', variant: 'destructive' });
     } finally {
       setIsSubmittingDisplayName(false);
     }
   };
 
   if (authLoading) {
-    return ( 
+    return (
       <section className="space-y-8 max-w-4xl mx-auto">
         <Card className="shadow-lg"><CardHeader><Skeleton className="h-8 w-48 mb-2" /><Skeleton className="h-4 w-64" /></CardHeader>
           <CardContent className="space-y-6"><div className="flex items-center space-x-4"><Skeleton className="h-20 w-20 rounded-full" /><div className="space-y-2"><Skeleton className="h-6 w-40" /><Skeleton className="h-4 w-52" /></div></div>
@@ -291,35 +301,37 @@ export default function ProfilePage() {
           </CardContent></Card><Separator />
         <Skeleton className="h-10 w-1/3 mb-4" />
         <Skeleton className="h-8 w-1/4 mb-2" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{[1,2,3].map(i => <Skeleton key={i} className="h-60 rounded-lg" />)}</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{[1, 2, 3].map(i => <Skeleton key={i} className="h-60 rounded-lg" />)}</div>
       </section>
     );
   }
-  if (!user) { 
-    return <div className="text-center py-10"><p>Please log in to view your profile.</p><Button onClick={() => router.push('/login')} className="mt-4">Go to Login</Button></div>;
+  if (!user) {
+    router.push('/login'); // Redirect if not logged in and not loading
+    return <div className="text-center py-10"><p>Redirecting to login...</p><Button onClick={() => router.push('/login')} className="mt-4">Go to Login</Button></div>;
   }
 
+  // Recalculate stats based on the problemStatuses map
   const stats = {
     solved: Object.values(problemStatuses).filter(p => p?.status === 'solved').length,
     attempted: Object.values(problemStatuses).filter(p => p?.status === 'attempted').length,
     todo: Object.values(problemStatuses).filter(p => p?.status === 'todo').length,
   };
 
-  const renderProblemList = (list: ProblemWithStatus[], listTitle: string, isLoading: boolean) => {
+  const renderProblemList = (list: ProblemWithStatus[], listTitle: string, isLoading: boolean, type: 'bookmarks' | 'status') => {
     if (isLoading) {
-        return <div className="flex justify-center items-center py-10"><Loader2 className="h-10 w-10 animate-spin text-primary" /><p className="ml-3">Loading {listTitle.toLowerCase()}...</p></div>;
+      return <div className="flex justify-center items-center py-10"><Loader2 className="h-10 w-10 animate-spin text-primary" /><p className="ml-3">Loading {listTitle.toLowerCase()}...</p></div>;
     }
     if (list.length === 0) {
-        return <p className="text-muted-foreground text-center py-6">No problems {listTitle.toLowerCase()} yet.</p>;
+      return <p className="text-muted-foreground text-center py-6">No problems {type === 'bookmarks' ? 'bookmarked' : `with status "${listTitle.toLowerCase()}"`} yet.</p>;
     }
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {list.map(problem => (
-          <ProblemCard 
-            key={problem.id} 
-            problem={problem as LeetCodeProblem} 
-            companySlug={problem.companySlug || ''} 
-            initialIsBookmarked={bookmarkedProblemsInfo.some(info => info.problemId === problem.id)}
+          <ProblemCard
+            key={problem.id}
+            problem={problem}
+            companySlug={problem.companySlug}
+            initialIsBookmarked={bookmarkedProblemDetails.some(bp => bp.id === problem.id)}
             onBookmarkChanged={handleProblemBookmarkChangeOnProfile}
             problemStatus={problemStatuses[problem.id]?.status || 'none'}
             onProblemStatusChange={handleProblemStatusChangeOnProfile}
@@ -462,7 +474,7 @@ export default function ProfilePage() {
           </div>
         </CardContent>
       </Card>
-      
+
       <Tabs defaultValue="bookmarks" className="w-full">
         <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mb-6">
           <TabsTrigger value="bookmarks"><Bookmark className="mr-2 h-4 w-4" />Bookmarks ({bookmarkedProblemDetails.length})</TabsTrigger>
@@ -475,45 +487,46 @@ export default function ProfilePage() {
         <TabsContent value="bookmarks">
           <Card><CardHeader><CardTitle>Your Bookmarked Problems</CardTitle></CardHeader>
             <CardContent>
-              {renderProblemList(bookmarkedProblemDetails, "bookmarked", isLoadingBookmarks)}
+              {renderProblemList(bookmarkedProblemDetails, "Bookmarked", isLoadingBookmarks, "bookmarks")}
             </CardContent>
           </Card>
         </TabsContent>
         <TabsContent value="solved">
-            <Card><CardHeader><CardTitle>Solved Problems</CardTitle></CardHeader>
+          <Card><CardHeader><CardTitle>Solved Problems</CardTitle></CardHeader>
             <CardContent>
-                {renderProblemList(problemsWithStatusDetails.filter(p => p.status === 'solved'), "solved", isLoadingStatuses)}
+              {renderProblemList(problemsWithStatusDetails.filter(p => p.currentStatus === 'solved'), "Solved", isLoadingStatuses, "status")}
             </CardContent></Card>
         </TabsContent>
         <TabsContent value="attempted">
-            <Card><CardHeader><CardTitle>Attempted Problems</CardTitle></CardHeader>
+          <Card><CardHeader><CardTitle>Attempted Problems</CardTitle></CardHeader>
             <CardContent>
-                 {renderProblemList(problemsWithStatusDetails.filter(p => p.status === 'attempted'), "attempted", isLoadingStatuses)}
+              {renderProblemList(problemsWithStatusDetails.filter(p => p.currentStatus === 'attempted'), "Attempted", isLoadingStatuses, "status")}
             </CardContent></Card>
         </TabsContent>
         <TabsContent value="todo">
-            <Card><CardHeader><CardTitle>To-Do Problems</CardTitle></CardHeader>
+          <Card><CardHeader><CardTitle>To-Do Problems</CardTitle></CardHeader>
             <CardContent>
-                {renderProblemList(problemsWithStatusDetails.filter(p => p.status === 'todo'), "to-do", isLoadingStatuses)}
+              {renderProblemList(problemsWithStatusDetails.filter(p => p.currentStatus === 'todo'), "To-Do", isLoadingStatuses, "status")}
             </CardContent></Card>
         </TabsContent>
         <TabsContent value="strategyLists">
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center">
-                        <Brain className="mr-2 h-5 w-5 text-primary" />
-                        Saved Strategy To-Do Lists
-                    </CardTitle>
-                    <CardDescription>
-                        Actionable AI-generated To-Do lists for company-specific interview preparation. Check off items as you complete them.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {renderStrategyTodoLists()}
-                </CardContent>
-            </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Brain className="mr-2 h-5 w-5 text-primary" />
+                Saved Strategy To-Do Lists
+              </CardTitle>
+              <CardDescription>
+                Actionable AI-generated To-Do lists for company-specific interview preparation. Check off items as you complete them.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {renderStrategyTodoLists()}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </section>
   );
 }
+
