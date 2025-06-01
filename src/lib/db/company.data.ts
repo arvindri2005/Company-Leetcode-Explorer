@@ -9,10 +9,8 @@ import {
     where,
     limit,
     addDoc,
-    updateDoc,
     orderBy,
 } from "firebase/firestore";
-import { unstable_cache } from "next/cache";
 import { slugify } from "@/lib/utils";
 
 interface GetCompaniesParams {
@@ -28,36 +26,31 @@ interface PaginatedCompaniesResponse {
     currentPage: number;
 }
 
-const getCachedFirestoreCompanies = unstable_cache(
-    async (currentSearchTerm?: string) => {
-        const companiesCol = collection(db, "companies");
-        let q = query(companiesCol, orderBy("normalizedName"));
+async function fetchAllCompaniesFromFirestore(
+    currentSearchTerm?: string
+): Promise<Company[]> {
+    const companiesCol = collection(db, "companies");
+    let q = query(companiesCol, orderBy("normalizedName"));
 
-        if (currentSearchTerm && currentSearchTerm.trim() !== "") {
-            const lowercasedSearchTerm = currentSearchTerm.toLowerCase().trim();
-            q = query(
-                companiesCol,
-                orderBy("normalizedName"),
-                where("normalizedName", ">=", lowercasedSearchTerm),
-                where("normalizedName", "<=", lowercasedSearchTerm + "\uf8ff")
-            );
-        }
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(
-            (docSnap) =>
-                ({
-                    id: docSnap.id,
-                    slug: docSnap.data().slug || slugify(docSnap.data().name),
-                    ...docSnap.data(),
-                } as Company)
+    if (currentSearchTerm && currentSearchTerm.trim() !== "") {
+        const lowercasedSearchTerm = currentSearchTerm.toLowerCase().trim();
+        q = query(
+            companiesCol,
+            orderBy("normalizedName"),
+            where("normalizedName", ">=", lowercasedSearchTerm),
+            where("normalizedName", "<=", lowercasedSearchTerm + "\uf8ff")
         );
-    },
-    ["firestore-companies-list-with-optional-search-v2"],
-    {
-        tags: ["companies-collection-broad"],
-        revalidate: 60, // Reduced from 3600 to 60 seconds
     }
-);
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(
+        (docSnap) =>
+            ({
+                id: docSnap.id,
+                slug: docSnap.data().slug || slugify(docSnap.data().name),
+                ...docSnap.data(),
+            } as Company)
+    );
+}
 
 export const getCompanies = async ({
     page = 1,
@@ -65,26 +58,25 @@ export const getCompanies = async ({
     searchTerm,
 }: GetCompaniesParams = {}): Promise<PaginatedCompaniesResponse> => {
     try {
-        let baseCompaniesList = await getCachedFirestoreCompanies(
+        let baseCompaniesList = await fetchAllCompaniesFromFirestore(
             searchTerm?.trim()
         );
         let filteredCompanies = [...baseCompaniesList];
 
         if (searchTerm && searchTerm.trim() !== "") {
             const lowercasedSearchTerm = searchTerm.toLowerCase().trim();
-            const searchTermPassedToCache = !!(
-                searchTerm && searchTerm.trim() !== ""
-            );
-
-            filteredCompanies = filteredCompanies.filter(
+            filteredCompanies = (
+                await fetchAllCompaniesFromFirestore(undefined)
+            ).filter(
                 (company) =>
+                    (company.normalizedName &&
+                        company.normalizedName.includes(
+                            lowercasedSearchTerm
+                        )) ||
                     (company.description &&
                         company.description
                             .toLowerCase()
-                            .includes(lowercasedSearchTerm)) ||
-                    (!searchTermPassedToCache &&
-                        company.normalizedName &&
-                        company.normalizedName.includes(lowercasedSearchTerm))
+                            .includes(lowercasedSearchTerm))
             );
         }
 
@@ -104,6 +96,7 @@ export const getCompanies = async ({
             currentPage: currentPageResult,
         };
     } catch (error) {
+        console.error("Error in getCompanies:", error);
         return {
             companies: [],
             totalCompanies: 0,
@@ -113,146 +106,90 @@ export const getCompanies = async ({
     }
 };
 
-const getCachedCompanyById = unstable_cache(
-    async (companyId: string) => {
-        if (!companyId || typeof companyId !== "string") return undefined;
-        const companyDocRef = doc(db, "companies", companyId);
-        const companySnap = await getDoc(companyDocRef);
-        if (companySnap.exists()) {
-            const data = companySnap.data();
-            return {
-                id: companySnap.id,
-                slug: data.slug || slugify(data.name),
-                ...data,
-            } as Company;
-        }
+async function fetchCompanyByIdFromFirestore(
+    companyId?: string
+): Promise<Company | undefined> {
+    if (!companyId || typeof companyId !== "string") {
+        console.warn(
+            "fetchCompanyByIdFromFirestore: companyId was undefined or not a string.",
+            companyId
+        );
         return undefined;
-    },
-    ["company-by-id-cache-key-v2"],
-    {
-        tags: async (companyId: string) => {
-            const companyIdTag =
-                typeof companyId === "string" && companyId
-                    ? `company-detail-${companyId}`
-                    : "company-detail-unknown-arg";
-            let slugTag = "company-slug-unknown-fetch";
-
-            if (typeof companyId === "string" && companyId) {
-                try {
-                    const companyRef = doc(db, "companies", companyId);
-                    const companySnap = await getDoc(companyRef);
-                    const slug = companySnap.data()?.slug;
-                    if (slug && typeof slug === "string") {
-                        slugTag = `company-slug-${slug}`;
-                    }
-                } catch (e) {
-                    // Error fetching for slug tag, keep fallback
-                }
-            }
-            return [companyIdTag, slugTag].filter(
-                (tag) => typeof tag === "string"
-            );
-        },
-        revalidate: 3600,
     }
-);
+    const companyDocRef = doc(db, "companies", companyId);
+    const companySnap = await getDoc(companyDocRef);
+    if (companySnap.exists()) {
+        const data = companySnap.data();
+        return {
+            id: companySnap.id,
+            slug: data.slug || slugify(data.name),
+            ...data,
+        } as Company;
+    }
+    return undefined;
+}
 
 export const getCompanyById = async (
     id: string
 ): Promise<Company | undefined> => {
     try {
-        return await getCachedCompanyById(id);
+        return await fetchCompanyByIdFromFirestore(id);
     } catch (error) {
+        console.error(`Error fetching company by ID ${id}:`, error);
         return undefined;
     }
 };
 
-const getCachedCompanyBySlug = unstable_cache(
-    async (companySlug: string) => {
-        if (!companySlug || typeof companySlug !== "string") return undefined;
-        const companiesCol = collection(db, "companies");
-        const q = query(
-            companiesCol,
-            where("slug", "==", companySlug),
-            limit(1)
+async function fetchCompanyBySlugFromFirestore(
+    companySlug?: string
+): Promise<Company | undefined> {
+    if (!companySlug || typeof companySlug !== "string") {
+        console.warn(
+            "fetchCompanyBySlugFromFirestore: companySlug was undefined or not a string.",
+            companySlug
         );
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            const companyDoc = querySnapshot.docs[0];
-            const data = companyDoc.data();
-            return {
-                id: companyDoc.id,
-                slug: data.slug || slugify(data.name),
-                ...data,
-            } as Company;
-        }
         return undefined;
-    },
-    ["company-by-slug-cache-key-v2"],
-    {
-        tags: async (companySlug: string) => {
-            const companySlugTag =
-                typeof companySlug === "string" && companySlug
-                    ? `company-slug-${companySlug}`
-                    : "company-slug-unknown-arg";
-            let companyDetailTag = "company-detail-unknown-fetch";
-
-            if (typeof companySlug === "string" && companySlug) {
-                try {
-                    const companyQuery = query(
-                        collection(db, "companies"),
-                        where("slug", "==", companySlug),
-                        limit(1)
-                    );
-                    const companySnap = await getDocs(companyQuery);
-                    if (!companySnap.empty) {
-                        const companyDoc = companySnap.docs[0];
-                        if (
-                            companyDoc.id &&
-                            typeof companyDoc.id === "string"
-                        ) {
-                            companyDetailTag = `company-detail-${companyDoc.id}`;
-                        }
-                    }
-                } catch (e) {
-                    // Error fetching for detail tag, keep fallback
-                }
-            }
-            return [companySlugTag, companyDetailTag].filter(
-                (tag) => typeof tag === "string"
-            );
-        },
-        revalidate: 3600,
     }
-);
+    const companiesCol = collection(db, "companies");
+    const q = query(companiesCol, where("slug", "==", companySlug), limit(1));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+        const companyDoc = querySnapshot.docs[0];
+        const data = companyDoc.data();
+        return {
+            id: companyDoc.id,
+            slug: data.slug || slugify(data.name),
+            ...data,
+        } as Company;
+    }
+    return undefined;
+}
 
 export const getCompanyBySlug = async (
     slug: string
 ): Promise<Company | undefined> => {
     try {
-        return await getCachedCompanyBySlug(slug);
+        return await fetchCompanyBySlugFromFirestore(slug);
     } catch (error) {
+        console.error(`Error fetching company by slug ${slug}:`, error);
         return undefined;
     }
 };
 
-const getCachedAllCompanySlugs = unstable_cache(
-    async () => {
-        const companiesCol = collection(db, "companies");
-        const q = query(companiesCol, orderBy("slug"));
-        const companiesSnapshot = await getDocs(q);
-        return companiesSnapshot.docs
-            .map((docSnap) => docSnap.data().slug as string)
-            .filter(Boolean);
-    },
-    ["all-company-slugs-cache-key-v2"],
-    { tags: ["companies-collection-broad"], revalidate: 3600 }
-);
+async function fetchAllCompanySlugsFromFirestore(): Promise<string[]> {
+    const companiesCol = collection(db, "companies");
+    const q = query(companiesCol, orderBy("slug"));
+    const companiesSnapshot = await getDocs(q);
+    return companiesSnapshot.docs
+        .map((docSnap) => docSnap.data().slug as string)
+        .filter(Boolean);
+}
 
 export const getAllCompanySlugs = async (): Promise<string[]> => {
     try {
-        return await getCachedAllCompanySlugs();
+        return await fetchAllCompanySlugsFromFirestore();
     } catch (error) {
+        console.error("Error fetching all company slugs:", error);
         return [];
     }
 };
@@ -298,6 +235,7 @@ export const addCompanyToDb = async (
             error instanceof Error
                 ? error.message
                 : "An unknown error occurred while adding company.";
+        console.error("Error in addCompanyToDb:", message, error);
         return { id: null, error: message };
     }
 };
