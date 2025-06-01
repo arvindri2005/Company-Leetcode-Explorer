@@ -20,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { LeetCodeProblem, ProblemStatus, BookmarkedProblemInfo, UserProblemStatusInfo, SavedStrategyTodoList, StrategyTodoItem } from '@/types';
 import { PROBLEM_STATUS_DISPLAY } from '@/types';
 import { getUsersBookmarkedProblemsInfoAction, getAllUserProblemStatusesAction, updateUserDisplayNameInFirestore, getUserStrategyTodoListsAction, updateStrategyTodoItemStatusAction } from '@/app/actions';
-import { getProblemByCompanySlugAndProblemSlug } from '@/lib/data';
+import { getProblemByCompanySlugAndProblemSlug } from '@/lib/data'; // Corrected import path
 import ProblemCard from '@/components/problem/problem-card';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -35,7 +35,7 @@ interface ProblemWithStatus extends LeetCodeProblem {
 }
 
 const displayNameFormSchema = z.object({
-  displayName: z.string().min(2, { message: 'Display name must be at least 2 characters.' }).max(50, { message: 'Display name cannot exceed 50 characters.' }),
+  displayName: z.string().min(2, { message: 'Display name must be at least 2 characters.' }).max(50, {message: 'Display name cannot exceed 50 characters.'}),
 });
 type DisplayNameFormValues = z.infer<typeof displayNameFormSchema>;
 
@@ -47,7 +47,7 @@ export default function ProfilePage() {
   const [bookmarkedProblemDetails, setBookmarkedProblemDetails] = useState<ProblemWithStatus[]>([]);
   const [isLoadingBookmarks, setIsLoadingBookmarks] = useState(false);
 
-  const [problemStatuses, setProblemStatuses] = useState<Record<string, UserProblemStatusInfo>>({}); // Keep this for raw status data
+  const [problemStatuses, setProblemStatuses] = useState<Record<string, UserProblemStatusInfo>>({});
   const [problemsWithStatusDetails, setProblemsWithStatusDetails] = useState<ProblemWithStatus[]>([]);
   const [isLoadingStatuses, setIsLoadingStatuses] = useState(false);
 
@@ -73,101 +73,145 @@ export default function ProfilePage() {
   }, [user?.displayName, displayNameForm]);
 
 
-  // Fetch Bookmarks with full details
   useEffect(() => {
+    console.log('[ProfilePage] Auth state change: user UID is', user?.uid, ', authLoading is', authLoading);
     const fetchBookmarkedData = async () => {
       if (user?.uid) {
         setIsLoadingBookmarks(true);
+        console.log(`[ProfilePage] Bookmarks - Calling getUsersBookmarkedProblemsInfoAction for user: ${user.uid}`);
         const bookmarkInfosResult = await getUsersBookmarkedProblemsInfoAction(user.uid);
+        console.log('[ProfilePage] Bookmarks - Fetched bookmark infos:', bookmarkInfosResult);
 
         if (Array.isArray(bookmarkInfosResult)) {
-          const detailedProblemsPromises = bookmarkInfosResult.map(async (info) => {
+          const detailedProblemsPromises = bookmarkInfosResult.map(async (info, index) => {
+            console.log(`[ProfilePage] Bookmarks - Processing info ${index}:`, info);
             if (!info.companySlug || !info.problemSlug) {
-              console.warn(`Skipping bookmark with missing slug data: problemId ${info.problemId}`);
+                console.warn(`[ProfilePage] Bookmarks - Skipping bookmark with missing slug data: problemId ${info.problemId}`);
+                return null;
+            }
+            try {
+              const result = await getProblemByCompanySlugAndProblemSlug(info.companySlug, info.problemSlug);
+              if (result.problem) {
+                console.log(`[ProfilePage] Bookmarks - Detail fetch for bookmark ${info.problemId} (${info.problemSlug}): Success`);
+                return { ...result.problem, isBookmarked: true } as ProblemWithStatus;
+              }
+              console.warn(`[ProfilePage] Bookmarks - Could not fetch full details for bookmarked problem: company ${info.companySlug}, problem ${info.problemSlug}`);
+              return null;
+            } catch (e) {
+              console.error(`[ProfilePage] Bookmarks - Error fetching details for ${info.problemSlug}:`, e);
               return null;
             }
-            const result = await getProblemByCompanySlugAndProblemSlug(info.companySlug, info.problemSlug);
-            if (result.problem) {
-              return { ...result.problem, isBookmarked: true } as ProblemWithStatus; // Mark as bookmarked
-            }
-            console.warn(`Could not fetch full details for bookmarked problem: company ${info.companySlug}, problem ${info.problemSlug}`);
-            return null;
           });
           const detailedProblems = (await Promise.all(detailedProblemsPromises)).filter(Boolean) as ProblemWithStatus[];
+          console.log('[ProfilePage] Bookmarks - Processed detailedProblems to be set in state (first 3):', JSON.stringify(detailedProblems.slice(0,3).map(p => ({id: p.id, title: p.title, companySlug: p.companySlug}))));
           setBookmarkedProblemDetails(detailedProblems);
+          console.log(`[ProfilePage] Bookmarks - State set. bookmarkedProblemDetails.length: ${detailedProblems.length}`);
         } else {
-          console.error("Error fetching bookmarked info:", bookmarkInfosResult.error);
+          console.error("[ProfilePage] Bookmarks - Error fetching bookmarked info:", bookmarkInfosResult.error);
           toast({ title: 'Error', description: 'Could not fetch bookmarked problems.', variant: 'destructive' });
           setBookmarkedProblemDetails([]);
         }
         setIsLoadingBookmarks(false);
       } else {
-        setBookmarkedProblemDetails([]);
+         console.log('[ProfilePage] Bookmarks - No user or UID, clearing bookmarks.');
+         setBookmarkedProblemDetails([]);
       }
     };
-    if (user && !authLoading) fetchBookmarkedData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, authLoading, toast]);
+    if (user && !authLoading) {
+      fetchBookmarkedData();
+    } else if (!authLoading && !user) {
+      console.log('[ProfilePage] Bookmarks - Not fetching, user not logged in and auth not loading.');
+      setBookmarkedProblemDetails([]); // Clear if user logs out
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, authLoading]); // toast removed to prevent re-fetch on toast change
 
-  // Fetch Problem Statuses with full details
   useEffect(() => {
     const fetchStatusData = async () => {
       if (user?.uid) {
         setIsLoadingStatuses(true);
+        console.log(`[ProfilePage] Statuses - Calling getAllUserProblemStatusesAction for user: ${user.uid}`);
         const statusResult = await getAllUserProblemStatusesAction(user.uid);
+        console.log('[ProfilePage] Statuses - Fetched problem statuses raw:', statusResult);
 
         if (typeof statusResult === 'object' && statusResult !== null && !('error' in statusResult)) {
-          setProblemStatuses(statusResult as Record<string, UserProblemStatusInfo>); // Keep raw statuses
+          setProblemStatuses(statusResult as Record<string, UserProblemStatusInfo>);
           const problemRefsWithStatus = Object.values(statusResult as Record<string, UserProblemStatusInfo>)
-            .filter(info => info && info.status !== 'none' && info.companySlug && info.problemSlug);
+              .filter(info => info && info.status !== 'none' && info.companySlug && info.problemSlug);
+          console.log(`[ProfilePage] Statuses - Found ${problemRefsWithStatus.length} problems with actual status.`);
 
-          const detailedProblemsPromises = problemRefsWithStatus.map(async (info) => {
-            const result = await getProblemByCompanySlugAndProblemSlug(info.companySlug, info.problemSlug);
-            if (result.problem) {
-              return { ...result.problem, currentStatus: info.status } as ProblemWithStatus;
+          const detailedProblemsPromises = problemRefsWithStatus.map(async (info, index) => {
+            console.log(`[ProfilePage] Statuses - Processing status info ${index}:`, info);
+            try {
+              const result = await getProblemByCompanySlugAndProblemSlug(info.companySlug, info.problemSlug);
+              if (result.problem) {
+                console.log(`[ProfilePage] Statuses - Detail fetch for status problem ${info.problemId} (${info.problemSlug}): Success`);
+                return { ...result.problem, currentStatus: info.status } as ProblemWithStatus;
+              }
+              console.warn(`[ProfilePage] Statuses - Could not fetch full details for problem with status: company ${info.companySlug}, problem ${info.problemSlug}`);
+              return null;
+            } catch (e) {
+               console.error(`[ProfilePage] Statuses - Error fetching details for ${info.problemSlug}:`, e);
+              return null;
             }
-            console.warn(`Could not fetch full details for problem with status: company ${info.companySlug}, problem ${info.problemSlug}`);
-            return null;
           });
           const detailedProblems = (await Promise.all(detailedProblemsPromises)).filter(Boolean) as ProblemWithStatus[];
+          console.log('[ProfilePage] Statuses - Processed detailedProblems (with status) to be set in state (first 3):', JSON.stringify(detailedProblems.slice(0,3).map(p => ({id: p.id, title: p.title, status: p.currentStatus}))));
           setProblemsWithStatusDetails(detailedProblems);
-
+          console.log(`[ProfilePage] Statuses - State set. problemsWithStatusDetails.length: ${detailedProblems.length}`);
         } else {
-          console.error("Error fetching problem statuses:", (statusResult as { error: string }).error);
+          console.error("[ProfilePage] Statuses - Error fetching problem statuses:", (statusResult as {error:string})?.error || "Unknown error structure");
           toast({ title: 'Error', description: 'Could not fetch problem statuses.', variant: 'destructive' });
           setProblemsWithStatusDetails([]);
         }
         setIsLoadingStatuses(false);
       } else {
+        console.log('[ProfilePage] Statuses - No user or UID, clearing statuses.');
         setProblemStatuses({});
         setProblemsWithStatusDetails([]);
       }
     };
-    if (user && !authLoading) fetchStatusData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, authLoading, toast]);
+     if (user && !authLoading) {
+       fetchStatusData();
+     } else if (!authLoading && !user) {
+      console.log('[ProfilePage] Statuses - Not fetching, user not logged in and auth not loading.');
+      setProblemStatuses({});
+      setProblemsWithStatusDetails([]); // Clear if user logs out
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, authLoading]); // toast removed
 
-  // Fetch Strategy Todo Lists
   useEffect(() => {
     const fetchStrategyTodoLists = async () => {
       if (user?.uid) {
         setIsLoadingStrategyTodoLists(true);
+        console.log(`[ProfilePage] Strategies - Calling getUserStrategyTodoListsAction for user: ${user.uid}`);
         const result = await getUserStrategyTodoListsAction(user.uid);
+        console.log('[ProfilePage] Strategies - Fetched strategy lists raw:', result);
+
         if (Array.isArray(result)) {
+          console.log('[ProfilePage] Strategies - Fetched strategy lists to be set in state (company names):', JSON.stringify(result.map(l => ({companyName: l.companyName, itemsCount: l.items.length}))));
           setStrategyTodoLists(result);
+          console.log(`[ProfilePage] Strategies - State set. strategyTodoLists.length: ${result.length}`);
         } else {
-          console.error("Error fetching strategy todo lists:", result.error);
+          console.error("[ProfilePage] Strategies - Error fetching strategy todo lists:", result.error);
           toast({ title: 'Error', description: 'Could not fetch saved strategy todo lists.', variant: 'destructive' });
           setStrategyTodoLists([]);
         }
         setIsLoadingStrategyTodoLists(false);
       } else {
+        console.log('[ProfilePage] Strategies - No user or UID, clearing strategy lists.');
         setStrategyTodoLists([]);
       }
     };
-    if (user && !authLoading) fetchStrategyTodoLists();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, authLoading, toast]);
+    if (user && !authLoading) {
+      fetchStrategyTodoLists();
+    } else if (!authLoading && !user) {
+      console.log('[ProfilePage] Strategies - Not fetching, user not logged in and auth not loading.');
+      setStrategyTodoLists([]); // Clear if user logs out
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, authLoading]); // toast removed
 
   const handleToggleTodoItem = async (companyId: string, itemIndex: number, newStatus: boolean) => {
     if (!user) return;
@@ -179,11 +223,11 @@ export default function ProfilePage() {
       prevLists.map(list =>
         list.companyId === companyId
           ? {
-            ...list,
-            items: list.items.map((item, index) =>
-              index === itemIndex ? { ...item, isCompleted: newStatus } : item
-            ),
-          }
+              ...list,
+              items: list.items.map((item, index) =>
+                index === itemIndex ? { ...item, isCompleted: newStatus } : item
+              ),
+            }
           : list
       )
     );
@@ -214,51 +258,50 @@ export default function ProfilePage() {
     if (!newStatus) {
       setBookmarkedProblemDetails(prev => prev.filter(p => p.id !== problemId));
     } else {
-      setBookmarkedProblemDetails(prev => prev.map(p => p.id === problemId ? { ...p, isBookmarked: true } : p));
+      // If re-bookmarking, it should ideally be re-added if it was filtered out.
+      // This case might be complex if the problem isn't in status lists.
+      // For simplicity, we ensure it's marked in what's already displayed.
+      // A full re-fetch might be more robust if adding a new bookmark here.
+       setBookmarkedProblemDetails(prev => prev.map(p => p.id === problemId ? {...p, isBookmarked: true} : p));
     }
-    setProblemsWithStatusDetails(prev => prev.map(p => p.id === problemId ? { ...p, isBookmarked: newStatus } : p));
+    setProblemsWithStatusDetails(prev => prev.map(p => p.id === problemId ? {...p, isBookmarked: newStatus} : p));
   };
 
   const handleProblemStatusChangeOnProfile = (problemId: string, newStatus: ProblemStatus) => {
-    if (newStatus === 'none') {
-      setProblemsWithStatusDetails(prev => prev.filter(p => p.id !== problemId));
-    } else {
-      const problemExists = problemsWithStatusDetails.some(p => p.id === problemId);
-      if (problemExists) {
-        setProblemsWithStatusDetails(prev =>
-          prev.map(p => p.id === problemId ? { ...p, currentStatus: newStatus } : p)
-        );
-      } else {
-        // If problem not in list, it implies it was 'none' and now has a status.
-        // Need to fetch its details and add it. This is complex here.
-        // The current approach of refetching if the lists are empty in useEffect will handle this indirectly.
-        // For immediate UI update, one might need to add it optimistically (with partial data) or trigger specific refetch.
-        // For now, relying on statusResult fetch for completeness.
-        const problemFromBookmarks = bookmarkedProblemDetails.find(p => p.id === problemId);
-        if (problemFromBookmarks) {
-          setProblemsWithStatusDetails(prev => [...prev, { ...problemFromBookmarks, currentStatus: newStatus }])
-        }
-      }
+    // Optimistically update UI
+    setProblemsWithStatusDetails(prev =>
+        prev
+            .map(p => (p.id === problemId ? { ...p, currentStatus: newStatus } : p))
+            .filter(p => newStatus === 'none' && p.id === problemId ? false : true) // Remove if 'none'
+    );
+
+    // If newStatus is not 'none' and problem wasn't in the list, it needs to be added.
+    // This requires fetching problem details. For now, we assume if it's being changed, details were available.
+    if (newStatus !== 'none' && !problemsWithStatusDetails.some(p => p.id === problemId)) {
+      // Potentially re-fetch lists or add item after fetching its details.
+      // This scenario is complex for an optimistic update without full data.
+      // The main useEffect for statuses should ideally catch this on a subsequent user change, or trigger a manual refetch.
+      console.warn(`[ProfilePage] Status changed for ${problemId} to ${newStatus}, but problem not in detailed list. Full refetch might be needed.`);
     }
-    setBookmarkedProblemDetails(prev => prev.map(p => p.id === problemId ? { ...p, currentStatus: newStatus } : p));
+
+
+    setBookmarkedProblemDetails(prev => prev.map(p => p.id === problemId ? {...p, currentStatus: newStatus} : p));
 
     setProblemStatuses(prev => {
-      const updated = { ...prev };
-      if (newStatus === 'none') {
-        delete updated[problemId];
-      } else {
+        const updated = {...prev};
         const problemInfo = bookmarkedProblemDetails.find(p => p.id === problemId) || problemsWithStatusDetails.find(p => p.id === problemId);
-        if (problemInfo) {
-          updated[problemId] = {
-            problemId: problemId,
-            status: newStatus,
-            companySlug: problemInfo.companySlug,
-            problemSlug: problemInfo.slug,
-            updatedAt: new Date()
-          };
+        if (newStatus === 'none') {
+            delete updated[problemId];
+        } else if (problemInfo) { // Only update if we have slug info
+            updated[problemId] = {
+                problemId: problemId,
+                status: newStatus,
+                companySlug: problemInfo.companySlug,
+                problemSlug: problemInfo.slug,
+                updatedAt: new Date() // Client-side timestamp, server will use serverTimestamp
+            };
         }
-      }
-      return updated;
+        return updated;
     });
   };
 
@@ -270,7 +313,7 @@ export default function ProfilePage() {
 
   const onSubmitDisplayName = async (data: DisplayNameFormValues) => {
     if (!user || !auth.currentUser) {
-      toast({ title: 'Error', description: 'User not authenticated.', variant: 'destructive' });
+      toast({ title: 'Error', description: 'User not authenticated.', variant: 'destructive'});
       return;
     }
     setIsSubmittingDisplayName(true);
@@ -280,13 +323,13 @@ export default function ProfilePage() {
       if (firestoreResult.success) {
         toast({ title: 'Display Name Updated!', description: 'Your display name has been successfully updated.' });
         setIsEditingDisplayName(false);
-        setUser(prev => prev ? { ...prev, displayName: data.displayName } as any : null);
+        setUser(prev => prev ? {...prev, displayName: data.displayName} as any : null);
       } else {
-        toast({ title: 'Firestore Update Failed', description: firestoreResult.error || 'Could not update display name in our records.', variant: 'destructive' });
+        toast({ title: 'Firestore Update Failed', description: firestoreResult.error || 'Could not update display name in our records.', variant: 'destructive'});
       }
     } catch (error: any) {
       console.error("Error updating display name:", error);
-      toast({ title: 'Update Failed', description: error.message || 'An unknown error occurred.', variant: 'destructive' });
+      toast({ title: 'Update Failed', description: error.message || 'An unknown error occurred.', variant: 'destructive'});
     } finally {
       setIsSubmittingDisplayName(false);
     }
@@ -301,16 +344,15 @@ export default function ProfilePage() {
           </CardContent></Card><Separator />
         <Skeleton className="h-10 w-1/3 mb-4" />
         <Skeleton className="h-8 w-1/4 mb-2" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{[1, 2, 3].map(i => <Skeleton key={i} className="h-60 rounded-lg" />)}</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{[1,2,3].map(i => <Skeleton key={i} className="h-60 rounded-lg" />)}</div>
       </section>
     );
   }
   if (!user) {
-    router.push('/login'); // Redirect if not logged in and not loading
+    router.push('/login');
     return <div className="text-center py-10"><p>Redirecting to login...</p><Button onClick={() => router.push('/login')} className="mt-4">Go to Login</Button></div>;
   }
 
-  // Recalculate stats based on the problemStatuses map
   const stats = {
     solved: Object.values(problemStatuses).filter(p => p?.status === 'solved').length,
     attempted: Object.values(problemStatuses).filter(p => p?.status === 'attempted').length,
@@ -318,11 +360,15 @@ export default function ProfilePage() {
   };
 
   const renderProblemList = (list: ProblemWithStatus[], listTitle: string, isLoading: boolean, type: 'bookmarks' | 'status') => {
+    console.log(`[ProfilePage] Rendering list: ${listTitle}, isLoading: ${isLoading}, items: ${list.length}`);
     if (isLoading) {
-      return <div className="flex justify-center items-center py-10"><Loader2 className="h-10 w-10 animate-spin text-primary" /><p className="ml-3">Loading {listTitle.toLowerCase()}...</p></div>;
+        return <div className="flex justify-center items-center py-10"><Loader2 className="h-10 w-10 animate-spin text-primary" /><p className="ml-3">Loading {listTitle.toLowerCase()}...</p></div>;
     }
     if (list.length === 0) {
-      return <p className="text-muted-foreground text-center py-6">No problems {type === 'bookmarks' ? 'bookmarked' : `with status "${listTitle.toLowerCase()}"`} yet.</p>;
+        const message = type === 'bookmarks'
+            ? "No problems bookmarked yet. Find problems on company pages and click the star!"
+            : `No problems ${PROBLEM_STATUS_DISPLAY[listTitle.toLowerCase() as keyof typeof PROBLEM_STATUS_DISPLAY]?.label.toLowerCase() || listTitle.toLowerCase()} yet. Update status from problem cards.`;
+        return <p className="text-muted-foreground text-center py-6">{message}</p>;
     }
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -342,6 +388,7 @@ export default function ProfilePage() {
   };
 
   const renderStrategyTodoLists = () => {
+    console.log(`[ProfilePage] Rendering strategy lists, isLoading: ${isLoadingStrategyTodoLists}, items: ${strategyTodoLists.length}`);
     if (isLoadingStrategyTodoLists) {
       return <div className="flex justify-center items-center py-10"><Loader2 className="h-10 w-10 animate-spin text-primary" /><p className="ml-3">Loading strategy lists...</p></div>;
     }
@@ -492,41 +539,40 @@ export default function ProfilePage() {
           </Card>
         </TabsContent>
         <TabsContent value="solved">
-          <Card><CardHeader><CardTitle>Solved Problems</CardTitle></CardHeader>
+            <Card><CardHeader><CardTitle>Solved Problems</CardTitle></CardHeader>
             <CardContent>
-              {renderProblemList(problemsWithStatusDetails.filter(p => p.currentStatus === 'solved'), "Solved", isLoadingStatuses, "status")}
+                {renderProblemList(problemsWithStatusDetails.filter(p => p.currentStatus === 'solved'), "Solved", isLoadingStatuses, "status")}
             </CardContent></Card>
         </TabsContent>
         <TabsContent value="attempted">
-          <Card><CardHeader><CardTitle>Attempted Problems</CardTitle></CardHeader>
+            <Card><CardHeader><CardTitle>Attempted Problems</CardTitle></CardHeader>
             <CardContent>
-              {renderProblemList(problemsWithStatusDetails.filter(p => p.currentStatus === 'attempted'), "Attempted", isLoadingStatuses, "status")}
+                 {renderProblemList(problemsWithStatusDetails.filter(p => p.currentStatus === 'attempted'), "Attempted", isLoadingStatuses, "status")}
             </CardContent></Card>
         </TabsContent>
         <TabsContent value="todo">
-          <Card><CardHeader><CardTitle>To-Do Problems</CardTitle></CardHeader>
+            <Card><CardHeader><CardTitle>To-Do Problems</CardTitle></CardHeader>
             <CardContent>
-              {renderProblemList(problemsWithStatusDetails.filter(p => p.currentStatus === 'todo'), "To-Do", isLoadingStatuses, "status")}
+                {renderProblemList(problemsWithStatusDetails.filter(p => p.currentStatus === 'todo'), "To-Do", isLoadingStatuses, "status")}
             </CardContent></Card>
         </TabsContent>
         <TabsContent value="strategyLists">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Brain className="mr-2 h-5 w-5 text-primary" />
-                Saved Strategy To-Do Lists
-              </CardTitle>
-              <CardDescription>
-                Actionable AI-generated To-Do lists for company-specific interview preparation. Check off items as you complete them.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {renderStrategyTodoLists()}
-            </CardContent>
-          </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center">
+                        <Brain className="mr-2 h-5 w-5 text-primary" />
+                        Saved Strategy To-Do Lists
+                    </CardTitle>
+                    <CardDescription>
+                        Actionable AI-generated To-Do lists for company-specific interview preparation. Check off items as you complete them.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {renderStrategyTodoLists()}
+                </CardContent>
+            </Card>
         </TabsContent>
       </Tabs>
     </section>
   );
 }
-
