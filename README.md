@@ -3,6 +3,11 @@
 
 Welcome to the Company LeetCode Explorer! This Next.js application is designed to help software engineers prepare for technical interviews by providing a platform to explore LeetCode problems frequently asked by specific companies. It's supercharged with AI features to offer mock interviews, problem insights, personalized strategies, and more.
 
+## 🌐 Official Site
+
+Visit the official site at [https://www.bytetooffer.com/](https://www.bytetooffer.com/) for more resources and information.
+
+
 ## ✨ Key Features
 
 *   **Company & Problem Database**:
@@ -46,6 +51,10 @@ Welcome to the Company LeetCode Explorer! This Next.js application is designed t
 *   **Form Handling**: React Hook Form + Zod
 *   **Data Fetching & Caching**: Next.js Server Actions, `unstable_cache`
 *   **Excel Parsing**: `xlsx` library
+
+## 🤝 Contributing
+
+Contributions are welcome! This project is open source, and we encourage you to contribute to make it even better. If you have ideas for new features, bug fixes, or improvements, please feel free to submit pull requests or open issues. Let's work together to help more software engineers ace their technical interviews!
 
 ## 🚀 Getting Started
 
