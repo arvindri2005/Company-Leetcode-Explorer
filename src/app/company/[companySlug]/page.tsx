@@ -38,8 +38,9 @@ export async function generateMetadata({ params }: CompanyPageProps): Promise<Me
 
   const initialProblemData = await getProblemsByCompanyFromDb(company.id, { page: 1, pageSize: 1 });
   const problemCount = initialProblemData?.totalProblems || 0;
-  const title = `${company.name} - LeetCode Problems & Interview Prep (${problemCount} Problems)`;
-  const description = `Explore ${company.name}'s coding interview questions, common problem patterns, and AI-powered preparation strategies. ${problemCount} LeetCode problems available.`;
+  const title = `${company.name} - Coding Problems & Interview Prep (${problemCount} Problems) | Company Interview Problem Explorer`;
+  const description = `Explore ${company.name}'s coding interview questions, common problem patterns, and AI-powered preparation strategies. ${problemCount} coding problems available.`;
+  const keywords = [company.name, 'coding problems', 'interview questions', 'technical interview', 'AI prep', ...initialProblemData.problems.flatMap(p => p.tags).slice(0,5)];
 
   const breadcrumbList = {
     "@context": "https://schema.org",
@@ -69,13 +70,17 @@ export async function generateMetadata({ params }: CompanyPageProps): Promise<Me
   return {
     title,
     description,
+    keywords,
     openGraph: {
       title,
       description,
       type: 'profile',
       url: `${APP_URL}/company/${company.slug}`,
       images: company.logo ? [{ url: company.logo, alt: `${company.name} logo` }] : [],
-      siteName: 'Company LeetCode Explorer',
+      siteName: 'Company Interview Problem Explorer',
+      profile: { // For 'profile' type
+        username: company.slug, // Or a more appropriate identifier
+      }
     },
     alternates: {
       canonical: `${APP_URL}/company/${company.slug}`,
@@ -376,7 +381,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
                     </Link>
                   </Button>
                   <Button asChild variant="secondary" size="sm" className="flex-1">
-                    <Link href="/submit-problem">
+                    <Link href={`/submit-problem?companyId=${company.id}&companyName=${encodeURIComponent(company.name)}`}>
                       <PlusSquare className="h-4 w-4 mr-1" />
                       Add Problem
                     </Link>

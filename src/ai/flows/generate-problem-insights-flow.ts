@@ -1,9 +1,9 @@
 
 'use server';
 /**
- * @fileOverview Generates key concepts, common data structures/algorithms, and a high-level hint for a LeetCode problem.
+ * @fileOverview Generates key concepts, common data structures/algorithms, and a high-level hint for a coding problem.
  *
- * This module defines a Genkit flow that takes details of a LeetCode problem (title, difficulty,
+ * This module defines a Genkit flow that takes details of a coding problem (title, difficulty,
  * tags, description) as input. It uses an AI model to identify key concepts, common data structures,
  * common algorithms, and provide a high-level hint to guide the user's thinking towards a solution.
  *
@@ -16,10 +16,10 @@ import {ai} from '@/ai/genkit';
 import {z}from 'genkit';
 
 const GenerateProblemInsightsInputSchema = z.object({
-  title: z.string().describe("The title of the LeetCode problem."),
+  title: z.string().describe("The title of the coding problem."),
   difficulty: z.enum(['Easy', 'Medium', 'Hard']).describe("The difficulty of the problem."),
   tags: z.array(z.string()).describe("A list of tags associated with the problem."),
-  problemDescription: z.string().describe("A concise description or summary of the LeetCode problem, potentially including its core requirements, constraints, and its LeetCode link for context."),
+  problemDescription: z.string().describe("A concise description or summary of the coding problem, potentially including its core requirements, constraints, and its coding link for context."),
 });
 export type GenerateProblemInsightsInput = z.infer<typeof GenerateProblemInsightsInputSchema>;
 
@@ -43,7 +43,7 @@ const GenerateProblemInsightsOutputSchema = z.object({
 export type GenerateProblemInsightsOutput = z.infer<typeof GenerateProblemInsightsOutputSchema>;
 
 /**
- * Initiates the AI flow to generate insights for a LeetCode problem.
+ * Initiates the AI flow to generate insights for a coding problem.
  * @param {GenerateProblemInsightsInput} input - The problem details (title, difficulty, tags, description).
  * @returns {Promise<GenerateProblemInsightsOutput>} A promise that resolves to an object containing key concepts, common data structures/algorithms, and a hint.
  */
@@ -55,7 +55,7 @@ const prompt = ai.definePrompt({
   name: 'generateProblemInsightsPrompt',
   input: {schema: GenerateProblemInsightsInputSchema},
   output: {schema: GenerateProblemInsightsOutputSchema},
-  prompt: `You are an expert LeetCode coach. A user is looking for insights into the following problem:
+  prompt: `You are an expert coding interview coach. A user is looking for insights into the following problem:
 
 Problem Title: {{title}}
 Difficulty: {{difficulty}}

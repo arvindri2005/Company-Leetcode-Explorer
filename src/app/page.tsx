@@ -8,11 +8,11 @@ import type { Metadata } from 'next';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
 
 export const metadata: Metadata = {
-  title: 'Company LeetCode Explorer | AI-Powered Interview Prep',
-  description: 'Master LeetCode interviews with AI-driven tools. Explore company-specific problems, engage in mock interviews, generate flashcards, and get personalized prep strategies. Start your journey to acing technical interviews today!',
+  title: 'Company Interview Problem Explorer | AI-Powered Interview Prep',
+  description: 'Master coding interviews with AI-driven tools. Explore company-specific problems, engage in mock interviews, generate flashcards, and get personalized prep strategies. Start your journey to acing technical interviews today!',
   openGraph: {
-    title: 'Company LeetCode Explorer | AI-Powered Interview Prep',
-    description: 'Your ultimate hub for targeted LeetCode interview preparation. AI mock interviews, problem insights, company-specific questions, and more.',
+    title: 'Company Interview Problem Explorer | AI-Powered Interview Prep',
+    description: 'Your ultimate hub for targeted coding interview preparation. AI mock interviews, problem insights, company-specific questions, and more.',
     type: 'website',
     url: APP_URL,
     images: [
@@ -20,13 +20,13 @@ export const metadata: Metadata = {
         url: `${APP_URL}/og-image.png`, // Replace with your actual Open Graph image URL
         width: 1200,
         height: 630,
-        alt: 'Company LeetCode Explorer - AI-Powered Interview Prep',
+        alt: 'Company Interview Problem Explorer - AI-Powered Interview Prep',
       },
       { // Fallback placeholder if the above is not available
-        url: 'https://placehold.co/1200x630.png?text=Company+LeetCode+Explorer',
+        url: 'https://placehold.co/1200x630.png?text=Company+Interview Problem+Explorer',
         width: 1200,
         height: 630,
-        alt: 'Company LeetCode Explorer Placeholder Image',
+        alt: 'Company Interview Problem Explorer Placeholder Image',
       }
     ],
   },
@@ -35,8 +35,8 @@ export const metadata: Metadata = {
   },
   // twitter: { // Add Twitter specific tags if needed
   //   card: 'summary_large_image',
-  //   title: 'Company LeetCode Explorer | AI-Powered Interview Prep',
-  //   description: 'Master LeetCode interviews with AI-driven tools for targeted preparation.',
+  //   title: 'Company Interview Problem Explorer | AI-Powered Interview Prep',
+  //   description: 'Master Interview Problem interviews with AI-driven tools for targeted preparation.',
   //   images: [`${APP_URL}/twitter-image.png`], // Replace with your actual Twitter card image URL
   // },
   other: {
@@ -44,8 +44,8 @@ export const metadata: Metadata = {
       "@context": "https://schema.org",
       "@type": "WebSite",
       "url": APP_URL,
-      "name": "Company LeetCode Explorer",
-      "description": "Master LeetCode interviews with AI-driven tools. Explore company-specific problems, engage in mock interviews, generate flashcards, and get personalized prep strategies.",
+      "name": "Company Interview Problem Explorer",
+      "description": "Master coding interviews with AI-driven tools. Explore company-specific problems, engage in mock interviews, generate flashcards, and get personalized prep strategies.",
       "potentialAction": {
         "@type": "SearchAction",
         "target": {
@@ -96,10 +96,10 @@ export default function ShowcasePage() {
       <section className="text-center py-12 bg-gradient-to-br from-primary/10 via-background to-accent/10 rounded-xl shadow-inner">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 text-primary">
-            Company LeetCode Explorer
+            Company Interview Problem Explorer
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Your AI-powered hub for targeted LeetCode interview preparation. Explore company-specific problems, practice with AI, and track your progress.
+            Your AI-powered hub for targeted coding interview preparation. Explore company-specific problems, practice with AI, and track your progress.
           </p>
           <Button asChild size="lg" className="group text-lg px-8 py-6 shadow-md hover:shadow-lg transition-shadow">
             <Link href="/companies">
@@ -117,7 +117,7 @@ export default function ShowcasePage() {
           <FeatureCard
             icon={Search}
             title="Company Problem Explorer"
-            description="Browse LeetCode problems frequently asked by specific companies. Filter by difficulty, tags, and recency."
+            description="Browse Interview Problem problems frequently asked by specific companies. Filter by difficulty, tags, and recency."
             link="/companies"
             linkText="Find Company Problems"
           />
@@ -173,7 +173,7 @@ export default function ShowcasePage() {
            <FeatureCard
             icon={PlusSquare}
             title="Contribute & Grow"
-            description="Help expand our database by submitting new LeetCode problems and adding company information."
+            description="Help expand our database by submitting new Interview Problem problems and adding company information."
             link="/submit-problem"
             linkText="Add a Problem/Company"
           />

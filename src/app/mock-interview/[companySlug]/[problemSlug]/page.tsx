@@ -39,8 +39,8 @@ export async function generateMetadata({ params }: MockInterviewPageProps): Prom
   
   const { problem } = problemData;
   const pageUrl = `${APP_URL}/mock-interview/${params.companySlug}/${params.problemSlug}`;
-  const title = `Mock Interview: ${problem.title} | ${company.name} | Company LeetCode Explorer`;
-  const description = `Practice solving "${problem.title}" (${problem.difficulty}) with an AI interviewer. A LeetCode problem often asked by ${company.name}.`;
+  const title = `Mock Interview: ${problem.title} | ${company.name} | Company Interview Problem Explorer`;
+  const description = `Practice solving "${problem.title}" (${problem.difficulty}) with an AI interviewer. A coding Problem problem often asked by ${company.name}.`;
 
   const breadcrumbList = {
     "@context": "https://schema.org",
@@ -65,11 +65,11 @@ export async function generateMetadata({ params }: MockInterviewPageProps): Prom
     "image": company.logo ? [company.logo] : [`${APP_URL}/og-image.png`], // Use company logo or default
     "author": {
       "@type": "Organization",
-      "name": "Company LeetCode Explorer AI"
+      "name": "Company Interview Problem Explorer AI"
     },
     "publisher": {
       "@type": "Organization",
-      "name": "Company LeetCode Explorer",
+      "name": "Company Interview Prolbem Explorer",
       "logo": {
         "@type": "ImageObject",
         "url": `${APP_URL}/icon.png` // A generic icon for the publisher

@@ -17,7 +17,7 @@ import { getCompanyById, getProblemByCompanySlugAndProblemSlug, getProblemsByCom
 import { revalidateTag } from 'next/cache';
 
 /**
- * Performs AI-powered grouping of LeetCode questions.
+ * Performs AI-powered grouping of coding questions.
  * @param {AIProblemInput[]} problems - An array of problems to be grouped.
  * @returns {Promise<GroupQuestionsOutput | { error: string }>} The grouped questions output or an error object.
  */
@@ -36,7 +36,7 @@ export async function performQuestionGrouping(
 }
 
 /**
- * Performs AI-powered search for similar LeetCode questions from various platforms.
+ * Performs AI-powered search for similar coding questions from various platforms.
  * @param {string} currentProblemSlug - The SLUG of the problem for which to find similar ones.
  * @param {string} currentProblemCompanySlug - The slug of the company for the current problem (to fetch its details).
  * @returns {Promise<FindSimilarQuestionsOutput | { error: string }>} The similar questions output or an error object.
@@ -69,7 +69,7 @@ export async function performSimilarQuestionSearch(
 /**
  * Handles a single turn in the AI-powered mock interview.
  * @param {string} companySlug - The slug of the company.
- * @param {string} problemSlug - The slug of the LeetCode problem for the interview.
+ * @param {string} problemSlug - The slug of the coding problem for the interview.
  * @param {ChatMessage[]} conversationHistory - The history of messages in the current interview.
  * @param {string} currentUserMessage - The user's latest message or response.
  * @returns {Promise<MockInterviewOutput | { error: string }>} The AI interviewer's response or an error object.
@@ -194,7 +194,7 @@ export async function generateCompanyStrategyAction(
 }
 
 /**
- * Generates AI-powered insights (key concepts, common structures/algorithms, hint) for a LeetCode problem.
+ * Generates AI-powered insights (key concepts, common structures/algorithms, hint) for a coding problem.
  * @param {LeetCodeProblem} problem - The LeetCode problem object (must include companySlug and slug).
  * @returns {Promise<GenerateProblemInsightsOutput | { error: string }>} The generated insights or an error object.
  */

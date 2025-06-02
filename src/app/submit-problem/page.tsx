@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 
 export const metadata = {
   title: 'Submit New Problem',
-  description: 'Add a new LeetCode problem to the database.',
+  description: 'Add a new Interview problem to the database.',
 };
 
 export default async function SubmitProblemPage() {
@@ -18,7 +18,7 @@ export default async function SubmitProblemPage() {
   return (
     <section className="space-y-8 max-w-2xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Submit a New LeetCode Problem</h1>
+        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Submit a New Interview Problem Problem</h1>
         <p className="mt-2 text-lg text-muted-foreground">
           Contribute to the collection by adding a new problem. Please ensure the information is accurate.
         </p>

@@ -24,7 +24,7 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
 const organizationStructuredData = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  "name": "Company LeetCode Explorer",
+  "name": "Company Interview Problem Explorer",
   "url": APP_URL,
   "logo": `${APP_URL}/icon.png`, 
 };
@@ -32,25 +32,25 @@ const organizationStructuredData = {
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: 'Company LeetCode Explorer | AI Interview Prep',
-    template: '%s | Company LeetCode Explorer',
+    default: 'Company Interview Problem Explorer | AI Interview Prep',
+    template: '%s | Company Interview Problem Explorer',
   },
-  description: 'Master LeetCode interviews with AI-driven tools. Explore company-specific problems, engage in mock interviews, generate flashcards, and get personalized prep strategies.',
-  applicationName: 'Company LeetCode Explorer',
-  keywords: ['LeetCode', 'Interview Prep', 'Coding Interview', 'AI Interviewer', 'Company Questions', 'Software Engineer', 'Tech Interview'],
+  description: 'Master coding interviews with AI-driven tools. Explore company-specific problems, engage in mock interviews, generate flashcards, and get personalized prep strategies.',
+  applicationName: 'Company Interview Problem Explorer',
+  keywords: ['coding', 'Interview Prep', 'Coding Interview', 'AI Interviewer', 'Company Questions', 'Software Engineer', 'Tech Interview'],
   authors: [{ name: 'Bite to Offer' }],
   manifest: '/site.webmanifest',
   openGraph: {
-    title: 'Company LeetCode Explorer | AI-Powered Interview Prep',
-    description: 'Your ultimate hub for targeted LeetCode interview preparation. AI mock interviews, problem insights, company-specific questions, and more.',
+    title: 'Company Interview Problem Explorer | AI-Powered Interview Prep',
+    description: 'Your ultimate hub for targeted coding interview preparation. AI mock interviews, problem insights, company-specific questions, and more.',
     url: APP_URL,
-    siteName: 'Company LeetCode Explorer',
+    siteName: 'Company Interview Problem Explorer',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Company LeetCode Explorer - AI-Powered Interview Prep',
+        alt: 'Company Interview Problem Explorer - AI-Powered Interview Prep',
       },
     ],
     locale: 'en_US',
@@ -58,8 +58,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Company LeetCode Explorer | AI-Powered Interview Prep',
-    description: 'Master LeetCode interviews with AI-driven tools for targeted preparation.',
+    title: 'Company Interview Problem Explorer | AI-Powered Interview Prep',
+    description: 'Master coding interviews with AI-driven tools for targeted preparation.',
     images: [`${APP_URL}/og-image.png`],
   },
   icons: {

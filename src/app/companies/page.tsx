@@ -19,11 +19,11 @@ interface CompaniesPageProps {
 export async function generateMetadata({ searchParams }: CompaniesPageProps): Promise<Metadata> {
   const searchTerm = searchParams?.search || '';
   const pageTitle = searchTerm 
-    ? `Search Results for "${searchTerm}" | Company LeetCode Explorer` 
-    : 'Explore Companies & Interview Problems | Company LeetCode Explorer';
+    ? `Search Results for "${searchTerm}" | Company Interview Problem Explorer` 
+    : 'Explore Companies & Interview Problems | Company Interview Problem Explorer';
   const pageDescription = searchTerm
-    ? `Find companies matching "${searchTerm}" and their associated LeetCode interview problems.`
-    : 'Browse, search, and filter companies to find LeetCode problems frequently asked in their technical interviews. Prepare effectively for your next coding interview.';
+    ? `Find companies matching "${searchTerm}" and their associated coding interview problems.`
+    : 'Browse, search, and filter companies to find coding problems frequently asked in their technical interviews. Prepare effectively for your next coding interview.';
 
   const breadcrumbList = {
     "@context": "https://schema.org",

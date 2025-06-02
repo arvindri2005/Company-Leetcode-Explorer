@@ -3,7 +3,7 @@
 /**
  * @fileOverview Generates a company-specific interview preparation strategy using AI.
  *
- * This module defines a Genkit flow that takes a company name, a list of LeetCode problems
+ * This module defines a Genkit flow that takes a company name, a list of coding problems
  * frequently asked by that company, and an optional target role level. It uses an AI model
  * to generate a comprehensive preparation strategy, identify key focus topics, and create
  * an actionable todo list.
@@ -25,7 +25,7 @@ import {
 } from '@/types';
 
 const CompanyStrategyProblemInputSchema = z.object({
-  title: z.string().describe("The title of the LeetCode problem."),
+  title: z.string().describe("The title of the coding problem."),
   difficulty: z.enum(['Easy', 'Medium', 'Hard']).describe("The difficulty of the problem."),
   tags: z.array(z.string()).describe("A list of tags associated with the problem."),
   lastAskedPeriod: z.enum(['last_30_days', 'within_3_months', 'within_6_months', 'older_than_6_months']).optional().describe("When the problem was last reportedly asked."),
@@ -34,7 +34,7 @@ const CompanyStrategyProblemInputSchema = z.object({
 const GenerateCompanyStrategyInputSchema = z.object({
   companyName: z.string().describe("The name of the company for which to generate the strategy."),
   problems: z.array(CompanyStrategyProblemInputSchema).min(1, "At least one problem is required to generate a strategy.")
-    .describe("A list of LeetCode problems frequently asked by this company, including their titles, difficulties, tags, and when they were last asked."),
+    .describe("A list of coding problems frequently asked by this company, including their titles, difficulties, tags, and when they were last asked."),
   targetRoleLevel: z.enum(['internship', 'new_grad', 'experienced', 'general']).optional()
     .describe("The experience level the candidate is targeting, e.g., internship, new_grad. If 'general' or not provided, provide general advice."),
 });
@@ -73,9 +73,9 @@ const prompt = ai.definePrompt({
   prompt: `You are an expert interview coach providing a personalized preparation strategy for a candidate targeting {{companyName}}.
 {{#if targetRoleLevel}}The candidate is targeting an '{{targetRoleLevel}}' role at {{companyName}}. Please tailor your advice accordingly.{{/if}}
 
-You have been given a list of LeetCode problems frequently asked by {{companyName}}, along with their difficulty, tags, and how recently they were asked.
+You have been given a list of coding problems frequently asked by {{companyName}}, along with their difficulty, tags, and how recently they were asked.
 
-LeetCode Problems Data for {{companyName}}:
+coding Problems Data for {{companyName}}:
 {{#each problems}}
 - Problem: "{{this.title}}" ({{this.difficulty}})
   Tags: [{{#if this.tags.length}}{{this.tags}}{{else}}No specific tags{{/if}}]

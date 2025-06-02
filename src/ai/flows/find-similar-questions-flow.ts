@@ -1,10 +1,10 @@
 
 'use server';
 /**
- * @fileOverview Finds LeetCode problems similar to a given problem using AI,
+ * @fileOverview Finds coding problems similar to a given problem using AI,
  * searching across various online coding platforms.
  *
- * This module defines a Genkit flow that takes a current LeetCode problem as input.
+ * This module defines a Genkit flow that takes a current coding problem as input.
  * It uses an AI model to identify up to 5 problems from platforms like LeetCode,
  * CodingNinjas, GeeksforGeeks, etc., that are conceptually similar to the current one,
  * focusing on algorithms, data structures, problem-solving techniques, or core concepts.
@@ -18,7 +18,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const CurrentProblemInputSchema = z.object({
-  title: z.string().describe("The title of the current LeetCode problem."),
+  title: z.string().describe("The title of the current coding problem."),
   difficulty: z.enum(['Easy', 'Medium', 'Hard']).describe("The difficulty of the current problem."),
   tags: z.array(z.string()).describe("A list of tags associated with the current problem."),
   slug: z.string().optional().describe("The slug of the current problem, if available."), // Added optional slug
@@ -58,7 +58,7 @@ const prompt = ai.definePrompt({
   name: 'findSimilarQuestionsFromPlatformsPrompt',
   input: {schema: FindSimilarQuestionsInputSchema},
   output: {schema: FindSimilarQuestionsOutputSchema},
-  prompt: `You are an expert LeetCode coach and programming problem curator.
+  prompt: `You are an expert coding interview coach and programming problem curator.
 Your task is to identify up to 5 problems from various online coding platforms (like LeetCode, CodingNinjas, GeeksforGeeks, HackerRank, etc.) that are conceptually similar to a given current problem.
 Focus on similarity in terms of underlying algorithms, data structures, problem-solving techniques, or core concepts.
 

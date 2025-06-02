@@ -50,18 +50,18 @@ const Header = () => {
           Add Company
         </Link>
       </Button>
-      <Button asChild variant="ghost" size={isMobile ? "default" : "sm"} className={isMobile ? "w-full justify-start text-base py-3" : ""} onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}>
+      {/* <Button asChild variant="ghost" size={isMobile ? "default" : "sm"} className={isMobile ? "w-full justify-start text-base py-3" : ""} onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}>
         <Link href="/bulk-add-problems">
           <UploadCloud className={isMobile ? "mr-2 h-5 w-5" : "mr-1 h-4 w-4"} />
           Bulk Add Problems
         </Link>
-      </Button>
-      <Button asChild variant="ghost" size={isMobile ? "default" : "sm"} className={isMobile ? "w-full justify-start text-base py-3" : ""} onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}>
+      </Button> */}
+      {/* <Button asChild variant="ghost" size={isMobile ? "default" : "sm"} className={isMobile ? "w-full justify-start text-base py-3" : ""} onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}>
         <Link href="/bulk-add-companies">
           <LibraryBig className={isMobile ? "mr-2 h-5 w-5" : "mr-1 h-4 w-4"} />
           Bulk Add Companies
         </Link>
-      </Button>
+      </Button> */}
     </>
   );
 
@@ -107,13 +107,13 @@ const Header = () => {
     <header className="bg-card border-b border-border shadow-sm sticky top-0 z-40">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 text-xl font-semibold text-primary hover:text-primary/80 transition-colors mr-auto lg:mr-4 min-w-0">
-          <CodeXml className="h-7 w-7 flex-shrink-0" />
-          <span className="truncate hidden sm:inline">Company LeetCode Explorer</span>
-          <span className="truncate sm:hidden">LeetCode Explorer</span>
+          <img src="/favicon.ico" alt="Logo" className="h-7 w-7 flex-shrink-0 rounded" />
+          <span className="truncate hidden sm:inline">Company Interview Problem Explorer</span>
+          <span className="truncate sm:hidden">Interview Problem Explorer</span>
         </Link>
         
         {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center gap-1 p-1 bg-muted/50 rounded-md shadow-sm">
+        <nav className="hidden lg:flex items-center gap-1 p-1">
           {commonNavLinks()}
           {authLinks()}
           <ThemeSwitcher />
@@ -136,8 +136,8 @@ const Header = () => {
                     className="flex items-center gap-2 text-lg font-semibold text-primary" 
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    <CodeXml className="h-6 w-6" />
-                    <span>LeetCode Explorer</span>
+                    <img src="/favicon.ico" alt="Logo" className="h-7 w-7 flex-shrink-0 rounded" />
+                    <span>Interview Problem Explorer</span>
                   </Link>
                 </SheetTitle>
               </SheetHeader>

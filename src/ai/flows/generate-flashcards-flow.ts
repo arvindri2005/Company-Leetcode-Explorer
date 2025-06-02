@@ -1,10 +1,10 @@
 
 'use server';
 /**
- * @fileOverview Generates study flashcards for a company based on its frequently asked LeetCode problems.
+ * @fileOverview Generates study flashcards for a company based on its frequently asked coding problems.
  *
  * This module defines a Genkit flow that takes a company name and a list of its associated
- * LeetCode problems as input. It uses an AI model to generate 3 to 10 flashcards,
+ * coding problems as input. It uses an AI model to generate 3 to 10 flashcards,
  * each with a front (question/concept) and a back (answer/explanation), designed to help
  * users recall important concepts and problem-solving techniques.
  *
@@ -19,7 +19,7 @@ import {z} from 'genkit';
 import type { FlashcardProblemInput, Flashcard } from '@/types';
 
 const FlashcardProblemInputSchema = z.object({
-  title: z.string().describe("The title of the LeetCode problem."),
+  title: z.string().describe("The title of the coding problem."),
   difficulty: z.enum(['Easy', 'Medium', 'Hard']).describe("The difficulty of the problem."),
   tags: z.array(z.string()).describe("A list of tags associated with the problem."),
 });
@@ -27,7 +27,7 @@ const FlashcardProblemInputSchema = z.object({
 const GenerateFlashcardsInputSchema = z.object({
   companyName: z.string().describe("The name of the company for which to generate flashcards."),
   problems: z.array(FlashcardProblemInputSchema).min(1, "At least one problem is required to generate flashcards.")
-    .describe("A list of LeetCode problems frequently asked by this company."),
+    .describe("A list of coding problems frequently asked by this company."),
 });
 export type GenerateFlashcardsInput = z.infer<typeof GenerateFlashcardsInputSchema>;
 
@@ -58,9 +58,9 @@ const prompt = ai.definePrompt({
   name: 'generateFlashcardsPrompt',
   input: {schema: GenerateFlashcardsInputSchema},
   output: {schema: GenerateFlashcardsOutputSchema},
-  prompt: `You are an expert LeetCode coach creating study flashcards for interview preparation.
+  prompt: `You are an expert coding coach creating study flashcards for interview preparation.
 The user is preparing for interviews at {{companyName}}.
-You are given a list of LeetCode problems frequently asked by this company:
+You are given a list of coding problems frequently asked by this company:
 {{#each problems}}
 - Problem: "{{this.title}}" ({{this.difficulty}}) - Tags: [{{#if this.tags.length}}{{this.tags}}{{else}}No specific tags{{/if}}]
 {{/each}}

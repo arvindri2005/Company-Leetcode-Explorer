@@ -17,9 +17,9 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const MockInterviewInputSchema = z.object({
-  problemTitle: z.string().describe('The title of the LeetCode problem.'),
+  problemTitle: z.string().describe('The title of the coding problem.'),
   problemDifficulty: z.enum(['Easy', 'Medium', 'Hard']).describe('The difficulty of the problem.'),
-  problemDescription: z.string().describe('A concise description of the LeetCode problem, including its core requirements and constraints. This might be derived from the problem link or a summary.'),
+  problemDescription: z.string().describe('A concise description of the coding problem, including its core requirements and constraints. This might be derived from the problem link or a summary.'),
   problemTags: z.array(z.string()).describe('Tags associated with the problem, indicating relevant topics or techniques.'),
   conversationHistory: z.array(
     z.object({
@@ -64,7 +64,7 @@ const interviewPrompt = ai.definePrompt({
   input: { schema: MockInterviewInputSchema },
   output: { schema: MockInterviewOutputSchema },
   prompt: `You are an expert, friendly, and encouraging coding interviewer.
-Your primary goal is to help the user arrive at a correct and efficient solution for the given LeetCode problem through a simulated interview.
+Your primary goal is to help the user arrive at a correct and efficient solution for the given coding problem through a simulated interview.
 Do NOT give away the direct solution too easily. Guide them with Socratic questioning, hints about data structures, algorithms, or edge cases.
 If the user provides code, review it constructively. Help them identify bugs or areas for optimization.
 If the user is stuck, provide a small, conceptual hint. Ask them to explain their thought process.

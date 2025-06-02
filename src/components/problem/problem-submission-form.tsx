@@ -31,7 +31,7 @@ interface ProblemSubmissionFormProps {
 const problemFormSchema = z.object({
   title: z.string().min(3, { message: 'Title must be at least 3 characters.' }).max(150),
   difficulty: z.enum(['Easy', 'Medium', 'Hard'], { required_error: 'Difficulty is required.' }),
-  link: z.string().url({ message: 'Please enter a valid LeetCode URL.' }),
+  link: z.string().url({ message: 'Please enter a valid Interview Problem URL.' }),
   tags: z.string().min(1, { message: 'Please enter at least one tag.' })
     .refine(value => value.split(',').every(tag => tag.trim().length > 0), {
       message: 'Tags should be comma-separated and not empty.',
