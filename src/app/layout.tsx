@@ -21,8 +21,16 @@ const geistMono = Geist_Mono({
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
 
+const organizationStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Company LeetCode Explorer",
+  "url": APP_URL,
+  "logo": `${APP_URL}/icon.png`, 
+};
+
 export const metadata: Metadata = {
-  metadataBase: new URL(APP_URL), // Crucial for resolving relative Open Graph image URLs
+  metadataBase: new URL(APP_URL),
   title: {
     default: 'Company LeetCode Explorer | AI Interview Prep',
     template: '%s | Company LeetCode Explorer',
@@ -30,7 +38,7 @@ export const metadata: Metadata = {
   description: 'Master LeetCode interviews with AI-driven tools. Explore company-specific problems, engage in mock interviews, generate flashcards, and get personalized prep strategies.',
   applicationName: 'Company LeetCode Explorer',
   keywords: ['LeetCode', 'Interview Prep', 'Coding Interview', 'AI Interviewer', 'Company Questions', 'Software Engineer', 'Tech Interview'],
-  authors: [{ name: 'Firebase Studio AI' }], // You can change this
+  authors: [{ name: 'Bite to Offer' }],
   manifest: '/site.webmanifest',
   openGraph: {
     title: 'Company LeetCode Explorer | AI-Powered Interview Prep',
@@ -39,7 +47,7 @@ export const metadata: Metadata = {
     siteName: 'Company LeetCode Explorer',
     images: [
       {
-        url: '/og-image.png', // Path relative to public folder, resolves to ${APP_URL}/og-image.png
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Company LeetCode Explorer - AI-Powered Interview Prep',
@@ -52,19 +60,27 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Company LeetCode Explorer | AI-Powered Interview Prep',
     description: 'Master LeetCode interviews with AI-driven tools for targeted preparation.',
-    images: [`${APP_URL}/og-image.png`], // Must be absolute URL for Twitter
-    // site: '@yourtwitterhandle', // Optional: Your Twitter handle
-    // creator: '@yourtwitterhandle', // Optional: Content creator's Twitter handle
+    images: [`${APP_URL}/og-image.png`],
   },
   icons: {
-    icon: '/favicon.ico', // Place favicon.ico in public folder
-    shortcut: '/favicon-16x16.png', // Place favicon-16x16.png in public folder
-    apple: '/apple-touch-icon.png', // Place apple-touch-icon.png in public folder
-    // other: [
-    //   { rel: 'icon', type: 'image/png', sizes: '32x32', url: '/favicon-32x32.png' },
-    // ],
+    icon: [ // Array for multiple icon types/sizes
+      { url: '/favicon.ico', type: 'image/x-icon', sizes: 'any' }, // Standard favicon
+      { url: '/icon.png', type: 'image/png', sizes: '192x192' }, // For PWA and larger display
+      { url: '/icon-512.png', type: 'image/png', sizes: '512x512' } // Larger PWA icon
+    ],
+    shortcut: ['/favicon.ico'], // For older browsers
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180' } // Main Apple touch icon
+    ],
+    other: [
+       {
+        rel: 'mask-icon',
+        url: '/safari-pinned-tab.svg', // If you have an SVG icon for Safari pinned tabs
+        color: '#F7BC2D', // Your primary color
+      },
+    ],
   },
-  robots: { // Default robots policy (can be overridden by robots.txt)
+  robots: {
     index: true,
     follow: true,
     googleBot: {
@@ -75,17 +91,19 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  other: {
+    "script[type=\"application/ld+json\"]": JSON.stringify(organizationStructuredData),
+  }
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#F7BC2D' }, // Primary color for light theme
-    { media: '(prefers-color-scheme: dark)', color: '#201A13' }, // Background color for dark theme
+    { media: '(prefers-color-scheme: light)', color: '#F7BC2D' },
+    { media: '(prefers-color-scheme: dark)', color: '#201A13' },
   ],
   colorScheme: 'light dark',
   width: 'device-width',
   initialScale: 1,
-  // maximumScale: 1, // Optional: to prevent zooming on mobile
 };
 
 
@@ -96,9 +114,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body 
+      <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
-        suppressHydrationWarning 
+        suppressHydrationWarning
       >
         <ThemeProvider
           attribute="class"
