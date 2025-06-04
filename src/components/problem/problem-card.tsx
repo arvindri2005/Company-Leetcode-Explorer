@@ -9,7 +9,7 @@ import TagBadge from './tag-badge';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import { ExternalLink, Tag, CalendarClock, Sparkles, Loader2, Bot, Star, CheckCircle2, Pencil, ListTodo, MoreVertical, Lightbulb, Clock, TrendingUp, Zap } from 'lucide-react';
+import { ExternalLink, Tag, CalendarClock, Sparkles, Loader2, Bot, Star, CheckCircle2, Pencil, ListTodo, MoreVertical, Lightbulb, Clock, TrendingUp, Zap, LogIn, AlertCircle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,8 +24,10 @@ import { performSimilarQuestionSearch, toggleBookmarkProblemAction, setProblemSt
 import SimilarProblemsDialog from '@/components/ai/similar-problems-dialog';
 import ProblemInsightsDialog from '@/components/ai/problem-insights-dialog';
 import { useAuth } from '@/contexts/auth-context';
+import { useAICooldown } from '@/hooks/use-ai-cooldown';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useRouter, usePathname } from 'next/navigation';
 
 interface ProblemCardProps {
   problem: LeetCodeProblem;
@@ -84,6 +86,9 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
 }) => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { canUseAI, startCooldown, formattedRemainingTime, isLoadingCooldown } = useAICooldown();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const [isLoadingSimilar, setIsLoadingSimilar] = useState(false);
   const [similarProblems, setSimilarProblems] = useState<SimilarProblemDetail[] | null>(null);
@@ -102,7 +107,22 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
   useEffect(() => { setIsBookmarked(initialIsBookmarked); }, [initialIsBookmarked]);
   useEffect(() => { setCurrentStatus(problemStatus); }, [problemStatus]);
 
+  const redirectToLogin = () => {
+    router.push(`/login?redirectUrl=${encodeURIComponent(pathname)}`);
+  };
+  
+  const isAIButtonDisabled = isLoadingCooldown || !canUseAI;
+  const cooldownToastMessage = `AI features are on cooldown. Please wait ${formattedRemainingTime} before using another AI feature.`;
+
   const handleFindSimilar = async () => {
+    if (!user) {
+      redirectToLogin();
+      return;
+    }
+    if (isAIButtonDisabled && !isLoadingCooldown) {
+      toast({ title: "AI Feature on Cooldown", description: cooldownToastMessage, variant: "default" });
+      return;
+    }
     setIsLoadingSimilar(true);
     setSimilarProblems(null);
     toast({
@@ -122,6 +142,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
     } else if (result && result.similarProblems) {
       setSimilarProblems(result.similarProblems);
       setIsSimilarDialogSharedOpen(true);
+      startCooldown(); 
       toast({
         title: '✨ Similar Problems Found!',
         description: `Discovered ${result.similarProblems.length} related problem(s).`
@@ -129,6 +150,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
     } else {
       setSimilarProblems([]);
       setIsSimilarDialogSharedOpen(true);
+      startCooldown();
       toast({
         title: 'No Matches Found',
         description: 'This problem appears to be unique!'
@@ -137,6 +159,14 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
   };
 
   const handleGenerateInsights = async () => {
+    if (!user) {
+      redirectToLogin();
+      return;
+    }
+    if (isAIButtonDisabled && !isLoadingCooldown) {
+      toast({ title: "AI Feature on Cooldown", description: cooldownToastMessage, variant: "default" });
+      return;
+    }
     setIsLoadingInsights(true);
     setProblemInsights(null);
     toast({
@@ -156,6 +186,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
     } else if (result) {
       setProblemInsights(result);
       setIsInsightsDialogOpen(true);
+      startCooldown(); 
       toast({
         title: '💡 Insights Ready!',
         description: 'AI has analyzed the problem structure and hints.'
@@ -171,32 +202,27 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
 
   const handleToggleBookmark = async () => {
     if (!user) {
-      toast({
-        title: 'Authentication Required',
-        description: 'Please sign in to bookmark problems.',
-        variant: 'destructive'
-      });
+      redirectToLogin();
       return;
     }
 
     if (isTogglingBookmark) return;
     setIsTogglingBookmark(true);
     const oldStatus = isBookmarked;
-    setIsBookmarked(!oldStatus);
+    setIsBookmarked(!oldStatus); 
 
     try {
-
       const effectiveCompanySlug = problem.companySlug || companySlug;
       const result = await toggleBookmarkProblemAction(user.uid, problem.id, effectiveCompanySlug, problem.slug);
       if (result.success) {
-        setIsBookmarked(result.isBookmarked ?? oldStatus);
+        setIsBookmarked(result.isBookmarked ?? oldStatus); 
         toast({
           title: result.isBookmarked ? '⭐ Bookmarked!' : '📖 Bookmark Removed',
           description: `"${problem.title}" ${result.isBookmarked ? 'saved to' : 'removed from'} your collection.`
         });
         onBookmarkChanged?.(problem.id, result.isBookmarked ?? oldStatus);
       } else {
-        setIsBookmarked(oldStatus);
+        setIsBookmarked(oldStatus); 
         toast({
           title: 'Bookmark Error',
           description: result.error || 'Failed to update bookmark.',
@@ -204,7 +230,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
         });
       }
     } catch (error) {
-      setIsBookmarked(oldStatus);
+      setIsBookmarked(oldStatus); 
       toast({
         title: 'Connection Error',
         description: 'Please check your connection and try again.',
@@ -217,21 +243,16 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
 
   const handleStatusUpdate = async (newStatus: ProblemStatus) => {
     if (!user) {
-      toast({
-        title: 'Authentication Required',
-        description: 'Please sign in to track your progress.',
-        variant: 'destructive'
-      });
+      redirectToLogin();
       return;
     }
 
     if (isUpdatingStatus) return;
     setIsUpdatingStatus(true);
     const oldUiStatus = currentStatus;
-    setCurrentStatus(newStatus);
+    setCurrentStatus(newStatus); 
 
     try {
-
       const effectiveCompanySlug = problem.companySlug || companySlug;
       const result = await setProblemStatusAction(user.uid, problem.id, newStatus, effectiveCompanySlug, problem.slug);
       if (result.success) {
@@ -243,7 +264,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
         });
         onProblemStatusChange?.(problem.id, newStatus);
       } else {
-        setCurrentStatus(oldUiStatus);
+        setCurrentStatus(oldUiStatus); 
         toast({
           title: 'Update Failed',
           description: result.error || 'Failed to update status.',
@@ -251,7 +272,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
         });
       }
     } catch (error) {
-      setCurrentStatus(oldUiStatus);
+      setCurrentStatus(oldUiStatus); 
       toast({
         title: 'Connection Error',
         description: 'Please check your connection and try again.',
@@ -262,7 +283,11 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
     }
   };
 
-  const problemTags = problem.tags || []; // Ensure problemTags is an array
+  const problemTags = problem.tags || [];
+
+  const aiButtonTooltipContent = isAIButtonDisabled && !isLoadingCooldown 
+    ? `On cooldown: ${formattedRemainingTime}` 
+    : user ? undefined : "Login to use AI features";
 
   return (
     <>
@@ -272,7 +297,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
         "border-border/50 hover:border-primary/20",
         "bg-gradient-to-br from-card via-card to-muted/5"
       )}>
-        {currentStatus !== 'none' && (
+        {user && currentStatus !== 'none' && (
           <div className={cn(
             "absolute top-0 left-0 right-0 h-1 rounded-t-lg transition-all duration-300",
             currentStatus === 'solved' && "bg-green-500",
@@ -404,28 +429,28 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                       <span className="sm:hidden">Solve</span>
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent><p>{problem.link ? "Open in LeetCode" : "Link unavailable"}</p></TooltipContent>
+                  <TooltipContent><p>{problem.link ? "Open Problem" : "Link unavailable"}</p></TooltipContent>
                 </Tooltip>
               </TooltipProvider>
 
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      asChild
-                      variant="secondary"
-                      size="sm"
-                      className="w-full font-medium"
-                    >
-                      <Link
-                        href={`/mock-interview/${problem.companySlug || companySlug}/${problem.slug}`}
-                        className="flex items-center justify-center gap-2"
+                     <Button
+                        asChild
+                        variant="secondary"
+                        size="sm"
+                        className="w-full font-medium"
                       >
-                        <Bot className="h-4 w-4" />
-                        <span className="hidden sm:inline">Mock Interview</span>
-                        <span className="sm:hidden">Mock</span>
-                      </Link>
-                    </Button>
+                        <Link
+                          href={`/mock-interview/${problem.companySlug || companySlug}/${problem.slug}`}
+                          className="flex items-center justify-center gap-2"
+                        >
+                          <Bot className="h-4 w-4" />
+                          <span className="hidden sm:inline">Mock Interview</span>
+                          <span className="sm:hidden">Mock</span>
+                        </Link>
+                      </Button>
                   </TooltipTrigger>
                   <TooltipContent><p>Practice with AI Interviewer</p></TooltipContent>
                 </Tooltip>
@@ -434,7 +459,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
 
             <div className={cn(
               "grid gap-2",
-              user ? "grid-cols-3" : "grid-cols-2"
+              user ? "grid-cols-3" : "grid-cols-2" 
             )}>
               <TooltipProvider>
                 <Tooltip>
@@ -443,7 +468,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={handleFindSimilar}
-                      disabled={isLoadingSimilar}
+                      disabled={isLoadingSimilar || (isAIButtonDisabled && user)}
                       className="w-full text-xs"
                     >
                       {isLoadingSimilar ? (
@@ -454,7 +479,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                       <span className="ml-1.5 hidden sm:inline">Similar</span>
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent><p>Find Similar Problems (AI)</p></TooltipContent>
+                  <TooltipContent><p>{aiButtonTooltipContent || "Find Similar Problems (AI)"}</p></TooltipContent>
                 </Tooltip>
               </TooltipProvider>
 
@@ -465,7 +490,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={handleGenerateInsights}
-                      disabled={isLoadingInsights}
+                      disabled={isLoadingInsights || (isAIButtonDisabled && user)}
                       className="w-full text-xs"
                     >
                       {isLoadingInsights ? (
@@ -476,7 +501,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                       <span className="ml-1.5 hidden sm:inline">Hints</span>
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent><p>Get AI Insights & Hints</p></TooltipContent>
+                  <TooltipContent><p>{aiButtonTooltipContent || "Get AI Insights & Hints"}</p></TooltipContent>
                 </Tooltip>
               </TooltipProvider>
 
@@ -529,6 +554,12 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                 </DropdownMenu>
               )}
             </div>
+            {user && !isLoadingCooldown && !canUseAI && (
+              <div className="mt-2 text-xs text-destructive flex items-center justify-center">
+                <AlertCircle size={14} className="mr-1" />
+                AI features on cooldown: {formattedRemainingTime}
+              </div>
+            )}
           </div>
         </CardFooter>
       </Card>

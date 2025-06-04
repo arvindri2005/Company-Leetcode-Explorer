@@ -19,7 +19,7 @@ import { useState } from 'react';
 import { Loader2, LogInIcon } from 'lucide-react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 const loginFormSchema = z.object({
@@ -32,6 +32,7 @@ type LoginFormValues = z.infer<typeof loginFormSchema>;
 export default function LoginForm() {
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<LoginFormValues>({
@@ -50,7 +51,12 @@ export default function LoginForm() {
         title: 'Login Successful! 🎉',
         description: 'Welcome back!',
       });
-      router.push('/profile'); // Redirect to profile or dashboard
+      const redirectUrl = searchParams.get('redirectUrl');
+      if (redirectUrl) {
+        router.push(redirectUrl);
+      } else {
+        router.push('/profile');
+      }
     } catch (error: any) {
       console.error('Login error:', error);
       let errorMessage = 'An unknown error occurred. Please try again.';
@@ -58,7 +64,7 @@ export default function LoginForm() {
         switch (error.code) {
           case 'auth/user-not-found':
           case 'auth/wrong-password':
-          case 'auth/invalid-credential': // Covers both wrong email/password in newer SDK versions
+          case 'auth/invalid-credential':
             errorMessage = 'Invalid email or password. Please try again.';
             break;
           case 'auth/invalid-email':

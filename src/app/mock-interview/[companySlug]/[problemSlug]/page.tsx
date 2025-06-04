@@ -1,115 +1,109 @@
 
+'use client'; // Required because we use useAuth and useRouter client-side
+
 import { getProblemByCompanySlugAndProblemSlug, getCompanyBySlug } from '@/lib/data';
 import type { LeetCodeProblem, Company } from '@/types';
 import MockInterviewChat from '@/components/ai/mock-interview-chat';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, ChevronLeft } from 'lucide-react'; 
+import { ExternalLink, ChevronLeft, LogIn, Loader2, Info } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import DifficultyBadge from '@/components/problem/difficulty-badge';
 import TagBadge from '@/components/problem/tag-badge';
-import type { Metadata } from 'next';
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
-
+// import type { Metadata } from 'next'; // Metadata generation would be complex in a full client component
+import { useAuth } from '@/contexts/auth-context';
+import React, { useEffect, useState, use } from 'react'; // Import use
+import { usePathname, useRouter } from 'next/navigation';
 
 interface MockInterviewPageProps {
   params: { companySlug: string; problemSlug: string };
+  // If params were definitely a Promise, the type would be:
+  // params: Promise<{ companySlug: string; problemSlug: string; }>;
 }
 
-export async function generateMetadata({ params }: MockInterviewPageProps): Promise<Metadata> {
-  const company = await getCompanyBySlug(params.companySlug);
+export default function MockInterviewPage({ params: paramsFromProps }: MockInterviewPageProps) {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
 
-  if (!company) {
-    return {
-      title: 'Company Not Found | Mock Interview',
-      description: `The company with slug "${params.companySlug}" was not found. Unable to start mock interview.`,
-    };
-  }
+  // Unwrap the params prop using React.use()
+  // This will suspend if paramsFromProps is a promise.
+  const params = use(paramsFromProps as any); // Use 'as any' if TypeScript complains, or adjust prop type
 
-  const problemData = await getProblemByCompanySlugAndProblemSlug(params.companySlug, params.problemSlug);
+  const [company, setCompany] = useState<Company | null | undefined>(undefined);
+  const [problem, setProblem] = useState<LeetCodeProblem | null | undefined>(undefined);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
-  if (!problemData || !problemData.problem) {
-    return { 
-      title: `Problem Not Found for ${company.name} | Mock Interview`,
-      description: `The problem with slug "${params.problemSlug}" for company "${company.name}" does not exist or could not be loaded.`,
-    };
-  }
-  
-  const { problem } = problemData;
-  const pageUrl = `${APP_URL}/mock-interview/${params.companySlug}/${params.problemSlug}`;
-  const title = `Mock Interview: ${problem.title} | ${company.name} | Company Interview Problem Explorer`;
-  const description = `Practice solving "${problem.title}" (${problem.difficulty}) with an AI interviewer. A coding Problem problem often asked by ${company.name}.`;
-
-  const breadcrumbList = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Home", "item": `${APP_URL}/` },
-      { "@type": "ListItem", "position": 2, "name": "Companies", "item": `${APP_URL}/companies` },
-      { "@type": "ListItem", "position": 3, "name": company.name, "item": `${APP_URL}/company/${company.slug}` },
-      { "@type": "ListItem", "position": 4, "name": `Mock Interview: ${problem.title}`, "item": pageUrl }
-    ]
-  };
-
-  const articleSchema = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "mainEntityOfPage": {
-      "@type": "WebPage",
-      "@id": pageUrl
-    },
-    "headline": `Mock Interview Practice: ${problem.title} for ${company.name}`,
-    "description": description,
-    "image": company.logo ? [company.logo] : [`${APP_URL}/og-image.png`], // Use company logo or default
-    "author": {
-      "@type": "Organization",
-      "name": "Company Interview Problem Explorer AI"
-    },
-    "publisher": {
-      "@type": "Organization",
-      "name": "Company Interview Prolbem Explorer",
-      "logo": {
-        "@type": "ImageObject",
-        "url": `${APP_URL}/icon.png` // A generic icon for the publisher
+  useEffect(() => {
+    // This effect runs after `params` is resolved due to React.use() potentially suspending.
+    async function fetchData() {
+      if (!params.companySlug || !params.problemSlug) {
+        // This case should ideally not happen if params are correctly resolved from route
+        setIsLoadingData(false);
+        setCompany(null);
+        setProblem(null);
+        return;
       }
-    },
-    "datePublished": problem.lastAskedPeriod ? new Date().toISOString() : new Date().toISOString(), // Placeholder, ideally problem creation date
-    "dateModified": new Date().toISOString() // Always current date for mock interview pages
-  };
-  
-  // Combine structured data
-  const combinedSchemas = [breadcrumbList, articleSchema];
 
+      setIsLoadingData(true);
+      const companyData = await getCompanyBySlug(params.companySlug);
+      setCompany(companyData);
 
-  return { 
-    title,
-    description,
-    openGraph: {
-      title,
-      description,
-      type: 'article', 
-      url: pageUrl,
-      images: company.logo ? [{ url: company.logo, alt: `${company.name} logo for ${problem.title} mock interview`}] : [{ url: `${APP_URL}/og-image.png`, alt: `Mock interview for ${problem.title}`}],
-      article: {
-        // Potentially add tags, section, published_time, modified_time here
-        // For simplicity, we'll rely on the main Article schema.org for richer data
-        tags: problem.tags,
+      if (companyData) {
+        const problemDetails = await getProblemByCompanySlugAndProblemSlug(params.companySlug, params.problemSlug);
+        setProblem(problemDetails.problem);
+      } else {
+        setProblem(null); // No company, so no problem
       }
-    },
-    alternates: {
-      canonical: pageUrl,
-    },
-    other: {
-      "script[type=\"application/ld+json\"]": JSON.stringify(combinedSchemas),
+      setIsLoadingData(false);
     }
-  };
-}
 
-export default async function MockInterviewPage({ params }: MockInterviewPageProps) {
-  const company = await getCompanyBySlug(params.companySlug);
-  const problemData = await getProblemByCompanySlugAndProblemSlug(params.companySlug, params.problemSlug);
+    // Ensure params are available before fetching
+    if (params?.companySlug && params?.problemSlug) {
+      fetchData();
+    } else {
+      // Handle case where resolved params might still be missing required fields, though unlikely for route params
+      setIsLoadingData(false);
+      console.warn("Resolved params are missing companySlug or problemSlug", params);
+    }
+  }, [params?.companySlug, params?.problemSlug]); // Depend on the resolved params' properties
+
+  if (authLoading || isLoadingData) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center p-6">
+        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+        <p className="text-lg text-muted-foreground">Loading Interview Session...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <section className="space-y-6 flex flex-col h-full items-center justify-center text-center py-10">
+         <Info size={48} className="text-primary mb-4" />
+        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+          Login Required
+        </h1>
+        <p className="text-muted-foreground max-w-md">
+          Please log in to start your AI-powered mock interview for the problem
+          {problem ? ` "${problem.title}"` : ''}
+          {company ? ` from ${company.name}` : ''}.
+        </p>
+        <Button asChild size="lg" className="mt-4">
+          <Link href={`/login?redirectUrl=${encodeURIComponent(pathname)}`}>
+            <LogIn className="mr-2 h-5 w-5" /> Login to Continue
+          </Link>
+        </Button>
+         <Button asChild variant="outline" className="mt-2">
+          <Link href={company ? `/company/${company.slug}` : '/companies'}>
+            <ChevronLeft className="mr-2 h-4 w-4" />
+            Back to {company ? company.name : 'Companies'}
+          </Link>
+        </Button>
+      </section>
+    );
+  }
 
   if (!company) {
      return (
@@ -125,7 +119,7 @@ export default async function MockInterviewPage({ params }: MockInterviewPagePro
     );
   }
 
-  if (!problemData || !problemData.problem) {
+  if (!problem) {
     return (
       <div className="text-center py-10">
         <h1 className="text-2xl font-bold mb-4">Problem Not Found for {company.name}</h1>
@@ -138,8 +132,6 @@ export default async function MockInterviewPage({ params }: MockInterviewPagePro
       </div>
     );
   }
-  const problem = problemData.problem;
-
 
   return (
     <section className="space-y-6 flex flex-col h-full">
@@ -191,22 +183,7 @@ export default async function MockInterviewPage({ params }: MockInterviewPagePro
   );
 }
 
-// Import function for static params
-import { getAllProblemCompanyAndProblemSlugs } from '@/lib/data';
+// Static params generation can remain if the slugs are known ahead of time
+// import { getAllProblemCompanyAndProblemSlugs } from '@/lib/data';
+// export async function generateStaticParams() { ... }
 
-export async function generateStaticParams() {
-  try {
-    const problemSlugsData = await getAllProblemCompanyAndProblemSlugs();
-    if (!problemSlugsData || problemSlugsData.length === 0) {
-        console.warn("generateStaticParams for mock interview pages: No problem slugs data found.");
-        return [];
-    }
-    return problemSlugsData.map(({ companySlug, problemSlug }) => ({
-      companySlug,
-      problemSlug,
-    }));
-  } catch (error) {
-    console.error("Error in generateStaticParams for mock interview pages:", error);
-    return [];
-  }
-}

@@ -9,12 +9,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { handleInterviewTurn } from '@/app/actions';
-import { Send, User, Bot, Loader2, CornerDownLeft, Mic, MicOff, Volume2, VolumeX, MessageSquareQuote } from 'lucide-react';
+import { Send, User, Bot, Loader2, CornerDownLeft, Mic, MicOff, Volume2, VolumeX, MessageSquareQuote, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Separator } from '../ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useAICooldown } from '@/hooks/use-ai-cooldown';
 
 interface MockInterviewChatProps {
   problem: LeetCodeProblem;
@@ -26,18 +27,20 @@ interface UIMessage extends ChatMessage {
     suggestedFollowUps?: string[];
 }
 
-
-// Check for SpeechRecognition and SpeechSynthesis API availability
 const SpeechRecognition = (typeof window !== 'undefined') ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null;
 const speechSynthesis = (typeof window !== 'undefined') ? window.speechSynthesis : null;
 
 const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem, companySlug }) => {
   const [conversation, setConversation] = useState<UIMessage[]>([]);
   const [userInput, setUserInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); 
+  const [isSessionLoading, setIsSessionLoading] = useState(true); 
   const { toast } = useToast();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { canUseAI, startCooldown, formattedRemainingTime, isLoadingCooldown } = useAICooldown();
+
+  const [sessionAiMessageCount, setSessionAiMessageCount] = useState(0); // Counter for AI messages in this session
 
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
@@ -46,7 +49,7 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem, companyS
 
   const [isTTSEnabled, setIsTTSEnabled] = useState(false);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-
+  
   useEffect(() => {
     if (!SpeechRecognition || !speechSynthesis) {
       setIsBrowserUnsupported(true);
@@ -64,10 +67,27 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem, companyS
     }
   }, [isBrowserUnsupported, toast]);
 
-  const startInterview = useCallback(async () => {
-    setIsLoading(true);
+  const startInterviewSession = useCallback(async () => {
+    if (isLoadingCooldown) {
+      setIsSessionLoading(true);
+      return;
+    }
+
+    if (!canUseAI) {
+      setConversation([{
+        id: 'cooldown-message',
+        role: 'model',
+        content: `AI features are currently on cooldown. Please wait ${formattedRemainingTime}. The interview cannot start yet.`
+      }]);
+      setIsSessionLoading(false);
+      return;
+    }
+    
+    setIsSessionLoading(true);
+    setIsLoading(true); 
     setConversation([]);
-    // Use problem.companySlug and problem.slug
+    setSessionAiMessageCount(0); // Reset session message count
+    
     const result = await handleInterviewTurn(problem.companySlug, problem.slug, [], "Let's begin the interview.");
     
     let initialMessages: UIMessage[] = [];
@@ -79,18 +99,25 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem, companyS
       const newAIMessage: UIMessage = { id: Date.now().toString(), role: 'model', content: aiContent, suggestedFollowUps: result.suggestedFollowUps };
       initialMessages.push(newAIMessage);
       if (isTTSEnabled && !isBrowserUnsupported) speakText(aiContent);
+
+      const newCount = 1; // First AI message
+      setSessionAiMessageCount(newCount);
+      if (newCount >= 5) {
+        startCooldown(); 
+      }
+
     } else if (result.error) {
       toast({ title: 'Error starting interview', description: result.error, variant: 'destructive' });
       initialMessages.push({ id: Date.now().toString(), role: 'model', content: `I couldn't initialize the session for ${problem.title} due to an error. Please try refreshing or select another problem.` });
     }
     setConversation(initialMessages);
     setIsLoading(false);
-  }, [problem.slug, problem.companySlug, problem.title, toast, isTTSEnabled, isBrowserUnsupported]);
+    setIsSessionLoading(false);
+  }, [problem.slug, problem.companySlug, problem.title, toast, isTTSEnabled, isBrowserUnsupported, canUseAI, isLoadingCooldown, formattedRemainingTime, startCooldown]);
 
   useEffect(() => {
-    startInterview();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+    startInterviewSession();
+  }, [startInterviewSession]);
 
 
   const scrollToBottom = () => {
@@ -137,7 +164,7 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem, companyS
   };
 
   const submitUserTurn = async (messageContent: string) => {
-    if (!messageContent.trim() || isLoading) return;
+    if (!messageContent.trim() || isLoading || !canUseAI) return; // Check global canUseAI
 
     const newUserMessage: UIMessage = { id: Date.now().toString(), role: 'user', content: messageContent.trim() };
     setConversation(prev => [...prev, newUserMessage]);
@@ -149,7 +176,6 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem, companyS
     setUserInput(''); 
     setIsLoading(true);
     
-    // Use problem.companySlug and problem.slug
     const result = await handleInterviewTurn(problem.companySlug, problem.slug, historyForAI.slice(0, -1), newUserMessage.content);
     setIsLoading(false);
 
@@ -164,6 +190,15 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem, companyS
       const newAIMessage: UIMessage = { id: (Date.now() + 1).toString(), role: 'model', content: aiResponseContent, suggestedFollowUps: result.suggestedFollowUps };
       setConversation(prev => [...prev, newAIMessage]);
       if (isTTSEnabled && !isBrowserUnsupported) speakText(aiResponseContent);
+
+      setSessionAiMessageCount(prevCount => {
+          const newCount = prevCount + 1;
+          if (newCount >= 5) { 
+              startCooldown(); 
+          }
+          return newCount;
+      });
+
     } else {
       toast({
         title: 'Error during interview',
@@ -186,7 +221,7 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem, companyS
   };
 
   const handleToggleRecording = async () => {
-    if (isBrowserUnsupported || !SpeechRecognition) return;
+    if (isBrowserUnsupported || !SpeechRecognition || !canUseAI) return; // Check global canUseAI
 
     if (isRecording) {
       recognitionRef.current?.stop();
@@ -194,32 +229,10 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem, companyS
     } else {
       try {
         if (micPermission !== 'granted') {
-          const permissionStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
-          if (permissionStatus.state === 'granted') {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream.getTracks().forEach(track => track.stop()); 
             setMicPermission('granted');
-          } else if (permissionStatus.state === 'prompt') {
-            try {
-              const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-              stream.getTracks().forEach(track => track.stop()); 
-              setMicPermission('granted');
-            } catch (permError) {
-              console.error('Mic permission denied by user prompt:', permError);
-              setMicPermission('denied');
-              toast({ title: "Microphone Access Denied", description: "Please enable microphone permissions in your browser settings.", variant: "destructive" });
-              return;
-            }
-          } else {
-            setMicPermission('denied');
-            toast({ title: "Microphone Access Denied", description: "Please enable microphone permissions in your browser settings.", variant: "destructive" });
-            return;
-          }
         }
-
-        if (micPermission === 'denied' && !(await navigator.mediaDevices.getUserMedia({ audio: true }).then(() => true).catch(() => false))) {
-             toast({ title: "Microphone Access Denied", description: "Please enable microphone permissions in your browser settings.", variant: "destructive" });
-             return;
-        }
-
 
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = true; 
@@ -234,6 +247,7 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem, companyS
         let finalTranscript = '';
         recognitionRef.current.onresult = (event) => {
           let interimTranscript = '';
+          finalTranscript = userInput.substring(0, userInput.length - interimTranscript.length); 
           for (let i = event.resultIndex; i < event.results.length; ++i) {
             if (event.results[i].isFinal) {
               finalTranscript += event.results[i][0].transcript;
@@ -246,11 +260,6 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem, companyS
 
         recognitionRef.current.onend = () => {
           setIsRecording(false);
-          if (finalTranscript.trim()) {
-            submitUserTurn(finalTranscript.trim()); 
-          } else if (userInput.trim() && !finalTranscript.trim()){ 
-            // Do nothing
-          }
         };
 
         recognitionRef.current.onerror = (event) => {
@@ -270,7 +279,8 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem, companyS
 
       } catch (error) {
         console.error('Error starting recording:', error);
-        toast({ title: "Could not start recording", description: "Please ensure microphone permissions are granted.", variant: "destructive" });
+        setMicPermission('denied');
+        toast({ title: "Could not start recording", description: "Please ensure microphone permissions are granted and your browser supports Web Speech API.", variant: "destructive" });
         setIsRecording(false);
       }
     }
@@ -295,6 +305,18 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem, companyS
       return newState;
     });
   };
+
+  if (isSessionLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
+        <p className="text-muted-foreground">Preparing interview session...</p>
+         {isLoadingCooldown && <p className="text-xs text-muted-foreground mt-1">(Checking AI feature availability...)</p>}
+      </div>
+    );
+  }
+  
+  const isInputDisabled = isLoading || isRecording || !canUseAI; // Use global canUseAI
 
   return (
     <div className="flex flex-col h-full bg-card border rounded-lg shadow-sm">
@@ -356,21 +378,25 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem, companyS
             )}
           </div>
         ))}
-        {isLoading && conversation.length > 0 && ( 
+        {isLoading && conversation.length > 0 && !isSessionLoading && ( 
           <div className="flex items-start gap-3 p-3 rounded-lg max-w-[85%] mr-auto bg-muted border">
             <Bot className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" />
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
         )}
-         {conversation.length === 0 && !isLoading && (
+         {conversation.length === 0 && !isLoading && !isSessionLoading && ( 
             <div className="text-center text-muted-foreground p-6">
-                <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-3" />
-                <p>Preparing interview session for {problem.title}...</p>
-                <p className="text-xs mt-2">If this takes too long, there might be an issue connecting to the AI service.</p>
+                <p>Starting interview session for {problem.title}...</p>
             </div>
         )}
       </ScrollArea>
       <form onSubmit={handleManualSubmit} className="p-3 border-t bg-background rounded-b-lg">
+        {!canUseAI && !isLoadingCooldown && ( // Check if global cooldown is active
+             <div className="mb-2 text-xs text-destructive flex items-center justify-center p-2 bg-destructive/10 rounded-md">
+                <AlertCircle size={14} className="mr-1.5" />
+                AI features are on cooldown. Please wait {formattedRemainingTime}.
+             </div>
+        )}
         <div className="flex items-end gap-2">
           <Textarea
             ref={textareaRef}
@@ -380,7 +406,7 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem, companyS
             placeholder={isRecording ? "Recording... Speak now." : "Type your thoughts or code..."}
             className="resize-none min-h-[48px] max-h-[180px] flex-grow rounded-md shadow-sm focus:ring-2 focus:ring-primary"
             rows={1}
-            disabled={isLoading || isRecording}
+            disabled={isInputDisabled}
           />
           {!isBrowserUnsupported && (
             <Button
@@ -389,7 +415,7 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem, companyS
               variant={isRecording ? "destructive" : "outline"}
               className="flex-shrink-0 h-10 w-10 rounded-md"
               onClick={handleToggleRecording}
-              disabled={isLoading}
+              disabled={isLoading || !canUseAI} // Also disable if global cooldown active
               aria-label={isRecording ? "Stop recording" : "Start recording"}
             >
               {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
@@ -399,7 +425,7 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem, companyS
             type="submit"
             size="icon"
             className="flex-shrink-0 h-10 w-10 rounded-md" 
-            disabled={isLoading || !userInput.trim() || isRecording}
+            disabled={isInputDisabled || !userInput.trim()}
             aria-label="Send message"
           >
             {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
@@ -415,6 +441,7 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem, companyS
                     onClick={toggleTTS} 
                     className="p-1 h-auto text-muted-foreground hover:text-foreground"
                     aria-label={isTTSEnabled ? "Disable AI speech" : "Enable AI speech"}
+                    disabled={!canUseAI && !isLoadingCooldown} // Disable if global cooldown active
                 >
                     {isTTSEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
                     <span className="sr-only">{isTTSEnabled ? "Mute AI" : "Unmute AI"}</span>
@@ -427,3 +454,5 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem, companyS
 };
 
 export default MockInterviewChat;
+
+    

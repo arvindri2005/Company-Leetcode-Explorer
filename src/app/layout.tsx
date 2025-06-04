@@ -8,6 +8,7 @@ import { AuthProvider } from '@/contexts/auth-context';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Analytics } from "@vercel/analytics/next"
+import { CooldownStateProvider } from '@/hooks/use-ai-cooldown';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -63,20 +64,20 @@ export const metadata: Metadata = {
     images: [`${APP_URL}/og-image.png`],
   },
   icons: {
-    icon: [ // Array for multiple icon types/sizes
-      { url: '/favicon.ico', type: 'image/x-icon', sizes: 'any' }, // Standard favicon
-      { url: '/icon.png', type: 'image/png', sizes: '192x192' }, // For PWA and larger display
-      { url: '/icon-512.png', type: 'image/png', sizes: '512x512' } // Larger PWA icon
+    icon: [ 
+      { url: '/favicon.ico', type: 'image/x-icon', sizes: 'any' }, 
+      { url: '/icon.png', type: 'image/png', sizes: '192x192' }, 
+      { url: '/icon-512.png', type: 'image/png', sizes: '512x512' } 
     ],
-    shortcut: ['/favicon.ico'], // For older browsers
+    shortcut: ['/favicon.ico'], 
     apple: [
-      { url: '/apple-touch-icon.png', sizes: '180x180' } // Main Apple touch icon
+      { url: '/apple-touch-icon.png', sizes: '180x180' } 
     ],
     other: [
        {
         rel: 'mask-icon',
-        url: '/safari-pinned-tab.svg', // If you have an SVG icon for Safari pinned tabs
-        color: '#F7BC2D', // Your primary color
+        url: '/safari-pinned-tab.svg', 
+        color: '#F7BC2D', 
       },
     ],
   },
@@ -125,15 +126,17 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <div className="flex flex-col min-h-screen">
-              <Header />
-              <main className="flex-grow container mx-auto px-4 py-8">
-                {children}
-                <SpeedInsights/>
-                <Analytics/>
-              </main>
-              <Toaster />
-            </div>
+            <CooldownStateProvider>
+              <div className="flex flex-col min-h-screen">
+                <Header />
+                <main className="flex-grow container mx-auto px-4 py-8">
+                  {children}
+                  <SpeedInsights/>
+                  <Analytics/>
+                </main>
+                <Toaster />
+              </div>
+            </CooldownStateProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>
