@@ -5,7 +5,7 @@ import { getCompanies } from '@/lib/data';
 
 export const metadata = {
   title: 'Bulk Add Companies',
-  description: 'Upload an Excel file to add multiple companies.',
+  description: 'Upload an Excel (.xlsx) or CSV (.csv) file to add multiple companies.',
 };
 
 export default async function BulkAddCompaniesPage() {
@@ -18,10 +18,10 @@ export default async function BulkAddCompaniesPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Bulk Add Companies</h1>
         <p className="mt-2 text-lg text-muted-foreground">
-          Upload an Excel (.xlsx) file to add multiple companies at once.
+          Upload an Excel (.xlsx) or CSV (.csv) file to add multiple companies at once.
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Ensure your Excel file's first sheet has the following headers: <strong>Name, Logo, Description, Website</strong>.
+          Ensure your file's first sheet (for Excel) or data (for CSV) has the following headers: <strong>Name, Logo, Description, Website</strong>.
         </p>
          <p className="mt-1 text-sm text-muted-foreground">
           The 'Name' column is required. 'Logo' and 'Website' should be valid URLs if provided. 'Description' is optional.
@@ -32,4 +32,3 @@ export default async function BulkAddCompaniesPage() {
     </section>
   );
 }
-

@@ -32,10 +32,7 @@ const problemFormSchema = z.object({
   title: z.string().min(3, { message: 'Title must be at least 3 characters.' }).max(150),
   difficulty: z.enum(['Easy', 'Medium', 'Hard'], { required_error: 'Difficulty is required.' }),
   link: z.string().url({ message: 'Please enter a valid Interview Problem URL.' }),
-  tags: z.string().min(1, { message: 'Please enter at least one tag.' })
-    .refine(value => value.split(',').every(tag => tag.trim().length > 0), {
-      message: 'Tags should be comma-separated and not empty.',
-    }),
+  tags: z.string().optional(), // Made tags optional
   companyId: z.string({ required_error: 'Please select a company.' }),
   lastAskedPeriod: z.enum(
     lastAskedPeriodOptions.map(opt => opt.value) as [LastAskedPeriod, ...LastAskedPeriod[]], 
@@ -55,7 +52,7 @@ export default function ProblemSubmissionForm({ companies }: ProblemSubmissionFo
       title: '',
       difficulty: undefined,
       link: '',
-      tags: '',
+      tags: '', // Default to empty string
       companyId: undefined,
       lastAskedPeriod: undefined,
     },
@@ -69,8 +66,11 @@ export default function ProblemSubmissionForm({ companies }: ProblemSubmissionFo
     });
 
     const problemData: Omit<LeetCodeProblem, 'id'> = {
-      ...data,
-      tags: data.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
+      title: data.title,
+      difficulty: data.difficulty,
+      link: data.link,
+      tags: data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [],
+      companyId: data.companyId,
       lastAskedPeriod: data.lastAskedPeriod,
     };
 
@@ -186,7 +186,7 @@ export default function ProblemSubmissionForm({ companies }: ProblemSubmissionFo
           name="tags"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Tags</FormLabel>
+              <FormLabel>Tags (Optional)</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="e.g., Array, Hash Table, Dynamic Programming"
@@ -194,7 +194,7 @@ export default function ProblemSubmissionForm({ companies }: ProblemSubmissionFo
                   {...field}
                 />
               </FormControl>
-              <FormDescription>Comma-separated list of relevant tags.</FormDescription>
+              <FormDescription>Comma-separated list of relevant tags. Can be left empty.</FormDescription>
               <FormMessage />
             </FormItem>
           )}

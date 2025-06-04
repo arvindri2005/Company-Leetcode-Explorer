@@ -14,11 +14,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface RawExcelProblemDataForClient {
   Title: string;
-  Difficulty: string; // Accepts any string from Excel, server will normalize/validate
+  Difficulty: string; 
   Link: string;
-  Tags: string; // Comma-separated
+  Tags: string; 
   'Company Name': string;
-  'Last Asked Period': LastAskedPeriod; // Client assumes it's valid, server validates
+  'Last Asked Period': LastAskedPeriod; 
   [key: string]: any; 
 }
 
@@ -50,14 +50,14 @@ export default function BulkProblemUploadForm({ companyNames }: BulkProblemUploa
 
   const handleSubmit = async () => {
     if (!file) {
-      toast({ title: 'No file selected', description: 'Please select an Excel file to upload.', variant: 'destructive' });
+      toast({ title: 'No file selected', description: 'Please select an Excel (.xlsx) or CSV (.csv) file to upload.', variant: 'destructive' });
       return;
     }
 
     setIsProcessing(true);
     setResults(null);
     setSummary(null);
-    toast({ title: 'Processing File...', description: 'Reading and processing your Excel file.' });
+    toast({ title: 'Processing File...', description: 'Reading and processing your file.' });
 
     const reader = new FileReader();
     reader.onload = async (event) => {
@@ -69,25 +69,26 @@ export default function BulkProblemUploadForm({ companyNames }: BulkProblemUploa
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
         const firstSheetName = workbook.SheetNames[0];
         if (!firstSheetName) {
-            throw new Error("The Excel file does not contain any sheets.");
+            throw new Error("The file does not contain any sheets or could not be parsed correctly.");
         }
         const worksheet = workbook.Sheets[firstSheetName];
         if (!worksheet) {
-            throw new Error(`Could not read the first sheet ('${firstSheetName}') from the Excel file.`);
+            throw new Error(`Could not read the first sheet ('${firstSheetName}') from the file.`);
         }
         
         const jsonData = XLSX.utils.sheet_to_json<RawExcelProblemDataForClient>(worksheet, { defval: "" });
 
         if (jsonData.length === 0) {
-          toast({ title: 'Empty Data', description: 'The first sheet of the Excel file is empty or contains no data rows.', variant: 'destructive' });
+          toast({ title: 'Empty Data', description: 'The first sheet of the file is empty or contains no data rows.', variant: 'destructive' });
           setIsProcessing(false);
           return;
         }
         
-        const headerRow = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" })[0] as string[];
-        if (!headerRow || headerRow.length === 0) {
-            throw new Error("Could not read the header row from the Excel sheet.");
+        const headerRowJson = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+        if (!headerRowJson || headerRowJson.length === 0) {
+            throw new Error("Could not read the header row from the sheet.");
         }
+        const headerRow = headerRowJson[0] as string[];
 
         const requiredHeaders = ["Title", "Difficulty", "Link", "Tags", "Company Name", "Last Asked Period"];
         const actualHeaders = headerRow.map(h => String(h).trim()); 
@@ -97,7 +98,7 @@ export default function BulkProblemUploadForm({ companyNames }: BulkProblemUploa
         if (missingHeaders.length > 0) {
             toast({
                 title: "Missing Required Headers",
-                description: `The Excel file's first sheet is missing the following column header(s): ${missingHeaders.join(", ")}. Please ensure the file contains these exact headers. Found headers: ${actualHeaders.join(", ")}`,
+                description: `The file's first sheet is missing the following column header(s): ${missingHeaders.join(", ")}. Please ensure the file contains these exact headers. Found headers: ${actualHeaders.join(", ")}`,
                 variant: "destructive",
                 duration: 15000, 
             });
@@ -105,14 +106,13 @@ export default function BulkProblemUploadForm({ companyNames }: BulkProblemUploa
             return;
         }
 
-
         const problemsToSubmit = jsonData.map(row => ({
           title: String(row.Title || '').trim(),
-          difficulty: String(row.Difficulty || '').trim(), // Send as string
+          difficulty: String(row.Difficulty || '').trim(), 
           link: String(row.Link || '').trim(),
           tags: String(row.Tags || '').trim(), 
           companyName: String(row['Company Name'] || '').trim(),
-          lastAskedPeriod: String(row['Last Asked Period'] || '').trim() as LastAskedPeriod, // Send as string, server validates
+          lastAskedPeriod: String(row['Last Asked Period'] || '').trim() as LastAskedPeriod,
         }));
 
         const response = await bulkAddProblemsAction(problemsToSubmit);
@@ -125,7 +125,7 @@ export default function BulkProblemUploadForm({ companyNames }: BulkProblemUploa
         });
 
       } catch (error) {
-        console.error("Error processing Excel file:", error);
+        console.error("Error processing file:", error);
         const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during file processing.";
         toast({ title: 'File Processing Error', description: errorMessage, variant: 'destructive', duration: 10000 });
         setResults([{ rowIndex: 0, title: "File Processing Error", status: 'error', message: `Error processing file: ${errorMessage}` }]);
@@ -153,10 +153,10 @@ export default function BulkProblemUploadForm({ companyNames }: BulkProblemUploa
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileSpreadsheet className="h-6 w-6" />
-          Upload Excel File
+          Upload File (.xlsx or .csv)
         </CardTitle>
         <CardDescription>
-          Select a .xlsx file. Available company names include: {companyNames.slice(0, 5).join(', ')}{companyNames.length > 5 ? ', and more...' : '.'}
+          Select a .xlsx or .csv file. Available company names include: {companyNames.slice(0, 5).join(', ')}{companyNames.length > 5 ? ', and more...' : '.'}
           <br />
           Required headers: Title, Difficulty, Link, Tags, Company Name, Last Asked Period.
         </CardDescription>
@@ -165,7 +165,7 @@ export default function BulkProblemUploadForm({ companyNames }: BulkProblemUploa
         <div className="flex flex-col sm:flex-row gap-4 items-center">
           <Input
             type="file"
-            accept=".xlsx"
+            accept=".xlsx,.csv"
             onChange={handleFileChange}
             className="flex-grow file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
             disabled={isProcessing}

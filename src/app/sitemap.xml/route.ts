@@ -1,38 +1,33 @@
 
-import { getAllCompanySlugs, getAllProblemCompanyAndProblemSlugs } from '@/lib/data';
+import { getAllCompanySlugs } from '@/lib/data';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002'; // Fallback for local dev
 
 export async function GET() {
   const today = new Date().toISOString();
 
-  const staticPages = [
-    '/',
-    '/companies',
-    '/submit-problem',
-    '/add-company',
-    '/bulk-add-problems',
-    '/bulk-add-companies',
-    '/login',
-    '/signup',
-    '/profile',
+  const publicStaticPages = [
+    { path: '/', changefreq: 'monthly', priority: '0.5' },
+    { path: '/companies', changefreq: 'daily', priority: '1' },
+    { path: '/login', changefreq: 'weekly', priority: '0.5' },
+    { path: '/signup', changefreq: 'weekly', priority: '0.5' },
   ];
 
   let sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
 
-  // Add static pages
-  staticPages.forEach(path => {
+  // Add public static pages
+  publicStaticPages.forEach(page => {
     sitemapXml += `
   <url>
-    <loc>${APP_URL}${path}</loc>
+    <loc>${APP_URL}${page.path}</loc>
     <lastmod>${today}</lastmod>
-    <changefreq>${path === '/' || path === '/companies' ? 'daily' : 'weekly'}</changefreq>
-    <priority>${path === '/' ? '1.0' : path === '/companies' ? '0.9' : '0.7'}</priority>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>
   </url>`;
   });
 
-  // Add company detail pages
+  // Add company detail pages (publicly accessible)
   try {
     const companySlugs = await getAllCompanySlugs();
     companySlugs.forEach(slug => {
@@ -48,22 +43,8 @@ export async function GET() {
     console.error("Error fetching company slugs for sitemap:", error);
   }
   
-  // Add mock interview pages
-  try {
-    const problemSlugsData = await getAllProblemCompanyAndProblemSlugs();
-    problemSlugsData.forEach(({ companySlug, problemSlug }) => {
-      sitemapXml += `
-  <url>
-    <loc>${APP_URL}/mock-interview/${companySlug}/${problemSlug}</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>`;
-    });
-  } catch (error) {
-    console.error("Error fetching problem slugs for sitemap:", error);
-  }
-
+  // Mock interview pages are removed as they require authentication.
+  // Other utility/form pages like /submit-problem, /add-company, /profile are also excluded.
 
   sitemapXml += `
 </urlset>`;

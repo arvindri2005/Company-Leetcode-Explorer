@@ -15,7 +15,7 @@ interface RawExcelCompanyDataForClient {
   Name: string;
   Logo?: string;
   Description?: string;
-  Website?: string; // Added website field
+  Website?: string; 
   [key: string]: any; 
 }
 
@@ -47,14 +47,14 @@ export default function BulkCompanyUploadForm({ existingCompanyNames }: BulkComp
 
   const handleSubmit = async () => {
     if (!file) {
-      toast({ title: 'No file selected', description: 'Please select an Excel file to upload.', variant: 'destructive' });
+      toast({ title: 'No file selected', description: 'Please select an Excel (.xlsx) or CSV (.csv) file to upload.', variant: 'destructive' });
       return;
     }
 
     setIsProcessing(true);
     setResults(null);
     setSummary(null);
-    toast({ title: 'Processing File...', description: 'Reading and processing your Excel file for companies.' });
+    toast({ title: 'Processing File...', description: 'Reading and processing your file for companies.' });
 
     const reader = new FileReader();
     reader.onload = async (event) => {
@@ -63,28 +63,33 @@ export default function BulkCompanyUploadForm({ existingCompanyNames }: BulkComp
         if (!arrayBuffer) {
           throw new Error("Could not read file data. The file might be empty or corrupted.");
         }
+        // XLSX.read can handle both arrayBuffer (for xlsx) and string (for csv, but arrayBuffer often works too)
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
         const firstSheetName = workbook.SheetNames[0];
         if (!firstSheetName) {
-            throw new Error("The Excel file does not contain any sheets.");
+            throw new Error("The file does not contain any sheets or could not be parsed correctly.");
         }
         const worksheet = workbook.Sheets[firstSheetName];
         if (!worksheet) {
-            throw new Error(`Could not read the first sheet ('${firstSheetName}') from the Excel file.`);
+            throw new Error(`Could not read the first sheet ('${firstSheetName}') from the file.`);
         }
         
         const jsonData = XLSX.utils.sheet_to_json<RawExcelCompanyDataForClient>(worksheet, { defval: "" });
 
         if (jsonData.length === 0) {
-          toast({ title: 'Empty Data', description: 'The first sheet of the Excel file is empty or contains no data rows.', variant: 'destructive' });
+          toast({ title: 'Empty Data', description: 'The first sheet of the file is empty or contains no data rows.', variant: 'destructive' });
           setIsProcessing(false);
           return;
         }
         
-        const headerRow = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" })[0] as string[];
-        if (!headerRow || headerRow.length === 0) {
-            throw new Error("Could not read the header row from the Excel sheet.");
+        // For CSV, headers are typically the first row. For XLSX, sheet_to_json with header:1 gets headers.
+        // This approach should work for both if SheetJS parses CSV into a sheet structure.
+        const headerRowJson = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+        if (!headerRowJson || headerRowJson.length === 0) {
+            throw new Error("Could not read the header row from the sheet.");
         }
+        const headerRow = headerRowJson[0] as string[];
+
 
         const requiredHeaders = ["Name"]; 
         const optionalHeaders = ["Logo", "Description", "Website"];
@@ -95,7 +100,7 @@ export default function BulkCompanyUploadForm({ existingCompanyNames }: BulkComp
         if (missingRequiredHeaders.length > 0) {
             toast({
                 title: "Missing Required Headers",
-                description: `The Excel file's first sheet is missing the following required column header(s): ${missingRequiredHeaders.join(", ")}. Please ensure the file contains at least 'Name'. Optional: ${optionalHeaders.join(', ')}. Found headers: ${actualHeaders.join(", ")}`,
+                description: `The file's first sheet is missing the following required column header(s): ${missingRequiredHeaders.join(", ")}. Please ensure the file contains at least 'Name'. Optional: ${optionalHeaders.join(', ')}. Found headers: ${actualHeaders.join(", ")}`,
                 variant: "destructive",
                 duration: 15000, 
             });
@@ -107,7 +112,7 @@ export default function BulkCompanyUploadForm({ existingCompanyNames }: BulkComp
           name: String(row.Name || '').trim(),
           logo: String(row.Logo || '').trim(),
           description: String(row.Description || '').trim(),
-          website: String(row.Website || '').trim(), // Add website
+          website: String(row.Website || '').trim(),
         }));
 
         const response = await bulkAddCompaniesAction(companiesToSubmit);
@@ -125,7 +130,7 @@ export default function BulkCompanyUploadForm({ existingCompanyNames }: BulkComp
         });
 
       } catch (error) {
-        console.error("Error processing Excel file for companies:", error);
+        console.error("Error processing file for companies:", error);
         const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during file processing.";
         toast({ title: 'File Processing Error', description: errorMessage, variant: 'destructive', duration: 10000 });
         setResults([{ rowIndex: 0, name: "File Processing Error", status: 'error', message: `Error processing file: ${errorMessage}` }]);
@@ -141,7 +146,7 @@ export default function BulkCompanyUploadForm({ existingCompanyNames }: BulkComp
     };
 
     if (file) {
-      reader.readAsArrayBuffer(file);
+      reader.readAsArrayBuffer(file); // Read as ArrayBuffer, SheetJS can handle it for both types
     } else {
       toast({ title: 'No file found', description: 'File became unavailable before reading.', variant: 'destructive'});
       setIsProcessing(false);
@@ -156,7 +161,7 @@ export default function BulkCompanyUploadForm({ existingCompanyNames }: BulkComp
           Bulk Upload Companies
         </CardTitle>
         <CardDescription>
-          Select a .xlsx file with company data. Required header: <strong>Name</strong>. Optional headers: <strong>Logo, Description, Website</strong>.
+          Select an .xlsx or .csv file with company data. Required header: <strong>Name</strong>. Optional headers: <strong>Logo, Description, Website</strong>.
           <br />
           Existing company names (case-insensitive) will be updated with new information. If no new information, they'll be skipped.
         </CardDescription>
@@ -165,7 +170,7 @@ export default function BulkCompanyUploadForm({ existingCompanyNames }: BulkComp
         <div className="flex flex-col sm:flex-row gap-4 items-center">
           <Input
             type="file"
-            accept=".xlsx"
+            accept=".xlsx,.csv"
             onChange={handleFileChange}
             className="flex-grow file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
             disabled={isProcessing}

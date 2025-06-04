@@ -22,8 +22,8 @@ export async function addProblem(
       normalizedTitle: problemDataInput.title.toLowerCase(),
     };
 
-    if (!problemData.title || !problemData.difficulty || !problemData.link || !problemData.companyId || problemData.tags.length === 0 || !problemData.lastAskedPeriod) {
-      return { success: false, error: 'Missing required fields for problem submission.' };
+    if (!problemData.title || !problemData.difficulty || !problemData.link || !problemData.companyId || !problemData.lastAskedPeriod) {
+      return { success: false, error: 'Missing required fields for problem submission (Title, Difficulty, Link, Company, Last Asked Period).' };
     }
     if (!problemData.link.startsWith('http://') && !problemData.link.startsWith('https://')) {
       return { success: false, error: 'Invalid problem link format. Must start with http:// or https://.' };
@@ -33,6 +33,9 @@ export async function addProblem(
     if (!company) {
       return { success: false, error: `Company with ID ${problemData.companyId} not found.` };
     }
+
+    // Tags are now optional, so `problemData.tags.length === 0` is a valid state
+    // and not considered a missing required field. The problemData.tags will be an empty array if no tags were provided.
 
     const { id: problemId, updated, error: dbError } = await addProblemToDb(problemData.companyId, problemData);
 
@@ -102,7 +105,7 @@ export async function bulkAddProblems(
     try { new URL(link); } catch { errors++; detailedResults.push({ rowIndex: i, title, status: 'error', message: `Malformed problem link: ${link}`}); continue; }
 
     const tags = String(raw.tags || '').trim().split(',').map(t => t.trim()).filter(Boolean);
-    if (tags.length === 0) { errors++; detailedResults.push({ rowIndex: i, title, status: 'error', message: 'Missing tags. Provide at least one tag, comma-separated.' }); continue; }
+    // Tags can now be empty, so no error check for tags.length === 0
 
     const lastAskedPeriod = String(raw.lastAskedPeriod || '').trim() as LastAskedPeriod;
     if (!validLastAskedPeriods.includes(lastAskedPeriod)) { errors++; detailedResults.push({ rowIndex: i, title, status: 'error', message: `Invalid Last Asked Period: "${lastAskedPeriod}". Valid options: ${validLastAskedPeriods.join(', ')}.` }); continue; }
