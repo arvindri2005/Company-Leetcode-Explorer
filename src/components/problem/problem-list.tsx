@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { fetchProblemsForCompanyPage } from '@/app/actions/problem.actions';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useDebounce } from '@/hooks/use-debounce'; // Import useDebounce
 
 interface ProblemListProps {
   companyId: string;
@@ -33,7 +34,9 @@ const ProblemList: React.FC<ProblemListProps> = ({
   const { toast } = useToast();
 
   const [filters, setFilters] = useState<ProblemListFilters>(initialFilters);
-  
+  const [searchInput, setSearchInput] = useState(initialFilters.searchTerm); // Local state for immediate search input
+  const debouncedSearchTerm = useDebounce(searchInput, 500); // Debounced search term
+
   const [displayedProblems, setDisplayedProblems] = useState<LeetCodeProblem[]>(initialProblems);
   const [currentPage, setCurrentPage] = useState(initialCurrentPage);
   const [totalPages, setTotalPages] = useState(initialTotalPages);
@@ -49,7 +52,9 @@ const ProblemList: React.FC<ProblemListProps> = ({
     setCurrentPage(initialCurrentPage);
     setTotalPages(initialTotalPages);
     setHasMore(initialCurrentPage < initialTotalPages);
-  }, [initialProblems, initialCurrentPage, initialTotalPages]);
+    setSearchInput(initialFilters.searchTerm); // Sync searchInput when initialFilters change
+    // Note: filters state itself is also reset if initialFilters change due to key prop or direct reset logic if any
+  }, [initialProblems, initialCurrentPage, initialTotalPages, initialFilters]);
 
 
   const handleFilterChange = useCallback(async (newFiltersApplied: Partial<ProblemListFilters>) => {
@@ -86,7 +91,16 @@ const ProblemList: React.FC<ProblemListProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [companyId, itemsPerPage, user?.uid, toast, filters]);
+  }, [companyId, itemsPerPage, user?.uid, toast, filters]); // `filters` is a dependency
+
+  // Effect to handle debounced search term changes
+  useEffect(() => {
+    // Only trigger if the debounced search term is different from the current search term in active filters
+    if (debouncedSearchTerm !== filters.searchTerm) {
+      handleFilterChange({ searchTerm: debouncedSearchTerm });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps 
+  }, [debouncedSearchTerm, filters.searchTerm]); // handleFilterChange is memoized but depends on `filters`, direct inclusion could cause loop if not careful. The condition `debouncedSearchTerm !== filters.searchTerm` is key.
 
   useEffect(() => {
     const needsUserSpecificDataRefresh =
@@ -95,11 +109,10 @@ const ProblemList: React.FC<ProblemListProps> = ({
       displayedProblems.some(p => typeof p.isBookmarked === 'undefined' || typeof p.currentStatus === 'undefined');
 
     if (needsUserSpecificDataRefresh) {
-      // console.log("User available and problems may lack user-specific data. Refetching page 1 with current filters.");
-      handleFilterChange(filters);
+      handleFilterChange(filters); // Pass current filters
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, initialProblems]); // Re-check if user logs in, or if initialProblems change (e.g. page navigation)
+  }, [user, initialProblems]);
 
 
   const loadMoreProblems = useCallback(async () => {
@@ -113,7 +126,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
         companyId,
         page: nextPageToFetch,
         pageSize: itemsPerPage,
-        filters,
+        filters, // Use current filters for pagination
         userId: user?.uid,
       });
 
@@ -169,14 +182,11 @@ const ProblemList: React.FC<ProblemListProps> = ({
      setDisplayedProblems(prev => 
       prev.map(p => p.id === problemId ? { ...p, currentStatus: newStatus } : p)
     );
-    if (filters.statusFilter !== 'all' && filters.statusFilter !== newStatus && filters.statusFilter !== 'none' && newStatus === 'none') {
-        // If an active status filter is set and problem status changes to 'none' or a different status
-        // Or if status was 'none' and now matches the filter
+    if (filters.statusFilter !== 'all' && filters.statusFilter !== newStatus && !(filters.statusFilter === 'none' && newStatus !== 'none')) {
+        // If an active status filter is set and problem status changes to something that would filter it out,
+        // or if it changes to match a filter it previously didn't.
+        // We re-apply all current filters, which will include the updated status implicitly.
         handleFilterChange({ statusFilter: filters.statusFilter }); 
-    } else if (filters.statusFilter !== 'all' && filters.statusFilter === newStatus) {
-        // If status changed TO match the current filter, no need to refetch unless items are removed
-        // but to be safe, or if item order might change:
-        // handleFilterChange({ statusFilter: filters.statusFilter });
     }
   };
 
@@ -192,8 +202,8 @@ const ProblemList: React.FC<ProblemListProps> = ({
         onLastAskedFilterChange={(value) => handleFilterChange({ lastAskedFilter: value })}
         statusFilter={filters.statusFilter}
         onStatusFilterChange={(value) => handleFilterChange({ statusFilter: value })}
-        searchTerm={filters.searchTerm}
-        onSearchTermChange={(value) => handleFilterChange({ searchTerm: value })}
+        searchTerm={searchInput} // Pass immediate searchInput to controls
+        onSearchTermChange={setSearchInput} // Controls update searchInput directly
         problemCount={displayedProblems.length} 
         showStatusFilter={!!user}
       />

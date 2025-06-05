@@ -4,7 +4,7 @@
 import type { Company, LastAskedPeriod } from '@/types';
 import { addCompanyToDb, getCompanies as getAllCompaniesFromDbInternal } from '@/lib/data';
 import { revalidatePath, revalidateTag } from 'next/cache';
-import { doc as firestoreDoc, updateDoc as firestoreUpdateDoc, FieldValue } from 'firebase/firestore';
+import { doc as firestoreDoc, updateDoc as firestoreUpdateDoc, FieldValue, collection, query, orderBy, where, limit, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { slugify } from '@/lib/utils';
 
@@ -159,6 +159,7 @@ export async function bulkAddCompanies(
 
 /**
  * Fetches a paginated list of companies, optionally filtered by a search term.
+ * This is the main action for displaying the full list of companies.
  * @param {number} page - The current page number (1-indexed).
  * @param {number} pageSize - The number of companies per page.
  * @param {string} [searchTerm] - Optional search term to filter companies by name or description.
@@ -176,4 +177,47 @@ export async function fetchCompaniesAction(
   }
 }
 
+/**
+ * Fetches a list of company names and slugs for search suggestions.
+ * @param {string} searchTerm - The term to search for in company names.
+ * @param {number} [limitNum=5] - Maximum number of suggestions to return.
+ * @returns {Promise<Array<Pick<Company, 'id' | 'name' | 'slug'>> | { error: string }>} Array of suggestions or an error object.
+ */
+export async function fetchCompanySuggestionsAction(
+  searchTerm: string,
+  limitNum: number = 5
+): Promise<Array<Pick<Company, 'id' | 'name' | 'slug' | 'logo'>> | { error: string }> {
+  if (!searchTerm || searchTerm.trim().length < 1) {
+    return [];
+  }
+  try {
+    const companiesCol = collection(db, 'companies');
+    const lowercasedSearchTerm = searchTerm.toLowerCase().trim();
+    
+    const q = query(
+      companiesCol,
+      orderBy('normalizedName'),
+      where('normalizedName', '>=', lowercasedSearchTerm),
+      where('normalizedName', '<=', lowercasedSearchTerm + '\uf8ff'),
+      limit(limitNum)
+    );
+
+    const querySnapshot = await getDocs(q);
+    const suggestions = querySnapshot.docs.map(docSnap => {
+      const data = docSnap.data();
+      return {
+        id: docSnap.id,
+        name: data.name,
+        slug: data.slug || slugify(data.name),
+        logo: data.logo, // Include logo for richer suggestions
+      } as Pick<Company, 'id' | 'name' | 'slug' | 'logo'>;
+    });
+    
+    return suggestions;
+  } catch (error) {
+    console.error('Error fetching company suggestions in action:', error);
+    const message = error instanceof Error ? error.message : 'An unknown error occurred while fetching suggestions.';
+    return { error: message };
+  }
+}
     

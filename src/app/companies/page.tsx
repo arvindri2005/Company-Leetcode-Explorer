@@ -122,6 +122,7 @@ export default async function CompaniesPage({ searchParams }: CompaniesPageProps
           {/* Company List */}
           <div className="w-full">
             <CompanyList
+              key={searchTerm} // Add key prop here
               initialCompanies={initialCompanies}
               initialSearchTerm={searchTerm}
               initialTotalPages={totalPages}
