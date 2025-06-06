@@ -1,7 +1,7 @@
 
 'use server';
 
-import type { UserProfile, BookmarkedProblemInfo, UserProblemStatusInfo, ProblemStatus, GenerateCompanyStrategyOutput, SavedStrategyTodoList } from '@/types';
+import type { UserProfile, BookmarkedProblemInfo, UserProblemStatusInfo, ProblemStatus, GenerateCompanyStrategyOutput, SavedStrategyTodoList, EducationExperience, WorkExperience } from '@/types';
 import { 
   dbToggleBookmarkProblem, 
   dbGetUserBookmarkedProblemsInfo, 
@@ -11,7 +11,11 @@ import {
   dbSaveStrategyTodoList,
   dbGetUserStrategyTodoLists,
   dbUpdateStrategyTodoItemStatus,
-  dbGetStrategyTodoListForCompany
+  dbGetStrategyTodoListForCompany,
+  dbAddUserEducation,
+  dbGetUserEducation,
+  dbAddUserWorkExperience,
+  dbGetUserWorkExperience
 } from '@/lib/data';
 import { revalidateTag } from 'next/cache';
 import { doc as firestoreDoc, setDoc, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore';
@@ -185,6 +189,49 @@ export async function updateUserDisplayNameInFirestore(
   }
 }
 
+// --- Education Experience Actions ---
+export async function addUserEducationAction(userId: string, educationData: Omit<EducationExperience, 'id'>): Promise<{ id: string | null; error?: string }> {
+  if (!userId) return { id: null, error: 'User not authenticated.' };
+  const result = await dbAddUserEducation(userId, educationData);
+  if (result.id) {
+    revalidateTag(`user-profile-${userId}`);
+    revalidateTag(`user-education-${userId}`);
+  }
+  return result;
+}
+
+export async function getUserEducationAction(userId: string): Promise<EducationExperience[] | { error: string }> {
+  if (!userId) return { error: 'User not authenticated.' };
+  try {
+    return await dbGetUserEducation(userId);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to fetch education history.';
+    return { error: message };
+  }
+}
+
+// --- Work Experience Actions ---
+export async function addUserWorkExperienceAction(userId: string, workData: Omit<WorkExperience, 'id'>): Promise<{ id: string | null; error?: string }> {
+  if (!userId) return { id: null, error: 'User not authenticated.' };
+  const result = await dbAddUserWorkExperience(userId, workData);
+  if (result.id) {
+    revalidateTag(`user-profile-${userId}`);
+    revalidateTag(`user-work-experience-${userId}`);
+  }
+  return result;
+}
+
+export async function getUserWorkExperienceAction(userId: string): Promise<WorkExperience[] | { error: string }> {
+  if (!userId) return { error: 'User not authenticated.' };
+  try {
+    return await dbGetUserWorkExperience(userId);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to fetch work experience.';
+    return { error: message };
+  }
+}
+
+
 /**
  * Saves a generated strategy (text, topics, todo list) to a user's profile in Firestore.
  * @param userId The ID of the user.
@@ -292,5 +339,3 @@ export async function updateStrategyTodoItemStatusAction(
     return { success: false, error: message };
   }
 }
-
-    

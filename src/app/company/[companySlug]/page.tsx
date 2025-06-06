@@ -36,11 +36,22 @@ export async function generateMetadata({ params }: CompanyPageProps): Promise<Me
     };
   }
 
-  const initialProblemData = await getProblemsByCompanyFromDb(company.id, { page: 1, pageSize: 1 });
+  const initialProblemData = await getProblemsByCompanyFromDb(company.id, { page: 1, pageSize: 5 }); // Fetch a few for keywords
   const problemCount = initialProblemData?.totalProblems || 0;
+  
   const title = `${company.name} - Coding Problems & Interview Prep (${problemCount} Problems) | Company Interview Problem Explorer`;
-  const description = `Explore ${company.name}'s coding interview questions, common problem patterns, and AI-powered preparation strategies. ${problemCount} coding problems available.`;
-  const keywords = [company.name, 'coding problems', 'interview questions', 'technical interview', 'AI prep', ...initialProblemData.problems.flatMap(p => p.tags).slice(0,5)];
+  const description = `Explore ${company.name}'s coding interview questions, LeetCode style problems, common patterns, and AI-powered preparation strategies. ${problemCount} coding problems available for ${company.name}.`;
+  
+  const companyKeywords = [
+    company.name, 
+    `${company.name} interview questions`,
+    `${company.name} coding problems`,
+    `${company.name} LeetCode`,
+    'technical interview prep',
+    'software engineer interview',
+  ];
+  const problemTagsKeywords = initialProblemData.problems.flatMap(p => p.tags).filter(Boolean);
+  const uniqueKeywords = Array.from(new Set([...companyKeywords, ...problemTagsKeywords])).slice(0, 15);
 
   const breadcrumbList = {
     "@context": "https://schema.org",
@@ -67,38 +78,53 @@ export async function generateMetadata({ params }: CompanyPageProps): Promise<Me
     ]
   };
 
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": company.name,
+    "url": `${APP_URL}/company/${company.slug}`,
+    "logo": company.logo,
+    "description": `Find LeetCode style coding interview questions and preparation material for ${company.name}. ${company.description || ''}`,
+    ...(company.website && { "sameAs": [company.website] }),
+  };
+  
+  const profilePageSchema = {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage", // Using ProfilePage for a company-specific page
+    "mainEntity": organizationSchema,
+    "breadcrumb": breadcrumbList,
+    "name": title,
+    "description": description,
+    "url": `${APP_URL}/company/${company.slug}`,
+  };
+
+
   return {
     title,
     description,
-    keywords,
-    openGraph: {
-      title,
-      description,
-      type: 'profile',
-      url: `${APP_URL}/company/${company.slug}`,
-      images: company.logo ? [{ url: company.logo, alt: `${company.name} logo` }] : [],
-      siteName: 'Company Interview Problem Explorer',
-      profile: { // For 'profile' type
-        username: company.slug, // Or a more appropriate identifier
-      }
-    },
+    keywords: uniqueKeywords,
     alternates: {
       canonical: `${APP_URL}/company/${company.slug}`,
     },
+    openGraph: {
+      title,
+      description,
+      url: `${APP_URL}/company/${company.slug}`,
+      siteName: 'Company Interview Problem Explorer',
+      images: company.logo ? [{ url: company.logo, alt: `${company.name} logo` }] : [{ url: `${APP_URL}/icon.png`, alt: 'Company Interview Problem Explorer Logo' }],
+      type: 'profile', // Using 'profile' as it can represent an organization's profile page
+      profile: {
+        username: company.slug, // Using slug as a unique identifier for the profile context
+      }
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: company.logo ? [company.logo] : [`${APP_URL}/icon.png`],
+    },
     other: {
-       "script[type=\"application/ld+json\"]": JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "ProfilePage",
-          "mainEntity": {
-            "@type": "Organization",
-            "name": company.name,
-            "url": `${APP_URL}/company/${company.slug}`,
-            "logo": company.logo,
-            "description": company.description,
-            "sameAs": company.website ? [company.website] : undefined
-          },
-          "breadcrumb": breadcrumbList,
-       }),
+       "script[type=\"application/ld+json\"]": JSON.stringify([profilePageSchema, breadcrumbList]), // Include both if breadcrumb is not part of profilePage schema for some validators
     }
   };
 }
@@ -207,11 +233,11 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <h1 className="text-xl sm:text-2xl font-bold truncate">
-                    {company.name}
+                    {company.name} Interview Problems
                   </h1>
                   {hasProblemsForStats && (
                     <Badge variant="secondary" className="text-xs flex-shrink-0">
-                      {allProblemsForAIAndStats.totalProblems} Problems
+                      {allProblemsForAIAndStats.totalProblems} Problems Listed
                     </Badge>
                   )}
                 </div>
@@ -295,7 +321,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-base">
                       <BookOpen className="h-4 w-4" />
-                      Interview Problems
+                      Coding Interview Problems for {company.name}
                       <Badge variant="outline" className="text-xs">{allProblemsForAIAndStats.totalProblems}</Badge>
                     </CardTitle>
                   </CardHeader>
@@ -320,7 +346,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-base">
                       <Brain className="h-4 w-4" />
-                      AI-Powered Problem Grouping
+                      AI-Powered Problem Grouping for {company.name}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
@@ -336,7 +362,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-base">
                       <Target className="h-4 w-4" />
-                      Study Flashcards
+                      Study Flashcards for {company.name}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
@@ -352,7 +378,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-base">
                       <Users className="h-4 w-4" />
-                      Interview Strategy
+                      Interview Strategy for {company.name}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
@@ -369,7 +395,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
             <Card className="text-center py-8">
               <CardContent>
                 <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                <h2 className="text-lg font-semibold mb-2">No Problems Available</h2>
+                <h2 className="text-lg font-semibold mb-2">No Problems Available for {company.name}</h2>
                 <p className="text-muted-foreground text-sm mb-4 max-w-sm mx-auto">
                   We don't have coding problems for {company.name} yet. You can help by adding some!
                 </p>
@@ -413,3 +439,5 @@ export async function generateStaticParams() {
     return [];
   }
 }
+
+    

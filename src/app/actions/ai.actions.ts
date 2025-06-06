@@ -7,14 +7,16 @@ import type { FindSimilarQuestionsInput, FindSimilarQuestionsOutput } from '@/ai
 import { findSimilarQuestions as findSimilarQuestionsFlow } from '@/ai/flows/find-similar-questions-flow';
 import type { GenerateFlashcardsInput, GenerateFlashcardsOutput, FlashcardProblemInput } from '@/ai/flows/generate-flashcards-flow';
 import { generateFlashcardsForCompany as generateFlashcardsFlow } from '@/ai/flows/generate-flashcards-flow';
-import type { GenerateCompanyStrategyInput, GenerateCompanyStrategyOutput, CompanyStrategyProblemInput, TargetRoleLevel } from '@/ai/flows/generate-company-strategy-flow';
+import type { GenerateCompanyStrategyInput, GenerateCompanyStrategyOutput, CompanyStrategyProblemInput, TargetRoleLevel, EducationExperience, WorkExperience } from '@/ai/flows/generate-company-strategy-flow'; // Added EducationExperience, WorkExperience
 import { generateCompanyStrategy as generateCompanyStrategyFlow } from '@/ai/flows/generate-company-strategy-flow';
 import type { GenerateProblemInsightsInput, GenerateProblemInsightsOutput } from '@/ai/flows/generate-problem-insights-flow';
 import { generateProblemInsights as generateProblemInsightsFlow } from '@/ai/flows/generate-problem-insights-flow';
 import type { AIProblemInput, LeetCodeProblem, ChatMessage } from '@/types';
 import { conductInterviewTurn as conductInterviewTurnFlow, type MockInterviewOutput } from '@/ai/flows/mock-interview-flow';
 import { getCompanyById, getProblemByCompanySlugAndProblemSlug, getProblemsByCompanyFromDb } from '@/lib/data';
+import { getUserEducationAction, getUserWorkExperienceAction } from './user.actions'; // Import new actions
 import { revalidateTag } from 'next/cache';
+import { auth } from '@/lib/firebase'; // For current user ID
 
 /**
  * Performs AI-powered grouping of coding problems.
@@ -91,6 +93,18 @@ export async function handleInterviewTurn(
     if (!problem) return { error: `Problem with slug ${problemSlug} not found for company ${company.name}.` };
 
     const problemDescriptionForAI = `Title: "${problem.title}" (Difficulty: ${problem.difficulty}). Tags: ${problem.tags.join(', ')}. Problem Link (for context, not for user to click): ${problem.link}`;
+    
+    let educationHistory: EducationExperience[] | undefined = undefined;
+    let workHistory: WorkExperience[] | undefined = undefined;
+    const firebaseUser = auth.currentUser; // This might be null if called from non-auth context, handle gracefully
+
+    if (firebaseUser?.uid) {
+        const eduResult = await getUserEducationAction(firebaseUser.uid);
+        if (Array.isArray(eduResult)) educationHistory = eduResult;
+        
+        const workResult = await getUserWorkExperienceAction(firebaseUser.uid);
+        if (Array.isArray(workResult)) workHistory = workResult;
+    }
 
     const input = {
       problemTitle: problem.title,
@@ -98,7 +112,9 @@ export async function handleInterviewTurn(
       problemDescription: problemDescriptionForAI,
       problemTags: problem.tags,
       conversationHistory,
-      currentUserMessage
+      currentUserMessage,
+      educationHistory, // Pass to flow
+      workHistory,      // Pass to flow
     };
     const result: MockInterviewOutput = await conductInterviewTurnFlow(input);
     return result;
@@ -178,10 +194,24 @@ export async function generateCompanyStrategyAction(
       lastAskedPeriod: p.lastAskedPeriod
     }));
 
+    let educationHistory: EducationExperience[] | undefined = undefined;
+    let workHistory: WorkExperience[] | undefined = undefined;
+    const firebaseUser = auth.currentUser; 
+
+    if (firebaseUser?.uid) {
+        const eduResult = await getUserEducationAction(firebaseUser.uid);
+        if (Array.isArray(eduResult)) educationHistory = eduResult;
+        
+        const workResult = await getUserWorkExperienceAction(firebaseUser.uid);
+        if (Array.isArray(workResult)) workHistory = workResult;
+    }
+
     const result = await generateCompanyStrategyFlow({
       companyName: company.name,
       problems: problemInputs,
-      targetRoleLevel
+      targetRoleLevel,
+      educationHistory,
+      workHistory,
     });
     revalidateTag(`company-slug-${company.slug}`); 
     revalidateTag(`company-detail-${company.id}`);
@@ -224,7 +254,3 @@ export async function generateProblemInsightsAction(
     return { error: 'An unknown error occurred while generating problem insights.' };
   }
 }
-
-    
-
-    

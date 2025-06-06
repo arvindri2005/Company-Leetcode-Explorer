@@ -125,6 +125,9 @@ export interface MockInterviewInput {
   problemTags: string[];
   conversationHistory: ChatMessage[];
   currentUserMessage: string;
+  // Optional user background
+  educationHistory?: EducationExperience[];
+  workHistory?: WorkExperience[];
 }
 
 /**
@@ -177,6 +180,28 @@ export interface GenerateFlashcardsOutput {
   flashcards: Flashcard[];
 }
 
+// --- User Experience Types ---
+export const EducationExperienceSchema = z.object({
+  id: z.string().optional(), // Firestore document ID, optional for new entries
+  degree: z.string().min(2, "Degree is required."),
+  major: z.string().min(2, "Major is required."),
+  school: z.string().min(2, "School name is required."),
+  graduationYear: z.string().regex(/^\d{4}$/, "Invalid year format (YYYY).").optional().or(z.literal('')),
+  gpa: z.string().optional().or(z.literal('')), // Keep as string to allow various formats or N/A
+});
+export type EducationExperience = z.infer<typeof EducationExperienceSchema>;
+
+export const WorkExperienceSchema = z.object({
+  id: z.string().optional(), // Firestore document ID
+  jobTitle: z.string().min(2, "Job title is required."),
+  companyName: z.string().min(2, "Company name is required."),
+  startDate: z.string().min(4, "Start date is required (e.g., YYYY or MM/YYYY)."), // Keep as string for flexibility
+  endDate: z.string().optional().or(z.literal('')), // Optional, string for flexibility (e.g., "Present", YYYY, MM/YYYY)
+  responsibilities: z.string().min(10, "Please describe some responsibilities.").optional().or(z.literal('')),
+});
+export type WorkExperience = z.infer<typeof WorkExperienceSchema>;
+
+
 // --- Types for Company Strategy Generation Flow ---
 /**
  * Represents the target role level for company-specific strategy generation.
@@ -210,6 +235,8 @@ export interface GenerateCompanyStrategyInput {
   companyName: string;
   problems: CompanyStrategyProblemInput[];
   targetRoleLevel?: TargetRoleLevel;
+  educationHistory?: EducationExperience[];
+  workHistory?: WorkExperience[];
 }
 
 /**
@@ -249,6 +276,7 @@ export interface UserProfile {
   email: string | null;
   displayName: string | null;
   createdAt: Date; // Or Firestore Timestamp if directly from DB
+  // educationHistory and workHistory will be fetched from subcollections
 }
 
 /**

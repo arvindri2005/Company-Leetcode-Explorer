@@ -13,11 +13,13 @@ import { CooldownStateProvider } from '@/hooks/use-ai-cooldown';
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
+  display: 'swap', // Explicitly set swap
 });
 
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+  display: 'swap', // Explicitly set swap
 });
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
@@ -27,31 +29,37 @@ const organizationStructuredData = {
   "@type": "Organization",
   "name": "Company Interview Problem Explorer",
   "url": APP_URL,
-  "logo": `${APP_URL}/icon.png`, 
+  "logo": `${APP_URL}/icon.png`,
+  "description": "Master coding interviews with AI-driven tools. Explore company-specific problems, engage in mock interviews, generate flashcards, and get personalized prep strategies. Your ultimate hub for targeted coding interview preparation.",
+  "sameAs": [ // Add social media or other relevant profiles if available
+    // "https://www.facebook.com/YourPage",
+    // "https://www.twitter.com/YourHandle",
+    // "https://www.linkedin.com/company/YourCompany"
+  ]
 };
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: 'Company Interview Problem Explorer | AI Interview Prep',
+    default: 'Company Interview Problem Explorer | AI Interview Prep, LeetCode Questions',
     template: '%s | Company Interview Problem Explorer',
   },
-  description: 'Master coding interviews with AI-driven tools. Explore company-specific problems, engage in mock interviews, generate flashcards, and get personalized prep strategies.',
+  description: 'Master coding interviews with AI-driven tools. Explore company-specific LeetCode problems (Google, Amazon, Meta, etc.), engage in mock interviews, generate flashcards, and get personalized prep strategies for software engineering roles.',
   applicationName: 'Company Interview Problem Explorer',
-  keywords: ['coding', 'Interview Prep', 'Coding Interview', 'AI Interviewer', 'Company Questions', 'Software Engineer', 'Tech Interview'],
-  authors: [{ name: 'Bite to Offer' }],
+  keywords: ['LeetCode', 'Coding Interview Questions', 'Interview Prep', 'AI Interviewer', 'Google Interview Questions', 'Amazon Interview Questions', 'Meta Interview Questions', 'Microsoft Interview Questions', 'Software Engineer Interview', 'Tech Interview', 'Data Structures', 'Algorithms'],
+  authors: [{ name: 'Bite to Offer', url: APP_URL }], // Link to your site or author page
   manifest: '/site.webmanifest',
   openGraph: {
-    title: 'Company Interview Problem Explorer | AI-Powered Interview Prep',
-    description: 'Your ultimate hub for targeted coding interview preparation. AI mock interviews, problem insights, company-specific questions, and more.',
+    title: 'Company Interview Problem Explorer | AI-Powered LeetCode Interview Prep',
+    description: 'Your ultimate hub for targeted coding interview preparation. AI mock interviews, problem insights, company-specific LeetCode questions, and more.',
     url: APP_URL,
     siteName: 'Company Interview Problem Explorer',
     images: [
       {
-        url: '/og-image.png',
+        url: '/og-image.png', // Ensure this image exists in /public
         width: 1200,
         height: 630,
-        alt: 'Company Interview Problem Explorer - AI-Powered Interview Prep',
+        alt: 'Company Interview Problem Explorer - AI-Powered Interview Prep for LeetCode style questions',
       },
     ],
     locale: 'en_US',
@@ -59,25 +67,27 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Company Interview Problem Explorer | AI-Powered Interview Prep',
-    description: 'Master coding interviews with AI-driven tools for targeted preparation.',
-    images: [`${APP_URL}/og-image.png`],
+    title: 'Company Interview Problem Explorer | AI-Powered LeetCode Interview Prep',
+    description: 'Master coding interviews with AI-driven tools for targeted preparation. Explore LeetCode questions for top tech companies.',
+    images: [`${APP_URL}/og-image.png`], // Ensure this image exists
+    // site: '@YourTwitterHandle', // Add if you have a Twitter handle for the app
+    // creator: '@YourTwitterHandle', // Add if you have a Twitter handle for the creator
   },
   icons: {
-    icon: [ 
-      { url: '/favicon.ico', type: 'image/x-icon', sizes: 'any' }, 
-      { url: '/icon.png', type: 'image/png', sizes: '192x192' }, 
-      { url: '/icon-512.png', type: 'image/png', sizes: '512x512' } 
+    icon: [
+      { url: '/favicon.ico', type: 'image/x-icon', sizes: 'any' },
+      { url: '/icon.png', type: 'image/png', sizes: '192x192' },
+      { url: '/icon-512.png', type: 'image/png', sizes: '512x512' }
     ],
-    shortcut: ['/favicon.ico'], 
+    shortcut: ['/favicon.ico'],
     apple: [
-      { url: '/apple-touch-icon.png', sizes: '180x180' } 
+      { url: '/apple-touch-icon.png', sizes: '180x180' }
     ],
     other: [
        {
         rel: 'mask-icon',
-        url: '/safari-pinned-tab.svg', 
-        color: '#F7BC2D', 
+        url: '/safari-pinned-tab.svg',
+        color: '#F7BC2D',
       },
     ],
   },
@@ -99,8 +109,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#F7BC2D' },
-    { media: '(prefers-color-scheme: dark)', color: '#201A13' },
+    { media: '(prefers-color-scheme: light)', color: '#F7BC2D' }, // primary color
+    { media: '(prefers-color-scheme: dark)', color: '#201A13' },  // dark mode background
   ],
   colorScheme: 'light dark',
   width: 'device-width',

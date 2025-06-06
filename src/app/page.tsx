@@ -4,48 +4,40 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { ArrowRight, Bot, Brain, CheckSquare, BarChart3, Search, Sparkles, BookOpenCheck, FileSpreadsheet, Palette, Users, PlusSquare } from 'lucide-react';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import dynamic from 'next/dynamic';
+import { FeatureGridSkeleton } from '@/components/skeletons/feature-grid-skeleton';
+import { CallToActionSkeleton } from '@/components/skeletons/call-to-action-skeleton';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
 
 export const metadata: Metadata = {
-  title: 'Company Interview Problem Explorer | AI-Powered Interview Prep',
-  description: 'Master coding interviews with AI-driven tools. Explore company-specific problems, engage in mock interviews, generate flashcards, and get personalized prep strategies. Start your journey to acing technical interviews today!',
+  title: 'Company LeetCode Interview Questions | AI-Powered Prep Explorer',
+  description: 'Master coding interviews with AI-driven tools. Explore company-specific LeetCode questions (Google, Amazon, Meta), engage in mock interviews, get personalized strategies, and practice for top tech companies. Your ultimate resource for software engineering interview preparation.',
+  keywords: ['LeetCode Interview Questions', 'Company Coding Questions', 'Google LeetCode', 'Amazon LeetCode', 'Meta LeetCode', 'AI Interview Prep', 'Software Engineer Interview', 'Technical Interview Practice', 'Data Structures', 'Algorithms'],
   openGraph: {
-    title: 'Company Interview Problem Explorer | AI-Powered Interview Prep',
-    description: 'Your ultimate hub for targeted coding interview preparation. AI mock interviews, problem insights, company-specific questions, and more.',
+    title: 'Company LeetCode Interview Questions | AI-Powered Prep Explorer',
+    description: 'Your ultimate hub for targeted coding interview preparation. AI mock interviews, problem insights, company-specific LeetCode questions, and more.',
     type: 'website',
     url: APP_URL,
     images: [
       {
-        url: `${APP_URL}/og-image.png`, // Replace with your actual Open Graph image URL
+        url: `${APP_URL}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: 'Company Interview Problem Explorer - AI-Powered Interview Prep',
+        alt: 'Company LeetCode Interview Question Explorer - AI-Powered Interview Prep',
       },
-      { // Fallback placeholder if the above is not available
-        url: 'https://placehold.co/1200x630.png?text=Company+Interview Problem+Explorer',
-        width: 1200,
-        height: 630,
-        alt: 'Company Interview Problem Explorer Placeholder Image',
-      }
     ],
   },
   alternates: {
     canonical: APP_URL,
   },
-  // twitter: { // Add Twitter specific tags if needed
-  //   card: 'summary_large_image',
-  //   title: 'Company Interview Problem Explorer | AI-Powered Interview Prep',
-  //   description: 'Master Interview Problem interviews with AI-driven tools for targeted preparation.',
-  //   images: [`${APP_URL}/twitter-image.png`], // Replace with your actual Twitter card image URL
-  // },
   other: {
     "script[type=\"application/ld+json\"]": JSON.stringify({
       "@context": "https://schema.org",
       "@type": "WebSite",
       "url": APP_URL,
-      "name": "Company Interview Problem Explorer",
-      "description": "Master coding interviews with AI-driven tools. Explore company-specific problems, engage in mock interviews, generate flashcards, and get personalized prep strategies.",
+      "name": "Company LeetCode Interview Question Explorer",
+      "description": "Master coding interviews with AI-driven tools. Explore company-specific LeetCode problems, engage in mock interviews, generate flashcards, and get personalized prep strategies.",
       "potentialAction": {
         "@type": "SearchAction",
         "target": {
@@ -53,6 +45,14 @@ export const metadata: Metadata = {
           "urlTemplate": `${APP_URL}/companies?search={search_term_string}`
         },
         "query-input": "required name=search_term_string"
+      },
+      "publisher": { // Added publisher
+        "@type": "Organization",
+        "name": "Company LeetCode Interview Question Explorer", // Or your actual organization name
+        "logo": {
+          "@type": "ImageObject",
+          "url": `${APP_URL}/icon.png`
+        }
       }
     }),
   }
@@ -66,6 +66,8 @@ interface FeatureCardProps {
   linkText: string;
 }
 
+// FeatureCard is simple, so direct import is fine.
+// If it were complex, dynamic import for it would be an option too.
 const FeatureCard: React.FC<FeatureCardProps> = ({ icon: Icon, title, description, link, linkText }) => (
   <Card className="flex flex-col h-full shadow-lg hover:shadow-xl transition-shadow duration-300">
     <CardHeader className="flex flex-row items-start gap-4 pb-4">
@@ -89,6 +91,25 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon: Icon, title, descriptio
   </Card>
 );
 
+// Dynamically import the FeaturesGrid section
+const DynamicFeaturesGrid = dynamic(
+  () => import('@/components/sections/home-features-grid').then(mod => mod.HomeFeaturesGrid),
+  { 
+    loading: () => <FeatureGridSkeleton />,
+    // ssr: false // Removed: Not allowed in Server Components for next/dynamic
+  }
+);
+
+// Dynamically import the CallToAction section
+const DynamicCallToAction = dynamic(
+  () => import('@/components/sections/home-cta').then(mod => mod.HomeCta),
+  { 
+    loading: () => <CallToActionSkeleton />,
+    // ssr: false // Removed: Not allowed in Server Components for next/dynamic
+  }
+);
+
+
 export default function ShowcasePage() {
   return (
     <div className="space-y-16 py-8">
@@ -96,10 +117,10 @@ export default function ShowcasePage() {
       <section className="text-center py-12 bg-gradient-to-br from-primary/10 via-background to-accent/10 rounded-xl shadow-inner">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 text-primary">
-            Company Interview Problem Explorer
+            Company LeetCode Interview Question Explorer
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Your AI-powered hub for targeted coding interview preparation. Explore company-specific problems, practice with AI, and track your progress.
+            Your AI-powered hub for targeted LeetCode-style coding interview preparation. Explore company-specific problems, practice with AI, and track your progress.
           </p>
           <Button asChild size="lg" className="group text-lg px-8 py-6 shadow-md hover:shadow-lg transition-shadow">
             <Link href="/companies">
@@ -110,105 +131,8 @@ export default function ShowcasePage() {
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-10 tracking-tight">Discover Our Powerful Features</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <FeatureCard
-            icon={Search}
-            title="Company Problem Explorer"
-            description="Browse Interview Problem problems frequently asked by specific companies. Filter by difficulty, tags, and recency."
-            link="/companies"
-            linkText="Find Company Problems"
-          />
-          <FeatureCard
-            icon={Bot}
-            title="AI Mock Interviews"
-            description="Practice coding problems with an AI interviewer that provides guidance and detailed feedback on your approach."
-            link="/companies" // User will pick a problem from a company to start
-            linkText="Start a Mock Interview"
-          />
-          <FeatureCard
-            icon={Sparkles}
-            title="AI Similar Problems"
-            description="Stuck on a problem? Get AI suggestions for conceptually similar problems to reinforce your understanding."
-            link="/companies" // User will pick a problem first
-            linkText="Find Similar Problems"
-          />
-          <FeatureCard
-            icon={Brain}
-            title="AI Problem Insights"
-            description="Get AI-generated key concepts, common data structures, algorithms, and high-level hints for any problem."
-            link="/companies" // User will pick a problem first
-            linkText="Get Problem Insights"
-          />
-          <FeatureCard
-            icon={BookOpenCheck}
-            title="AI Generated Flashcards"
-            description="Create study flashcards for key concepts and problem patterns related to specific companies."
-            link="/companies" // User will pick a company first
-            linkText="Generate Flashcards"
-          />
-          <FeatureCard
-            icon={BarChart3}
-            title="AI Prep Strategies"
-            description="Receive personalized interview preparation strategies tailored to specific companies and your target role."
-            link="/companies" // User will pick a company first
-            linkText="Get Prep Strategy"
-          />
-          <FeatureCard
-            icon={CheckSquare}
-            title="Personalized Tracking"
-            description="Log in to bookmark problems and track your progress as 'Solved', 'Attempted', or 'To-Do'."
-            link="/profile"
-            linkText="View Your Profile"
-          />
-          <FeatureCard
-            icon={FileSpreadsheet}
-            title="Bulk Data Management"
-            description="Efficiently add multiple problems or companies at once using Excel (.xlsx) file uploads."
-            link="/bulk-add-problems" // Or link to a page with both options
-            linkText="Bulk Upload Data"
-          />
-           <FeatureCard
-            icon={PlusSquare}
-            title="Contribute & Grow"
-            description="Help expand our database by submitting new Interview Problem problems and adding company information."
-            link="/submit-problem"
-            linkText="Add a Problem/Company"
-          />
-          <FeatureCard
-            icon={Palette}
-            title="Customizable Theme"
-            description="Switch between light, dark, or system default themes for your preferred viewing experience."
-            link="#" // No specific link, just info
-            linkText="Toggle in Header"
-          />
-          <FeatureCard
-            icon={Users}
-            title="AI Question Grouping"
-            description="Let AI categorize problems by a company into related themes and concepts for structured learning."
-            link="/companies" // Feature is on company page
-            linkText="Group Company Questions"
-          />
-        </div>
-      </section>
-
-      {/* Call to Action Footer */}
-      <section className="text-center py-12 mt-10">
-         <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold tracking-tight mb-6">Ready to Ace Your Interviews?</h2>
-            <p className="text-xl text-muted-foreground mb-8 max-w-xl mx-auto">
-                Start exploring, practicing, and tracking your progress today.
-            </p>
-            <Button asChild size="lg" variant="default" className="group text-lg px-8 py-6 shadow-md hover:shadow-lg transition-shadow">
-                <Link href="/signup">
-                Sign Up for Free
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </Link>
-            </Button>
-         </div>
-      </section>
+      <DynamicFeaturesGrid />
+      <DynamicCallToAction />
     </div>
   );
 }

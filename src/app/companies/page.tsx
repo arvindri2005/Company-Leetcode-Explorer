@@ -60,7 +60,8 @@ export async function generateMetadata({ searchParams }: CompaniesPageProps): Pr
       title: pageTitle,
       description: pageDescription,
       url: `${APP_URL}/companies${searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : ''}`,
-      type: 'website', // Changed from: searchTerm ? 'searchresults' : 'website'
+      type: 'website', // Use 'website' for main listing and search results
+      images: [{ url: `${APP_URL}/icon.png`, alt: 'Company Interview Problem Explorer Logo' }],
     },
     alternates: {
       canonical: `${APP_URL}/companies${searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : ''}`,
@@ -101,7 +102,7 @@ export default async function CompaniesPage({ searchParams }: CompaniesPageProps
           <div className="text-center sm:text-left space-y-3 sm:space-y-4">
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-tight">
               <span className="block sm:inline">Explore Companies</span>
-              <span className="block sm:inline text-primary"> & Their Problems</span>
+              <span className="block sm:inline text-primary"> & Their Interview Problems</span>
             </h1>
             
             <div className="max-w-4xl mx-auto sm:mx-0">
@@ -138,3 +139,5 @@ export default async function CompaniesPage({ searchParams }: CompaniesPageProps
     </div>
   );
 }
+
+    

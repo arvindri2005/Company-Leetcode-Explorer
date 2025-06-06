@@ -1,5 +1,5 @@
 
-import type { BookmarkedProblemInfo, UserProblemStatusInfo, ProblemStatus, GenerateCompanyStrategyOutput, SavedStrategyTodoList, FocusTopic, StrategyTodoItem } from '@/types';
+import type { BookmarkedProblemInfo, UserProblemStatusInfo, ProblemStatus, GenerateCompanyStrategyOutput, SavedStrategyTodoList, FocusTopic, StrategyTodoItem, EducationExperience, WorkExperience } from '@/types';
 import { db } from '@/lib/firebase';
 import {
   collection,
@@ -11,7 +11,9 @@ import {
   serverTimestamp,
   deleteDoc,
   setDoc,
-  updateDoc
+  updateDoc,
+  addDoc,
+  Timestamp
 } from 'firebase/firestore';
 
 
@@ -132,6 +134,69 @@ export const dbUpdateUserDisplayName = async (
   }
 };
 
+// --- Education Experience ---
+export const dbAddUserEducation = async (userId: string, educationData: Omit<EducationExperience, 'id'>): Promise<{ id: string | null; error?: string }> => {
+  if (!userId) return { id: null, error: 'User ID is required.' };
+  try {
+    const educationColRef = collection(db, 'users', userId, 'educationHistory');
+    const docRef = await addDoc(educationColRef, { ...educationData, createdAt: serverTimestamp() });
+    return { id: docRef.id };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to add education experience.';
+    console.error('Error adding education experience to Firestore:', error);
+    return { id: null, error: message };
+  }
+};
+
+export const dbGetUserEducation = async (userId: string): Promise<EducationExperience[]> => {
+  if (!userId) return [];
+  try {
+    const educationColRef = collection(db, 'users', userId, 'educationHistory');
+    // Consider ordering if needed, e.g., by graduationYear
+    const q = query(educationColRef, orderBy('createdAt', 'desc')); 
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(docSnap => ({
+      id: docSnap.id,
+      ...docSnap.data()
+    } as EducationExperience));
+  } catch (error) {
+    console.error(`Error fetching education history for user ${userId}:`, error);
+    return [];
+  }
+};
+
+// --- Work Experience ---
+export const dbAddUserWorkExperience = async (userId: string, workData: Omit<WorkExperience, 'id'>): Promise<{ id: string | null; error?: string }> => {
+  if (!userId) return { id: null, error: 'User ID is required.' };
+  try {
+    const workColRef = collection(db, 'users', userId, 'workExperience');
+    const docRef = await addDoc(workColRef, { ...workData, createdAt: serverTimestamp() });
+    return { id: docRef.id };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to add work experience.';
+    console.error('Error adding work experience to Firestore:', error);
+    return { id: null, error: message };
+  }
+};
+
+export const dbGetUserWorkExperience = async (userId: string): Promise<WorkExperience[]> => {
+  if (!userId) return [];
+  try {
+    const workColRef = collection(db, 'users', userId, 'workExperience');
+    // Consider ordering if needed, e.g., by startDate or createdAt
+    const q = query(workColRef, orderBy('createdAt', 'desc')); 
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(docSnap => ({
+      id: docSnap.id,
+      ...docSnap.data()
+    } as WorkExperience));
+  } catch (error) {
+    console.error(`Error fetching work experience for user ${userId}:`, error);
+    return [];
+  }
+};
+
+
 export const dbSaveStrategyTodoList = async (
   userId: string,
   companyId: string,
@@ -246,5 +311,3 @@ export const dbUpdateStrategyTodoItemStatus = async (
     return { success: false, error: message };
   }
 };
-
-    

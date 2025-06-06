@@ -6,7 +6,7 @@
  * This module defines a Genkit flow that takes a company name, a list of coding problems
  * frequently asked by that company, and an optional target role level. It uses an AI model
  * to generate a comprehensive preparation strategy, identify key focus topics, and create
- * an actionable todo list.
+ * an actionable todo list. It can optionally consider the user's educational and work background.
  *
  * @exports generateCompanyStrategy - An asynchronous function to initiate strategy generation.
  * @exports GenerateCompanyStrategyInput - The Zod inferred type for the input to the flow.
@@ -17,11 +17,15 @@ import {ai} from '@/ai/genkit';
 import {z}from 'genkit';
 import { 
   type CompanyStrategyProblemInput, 
-  FocusTopicSchema, // Import schema
+  FocusTopicSchema, 
   type FocusTopic, 
   type TargetRoleLevel, 
-  StrategyTodoItemSchema, // Import schema
-  type StrategyTodoItem 
+  StrategyTodoItemSchema, 
+  type StrategyTodoItem,
+  EducationExperienceSchema, // Import Education schema
+  type EducationExperience,
+  WorkExperienceSchema, // Import Work schema
+  type WorkExperience
 } from '@/types';
 
 const CompanyStrategyProblemInputSchema = z.object({
@@ -37,20 +41,21 @@ const GenerateCompanyStrategyInputSchema = z.object({
     .describe("A list of coding problems frequently asked by this company, including their titles, difficulties, tags, and when they were last asked."),
   targetRoleLevel: z.enum(['internship', 'new_grad', 'experienced', 'general']).optional()
     .describe("The experience level the candidate is targeting, e.g., internship, new_grad. If 'general' or not provided, provide general advice."),
+  educationHistory: z.array(EducationExperienceSchema).optional()
+    .describe("The candidate's educational background. Can be used to tailor advice."),
+  workHistory: z.array(WorkExperienceSchema).optional()
+    .describe("The candidate's work experience. Can be used to tailor advice."),
 });
 export type GenerateCompanyStrategyInput = z.infer<typeof GenerateCompanyStrategyInputSchema>;
 
-// FocusTopic type is now imported from @/types
-// StrategyTodoItem type is now imported from @/types
-
 const GenerateCompanyStrategyOutputSchema = z.object({
   preparationStrategy: z.string()
-    .describe("A comprehensive, actionable, and personalized preparation strategy for interviewing at this company, formatted in Markdown. This should be at least 3-4 paragraphs and include advice on problem-solving approaches, common pitfalls, and how to leverage the provided problem data for study. Tailor the advice based on the problem difficulties, tags, recency, and target role level if provided."),
-  focusTopics: z.array(FocusTopicSchema) // Use imported schema
+    .describe("A comprehensive, actionable, and personalized preparation strategy for interviewing at this company, formatted in Markdown. This should be at least 3-4 paragraphs and include advice on problem-solving approaches, common pitfalls, and how to leverage the provided problem data for study. Tailor the advice based on the problem difficulties, tags, recency, target role level, and user's background if provided."),
+  focusTopics: z.array(FocusTopicSchema) 
     .min(3, "Identify at least 3 key focus topics.")
     .max(7, "Identify at most 7 key focus topics.")
-    .describe('An array of 3 to 7 key topics or concepts to prioritize, with reasons for each, tailored to the company and target role level.'),
-  todoItems: z.array(StrategyTodoItemSchema) // Use imported schema
+    .describe('An array of 3 to 7 key topics or concepts to prioritize, with reasons for each, tailored to the company, target role level, and user background.'),
+  todoItems: z.array(StrategyTodoItemSchema) 
     .min(3, "Generate at least 3 todo items.")
     .max(10, "Generate at most 10 todo items.")
     .describe("An array of 3 to 10 specific, actionable to-do items based on the generated strategy to help the candidate prepare effectively. Each item should be concise."),
@@ -59,7 +64,7 @@ export type GenerateCompanyStrategyOutput = z.infer<typeof GenerateCompanyStrate
 
 /**
  * Initiates the AI flow to generate a company-specific interview preparation strategy.
- * @param {GenerateCompanyStrategyInput} input - The company name, list of problems, and optional target role level.
+ * @param {GenerateCompanyStrategyInput} input - The company name, list of problems, and optional target role level and user background.
  * @returns {Promise<GenerateCompanyStrategyOutput>} A promise that resolves to the generated strategy, focus topics, and todo list.
  */
 export async function generateCompanyStrategy(input: GenerateCompanyStrategyInput): Promise<GenerateCompanyStrategyOutput> {
@@ -71,42 +76,51 @@ const prompt = ai.definePrompt({
   input: {schema: GenerateCompanyStrategyInputSchema},
   output: {schema: GenerateCompanyStrategyOutputSchema},
   prompt: `You are an expert interview coach providing a personalized preparation strategy for a candidate targeting {{companyName}}.
-{{#if targetRoleLevel}}The candidate is targeting an '{{targetRoleLevel}}' role at {{companyName}}. Please tailor your advice accordingly.{{/if}}
+{{#if targetRoleLevel}}The candidate is targeting an '{{targetRoleLevel}}' role.{{/if}}
 
-You have been given a list of coding problems frequently asked by {{companyName}}, along with their difficulty, tags, and how recently they were asked.
+{{#if educationHistory.length}}
+Candidate's Educational Background:
+{{#each educationHistory}}
+- Degree: {{this.degree}} in {{this.major}} from {{this.school}}{{#if this.graduationYear}}, Graduated: {{this.graduationYear}}{{/if}}{{#if this.gpa}}, GPA: {{this.gpa}}{{/if}}.
+{{/each}}
+{{/if}}
 
-coding Problems Data for {{companyName}}:
+{{#if workHistory.length}}
+Candidate's Work Experience:
+{{#each workHistory}}
+- Role: {{this.jobTitle}} at {{this.companyName}} ({{this.startDate}} - {{#if this.endDate}}{{this.endDate}}{{else}}Present{{/if}}).
+  {{#if this.responsibilities}}Responsibilities included: {{this.responsibilities}}{{/if}}
+{{/each}}
+{{/if}}
+
+You have been given a list of coding problems frequently asked by {{companyName}}:
 {{#each problems}}
-- Problem: "{{this.title}}" ({{this.difficulty}})
-  Tags: [{{#if this.tags.length}}{{this.tags}}{{else}}No specific tags{{/if}}]
-  {{#if this.lastAskedPeriod}}Last Asked: {{this.lastAskedPeriod}}{{/if}}
+- Problem: "{{this.title}}" ({{this.difficulty}}) - Tags: [{{#if this.tags.length}}{{this.tags}}{{else}}No specific tags{{/if}}]{{#if this.lastAskedPeriod}} - Last Asked: {{this.lastAskedPeriod}}{{/if}}
 {{/each}}
 
 Your Task:
-1.  **Generate a Preparation Strategy**:
-    *   Create a comprehensive, actionable, and personalized preparation strategy (3-4 paragraphs minimum) for interviewing at {{companyName}}. This strategy should be formatted in Markdown.
-    *   Advise on effective problem-solving approaches based on the patterns observed in the problem data.
-    *   Highlight common pitfalls or areas {{companyName}} seems to test frequently.
-    *   Suggest how the candidate can use the provided list of problems and their 'lastAskedPeriod' data for targeted study.
-    *   Mention the importance of understanding underlying concepts versus rote memorization.
-    *   If certain problem difficulties are more prevalent, advise on mastering that level.
-    *   **If a 'targetRoleLevel' is provided (and not 'general'), incorporate specific advice relevant to that level.**
-        *   For 'internship': Emphasize core DSA, clear articulation, and common behavioral questions. Suggest prioritizing Easy/Medium problems.
-        *   For 'new_grad': Highlight solid DSA skills, comfort with Medium problems, exposure to some Hard problems. Mention potential introductory system design and behavioral questions.
-        *   For 'experienced': Advice should consider depth in DSA, system design, and leadership/behavioral aspects.
+1.  **Generate a Preparation Strategy (Markdown)**:
+    *   Create a comprehensive (3-4 paragraphs min), actionable, and personalized strategy.
+    *   Advise on problem-solving approaches based on observed patterns in the problem data.
+    *   Highlight common pitfalls or areas {{companyName}} frequently tests.
+    *   Suggest how to use the problem list and 'lastAskedPeriod' data for study.
+    *   **If 'targetRoleLevel' (and not 'general') or user's education/work history are provided, tailor advice accordingly.**
+        *   'internship': Emphasize core DSA, clear articulation. Suggest prioritizing Easy/Medium problems.
+        *   'new_grad': Solid DSA, comfort with Medium problems, some Hard. Potential introductory system design.
+        *   'experienced': Depth in DSA, system design, leadership. Consider how their work history might align or identify gaps.
+    *   If the candidate's background suggests specific strengths/weaknesses (e.g., strong academic background but little practical experience, or vice-versa), gently weave that into the advice.
 
 2.  **Identify Key Focus Topics**:
-    *   Based on the problem data and 'targetRoleLevel', identify 3 to 7 key technical topics or concepts.
-    *   For each topic, provide a 'topic' name and a 'reason' (1-2 sentences explaining its relevance).
+    *   Based on problem data, target role, and user background, identify 3-7 key technical topics.
+    *   For each: 'topic' name and 'reason' (1-2 sentences explaining relevance).
 
 3.  **Generate Actionable Todo List ('todoItems')**:
-    *   Extract 3 to 10 specific, actionable "todo" items from your strategy and focus topics.
-    *   These items should be concise and help the candidate implement the strategy effectively.
-    *   Examples: "Solve 5 Medium array problems frequently asked by {{companyName}}.", "Spend 2 hours this week practicing explaining solutions to {{targetRoleLevel}}-appropriate problems out loud.", "Deep dive into [Specific Focus Topic identified for {{companyName}}] using online resources.", "Review common behavioral questions for the {{targetRoleLevel}} role at {{companyName}}."
-    *   Populate the 'todoItems' array in the output. Each item in the array should be an object with a 'text' field for the task description, and 'isCompleted' set to false.
+    *   Create 3-10 specific, actionable "todo" items from your strategy.
+    *   Examples: "Solve 5 Medium array problems for {{companyName}}.", "Deep dive into [Specific Topic for {{companyName}}] based on your {{#if educationHistory.length}}degree in {{educationHistory.0.major}}{{else}}background{{/if}}."
+    *   Each item: 'text' and 'isCompleted: false'.
 
-Return your response in the specified JSON format, with "preparationStrategy" (Markdown string), "focusTopics" (array of objects), and "todoItems" (array of objects).
-Be insightful and provide advice that goes beyond generic study tips. Make it specific to {{companyName}} and the target role level if specified.
+Return in JSON format: "preparationStrategy", "focusTopics", "todoItems".
+Be insightful, specific to {{companyName}}, and adapt to provided candidate details.
 `,
 });
 
@@ -124,5 +138,3 @@ const generateCompanyStrategyFlow = ai.defineFlow(
     return output;
   }
 );
-
-    
