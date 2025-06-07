@@ -5,7 +5,7 @@ Welcome to the Company LeetCode Explorer! This Next.js application is designed t
 
 ## 🌐 Official Site
 
-Visit the official site at [https://www.bytetooffer.com/](https://www.bytetooffer.com/) for more resources and information.
+Visit the official site at [https://bytetooffer.com/](https://bytetooffer.com/) for more resources and information.
 
 
 ## ✨ Key Features
