@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useCallback } from 'react'; 
 import dynamic from 'next/dynamic';
 import { useToast } from '@/hooks/use-toast';
 import { performSimilarQuestionSearch, toggleBookmarkProblemAction, setProblemStatusAction, generateProblemInsightsAction } from '@/app/actions';
@@ -27,6 +27,8 @@ import { useAICooldown } from '@/hooks/use-ai-cooldown';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useRouter, usePathname } from 'next/navigation';
+import type { User as FirebaseUser } from 'firebase/auth';
+
 
 const SimilarProblemsDialog = dynamic(() => import('@/components/ai/similar-problems-dialog'), {
   loading: () => <p>Loading dialog...</p>,
@@ -45,7 +47,7 @@ interface ProblemCardProps {
   onProblemStatusChange?: (problemId: string, newStatus: ProblemStatus) => void;
 }
 
-const ProblemStatusIcon: React.FC<{ status: ProblemStatus }> = ({ status }) => {
+const ProblemStatusIconComponent: React.FC<{ status: ProblemStatus }> = ({ status }) => {
   if (status === 'none' || !PROBLEM_STATUS_DISPLAY[status]) return null;
 
   const statusConfig = {
@@ -82,6 +84,24 @@ const ProblemStatusIcon: React.FC<{ status: ProblemStatus }> = ({ status }) => {
     </TooltipProvider>
   );
 };
+const ProblemStatusIcon = React.memo(ProblemStatusIconComponent);
+
+
+// Internal component for AI button tooltip content to isolate re-renders due to cooldown timer
+const AITooltipContentComponent: React.FC<{ defaultText: string; user: FirebaseUser | null }> = ({ defaultText, user }) => {
+  const { canUseAI, isLoadingCooldown, formattedRemainingTime } = useAICooldown();
+  const isAIButtonCurrentlyDisabled = isLoadingCooldown || !canUseAI;
+
+  let content = defaultText;
+  if (!user) {
+    content = "Login to use AI features";
+  } else if (isAIButtonCurrentlyDisabled && !isLoadingCooldown) {
+    content = `AI on cooldown: ${formattedRemainingTime}`;
+  }
+  return <p>{content}</p>;
+};
+const AITooltipContent = React.memo(AITooltipContentComponent);
+
 
 const ProblemCardComponent: React.FC<ProblemCardProps> = ({
   problem,
@@ -114,98 +134,66 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
   useEffect(() => { setIsBookmarked(initialIsBookmarked); }, [initialIsBookmarked]);
   useEffect(() => { setCurrentStatus(problemStatus); }, [problemStatus]);
 
-  const redirectToLogin = () => {
+  const redirectToLogin = useCallback(() => {
     router.push(`/login?redirectUrl=${encodeURIComponent(pathname)}`);
-  };
+  }, [router, pathname]);
   
-  const isAIButtonDisabled = isLoadingCooldown || !canUseAI;
+  const isUserActionDisabled = !user; 
+  const isAIActionDisabled = isUserActionDisabled || isLoadingCooldown || !canUseAI;
   const cooldownToastMessage = `AI features are on cooldown. Please wait ${formattedRemainingTime} before using another AI feature.`;
 
   const handleFindSimilar = async () => {
-    if (!user) {
-      redirectToLogin();
-      return;
-    }
-    if (isAIButtonDisabled && !isLoadingCooldown) {
+    if (!user) { redirectToLogin(); return; }
+    if (isLoadingCooldown || !canUseAI) {
       toast({ title: "AI Feature on Cooldown", description: cooldownToastMessage, variant: "default" });
       return;
     }
     setIsLoadingSimilar(true);
     setSimilarProblems(null);
-    setIsSimilarDialogSharedOpen(true); // Open dialog to show loader
+    setIsSimilarDialogSharedOpen(true);
 
     const result = await performSimilarQuestionSearch(problem.slug, problem.companySlug || companySlug);
     setIsLoadingSimilar(false);
 
     if (result && 'error' in result) {
-      toast({
-        title: 'Search Failed',
-        description: result.error,
-        variant: 'destructive'
-      });
-      // Optionally close dialog or show error in dialog: setIsSimilarDialogSharedOpen(false);
+      toast({ title: 'Search Failed', description: result.error, variant: 'destructive' });
     } else if (result && result.similarProblems) {
       setSimilarProblems(result.similarProblems);
       startCooldown(); 
-      toast({
-        title: '✨ Similar Problems Found!',
-        description: `Discovered ${result.similarProblems.length} related problem(s).`
-      });
+      toast({ title: '✨ Similar Problems Found!', description: `Discovered ${result.similarProblems.length} related problem(s).` });
     } else {
       setSimilarProblems([]);
       startCooldown();
-      toast({
-        title: 'No Matches Found',
-        description: 'This problem appears to be unique!'
-      });
+      toast({ title: 'No Matches Found', description: 'This problem appears to be unique!' });
     }
   };
 
   const handleGenerateInsights = async () => {
-    if (!user) {
-      redirectToLogin();
-      return;
-    }
-    if (isAIButtonDisabled && !isLoadingCooldown) {
+    if (!user) { redirectToLogin(); return; }
+    if (isLoadingCooldown || !canUseAI) {
       toast({ title: "AI Feature on Cooldown", description: cooldownToastMessage, variant: "default" });
       return;
     }
     setIsLoadingInsights(true);
     setProblemInsights(null);
-    setIsInsightsDialogOpen(true); // Open dialog to show loader
+    setIsInsightsDialogOpen(true);
 
     const result = await generateProblemInsightsAction(problem);
     setIsLoadingInsights(false);
 
     if (result && 'error' in result) {
-      toast({
-        title: 'Insights Generation Failed',
-        description: result.error,
-        variant: 'destructive'
-      });
-      // Optionally close dialog or show error in dialog: setIsInsightsDialogOpen(false);
+      toast({ title: 'Insights Generation Failed', description: result.error, variant: 'destructive' });
     } else if (result) {
       setProblemInsights(result);
       startCooldown(); 
-      toast({
-        title: '💡 Insights Ready!',
-        description: 'AI has analyzed the problem structure and hints.'
-      });
+      toast({ title: '💡 Insights Ready!', description: 'AI has analyzed the problem structure and hints.' });
     } else {
-      toast({
-        title: 'Generation Error',
-        description: 'Could not generate insights for this problem.',
-        variant: 'destructive'
-      });
+      toast({ title: 'Generation Error', description: 'Could not generate insights for this problem.', variant: 'destructive' });
     }
   };
 
   const handleToggleBookmark = async () => {
-    if (!user) {
-      redirectToLogin();
-      return;
-    }
-
+    if (!user) { redirectToLogin(); return; }
     if (isTogglingBookmark) return;
     setIsTogglingBookmark(true);
     const oldStatus = isBookmarked;
@@ -216,37 +204,22 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
       const result = await toggleBookmarkProblemAction(user.uid, problem.id, effectiveCompanySlug, problem.slug);
       if (result.success) {
         setIsBookmarked(result.isBookmarked ?? oldStatus); 
-        toast({
-          title: result.isBookmarked ? '⭐ Bookmarked!' : '📖 Bookmark Removed',
-          description: `"${problem.title}" ${result.isBookmarked ? 'saved to' : 'removed from'} your collection.`
-        });
+        toast({ title: result.isBookmarked ? '⭐ Bookmarked!' : '📖 Bookmark Removed', description: `"${problem.title}" ${result.isBookmarked ? 'saved to' : 'removed from'} your collection.` });
         onBookmarkChanged?.(problem.id, result.isBookmarked ?? oldStatus);
       } else {
         setIsBookmarked(oldStatus); 
-        toast({
-          title: 'Bookmark Error',
-          description: result.error || 'Failed to update bookmark.',
-          variant: 'destructive'
-        });
+        toast({ title: 'Bookmark Error', description: result.error || 'Failed to update bookmark.', variant: 'destructive' });
       }
     } catch (error) {
       setIsBookmarked(oldStatus); 
-      toast({
-        title: 'Connection Error',
-        description: 'Please check your connection and try again.',
-        variant: 'destructive'
-      });
+      toast({ title: 'Connection Error', description: 'Please check your connection and try again.', variant: 'destructive' });
     } finally {
       setIsTogglingBookmark(false);
     }
   };
 
   const handleStatusUpdate = async (newStatus: ProblemStatus) => {
-    if (!user) {
-      redirectToLogin();
-      return;
-    }
-
+    if (!user) { redirectToLogin(); return; }
     if (isUpdatingStatus) return;
     setIsUpdatingStatus(true);
     const oldUiStatus = currentStatus;
@@ -256,38 +229,22 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
       const effectiveCompanySlug = problem.companySlug || companySlug;
       const result = await setProblemStatusAction(user.uid, problem.id, newStatus, effectiveCompanySlug, problem.slug);
       if (result.success) {
-        const statusLabel = newStatus === 'none' ? 'cleared' :
-          `marked as ${PROBLEM_STATUS_OPTIONS.find(opt => opt.value === newStatus)?.label}`;
-        toast({
-          title: '✅ Status Updated!',
-          description: `"${problem.title}" ${statusLabel}.`
-        });
+        const statusLabel = newStatus === 'none' ? 'cleared' : `marked as ${PROBLEM_STATUS_OPTIONS.find(opt => opt.value === newStatus)?.label}`;
+        toast({ title: '✅ Status Updated!', description: `"${problem.title}" ${statusLabel}.` });
         onProblemStatusChange?.(problem.id, newStatus);
       } else {
         setCurrentStatus(oldUiStatus); 
-        toast({
-          title: 'Update Failed',
-          description: result.error || 'Failed to update status.',
-          variant: 'destructive'
-        });
+        toast({ title: 'Update Failed', description: result.error || 'Failed to update status.', variant: 'destructive' });
       }
     } catch (error) {
       setCurrentStatus(oldUiStatus); 
-      toast({
-        title: 'Connection Error',
-        description: 'Please check your connection and try again.',
-        variant: 'destructive'
-      });
+      toast({ title: 'Connection Error', description: 'Please check your connection and try again.', variant: 'destructive' });
     } finally {
       setIsUpdatingStatus(false);
     }
   };
 
   const problemTags = problem.tags || [];
-
-  const aiButtonTooltipContent = isAIButtonDisabled && !isLoadingCooldown 
-    ? `On cooldown: ${formattedRemainingTime}` 
-    : user ? undefined : "Login to use AI features";
 
   return (
     <>
@@ -338,13 +295,13 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
                         variant="ghost"
                         size="icon"
                         onClick={handleToggleBookmark}
-                        disabled={isTogglingBookmark}
+                        disabled={isTogglingBookmark || isUserActionDisabled}
                         className={cn(
                           "h-9 w-9 rounded-full transition-all duration-200",
                           "hover:bg-primary/10 hover:scale-110",
                           isBookmarked && "bg-primary/5"
                         )}
-                        aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
+                        aria-label={isBookmarked ? `Remove bookmark for ${problem.title}` : `Add bookmark for ${problem.title}`}
                       >
                         {isTogglingBookmark ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -359,7 +316,7 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{isBookmarked ? "Remove Bookmark" : "Add Bookmark"}</p>
+                      <p>{isBookmarked ? "Remove Bookmark" : (isUserActionDisabled ? "Login to bookmark" : "Add Bookmark")}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -423,6 +380,7 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
                           window.open(problem.link, '_blank', 'noopener,noreferrer');
                         }
                       }}
+                      aria-label={`Solve problem: ${problem.title} on external site`}
                     >
                       <ExternalLink className="h-4 w-4" />
                       <span className="hidden sm:inline">Solve Problem</span>
@@ -445,6 +403,9 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
                         <Link
                           href={`/mock-interview/${problem.companySlug || companySlug}/${problem.slug}`}
                           className="flex items-center justify-center gap-2"
+                          aria-disabled={isUserActionDisabled}
+                          aria-label={`Start mock interview for ${problem.title}`}
+                          onClick={(e) => { if (isUserActionDisabled) { e.preventDefault(); redirectToLogin(); }}}
                         >
                           <Bot className="h-4 w-4" />
                           <span className="hidden sm:inline">Mock Interview</span>
@@ -452,7 +413,7 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
                         </Link>
                       </Button>
                   </TooltipTrigger>
-                  <TooltipContent><p>Practice with AI Interviewer</p></TooltipContent>
+                  <TooltipContent><p>{isUserActionDisabled ? "Login to start mock interview" : "Practice with AI Interviewer"}</p></TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
@@ -468,10 +429,11 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={handleFindSimilar}
-                      disabled={isLoadingSimilar || (isAIButtonDisabled && user)}
+                      disabled={isLoadingSimilar || isAIActionDisabled}
                       className="w-full text-xs"
+                      aria-label={`Find AI suggested similar problems for ${problem.title}`}
                     >
-                      {isLoadingSimilar && !isSimilarDialogSharedOpen ? ( // Show loader only if dialog isn't open yet for loading state
+                      {isLoadingSimilar && !isSimilarDialogSharedOpen ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (
                         <Sparkles className="h-3.5 w-3.5 text-primary" />
@@ -479,7 +441,9 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
                       <span className="ml-1.5 hidden sm:inline">Similar</span>
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent><p>{aiButtonTooltipContent || "Find Similar Problems (AI)"}</p></TooltipContent>
+                  <TooltipContent>
+                     <AITooltipContent defaultText="Find Similar Problems (AI)" user={user} />
+                  </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
 
@@ -490,10 +454,11 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={handleGenerateInsights}
-                      disabled={isLoadingInsights || (isAIButtonDisabled && user)}
+                      disabled={isLoadingInsights || isAIActionDisabled}
                       className="w-full text-xs"
+                      aria-label={`Get AI insights and hints for ${problem.title}`}
                     >
-                      {isLoadingInsights && !isInsightsDialogOpen ? ( // Show loader only if dialog isn't open yet
+                      {isLoadingInsights && !isInsightsDialogOpen ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (
                         <Lightbulb className="h-3.5 w-3.5 text-primary" />
@@ -501,7 +466,9 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
                       <span className="ml-1.5 hidden sm:inline">Hints</span>
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent><p>{aiButtonTooltipContent || "Get AI Insights & Hints"}</p></TooltipContent>
+                  <TooltipContent>
+                    <AITooltipContent defaultText="Get AI Insights & Hints" user={user} />
+                  </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
 
@@ -514,8 +481,9 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
                           <Button
                             variant="outline"
                             size="sm"
-                            disabled={isUpdatingStatus}
+                            disabled={isUpdatingStatus || isUserActionDisabled}
                             className="w-full text-xs"
+                            aria-label={`Update progress status for ${problem.title}`}
                           >
                             {isUpdatingStatus ? (
                               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -526,7 +494,7 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
                           </Button>
                         </DropdownMenuTrigger>
                       </TooltipTrigger>
-                      <TooltipContent><p>Update Progress Status</p></TooltipContent>
+                      <TooltipContent><p>{isUserActionDisabled ? "Login to update status" : "Update Progress Status"}</p></TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                   <DropdownMenuContent align="end" className="w-48">

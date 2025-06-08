@@ -4,12 +4,27 @@
 import type { LeetCodeProblem, ProblemListFilters, PaginatedProblemsResponse, ProblemStatus } from '@/types';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import ProblemCard from './problem-card';
-import ProblemListControls from './problem-list-controls';
+// import ProblemListControls from './problem-list-controls'; // Original import
 import { useAuth } from '@/contexts/auth-context';
 import { fetchProblemsForCompanyPage } from '@/app/actions/problem.actions';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useDebounce } from '@/hooks/use-debounce'; // Import useDebounce
+import { useDebounce } from '@/hooks/use-debounce'; 
+import dynamic from 'next/dynamic';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const ProblemListControls = dynamic(() => import('./problem-list-controls'), {
+  loading: () => (
+    <div className="mb-6 p-4 space-y-4 bg-card rounded-lg shadow">
+      <Skeleton className="h-10 w-full rounded-md" /> {/* Search Input Skeleton */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <Skeleton className="h-10 flex-1 rounded-md" /> {/* Filter Skeleton */}
+        <Skeleton className="h-10 flex-1 rounded-md" /> {/* Filter Skeleton */}
+        <Skeleton className="h-10 flex-1 rounded-md" /> {/* Sort Skeleton */}
+      </div>
+    </div>
+  ),
+});
 
 interface ProblemListProps {
   companyId: string;
@@ -63,7 +78,6 @@ const ProblemList: React.FC<ProblemListProps> = ({
     setFilters(updatedFilters);
     setCurrentPage(1);
     setIsLoading(true);
-    // DO NOT clear displayedProblems here immediately. Let the fetch result dictate.
 
     try {
       const result = await fetchProblemsForCompanyPage({
@@ -76,7 +90,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
 
       if ('error' in result) {
         toast({ title: 'Error Fetching Problems', description: result.error, variant: 'destructive' });
-        setDisplayedProblems([]); // Clear problems if fetch fails
+        setDisplayedProblems([]); 
         setTotalPages(1);
         setHasMore(false);
       } else {
@@ -87,13 +101,13 @@ const ProblemList: React.FC<ProblemListProps> = ({
       }
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to fetch problems.', variant: 'destructive' });
-      setDisplayedProblems([]); // Clear problems on catch
+      setDisplayedProblems([]); 
       setTotalPages(1);
       setHasMore(false);
     } finally {
       setIsLoading(false);
     }
-  }, [companyId, itemsPerPage, user?.uid, toast, filters]); // filters is a dependency
+  }, [companyId, itemsPerPage, user?.uid, toast, filters]); 
 
   // Effect to handle debounced search term changes
   useEffect(() => {
@@ -101,7 +115,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
       handleFilterChange({ searchTerm: debouncedSearchTerm });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearchTerm, filters.searchTerm]); // handleFilterChange is not added to avoid potential loops if its definition changes
+  }, [debouncedSearchTerm, filters.searchTerm]); 
 
   // Effect to refresh problems with user-specific data when user logs in/out or if initial problems didn't have this data.
   useEffect(() => {
@@ -114,7 +128,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
       handleFilterChange(filters);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]); // Only re-run when user changes; displayedProblems and filters handled by handleFilterChange itself
+  }, [user]); 
 
 
   const loadMoreProblems = useCallback(async () => {
@@ -185,8 +199,6 @@ const ProblemList: React.FC<ProblemListProps> = ({
       prev.map(p => p.id === problemId ? { ...p, currentStatus: newStatus } : p)
     );
     if (filters.statusFilter !== 'all' && filters.statusFilter !== newStatus && !(filters.statusFilter === 'none' && newStatus !== 'none')) {
-        // If the current status filter would hide this problem, re-fetch with current filters
-        // This ensures the list accurately reflects the filter criteria after a status change
         handleFilterChange({ statusFilter: filters.statusFilter });
     }
   }, [filters.statusFilter, handleFilterChange]);

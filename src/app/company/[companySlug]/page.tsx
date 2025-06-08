@@ -18,6 +18,7 @@ import dynamic from 'next/dynamic';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
 const INITIAL_ITEMS_PER_PAGE = 15;
+const MAX_PROBLEMS_FOR_AI_FEATURES = 200; // Cap for AI feature data
 
 const AIGroupingSection = dynamic(() => import('@/components/ai/ai-grouping-section'), {
   loading: () => <div className="animate-pulse h-48 bg-muted rounded-lg p-4 text-center text-sm text-muted-foreground">Loading AI Grouping...</div>,
@@ -58,7 +59,7 @@ export async function generateMetadata({ params }: CompanyPageProps): Promise<Me
   let initialProblemDataForKeywords: LeetCodeProblem[] = [];
   if (problemCount > 0 && (!company.commonTags || company.commonTags.length === 0)) {
     // Fetching a small number of problems for keywords only if commonTags from stats are missing
-    const problemResults = await getProblemsByCompanyFromDb(company.id, { page: 1, pageSize: 5 });
+    const problemResults = await getProblemsByCompanyFromDb(company.id, { page: 1, pageSize: MAX_PROBLEMS_FOR_AI_FEATURES });
     initialProblemDataForKeywords = problemResults.problems;
   }
 
@@ -175,9 +176,11 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
     );
   }
 
-  // Fetch all problems for AI features; this is a one-time fetch for these specific features on this page.
-  // The ProblemList component handles its own pagination.
-  const allProblemsForAIFeatures = await getProblemsByCompanyFromDb(company.id, { pageSize: 10000 });
+  // Fetch problems for AI features, capped at MAX_PROBLEMS_FOR_AI_FEATURES
+  const allProblemsForAIFeatures = await getProblemsByCompanyFromDb(company.id, { pageSize: MAX_PROBLEMS_FOR_AI_FEATURES });
+  
+  // Use company.problemCount for display if available, otherwise use the count of problems fetched for AI (which is capped)
+  // This ensures the displayed total reflects the actual number of problems, while AI features might operate on a subset.
   const displayProblemCount = company.problemCount ?? allProblemsForAIFeatures.totalProblems;
   
   const initialPage = searchParams?.page ? parseInt(searchParams.page, 10) : 1;
@@ -359,7 +362,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
                   <CardContent className="pt-0">
                     <Suspense fallback={<div className="animate-pulse h-48 bg-muted rounded" />}>
                        <ProblemList
-                        key={company.id} // Add key here
+                        key={company.id}
                         companyId={company.id}
                         companySlug={company.slug}
                         initialProblems={initialProblems}
@@ -471,3 +474,4 @@ export async function generateStaticParams() {
     return [];
   }
 }
+
