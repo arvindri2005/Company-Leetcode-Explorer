@@ -42,6 +42,7 @@ export interface LeetCodeProblem {
   tags: string[];
   companyId: string; // ID of the company this problem is primarily associated with in *this* app
   companySlug: string; // Slug of the company this problem is primarily associated with
+  problemCompanyName?: string; // Denormalized company name
   slug: string; // Problem's own slug
   lastAskedPeriod?: LastAskedPeriod;
   normalizedTitle: string;
@@ -57,10 +58,16 @@ export interface Company {
   id: string;
   name: string;
   normalizedName?: string;
-  slug: string; // Ensure slug is always present
+  slug: string;
   logo?: string;
   description?: string;
   website?: string;
+  problemCount?: number; // Denormalized count of problems
+  // Denormalized problem statistics
+  difficultyCounts?: { Easy: number; Medium: number; Hard: number; };
+  recencyCounts?: { last_30_days: number; within_3_months: number; within_6_months: number; older_than_6_months: number; };
+  commonTags?: Array<{ tag: string; count: number; }>;
+  statsLastUpdatedAt?: Date; // Timestamp of when these stats were last updated
 }
 
 /**
@@ -394,3 +401,5 @@ export interface PaginatedProblemsResponse {
   totalPages: number;
   currentPage: number;
 }
+
+    

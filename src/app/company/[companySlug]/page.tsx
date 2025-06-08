@@ -2,25 +2,39 @@
 import { getCompanyBySlug, getProblemsByCompanyFromDb } from '@/lib/data';
 import type { Company, LeetCodeProblem, ProblemListFilters, PaginatedProblemsResponse } from '@/types';
 import ProblemList from '@/components/problem/problem-list';
-import AIGroupingSection from '@/components/ai/ai-grouping-section';
-import CompanyProblemStats from '@/components/company/company-problem-stats';
-import FlashcardGenerator from '@/components/ai/flashcard-generator';
-import CompanyStrategyGenerator from '@/components/ai/company-strategy-generator';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Building2, ExternalLink, BarChart3, BookOpen, Brain, Target, Users, Calendar, ChevronLeft, AlertTriangle, PlusSquare } from 'lucide-react';
+import { Building2, ExternalLink, BookOpen, Brain, Target, Users, ChevronLeft, AlertTriangle, PlusSquare } from 'lucide-react';
 import Image from 'next/image';
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
-import { auth } from '@/lib/firebase'; 
+import { auth } from '@/lib/firebase';
 import { fetchProblemsForCompanyPage } from '@/app/actions/problem.actions';
+import dynamic from 'next/dynamic';
 
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
 const INITIAL_ITEMS_PER_PAGE = 15;
+
+const AIGroupingSection = dynamic(() => import('@/components/ai/ai-grouping-section'), {
+  loading: () => <div className="animate-pulse h-48 bg-muted rounded-lg p-4 text-center text-sm text-muted-foreground">Loading AI Grouping...</div>,
+});
+
+const DynamicFlashcardGenerator = dynamic(() => import('@/components/ai/flashcard-generator'), {
+  loading: () => <div className="animate-pulse h-48 bg-muted rounded-lg p-4 text-center text-sm text-muted-foreground">Loading Flashcards...</div>,
+});
+
+const CompanyStrategyGenerator = dynamic(() => import('@/components/ai/company-strategy-generator'), {
+  loading: () => <div className="animate-pulse h-48 bg-muted rounded-lg p-4 text-center text-sm text-muted-foreground">Loading Strategy Generator...</div>,
+});
+
+const CompanyProblemStats = dynamic(() => import('@/components/company/company-problem-stats'), {
+  loading: () => <div className="animate-pulse h-36 bg-muted rounded-lg" />,
+});
+
 
 interface CompanyPageProps {
   params: { companySlug: string };
@@ -36,12 +50,19 @@ export async function generateMetadata({ params }: CompanyPageProps): Promise<Me
     };
   }
 
-  const initialProblemData = await getProblemsByCompanyFromDb(company.id, { page: 1, pageSize: 5 }); // Fetch a few for keywords
-  const problemCount = initialProblemData?.totalProblems || 0;
+  const problemCount = company.problemCount ?? 0;
   
   const title = `${company.name} - Coding Problems & Interview Prep (${problemCount} Problems) | Company Interview Problem Explorer`;
   const description = `Explore ${company.name}'s coding interview questions, LeetCode style problems, common patterns, and AI-powered preparation strategies. ${problemCount} coding problems available for ${company.name}.`;
   
+  let initialProblemDataForKeywords: LeetCodeProblem[] = [];
+  if (problemCount > 0 && (!company.commonTags || company.commonTags.length === 0)) {
+    // Fetching a small number of problems for keywords only if commonTags from stats are missing
+    const problemResults = await getProblemsByCompanyFromDb(company.id, { page: 1, pageSize: 5 });
+    initialProblemDataForKeywords = problemResults.problems;
+  }
+
+
   const companyKeywords = [
     company.name, 
     `${company.name} interview questions`,
@@ -50,8 +71,12 @@ export async function generateMetadata({ params }: CompanyPageProps): Promise<Me
     'technical interview prep',
     'software engineer interview',
   ];
-  const problemTagsKeywords = initialProblemData.problems.flatMap(p => p.tags).filter(Boolean);
-  const uniqueKeywords = Array.from(new Set([...companyKeywords, ...problemTagsKeywords])).slice(0, 15);
+  // Use company.commonTags if available and populated for keywords
+  const tagKeywordsFromStats = company.commonTags && company.commonTags.length > 0 
+    ? company.commonTags.map(ct => ct.tag)
+    : initialProblemDataForKeywords.flatMap(p => p.tags).filter(Boolean);
+    
+  const uniqueKeywords = Array.from(new Set([...companyKeywords, ...tagKeywordsFromStats])).slice(0, 15);
 
   const breadcrumbList = {
     "@context": "https://schema.org",
@@ -90,7 +115,7 @@ export async function generateMetadata({ params }: CompanyPageProps): Promise<Me
   
   const profilePageSchema = {
     "@context": "https://schema.org",
-    "@type": "ProfilePage", // Using ProfilePage for a company-specific page
+    "@type": "ProfilePage", 
     "mainEntity": organizationSchema,
     "breadcrumb": breadcrumbList,
     "name": title,
@@ -112,9 +137,9 @@ export async function generateMetadata({ params }: CompanyPageProps): Promise<Me
       url: `${APP_URL}/company/${company.slug}`,
       siteName: 'Company Interview Problem Explorer',
       images: company.logo ? [{ url: company.logo, alt: `${company.name} logo` }] : [{ url: `${APP_URL}/icon.png`, alt: 'Company Interview Problem Explorer Logo' }],
-      type: 'profile', // Using 'profile' as it can represent an organization's profile page
+      type: 'profile', 
       profile: {
-        username: company.slug, // Using slug as a unique identifier for the profile context
+        username: company.slug, 
       }
     },
     twitter: {
@@ -124,7 +149,7 @@ export async function generateMetadata({ params }: CompanyPageProps): Promise<Me
       images: company.logo ? [company.logo] : [`${APP_URL}/icon.png`],
     },
     other: {
-       "script[type=\"application/ld+json\"]": JSON.stringify([profilePageSchema, breadcrumbList]), // Include both if breadcrumb is not part of profilePage schema for some validators
+       "script[type=\"application/ld+json\"]": JSON.stringify([profilePageSchema, breadcrumbList]), 
     }
   };
 }
@@ -150,7 +175,10 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
     );
   }
 
-  const allProblemsForAIAndStats = await getProblemsByCompanyFromDb(company.id, { pageSize: 10000 });
+  // Fetch all problems for AI features; this is a one-time fetch for these specific features on this page.
+  // The ProblemList component handles its own pagination.
+  const allProblemsForAIFeatures = await getProblemsByCompanyFromDb(company.id, { pageSize: 10000 });
+  const displayProblemCount = company.problemCount ?? allProblemsForAIFeatures.totalProblems;
   
   const initialPage = searchParams?.page ? parseInt(searchParams.page, 10) : 1;
   const currentUser = auth.currentUser; 
@@ -179,14 +207,13 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
   if ('error' in initialPaginatedProblemsData) {
     console.error("Error fetching initial problems for company page:", initialPaginatedProblemsData.error);
     initialProblemDataError = initialPaginatedProblemsData.error;
-    // Keep initialProblems as empty array, totalPages as 1, currentPage as 1
   } else {
     initialProblems = initialPaginatedProblemsData.problems;
     initialTotalPages = initialPaginatedProblemsData.totalPages;
     initialCurrentPage = initialPaginatedProblemsData.currentPage;
   }
   
-  const hasProblemsForStats = allProblemsForAIAndStats.totalProblems > 0;
+  const hasProblemsForFeatures = displayProblemCount > 0;
 
 
   return (
@@ -235,9 +262,9 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
                   <h1 className="text-xl sm:text-2xl font-bold truncate">
                     {company.name} Interview Problems
                   </h1>
-                  {hasProblemsForStats && (
+                  {hasProblemsForFeatures && (
                     <Badge variant="secondary" className="text-xs flex-shrink-0">
-                      {allProblemsForAIAndStats.totalProblems} Problems Listed
+                      {displayProblemCount} Problem{displayProblemCount !== 1 ? 's' : ''} Listed
                     </Badge>
                   )}
                 </div>
@@ -285,11 +312,15 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
           </Card>
         )}
 
-        {!initialProblemDataError && hasProblemsForStats ? (
+        {!initialProblemDataError && hasProblemsForFeatures ? (
           <>
             <div className="mb-4">
-              <Suspense fallback={<div className="animate-pulse h-96 bg-muted rounded-lg" />}>
-                <CompanyProblemStats problems={allProblemsForAIAndStats.problems} />
+              <Suspense fallback={<div className="animate-pulse h-36 bg-muted rounded-lg" />}>
+                <CompanyProblemStats 
+                  company={company} 
+                  problems={allProblemsForAIFeatures.problems} 
+                  totalProblemsCount={displayProblemCount} 
+                />
               </Suspense>
             </div>
             <Tabs defaultValue="problems" className="w-full">
@@ -322,12 +353,13 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
                     <CardTitle className="flex items-center gap-2 text-base">
                       <BookOpen className="h-4 w-4" />
                       Coding Interview Problems for {company.name}
-                      <Badge variant="outline" className="text-xs">{allProblemsForAIAndStats.totalProblems}</Badge>
+                      <Badge variant="outline" className="text-xs">{displayProblemCount}</Badge>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
                     <Suspense fallback={<div className="animate-pulse h-48 bg-muted rounded" />}>
                        <ProblemList
+                        key={company.id} // Add key here
                         companyId={company.id}
                         companySlug={company.slug}
                         initialProblems={initialProblems}
@@ -351,7 +383,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
                   </CardHeader>
                   <CardContent className="pt-0">
                     <Suspense fallback={<div className="animate-pulse h-48 bg-muted rounded" />}>
-                      <AIGroupingSection problems={allProblemsForAIAndStats.problems} companyName={company.name} companySlug={company.slug} />
+                      <AIGroupingSection problems={allProblemsForAIFeatures.problems} companyName={company.name} companySlug={company.slug} />
                     </Suspense>
                   </CardContent>
                 </Card>
@@ -367,7 +399,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
                   </CardHeader>
                   <CardContent className="pt-0">
                     <Suspense fallback={<div className="animate-pulse h-48 bg-muted rounded" />}>
-                      <FlashcardGenerator companyId={company.id} companyName={company.name} companySlug={company.slug} />
+                      <DynamicFlashcardGenerator companyId={company.id} companyName={company.name} companySlug={company.slug} />
                     </Suspense>
                   </CardContent>
                 </Card>
@@ -391,7 +423,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
             </Tabs>
           </>
         ) : (
-          !initialProblemDataError && ( // Only show "No Problems Available" if there wasn't a loading error
+          !initialProblemDataError && ( 
             <Card className="text-center py-8">
               <CardContent>
                 <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
@@ -439,5 +471,3 @@ export async function generateStaticParams() {
     return [];
   }
 }
-
-    

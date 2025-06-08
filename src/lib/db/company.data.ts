@@ -1,4 +1,5 @@
-import type { Company } from "@/types";
+
+import type { Company, LastAskedPeriod, LeetCodeProblem } from "@/types";
 import { db } from "@/lib/firebase";
 import {
     collection,
@@ -10,6 +11,8 @@ import {
     limit,
     addDoc,
     orderBy,
+    Timestamp,
+    FieldValue,
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
 
@@ -25,6 +28,26 @@ interface PaginatedCompaniesResponse {
     totalPages: number;
     currentPage: number;
 }
+
+function mapFirestoreDocToCompany(docSnap: import("firebase/firestore").DocumentSnapshot): Company {
+    const data = docSnap.data()!;
+    const company: Company = {
+        id: docSnap.id,
+        slug: data.slug || slugify(data.name),
+        name: data.name,
+        normalizedName: data.normalizedName,
+        logo: data.logo,
+        description: data.description,
+        website: data.website,
+        problemCount: data.problemCount || 0,
+        difficultyCounts: data.difficultyCounts || { Easy: 0, Medium: 0, Hard: 0 },
+        recencyCounts: data.recencyCounts || { last_30_days: 0, within_3_months: 0, within_6_months: 0, older_than_6_months: 0 },
+        commonTags: data.commonTags || [],
+        statsLastUpdatedAt: data.statsLastUpdatedAt instanceof Timestamp ? data.statsLastUpdatedAt.toDate() : undefined,
+    };
+    return company;
+}
+
 
 async function fetchAllCompaniesFromFirestore(
     currentSearchTerm?: string
@@ -42,14 +65,7 @@ async function fetchAllCompaniesFromFirestore(
         );
     }
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(
-        (docSnap) =>
-            ({
-                id: docSnap.id,
-                slug: docSnap.data().slug || slugify(docSnap.data().name),
-                ...docSnap.data(),
-            } as Company)
-    );
+    return querySnapshot.docs.map(mapFirestoreDocToCompany);
 }
 
 export const getCompanies = async ({
@@ -65,8 +81,9 @@ export const getCompanies = async ({
 
         if (searchTerm && searchTerm.trim() !== "") {
             const lowercasedSearchTerm = searchTerm.toLowerCase().trim();
+            // Refetch all if search term exists, then filter locally (as Firestore doesn't support OR on different fields well)
             filteredCompanies = (
-                await fetchAllCompaniesFromFirestore(undefined)
+                await fetchAllCompaniesFromFirestore(undefined) 
             ).filter(
                 (company) =>
                     (company.normalizedName &&
@@ -119,12 +136,7 @@ async function fetchCompanyByIdFromFirestore(
     const companyDocRef = doc(db, "companies", companyId);
     const companySnap = await getDoc(companyDocRef);
     if (companySnap.exists()) {
-        const data = companySnap.data();
-        return {
-            id: companySnap.id,
-            slug: data.slug || slugify(data.name),
-            ...data,
-        } as Company;
+        return mapFirestoreDocToCompany(companySnap);
     }
     return undefined;
 }
@@ -155,12 +167,7 @@ async function fetchCompanyBySlugFromFirestore(
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
         const companyDoc = querySnapshot.docs[0];
-        const data = companyDoc.data();
-        return {
-            id: companyDoc.id,
-            slug: data.slug || slugify(data.name),
-            ...data,
-        } as Company;
+        return mapFirestoreDocToCompany(companyDoc);
     }
     return undefined;
 }
@@ -195,7 +202,7 @@ export const getAllCompanySlugs = async (): Promise<string[]> => {
 };
 
 export const addCompanyToDb = async (
-    companyData: Omit<Company, "id" | "slug">
+    companyData: Omit<Company, "id" | "slug" | "problemCount" | "difficultyCounts" | "recencyCounts" | "commonTags" | "statsLastUpdatedAt">
 ): Promise<{ id: string | null; error?: string; alreadyExists?: boolean }> => {
     try {
         const companySlug = slugify(companyData.name);
@@ -216,17 +223,20 @@ export const addCompanyToDb = async (
         }
 
         const companiesCol = collection(db, "companies");
-        const dataForFirestore = {
+        const dataForFirestore: Omit<Company, 'id'> & {statsLastUpdatedAt?: FieldValue | null} = {
             ...companyData,
             slug: companySlug,
             normalizedName: normalizedName,
+            problemCount: 0,
+            difficultyCounts: { Easy: 0, Medium: 0, Hard: 0 },
+            recencyCounts: { last_30_days: 0, within_3_months: 0, within_6_months: 0, older_than_6_months: 0 },
+            commonTags: [],
+            statsLastUpdatedAt: undefined, // Let the admin action populate this
         };
-        if (companyData.logo === undefined)
-            delete (dataForFirestore as Partial<Company>).logo;
-        if (companyData.description === undefined)
-            delete (dataForFirestore as Partial<Company>).description;
-        if (companyData.website === undefined)
-            delete (dataForFirestore as Partial<Company>).website;
+        if (companyData.logo === undefined) delete dataForFirestore.logo;
+        if (companyData.description === undefined) delete dataForFirestore.description;
+        if (companyData.website === undefined) delete dataForFirestore.website;
+        
 
         const docRef = await addDoc(companiesCol, dataForFirestore);
         return { id: docRef.id };
@@ -239,3 +249,5 @@ export const addCompanyToDb = async (
         return { id: null, error: message };
     }
 };
+
+    

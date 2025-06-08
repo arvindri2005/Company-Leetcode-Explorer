@@ -1,10 +1,10 @@
-
 'use client';
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
+import React from 'react'; // Import React
 
 interface PaginationControlsProps {
   currentPage: number;
@@ -12,7 +12,7 @@ interface PaginationControlsProps {
   basePath: string;
 }
 
-const PaginationControls: React.FC<PaginationControlsProps> = ({
+const PaginationControlsComponent: React.FC<PaginationControlsProps> = ({
   currentPage,
   totalPages,
   basePath,
@@ -102,4 +102,5 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
   );
 };
 
+const PaginationControls = React.memo(PaginationControlsComponent);
 export default PaginationControls;

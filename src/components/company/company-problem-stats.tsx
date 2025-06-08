@@ -1,15 +1,17 @@
 
 'use client';
 
-import type { LeetCodeProblem, LastAskedPeriod } from '@/types';
+import type { LeetCodeProblem, LastAskedPeriod, Company } from '@/types';
 import { lastAskedPeriodOptions } from '@/types'; // Import options
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import TagBadge from '@/components/problem/tag-badge';
-import { ListChecks, CalendarClock, TagsIcon, Percent } from 'lucide-react'; // Added Percent icon
+import { ListChecks, CalendarClock, TagsIcon, Percent } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CompanyProblemStatsProps {
-  problems: LeetCodeProblem[];
+  company: Company; // New prop
+  problems: LeetCodeProblem[]; // Keep for fallback or if stats are not yet populated
+  totalProblemsCount?: number; // Keep for displaying total problem count, could be from company.problemCount
 }
 
 const difficultyColors: Record<LeetCodeProblem['difficulty'], string> = {
@@ -20,7 +22,7 @@ const difficultyColors: Record<LeetCodeProblem['difficulty'], string> = {
 
 const difficultyTextColors: Record<LeetCodeProblem['difficulty'], string> = {
   Easy: 'text-white',
-  Medium: 'text-black', // Yellow usually needs black text for contrast
+  Medium: 'text-black',
   Hard: 'text-white',
 };
 
@@ -37,7 +39,6 @@ const lastAskedPeriodTextColors: Record<LastAskedPeriod, string> = {
   'older_than_6_months': 'text-white',
 };
 
-
 interface BarSegmentProps {
   label: string;
   value: number;
@@ -47,8 +48,8 @@ interface BarSegmentProps {
 }
 
 const BarSegment: React.FC<BarSegmentProps> = ({ label, value, total, bgColor, textColor }) => {
-  if (value === 0) return null;
-  const percentage = total > 0 ? (value / total) * 100 : 0;
+  if (value === 0 || total === 0) return null;
+  const percentage = (value / total) * 100;
   const displayPercentage = percentage.toFixed(1);
 
   return (
@@ -61,11 +62,11 @@ const BarSegment: React.FC<BarSegmentProps> = ({ label, value, total, bgColor, t
       style={{ width: `${percentage}%` }}
       title={`${label}: ${value} (${displayPercentage}%)`}
     >
-      {percentage > 15 ? ( 
+      {percentage > 15 ? (
         <div className="truncate px-1.5 text-xs font-medium">
           <span className="hidden sm:inline">{label} </span>({value})
         </div>
-      ) : percentage > 8 ? ( 
+      ) : percentage > 8 ? (
          <div className="truncate px-1 text-xs font-medium">({value})</div>
       ) : null}
     </div>
@@ -73,47 +74,56 @@ const BarSegment: React.FC<BarSegmentProps> = ({ label, value, total, bgColor, t
 };
 
 
-const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({ problems }) => {
-  if (problems.length === 0) {
+const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({ company, problems, totalProblemsCount }) => {
+  const displayTotalProblems = totalProblemsCount ?? company.problemCount ?? problems.length;
+
+  if (displayTotalProblems === 0 && !company.statsLastUpdatedAt) {
+     // If no problems AND stats haven't been updated (e.g. new company), don't show stats card.
+     // The company page itself will show a "no problems" message.
     return null;
   }
 
-  const totalProblems = problems.length;
+  let difficultyCounts: Required<Company['difficultyCounts']>;
+  let recencyCounts: Required<Company['recencyCounts']>;
+  let commonTags: Required<Company['commonTags']>;
+  let problemsWithRecencyData = 0;
 
-  const difficultyCounts: Record<LeetCodeProblem['difficulty'], number> = {
-    Easy: 0,
-    Medium: 0,
-    Hard: 0,
-  };
+  // Prioritize using denormalized stats if available and seemingly valid
+  if (company.statsLastUpdatedAt && company.difficultyCounts && company.recencyCounts && company.commonTags) {
+    difficultyCounts = company.difficultyCounts;
+    recencyCounts = company.recencyCounts;
+    commonTags = company.commonTags;
+    problemsWithRecencyData = Object.values(recencyCounts).reduce((sum, count) => sum + count, 0);
+  } else {
+    // Fallback to calculating from problems prop if denormalized stats are missing
+    difficultyCounts = { Easy: 0, Medium: 0, Hard: 0 };
+    const tagOccurrences: Record<string, number> = {};
+    recencyCounts = {
+      last_30_days: 0,
+      within_3_months: 0,
+      within_6_months: 0,
+      older_than_6_months: 0,
+    };
 
-  const tagOccurrences: Record<string, number> = {};
-  
-  const lastAskedCounts: Record<LastAskedPeriod, number> = {
-    'last_30_days': 0,
-    'within_3_months': 0,
-    'within_6_months': 0,
-    'older_than_6_months': 0,
-  };
-  let problemsWithLastAskedData = 0;
-
-  problems.forEach(problem => {
-    difficultyCounts[problem.difficulty]++;
-    problem.tags.forEach(tag => {
-      tagOccurrences[tag] = (tagOccurrences[tag] || 0) + 1;
+    problems.forEach(problem => {
+      difficultyCounts[problem.difficulty]++;
+      problem.tags.forEach(tag => {
+        tagOccurrences[tag] = (tagOccurrences[tag] || 0) + 1;
+      });
+      if (problem.lastAskedPeriod) {
+        recencyCounts[problem.lastAskedPeriod]++;
+        problemsWithRecencyData++;
+      }
     });
-    if (problem.lastAskedPeriod) {
-      lastAskedCounts[problem.lastAskedPeriod]++;
-      problemsWithLastAskedData++;
-    }
-  });
 
-  const sortedTags = Object.entries(tagOccurrences)
-    .sort(([, countA], [, countB]) => countB - countA)
-    .slice(0, 8); // Show top 8 tags
+    commonTags = Object.entries(tagOccurrences)
+      .sort(([, countA], [, countB]) => countB - countA)
+      .slice(0, 8)
+      .map(([tag, count]) => ({ tag, count }));
+  }
 
   const difficultyOrder: LeetCodeProblem['difficulty'][] = ['Easy', 'Medium', 'Hard'];
   const lastAskedOrder: LastAskedPeriod[] = ['last_30_days', 'within_3_months', 'within_6_months', 'older_than_6_months'];
-
 
   return (
     <Card className="shadow-sm my-4">
@@ -123,24 +133,33 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({ problems }) =
           Problem Statistics
         </CardTitle>
         <CardDescription className="text-xs">
-          Breakdown of {totalProblems} problem{totalProblems === 1 ? '' : 's'}.
+          Breakdown of {displayTotalProblems} problem{displayTotalProblems === 1 ? '' : 's'}.
+          {company.statsLastUpdatedAt && (
+            <span className="block text-xs text-muted-foreground/80">
+              Stats last updated: {new Date(company.statsLastUpdatedAt).toLocaleDateString()}
+            </span>
+          )}
+           {!company.statsLastUpdatedAt && displayTotalProblems > 0 && (
+            <span className="block text-xs text-amber-600">
+              Overall company stats are pending update (run admin action). Current stats are based on loaded problems.
+            </span>
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 px-3 pb-3 pt-1.5">
-        {/* Difficulty Breakdown */}
         <div>
           <h3 className="text-xs font-semibold mb-1 flex items-center">
             <Percent size={14} className="mr-1 text-muted-foreground" />
             Difficulty Distribution
           </h3>
-          {totalProblems > 0 ? (
+          {displayTotalProblems > 0 || Object.values(difficultyCounts).some(c => c > 0) ? (
             <div className="w-full h-5 flex rounded-sm overflow-hidden border border-border bg-muted">
               {difficultyOrder.map(level => (
                 <BarSegment
                   key={level}
                   label={level}
                   value={difficultyCounts[level]}
-                  total={totalProblems}
+                  total={displayTotalProblems} // Use displayTotalProblems as the denominator
                   bgColor={difficultyColors[level]}
                   textColor={difficultyTextColors[level]}
                 />
@@ -151,20 +170,19 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({ problems }) =
           )}
         </div>
 
-        {/* Last Asked Period Breakdown */}
         <div>
           <h3 className="text-xs font-semibold mb-1 flex items-center">
             <CalendarClock size={14} className="mr-1 text-muted-foreground" />
             Recency Distribution
           </h3>
-          {problemsWithLastAskedData > 0 ? (
+          {problemsWithRecencyData > 0 || Object.values(recencyCounts).some(c => c > 0) ? (
             <div className="w-full h-5 flex rounded-sm overflow-hidden border border-border bg-muted">
               {lastAskedOrder.map(period => (
                 <BarSegment
                   key={period}
                   label={lastAskedPeriodOptions.find(opt => opt.value === period)?.label || period}
-                  value={lastAskedCounts[period]}
-                  total={problemsWithLastAskedData}
+                  value={recencyCounts[period]}
+                  total={problemsWithRecencyData} // Base percentage on problems *with* recency data
                   bgColor={lastAskedPeriodColors[period]}
                   textColor={lastAskedPeriodTextColors[period]}
                 />
@@ -175,15 +193,14 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({ problems }) =
           )}
         </div>
 
-        {/* Most Common Tags */}
-        {sortedTags.length > 0 && (
+        {commonTags.length > 0 && (
           <div>
             <h3 className="text-xs font-semibold mb-1 flex items-center">
               <TagsIcon size={14} className="mr-1 text-muted-foreground" />
-              Most Common Tags (Top {Math.min(sortedTags.length, 8)})
+              Most Common Tags (Top {Math.min(commonTags.length, 8)})
             </h3>
             <div className="flex flex-wrap gap-1">
-              {sortedTags.map(([tag, count]) => (
+              {commonTags.map(({tag, count}) => (
                 <TagBadge key={tag} tag={`${tag} (${count})`} className="text-xs px-1.5 py-0.5" />
               ))}
             </div>
@@ -195,3 +212,4 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({ problems }) =
 };
 
 export default CompanyProblemStats;
+    

@@ -2,13 +2,14 @@
 import type { LeetCodeProblem } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import React from 'react';
 
 interface DifficultyBadgeProps {
   difficulty: LeetCodeProblem['difficulty'];
   className?: string;
 }
 
-const DifficultyBadge: React.FC<DifficultyBadgeProps> = ({ difficulty, className }) => {
+const DifficultyBadgeComponent: React.FC<DifficultyBadgeProps> = ({ difficulty, className }) => {
   const difficultyStyles = {
     Easy: 'bg-green-500 hover:bg-green-600 text-white',
     Medium: 'bg-yellow-500 hover:bg-yellow-600 text-black', // Yellow usually needs black text for contrast
@@ -29,4 +30,5 @@ const DifficultyBadge: React.FC<DifficultyBadgeProps> = ({ difficulty, className
   );
 };
 
+const DifficultyBadge = React.memo(DifficultyBadgeComponent);
 export default DifficultyBadge;

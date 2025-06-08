@@ -11,6 +11,7 @@ export async function GET() {
     { path: '/companies', changefreq: 'daily', priority: '1' },
     { path: '/login', changefreq: 'weekly', priority: '0.5' },
     { path: '/signup', changefreq: 'weekly', priority: '0.5' },
+    // Removed: /bulk-add-companies, /bulk-add-problems as they are now admin routes
   ];
 
   let sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -43,8 +44,8 @@ export async function GET() {
     console.error("Error fetching company slugs for sitemap:", error);
   }
   
-  // Mock interview pages are removed as they require authentication.
-  // Other utility/form pages like /submit-problem, /add-company, /profile are also excluded.
+  // Admin pages, mock interview pages, profile, submit-problem, add-company are excluded.
+  // Admin pages will be disallowed by robots.txt.
 
   sitemapXml += `
 </urlset>`;

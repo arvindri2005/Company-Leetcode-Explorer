@@ -1,6 +1,7 @@
 
 'use client';
 
+import React from 'react';
 import { Card } from '@/components/ui/card';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -13,7 +14,7 @@ interface CompanyCardProps {
   company: Company;
 }
 
-const CompanyCard = ({ company }: CompanyCardProps) => {
+const CompanyCardComponent: React.FC<CompanyCardProps> = ({ company }) => {
   return (
     <Card className="hover:shadow-lg transition-all duration-300 flex flex-col h-full group">
       <CardHeader className="flex flex-col xs:flex-row items-start gap-3 p-3 sm:p-4 lg:p-5">
@@ -37,6 +38,11 @@ const CompanyCard = ({ company }: CompanyCardProps) => {
             <CardDescription className="mt-1 text-xs sm:text-sm line-clamp-2 lg:line-clamp-3 leading-relaxed">
               {company.description}
             </CardDescription>
+          )}
+           {typeof company.problemCount === 'number' && (
+            <p className="text-xs text-muted-foreground mt-1">
+              {company.problemCount} problem{company.problemCount !== 1 ? 's' : ''} listed
+            </p>
           )}
         </div>
       </CardHeader>
@@ -77,4 +83,5 @@ const CompanyCard = ({ company }: CompanyCardProps) => {
   );
 };
 
+const CompanyCard = React.memo(CompanyCardComponent);
 export default CompanyCard;

@@ -7,12 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Filter, ArrowUpDown, CalendarDays, Search, CheckSquare } from 'lucide-react';
-
-// These types are now directly imported from @/types
-// export type DifficultyFilter = 'all' | 'Easy' | 'Medium' | 'Hard';
-// export type SortKey = 'title' | 'difficulty' | 'lastAsked';
-// export type LastAskedFilter = 'all' | LastAskedPeriod;
-// export type StatusFilter = ProblemStatus | 'all';
+import React from 'react';
 
 interface ProblemListControlsProps {
   difficultyFilter: DifficultyFilter;
@@ -29,7 +24,7 @@ interface ProblemListControlsProps {
   showStatusFilter?: boolean;
 }
 
-const ProblemListControls: React.FC<ProblemListControlsProps> = ({
+const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
   difficultyFilter,
   onDifficultyFilterChange,
   sortKey,
@@ -150,4 +145,5 @@ const ProblemListControls: React.FC<ProblemListControlsProps> = ({
   );
 };
 
+const ProblemListControls = React.memo(ProblemListControlsComponent);
 export default ProblemListControls;

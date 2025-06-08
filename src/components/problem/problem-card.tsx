@@ -9,7 +9,7 @@ import TagBadge from './tag-badge';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import { ExternalLink, Tag, CalendarClock, Sparkles, Loader2, Bot, Star, CheckCircle2, Pencil, ListTodo, MoreVertical, Lightbulb, Clock, TrendingUp, Zap, LogIn, AlertCircle } from 'lucide-react';
+import { ExternalLink, Tag, Sparkles, Loader2, Bot, Star, CheckCircle2, Pencil, ListTodo, MoreVertical, Lightbulb, Clock, TrendingUp, Zap, AlertCircle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,16 +18,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { useToast } from '@/hooks/use-toast';
 import { performSimilarQuestionSearch, toggleBookmarkProblemAction, setProblemStatusAction, generateProblemInsightsAction } from '@/app/actions';
-import SimilarProblemsDialog from '@/components/ai/similar-problems-dialog';
-import ProblemInsightsDialog from '@/components/ai/problem-insights-dialog';
 import { useAuth } from '@/contexts/auth-context';
 import { useAICooldown } from '@/hooks/use-ai-cooldown';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useRouter, usePathname } from 'next/navigation';
+
+const SimilarProblemsDialog = dynamic(() => import('@/components/ai/similar-problems-dialog'), {
+  loading: () => <p>Loading dialog...</p>,
+});
+const ProblemInsightsDialog = dynamic(() => import('@/components/ai/problem-insights-dialog'), {
+  loading: () => <p>Loading dialog...</p>,
+});
+
 
 interface ProblemCardProps {
   problem: LeetCodeProblem;
@@ -76,7 +83,7 @@ const ProblemStatusIcon: React.FC<{ status: ProblemStatus }> = ({ status }) => {
   );
 };
 
-const ProblemCard: React.FC<ProblemCardProps> = ({
+const ProblemCardComponent: React.FC<ProblemCardProps> = ({
   problem,
   companySlug,
   initialIsBookmarked = false,
@@ -125,10 +132,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
     }
     setIsLoadingSimilar(true);
     setSimilarProblems(null);
-    toast({
-      title: '🔍 Finding Similar Problems',
-      description: `AI is analyzing "${problem.title}" for similar patterns...`
-    });
+    setIsSimilarDialogSharedOpen(true); // Open dialog to show loader
 
     const result = await performSimilarQuestionSearch(problem.slug, problem.companySlug || companySlug);
     setIsLoadingSimilar(false);
@@ -139,9 +143,9 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
         description: result.error,
         variant: 'destructive'
       });
+      // Optionally close dialog or show error in dialog: setIsSimilarDialogSharedOpen(false);
     } else if (result && result.similarProblems) {
       setSimilarProblems(result.similarProblems);
-      setIsSimilarDialogSharedOpen(true);
       startCooldown(); 
       toast({
         title: '✨ Similar Problems Found!',
@@ -149,7 +153,6 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
       });
     } else {
       setSimilarProblems([]);
-      setIsSimilarDialogSharedOpen(true);
       startCooldown();
       toast({
         title: 'No Matches Found',
@@ -169,10 +172,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
     }
     setIsLoadingInsights(true);
     setProblemInsights(null);
-    toast({
-      title: '🧠 Generating AI Insights',
-      description: `Analyzing key concepts and strategies for "${problem.title}"...`
-    });
+    setIsInsightsDialogOpen(true); // Open dialog to show loader
 
     const result = await generateProblemInsightsAction(problem);
     setIsLoadingInsights(false);
@@ -183,9 +183,9 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
         description: result.error,
         variant: 'destructive'
       });
+      // Optionally close dialog or show error in dialog: setIsInsightsDialogOpen(false);
     } else if (result) {
       setProblemInsights(result);
-      setIsInsightsDialogOpen(true);
       startCooldown(); 
       toast({
         title: '💡 Insights Ready!',
@@ -471,7 +471,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                       disabled={isLoadingSimilar || (isAIButtonDisabled && user)}
                       className="w-full text-xs"
                     >
-                      {isLoadingSimilar ? (
+                      {isLoadingSimilar && !isSimilarDialogSharedOpen ? ( // Show loader only if dialog isn't open yet for loading state
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (
                         <Sparkles className="h-3.5 w-3.5 text-primary" />
@@ -493,7 +493,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                       disabled={isLoadingInsights || (isAIButtonDisabled && user)}
                       className="w-full text-xs"
                     >
-                      {isLoadingInsights ? (
+                      {isLoadingInsights && !isInsightsDialogOpen ? ( // Show loader only if dialog isn't open yet
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (
                         <Lightbulb className="h-3.5 w-3.5 text-primary" />
@@ -563,27 +563,30 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
           </div>
         </CardFooter>
       </Card>
-
-      {isSimilarDialogSharedOpen && (
-        <SimilarProblemsDialog
-          isOpen={isSimilarDialogSharedOpen}
-          onClose={() => setIsSimilarDialogSharedOpen(false)}
-          currentProblemTitle={problem.title}
-          similarProblems={similarProblems || []}
-          isLoading={isLoadingSimilar}
-        />
-      )}
-      {isInsightsDialogOpen && (
-        <ProblemInsightsDialog
-          isOpen={isInsightsDialogOpen}
-          onClose={() => setIsInsightsDialogOpen(false)}
-          problemTitle={problem.title}
-          insights={problemInsights}
-          isLoading={isLoadingInsights}
-        />
-      )}
+      
+      <Suspense fallback={<div>Loading Dialog...</div>}>
+        {isSimilarDialogSharedOpen && (
+          <SimilarProblemsDialog
+            isOpen={isSimilarDialogSharedOpen}
+            onClose={() => setIsSimilarDialogSharedOpen(false)}
+            currentProblemTitle={problem.title}
+            similarProblems={similarProblems || []}
+            isLoading={isLoadingSimilar}
+          />
+        )}
+        {isInsightsDialogOpen && (
+          <ProblemInsightsDialog
+            isOpen={isInsightsDialogOpen}
+            onClose={() => setIsInsightsDialogOpen(false)}
+            problemTitle={problem.title}
+            insights={problemInsights}
+            isLoading={isLoadingInsights}
+          />
+        )}
+      </Suspense>
     </>
   );
 };
 
+const ProblemCard = React.memo(ProblemCardComponent);
 export default ProblemCard;

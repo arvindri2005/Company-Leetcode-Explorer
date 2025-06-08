@@ -1,12 +1,14 @@
+
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import React from 'react';
 
 interface TagBadgeProps {
   tag: string;
   className?: string;
 }
 
-const TagBadge: React.FC<TagBadgeProps> = ({ tag, className }) => {
+const TagBadgeComponent: React.FC<TagBadgeProps> = ({ tag, className }) => {
   return (
     <Badge
       variant="secondary"
@@ -17,4 +19,5 @@ const TagBadge: React.FC<TagBadgeProps> = ({ tag, className }) => {
   );
 };
 
+const TagBadge = React.memo(TagBadgeComponent);
 export default TagBadge;
