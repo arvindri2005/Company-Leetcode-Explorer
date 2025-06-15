@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Company } from '@/types';
@@ -8,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Search, Loader2, Building2 } from 'lucide-react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useDebounce } from '@/hooks/use-debounce';
-import { fetchCompaniesAction, fetchCompanySuggestionsAction } from '@/app/actions'; // Import new action
-import Image from 'next/image'; // For suggestion logos
+import { useCompaniesCache } from '@/hooks/use-companies-cache';
+import { fetchCompanySuggestionsAction } from '@/app/actions';
+import Image from 'next/image';
 
 interface Suggestion extends Pick<Company, 'id' | 'name' | 'slug' | 'logo'> {}
 
@@ -30,59 +30,18 @@ const CompanyList: React.FC<CompanyListProps> = ({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  
-  const debouncedSearchTermForSuggestions = useDebounce(searchTermInput, 300);
-
+  const debouncedSearchTerm = useDebounce(searchTermInput, 300);
   const [displayedCompanies, setDisplayedCompanies] = useState<Company[]>(initialCompanies);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(initialTotalPages > 1);
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const searchContainerRef = useRef<HTMLDivElement>(null);
-
-
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
-
-  // Effect to fetch suggestions when debouncedSearchTermForSuggestions changes
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (debouncedSearchTermForSuggestions.trim().length < 1) {
-        setSuggestions([]);
-        setShowSuggestions(false);
-        return;
-      }
-      setIsFetchingSuggestions(true);
-      const result = await fetchCompanySuggestionsAction(debouncedSearchTermForSuggestions.trim(), 5);
-      setIsFetchingSuggestions(false);
-      if ('error' in result) {
-        console.error("Error fetching suggestions:", result.error);
-        setSuggestions([]);
-      } else {
-        setSuggestions(result);
-      }
-      setShowSuggestions(result.length > 0 || ('error' in result && !!result.error)); // Show if results or if there was an error to potentially display
-    };
-
-    fetchSuggestions();
-  }, [debouncedSearchTermForSuggestions]);
-
-  // Handle click outside to close suggestions
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+  const loadMoreTriggerRef = useRef<HTMLDivElement>(null);
+  const { fetchCompaniesWithCache } = useCompaniesCache();
 
   // Effect to reset displayed companies and pagination when initialCompanies or initialTotalPages change.
   useEffect(() => {
@@ -94,16 +53,16 @@ const CompanyList: React.FC<CompanyListProps> = ({
   }, [initialCompanies, initialTotalPages]);
 
   const handleSuggestionClick = (suggestion: Suggestion) => {
-    setSearchTermInput(suggestion.name); // Update input field
-    setShowSuggestions(false);         // Hide suggestions
-
+    setSearchTermInput(suggestion.name);
+    setShowSuggestions(false);
+    
     const params = new URLSearchParams(searchParams.toString());
     if (suggestion.name.trim()) {
       params.set('search', suggestion.name.trim());
     } else {
       params.delete('search');
     }
-    if(params.has('page')) params.delete('page'); // Reset page on new search
+    if(params.has('page')) params.delete('page');
     
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
@@ -113,14 +72,11 @@ const CompanyList: React.FC<CompanyListProps> = ({
 
     setIsLoadingMore(true);
     const nextPageToFetch = currentPage + 1;
-    
-    // For loading more, use the search term that's reflected in the URL (initialSearchTerm prop)
-    // This ensures pagination works correctly for the currently displayed list.
     const currentSearchQueryInUrl = searchParams.get('search') || '';
 
     try {
-      const result = await fetchCompaniesAction(nextPageToFetch, itemsPerPage, currentSearchQueryInUrl);
-      if (result.error) {
+      const result = await fetchCompaniesWithCache(nextPageToFetch, itemsPerPage, currentSearchQueryInUrl);
+      if ('error' in result) {
         console.error("Error fetching more companies:", result.error);
         setHasMore(false);
       } else {
@@ -130,43 +86,89 @@ const CompanyList: React.FC<CompanyListProps> = ({
         setTotalPages(result.totalPages);
       }
     } catch (e) {
-        console.error("Exception fetching more companies:", e);
-        setHasMore(false);
+      console.error("Exception fetching more companies:", e);
+      setHasMore(false);
     } finally {
       setIsLoadingMore(false);
     }
-  }, [isLoadingMore, hasMore, currentPage, itemsPerPage, searchParams]);
+  }, [isLoadingMore, hasMore, currentPage, itemsPerPage, searchParams, fetchCompaniesWithCache]);
 
+  // Effect for fetching suggestions when search input changes
   useEffect(() => {
-    observerRef.current = new IntersectionObserver(
+    const fetchSuggestions = async () => {
+      if (debouncedSearchTerm.trim().length < 2) {
+        setSuggestions([]);
+        setShowSuggestions(false);
+        return;
+      }
+
+      setIsLoadingSuggestions(true);
+      try {
+        const result = await fetchCompanySuggestionsAction(debouncedSearchTerm.trim());
+        if (Array.isArray(result)) {
+          setSuggestions(result.slice(0, 5)); // Limit to top 5 suggestions
+          setShowSuggestions(true);
+        }
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+      } finally {
+        setIsLoadingSuggestions(false);
+      }
+    };
+
+    fetchSuggestions();
+  }, [debouncedSearchTerm]);
+
+  // Effect for updating route based on search term
+  useEffect(() => {
+    if (debouncedSearchTerm === initialSearchTerm) return;
+
+    const params = new URLSearchParams(searchParams.toString());
+    if (debouncedSearchTerm.trim()) {
+      params.set('search', debouncedSearchTerm.trim());
+    } else {
+      params.delete('search');
+    }
+    if(params.has('page')) params.delete('page');
+    
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [debouncedSearchTerm, router, pathname, searchParams, initialSearchTerm]);
+
+  // Effect for infinite scroll using Intersection Observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+        if (entries[0]?.isIntersecting) {
           loadMoreCompanies();
         }
       },
-      { threshold: 1.0 }
+      { threshold: 0.1 }
     );
 
-    const currentTriggerRef = loadMoreTriggerRef.current;
-    if (currentTriggerRef) {
-      observerRef.current.observe(currentTriggerRef);
+    if (loadMoreTriggerRef.current) {
+      observer.observe(loadMoreTriggerRef.current);
     }
 
-    return () => {
-      if (observerRef.current && currentTriggerRef) {
-        observerRef.current.unobserve(currentTriggerRef);
-      }
-      if (observerRef.current) {
-        observerRef.current.disconnect();
+    return () => observer.disconnect();
+  }, [loadMoreCompanies]);
+
+  // Click outside handler for suggestions
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
       }
     };
-  }, [hasMore, isLoadingMore, loadMoreCompanies]);
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="w-full mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
       <div className="space-y-4 sm:space-y-6 lg:space-y-8">
         {/* Search Input and Suggestions Container */}
-        <div className="relative w-full max-w-2xl mx-auto" ref={searchContainerRef}>
+        <div className="relative w-full max-w-2xl mx-auto" ref={suggestionsRef}>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground z-10" />
             <Input
@@ -177,14 +179,14 @@ const CompanyList: React.FC<CompanyListProps> = ({
               onFocus={() => { if (suggestions.length > 0 || searchTermInput.trim().length > 0) setShowSuggestions(true);}}
               className="w-full pl-9 sm:pl-10 pr-4 text-sm sm:text-base py-3 sm:py-4 lg:py-6 rounded-lg shadow-sm border-2 focus:border-primary transition-colors"
             />
-            {isFetchingSuggestions && (
+            {isLoadingSuggestions && (
               <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 animate-spin text-muted-foreground" />
             )}
           </div>
 
           {showSuggestions && searchTermInput.trim().length > 0 && (
             <div className="absolute z-20 w-full mt-1 bg-card border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
-              {isFetchingSuggestions && suggestions.length === 0 ? (
+              {isLoadingSuggestions && suggestions.length === 0 ? (
                 <div className="p-3 text-center text-sm text-muted-foreground">Loading suggestions...</div>
               ) : suggestions.length > 0 ? (
                 suggestions.map((suggestion) => (
@@ -214,7 +216,7 @@ const CompanyList: React.FC<CompanyListProps> = ({
                   </div>
                 ))
               ) : (
-                !isFetchingSuggestions && <div className="p-3 text-center text-sm text-muted-foreground">No companies found matching "{searchTermInput}".</div>
+                !isLoadingSuggestions && <div className="p-3 text-center text-sm text-muted-foreground">No companies found matching "{searchTermInput}".</div>
               )}
             </div>
           )}
