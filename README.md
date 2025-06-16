@@ -1,56 +1,61 @@
-
 # Company LeetCode Explorer (AI-Powered)
 
 Welcome to the Company LeetCode Explorer! This Next.js application is designed to help software engineers prepare for technical interviews by providing a platform to explore LeetCode problems frequently asked by specific companies. It's supercharged with AI features to offer mock interviews, problem insights, personalized strategies, and more.
 
-## 🌐 Official Site
+## 🚀 Try it Now!
 
-Visit the official site at [https://bytetooffer.com/](https://bytetooffer.com/) for more resources and information.
+<div align="center">
 
+### [🎯 Visit ByteToOffer.com Now! 🎯](https://bytetooffer.com/companies)
+
+Supercharge your interview preparation with AI-powered tools, company-specific problem sets, and more.
+Don't wait - start practicing with our cutting-edge platform today!
+
+</div>
 
 ## ✨ Key Features
 
-*   **Company & Problem Database**:
-    *   Browse a curated list of companies and their associated LeetCode problems.
-    *   View problem details including difficulty, tags, LeetCode link, and recency (last asked period).
-*   **Data Management**:
-    *   Submit new LeetCode problems and associate them with companies.
-    *   Add new companies to the platform.
-    *   **Bulk Upload**: Efficiently add multiple problems or companies at once using Excel (.xlsx) files.
-*   **Advanced Filtering & Sorting**:
-    *   Filter problems on company pages by difficulty, tags (via search), "last asked" period, and personal progress status.
-    *   Sort problems by title, difficulty, or "last asked" recency.
-*   **User Authentication & Personalization**:
-    *   Secure user signup and login using Firebase Authentication.
-    *   **Profile Page**: View your account details and manage your progress.
-    *   **Edit Profile**: Update your display name.
-    *   **Problem Bookmarking**: Save problems for later review.
-    *   **Progress Tracking**: Mark problems as "Solved," "Attempted," or "To-Do."
-*   **AI-Powered Interview Preparation Tools (via Genkit & Google Gemini)**:
-    *   **Mock Interviews**: Engage in an interactive mock coding interview with an AI interviewer that provides guidance, feedback on your approach, and suggests follow-up questions. Supports text and voice input/output.
-    *   **Similar Problem Suggestions**: For any given problem, get AI suggestions for conceptually similar LeetCode problems.
-    *   **Problem Insights Generation**: AI provides key concepts, common data structures/algorithms, and a high-level hint for a selected problem.
-    *   **Company-Specific Flashcard Generation**: AI creates study flashcards based on concepts found in problems frequently asked by a specific company.
-    *   **Personalized Interview Strategy**: AI generates a tailored preparation strategy for a selected company, adaptable for different target role levels (e.g., Internship, New Grad, Experienced).
-    *   **AI Problem Grouping**: AI automatically categorizes a company's problems into related themes or concepts for structured learning.
-*   **Modern & Responsive UI**:
-    *   Built with Next.js App Router, React, ShadCN UI components, and Tailwind CSS.
-    *   Fully responsive design for optimal viewing on desktop, tablet, and mobile devices.
-    *   **Theme Customization**: Switch between Light, Dark, and System default themes.
-*   **Company Statistics**:
-    *   Visual breakdown of problems by difficulty and "last asked" period using pie charts on company detail pages.
+-   **Company & Problem Database**:
+    -   Browse a curated list of companies and their associated LeetCode problems.
+    -   View problem details including difficulty, tags, LeetCode link, and recency (last asked period).
+-   **Data Management**:
+    -   Submit new LeetCode problems and associate them with companies.
+    -   Add new companies to the platform.
+    -   **Bulk Upload**: Efficiently add multiple problems or companies at once using Excel (.xlsx) files.
+-   **Advanced Filtering & Sorting**:
+    -   Filter problems on company pages by difficulty, tags (via search), "last asked" period, and personal progress status.
+    -   Sort problems by title, difficulty, or "last asked" recency.
+-   **User Authentication & Personalization**:
+    -   Secure user signup and login using Firebase Authentication.
+    -   **Profile Page**: View your account details and manage your progress.
+    -   **Edit Profile**: Update your display name.
+    -   **Problem Bookmarking**: Save problems for later review.
+    -   **Progress Tracking**: Mark problems as "Solved," "Attempted," or "To-Do."
+-   **AI-Powered Interview Preparation Tools (via Genkit & Google Gemini)**:
+    -   **Mock Interviews**: Engage in an interactive mock coding interview with an AI interviewer that provides guidance, feedback on your approach, and suggests follow-up questions. Supports text and voice input/output.
+    -   **Similar Problem Suggestions**: For any given problem, get AI suggestions for conceptually similar LeetCode problems.
+    -   **Problem Insights Generation**: AI provides key concepts, common data structures/algorithms, and a high-level hint for a selected problem.
+    -   **Company-Specific Flashcard Generation**: AI creates study flashcards based on concepts found in problems frequently asked by a specific company.
+    -   **Personalized Interview Strategy**: AI generates a tailored preparation strategy for a selected company, adaptable for different target role levels (e.g., Internship, New Grad, Experienced).
+    -   **AI Problem Grouping**: AI automatically categorizes a company's problems into related themes or concepts for structured learning.
+-   **Modern & Responsive UI**:
+    -   Built with Next.js App Router, React, ShadCN UI components, and Tailwind CSS.
+    -   Fully responsive design for optimal viewing on desktop, tablet, and mobile devices.
+    -   **Theme Customization**: Switch between Light, Dark, and System default themes.
+-   **Company Statistics**:
+    -   Visual breakdown of problems by difficulty and "last asked" period using pie charts on company detail pages.
 
 ## 🛠️ Tech Stack
 
-*   **Framework**: Next.js (App Router)
-*   **Language**: TypeScript
-*   **UI**: React, ShadCN UI, Tailwind CSS
-*   **AI Integration**: Genkit (with Google Gemini models)
-*   **Database**: Firebase Firestore
-*   **Authentication**: Firebase Authentication
-*   **Form Handling**: React Hook Form + Zod
-*   **Data Fetching & Caching**: Next.js Server Actions, `unstable_cache`
-*   **Excel Parsing**: `xlsx` library
+-   **Framework**: Next.js (App Router)
+-   **Language**: TypeScript
+-   **UI**: React, ShadCN UI, Tailwind CSS
+-   **AI Integration**: Genkit (with Google Gemini models)
+-   **Database**: Firebase Firestore
+-   **Authentication**: Firebase Authentication
+-   **Form Handling**: React Hook Form + Zod
+-   **Data Fetching & Caching**: Next.js Server Actions, `unstable_cache`
+-   **Excel Parsing**: `xlsx` library
 
 ## 🤝 Contributing
 
@@ -62,10 +67,10 @@ Follow these instructions to set up and run the project locally.
 
 ### Prerequisites
 
-*   Node.js (v18 or later recommended)
-*   npm or yarn
-*   A Firebase project
-*   A Google Cloud project with access to Generative AI models (e.g., Gemini via Google AI Studio or Vertex AI)
+-   Node.js (v18 or later recommended)
+-   npm or yarn
+-   A Firebase project
+-   A Google Cloud project with access to Generative AI models (e.g., Gemini via Google AI Studio or Vertex AI)
 
 ### 1. Clone the Repository
 
@@ -88,17 +93,17 @@ npm install
 2.  Create a new Firebase project or select an existing one.
 3.  In your project, enable **Firestore Database**. Create it in **Production mode** and choose a region.
 4.  Enable **Firebase Authentication**.
-    *   Navigate to the "Authentication" section.
-    *   Go to the "Sign-in method" tab.
-    *   Enable the **Email/Password** provider.
+    -   Navigate to the "Authentication" section.
+    -   Go to the "Sign-in method" tab.
+    -   Enable the **Email/Password** provider.
 5.  From your Firebase project settings (Project Overview > Project settings > General tab), find your web app's Firebase configuration (API Key, Auth Domain, Project ID, etc.).
 
 ### 4. Set Up Google Generative AI
 
 1.  Go to [Google AI Studio](https://aistudio.google.com/) or your Google Cloud Console.
 2.  Obtain an API key for the Generative AI models (e.g., Gemini).
-    *   In Google AI Studio: Click "Get API key" > "Create API key in new project" (or existing).
-    *   In Google Cloud Console: Ensure the "Vertex AI API" or "Generative Language API" is enabled, then create an API key under "APIs & Services" > "Credentials."
+    -   In Google AI Studio: Click "Get API key" > "Create API key in new project" (or existing).
+    -   In Google Cloud Console: Ensure the "Vertex AI API" or "Generative Language API" is enabled, then create an API key under "APIs & Services" > "Credentials."
 3.  **Important**: Treat this API key as a secret.
 
 ### 5. Configure Environment Variables
@@ -118,6 +123,7 @@ npm install
     # Google Generative AI API Key
     GOOGLE_API_KEY=your_google_generative_ai_api_key
     ```
+
     Replace the `your_...` placeholders with your actual credentials.
     **Ensure `.env.local` is added to your `.gitignore` file to prevent committing secrets.**
 
@@ -163,6 +169,7 @@ service cloud.firestore {
   }
 }
 ```
+
 Click **Publish** to save your rules. **Review and tighten these rules for a production environment according to your security needs.**
 
 ### 7. Seed the Database (Optional but Recommended)
@@ -170,11 +177,13 @@ Click **Publish** to save your rules. **Review and tighten these rules for a pro
 The project includes a seed script (`src/lib/seed.ts`) to populate your Firestore database with initial company and problem data. This is helpful for quickly getting started and testing features.
 
 To run the seed script:
+
 1.  The seed script is currently designed to be run manually or adapted. One way is to temporarily add a button in a development page that calls the `seedDatabase` function.
 2.  Alternatively, you can adapt it into a standalone script:
-    *   Install `tsx` and `dotenv`: `npm install --save-dev tsx dotenv`
-    *   Uncomment the `main` function call at the bottom of `src/lib/seed.ts`.
-    *   Run: `npm run seed` (add `"seed": "tsx src/lib/seed.ts"` to your `package.json` scripts).
+
+    -   Install `tsx` and `dotenv`: `npm install --save-dev tsx dotenv`
+    -   Uncomment the `main` function call at the bottom of `src/lib/seed.ts`.
+    -   Run: `npm run seed` (add `"seed": "tsx src/lib/seed.ts"` to your `package.json` scripts).
 
     **Note**: The seed script checks if collections are empty before seeding. It uses specific IDs for companies to ensure problem data links correctly.
 
@@ -185,16 +194,19 @@ npm run dev
 # or
 # yarn dev
 ```
+
 Your application should now be running on `http://localhost:9002` (or another port if 9002 is busy).
 
 ### 9. Genkit Development Server (for AI features)
 
 To see AI flow traces and debug AI features locally, run the Genkit development UI in a separate terminal:
+
 ```bash
 npm run genkit:dev
 # or if you prefer with watch mode for AI flow changes:
 # npm run genkit:watch
 ```
+
 This will typically start the Genkit UI on `http://localhost:4000`.
 
 ## 🤝 Contributing
