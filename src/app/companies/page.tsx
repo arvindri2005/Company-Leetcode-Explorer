@@ -1,8 +1,8 @@
-
 import CompanyList from '@/components/company/company-list';
 import { getCompanies } from '@/lib/data';
 import { Separator } from '@/components/ui/separator';
 import type { Metadata } from 'next';
+import { cache } from 'react';
 
 const ITEMS_PER_PAGE = 9;
 // Define a base URL, ideally from an environment variable
@@ -72,6 +72,25 @@ export async function generateMetadata({ searchParams }: CompaniesPageProps): Pr
   };
 }
 
+// Add this near the top of the file, before the page component
+export const revalidate = 3600; // revalidate every hour
+
+// Add this if you want to specify dynamic segments that should be cached
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-cache';
+
+// Cache the getCompanies function
+const getCompaniesWithCache = cache(async ({ page, pageSize, searchTerm }: { 
+  page: number; 
+  pageSize: number; 
+  searchTerm: string; 
+}) => {
+  return getCompanies({
+    page,
+    pageSize,
+    searchTerm
+  });
+});
 
 export default async function CompaniesPage({ searchParams }: CompaniesPageProps) {
   const initialPage = 1;
@@ -82,7 +101,7 @@ export default async function CompaniesPage({ searchParams }: CompaniesPageProps
     totalPages,
     currentPage,
     totalCompanies
-  } = await getCompanies({
+  } = await getCompaniesWithCache({
     page: initialPage,
     pageSize: ITEMS_PER_PAGE,
     searchTerm
@@ -140,4 +159,3 @@ export default async function CompaniesPage({ searchParams }: CompaniesPageProps
   );
 }
 
-    

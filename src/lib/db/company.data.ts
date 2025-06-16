@@ -1,4 +1,3 @@
-
 import type { Company, LastAskedPeriod, LeetCodeProblem } from "@/types";
 import { db } from "@/lib/firebase";
 import {
@@ -15,6 +14,7 @@ import {
     FieldValue,
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
+import { headers } from "next/headers";
 
 interface GetCompaniesParams {
     page?: number;
@@ -29,7 +29,9 @@ interface PaginatedCompaniesResponse {
     currentPage: number;
 }
 
-function mapFirestoreDocToCompany(docSnap: import("firebase/firestore").DocumentSnapshot): Company {
+function mapFirestoreDocToCompany(
+    docSnap: import("firebase/firestore").DocumentSnapshot
+): Company {
     const data = docSnap.data()!;
     const company: Company = {
         id: docSnap.id,
@@ -40,14 +42,33 @@ function mapFirestoreDocToCompany(docSnap: import("firebase/firestore").Document
         description: data.description,
         website: data.website,
         problemCount: data.problemCount || 0,
-        difficultyCounts: data.difficultyCounts || { Easy: 0, Medium: 0, Hard: 0 },
-        recencyCounts: data.recencyCounts || { last_30_days: 0, within_3_months: 0, within_6_months: 0, older_than_6_months: 0 },
+        difficultyCounts: data.difficultyCounts || {
+            Easy: 0,
+            Medium: 0,
+            Hard: 0,
+        },
+        recencyCounts: data.recencyCounts || {
+            last_30_days: 0,
+            within_3_months: 0,
+            within_6_months: 0,
+            older_than_6_months: 0,
+        },
         commonTags: data.commonTags || [],
-        statsLastUpdatedAt: data.statsLastUpdatedAt instanceof Timestamp ? data.statsLastUpdatedAt.toDate() : undefined,
+        statsLastUpdatedAt:
+            data.statsLastUpdatedAt instanceof Timestamp
+                ? data.statsLastUpdatedAt.toDate()
+                : undefined,
     };
     return company;
 }
 
+const setCacheHeaders = () => {
+    const headersList = headers();
+    headersList.set(
+        "Cache-Control",
+        "public, s-maxage=3600, stale-while-revalidate=7200"
+    );
+};
 
 async function fetchAllCompaniesFromFirestore(
     currentSearchTerm?: string
@@ -68,11 +89,12 @@ async function fetchAllCompaniesFromFirestore(
     return querySnapshot.docs.map(mapFirestoreDocToCompany);
 }
 
-export const getCompanies = async ({
+export async function getCompanies({
     page = 1,
     pageSize = 9,
     searchTerm,
-}: GetCompaniesParams = {}): Promise<PaginatedCompaniesResponse> => {
+}: GetCompaniesParams = {}): Promise<PaginatedCompaniesResponse> {
+    setCacheHeaders();
     try {
         let baseCompaniesList = await fetchAllCompaniesFromFirestore(
             searchTerm?.trim()
@@ -83,7 +105,7 @@ export const getCompanies = async ({
             const lowercasedSearchTerm = searchTerm.toLowerCase().trim();
             // Refetch all if search term exists, then filter locally (as Firestore doesn't support OR on different fields well)
             filteredCompanies = (
-                await fetchAllCompaniesFromFirestore(undefined) 
+                await fetchAllCompaniesFromFirestore(undefined)
             ).filter(
                 (company) =>
                     (company.normalizedName &&
@@ -121,7 +143,7 @@ export const getCompanies = async ({
             currentPage: 1,
         };
     }
-};
+}
 
 async function fetchCompanyByIdFromFirestore(
     companyId?: string
@@ -202,7 +224,16 @@ export const getAllCompanySlugs = async (): Promise<string[]> => {
 };
 
 export const addCompanyToDb = async (
-    companyData: Omit<Company, "id" | "slug" | "problemCount" | "difficultyCounts" | "recencyCounts" | "commonTags" | "statsLastUpdatedAt">
+    companyData: Omit<
+        Company,
+        | "id"
+        | "slug"
+        | "problemCount"
+        | "difficultyCounts"
+        | "recencyCounts"
+        | "commonTags"
+        | "statsLastUpdatedAt"
+    >
 ): Promise<{ id: string | null; error?: string; alreadyExists?: boolean }> => {
     try {
         const companySlug = slugify(companyData.name);
@@ -223,20 +254,27 @@ export const addCompanyToDb = async (
         }
 
         const companiesCol = collection(db, "companies");
-        const dataForFirestore: Omit<Company, 'id'> & {statsLastUpdatedAt?: FieldValue | null} = {
+        const dataForFirestore: Omit<Company, "id"> & {
+            statsLastUpdatedAt?: FieldValue | null;
+        } = {
             ...companyData,
             slug: companySlug,
             normalizedName: normalizedName,
             problemCount: 0,
             difficultyCounts: { Easy: 0, Medium: 0, Hard: 0 },
-            recencyCounts: { last_30_days: 0, within_3_months: 0, within_6_months: 0, older_than_6_months: 0 },
+            recencyCounts: {
+                last_30_days: 0,
+                within_3_months: 0,
+                within_6_months: 0,
+                older_than_6_months: 0,
+            },
             commonTags: [],
             statsLastUpdatedAt: undefined, // Let the admin action populate this
         };
         if (companyData.logo === undefined) delete dataForFirestore.logo;
-        if (companyData.description === undefined) delete dataForFirestore.description;
+        if (companyData.description === undefined)
+            delete dataForFirestore.description;
         if (companyData.website === undefined) delete dataForFirestore.website;
-        
 
         const docRef = await addDoc(companiesCol, dataForFirestore);
         return { id: docRef.id };
@@ -249,5 +287,3 @@ export const addCompanyToDb = async (
         return { id: null, error: message };
     }
 };
-
-    
