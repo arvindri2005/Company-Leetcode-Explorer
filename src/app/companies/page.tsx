@@ -4,6 +4,9 @@ import { Separator } from '@/components/ui/separator';
 import type { Metadata } from 'next';
 import { cache } from 'react';
 
+export const dynamic = 'force-static';
+export const revalidate = 3600; // Revalidate every hour
+
 const ITEMS_PER_PAGE = 9;
 // Define a base URL, ideally from an environment variable
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
@@ -72,19 +75,11 @@ export async function generateMetadata({ searchParams }: CompaniesPageProps): Pr
   };
 }
 
-// Add this near the top of the file, before the page component
-export const revalidate = 3600; // revalidate every hour
-
 // Add this if you want to specify dynamic segments that should be cached
-export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-cache';
 
 // Cache the getCompanies function
-const getCompaniesWithCache = cache(async ({ page, pageSize, searchTerm }: { 
-  page: number; 
-  pageSize: number; 
-  searchTerm: string; 
-}) => {
+const getCompaniesWithCache = cache(async (page: number, pageSize: number, searchTerm: string) => {
   return getCompanies({
     page,
     pageSize,
@@ -101,11 +96,7 @@ export default async function CompaniesPage({ searchParams }: CompaniesPageProps
     totalPages,
     currentPage,
     totalCompanies
-  } = await getCompaniesWithCache({
-    page: initialPage,
-    pageSize: ITEMS_PER_PAGE,
-    searchTerm
-  });
+  } = await getCompaniesWithCache(initialPage, ITEMS_PER_PAGE, searchTerm);
 
   const pageSubtitle = searchTerm
     ? `Found ${totalCompanies} compan${totalCompanies === 1 ? 'y' : 'ies'} matching "${searchTerm}".`

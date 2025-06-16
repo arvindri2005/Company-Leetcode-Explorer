@@ -14,7 +14,6 @@ import {
     FieldValue,
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
-import { headers } from "next/headers";
 
 interface GetCompaniesParams {
     page?: number;
@@ -62,14 +61,6 @@ function mapFirestoreDocToCompany(
     return company;
 }
 
-const setCacheHeaders = () => {
-    const headersList = headers();
-    headersList.set(
-        "Cache-Control",
-        "public, s-maxage=3600, stale-while-revalidate=7200"
-    );
-};
-
 async function fetchAllCompaniesFromFirestore(
     currentSearchTerm?: string
 ): Promise<Company[]> {
@@ -94,7 +85,6 @@ export async function getCompanies({
     pageSize = 9,
     searchTerm,
 }: GetCompaniesParams = {}): Promise<PaginatedCompaniesResponse> {
-    setCacheHeaders();
     try {
         let baseCompaniesList = await fetchAllCompaniesFromFirestore(
             searchTerm?.trim()
