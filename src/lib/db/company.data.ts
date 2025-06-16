@@ -14,7 +14,7 @@ import {
     FieldValue,
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
-import { triggerCompaniesRevalidation } from '@/app/actions/admin.actions';
+import { triggerCompaniesRevalidation } from "@/app/actions/admin.actions";
 
 interface GetCompaniesParams {
     page?: number;
@@ -218,7 +218,7 @@ async function revalidateCompaniesPage() {
     try {
         await triggerCompaniesRevalidation();
     } catch (error) {
-        console.error('Failed to revalidate companies page:', error);
+        console.error("Failed to revalidate companies page:", error);
     }
 }
 

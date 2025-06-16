@@ -1,4 +1,3 @@
-
 import { getCompanyBySlug, getProblemsByCompanyFromDb } from '@/lib/data';
 import type { Company, LeetCodeProblem, ProblemListFilters, PaginatedProblemsResponse } from '@/types';
 import ProblemList from '@/components/problem/problem-list';
@@ -48,412 +47,249 @@ export async function generateMetadata({ params }: CompanyPageProps): Promise<Me
     return {
       title: 'Company Not Found',
       description: 'The requested company page does not exist.',
+      robots: { index: false }
     };
   }
 
-  const problemCount = company.problemCount ?? 0;
-  
-  const title = `${company.name} - Coding Problems & Interview Prep (${problemCount} Problems) | Company Interview Problem Explorer`;
-  const description = `Explore ${company.name}'s coding interview questions, LeetCode style problems, common patterns, and AI-powered preparation strategies. ${problemCount} coding problems available for ${company.name}.`;
-  
-  let initialProblemDataForKeywords: LeetCodeProblem[] = [];
-  if (problemCount > 0 && (!company.commonTags || company.commonTags.length === 0)) {
-    // Fetching a small number of problems for keywords only if commonTags from stats are missing
-    const problemResults = await getProblemsByCompanyFromDb(company.id, { page: 1, pageSize: MAX_PROBLEMS_FOR_AI_FEATURES });
-    initialProblemDataForKeywords = problemResults.problems;
-  }
+  const problems = await getProblemsByCompanyFromDb(company.id);
+  const problemCount = problems?.total || 0;
 
+  const title = `${company.name} Interview Questions & Problems (${problemCount}+ Examples)`;
+  const description = `Prepare for ${company.name} technical interviews with ${problemCount}+ real coding questions and problems. Practice actual ${company.name} interview questions, get AI-powered insights, and learn problem-solving patterns specific to ${company.name}'s interview process.`;
 
-  const companyKeywords = [
-    company.name, 
-    `${company.name} interview questions`,
-    `${company.name} coding problems`,
-    `${company.name} LeetCode`,
-    'technical interview prep',
-    'software engineer interview',
-  ];
-  // Use company.commonTags if available and populated for keywords
-  const tagKeywordsFromStats = company.commonTags && company.commonTags.length > 0 
-    ? company.commonTags.map(ct => ct.tag)
-    : initialProblemDataForKeywords.flatMap(p => p.tags).filter(Boolean);
-    
-  const uniqueKeywords = Array.from(new Set([...companyKeywords, ...tagKeywordsFromStats])).slice(0, 15);
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    'name': `${company.name} Interview Questions`,
+    'description': description,
+    'numberOfItems': problemCount,
+    'itemListElement': problems?.items?.slice(0, 10).map((problem, index) => ({
+      '@type': 'Question',
+      'position': index + 1,
+      'name': problem.title,
+      'text': `${problem.title} - ${problem.difficulty} level coding problem from ${company.name} interviews`,
+    })) || [],
+    'about': {
+      '@type': 'Organization',
+      'name': company.name,
+      'image': company.logo || undefined,
+    }
+  };
 
-  const breadcrumbList = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
+  const faqStructuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    'mainEntity': [
       {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": `${APP_URL}/`
+        '@type': 'Question',
+        'name': `What kind of interview questions does ${company.name} ask?`,
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': `${company.name} typically asks coding problems focusing on data structures, algorithms, and system design. Our collection includes ${problemCount}+ verified ${company.name} interview questions across different difficulty levels.`
+        }
       },
       {
-        "@type": "ListItem",
-        "position": 2,
-        "name": "Companies",
-        "item": `${APP_URL}/companies`
-      },
-      {
-        "@type": "ListItem",
-        "position": 3,
-        "name": company.name,
-        "item": `${APP_URL}/company/${company.slug}`
+        '@type': 'Question',
+        'name': `How can I prepare for ${company.name} coding interviews?`,
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': `To prepare for ${company.name} interviews: 1) Practice our curated list of ${company.name}-specific coding problems, 2) Use our AI-powered mock interviews, 3) Study problem patterns common in ${company.name} interviews, 4) Review solution approaches and time complexity requirements.`
+        }
       }
     ]
   };
 
-  const organizationSchema = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": company.name,
-    "url": `${APP_URL}/company/${company.slug}`,
-    "logo": company.logo,
-    "description": `Find LeetCode style coding interview questions and preparation material for ${company.name}. ${company.description || ''}`,
-    ...(company.website && { "sameAs": [company.website] }),
-  };
-  
-  const profilePageSchema = {
-    "@context": "https://schema.org",
-    "@type": "ProfilePage", 
-    "mainEntity": organizationSchema,
-    "breadcrumb": breadcrumbList,
-    "name": title,
-    "description": description,
-    "url": `${APP_URL}/company/${company.slug}`,
-  };
-
-
   return {
     title,
     description,
-    keywords: uniqueKeywords,
-    alternates: {
-      canonical: `${APP_URL}/company/${company.slug}`,
-    },
+    keywords: [
+      `${company.name} interview questions`,
+      `${company.name} coding problems`,
+      `${company.name} technical interview`,
+      `${company.name} leetcode questions`,
+      `${company.name} programming interview`,
+      `${company.name} interview preparation`,
+      `${company.name} coding challenges`,
+      `${company.name} software engineer interview`,
+      `practice ${company.name} problems`,
+      `real ${company.name} interview questions`
+    ],
     openGraph: {
       title,
       description,
-      url: `${APP_URL}/company/${company.slug}`,
-      siteName: 'Company Interview Problem Explorer',
-      images: company.logo ? [{ url: company.logo, alt: `${company.name} logo` }] : [{ url: `${APP_URL}/icon.png`, alt: 'Company Interview Problem Explorer Logo' }],
-      type: 'profile', 
-      profile: {
-        username: company.slug, 
-      }
+      type: 'website',
+      url: `${APP_URL}/company/${params.companySlug}`,
+      images: company.logo ? [{ url: company.logo, alt: `${company.name} logo` }] : undefined,
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: company.logo ? [company.logo] : [`${APP_URL}/icon.png`],
+    },
+    alternates: {
+      canonical: `${APP_URL}/company/${params.companySlug}`
     },
     other: {
-       "script[type=\"application/ld+json\"]": JSON.stringify([profilePageSchema, breadcrumbList]), 
+      'script:ld+json': [
+        JSON.stringify(structuredData),
+        JSON.stringify(faqStructuredData)
+      ]
     }
   };
 }
 
-export default async function CompanyPage({ params, searchParams }: CompanyPageProps) {
+export default async function CompanyPage({
+  params,
+  searchParams,
+}: CompanyPageProps) {
+  const page = Number(searchParams?.page) || 1;
   const company = await getCompanyBySlug(params.companySlug);
 
   if (!company) {
     return (
-      <div className="min-h-[50vh] flex flex-col items-center justify-center text-center p-6">
-        <Building2 className="h-12 w-12 text-muted-foreground mb-3" />
-        <h1 className="text-xl font-semibold mb-2">Company Not Found</h1>
-        <p className="text-muted-foreground text-sm mb-4 max-w-sm">
-          The company you're looking for (slug: {params.companySlug}) doesn't exist or may have been removed.
-        </p>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/companies">
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Companies
-          </Link>
-        </Button>
-      </div>
+      <main className="container mx-auto px-4 py-8">
+        <div className="text-center space-y-4">
+          <h1 className="text-3xl font-bold">Company Not Found</h1>
+          <p className="text-muted-foreground">The requested company does not exist.</p>
+          <Button asChild>
+            <Link href="/companies">Browse All Companies</Link>
+          </Button>
+        </div>
+      </main>
     );
   }
 
-  // Fetch problems for AI features, capped at MAX_PROBLEMS_FOR_AI_FEATURES
-  const allProblemsForAIFeatures = await getProblemsByCompanyFromDb(company.id, { pageSize: MAX_PROBLEMS_FOR_AI_FEATURES });
-  
-  // Use company.problemCount for display if available, otherwise use the count of problems fetched for AI (which is capped)
-  // This ensures the displayed total reflects the actual number of problems, while AI features might operate on a subset.
-  const displayProblemCount = company.problemCount ?? allProblemsForAIFeatures.totalProblems;
-  
-  const initialPage = searchParams?.page ? parseInt(searchParams.page, 10) : 1;
-  const currentUser = auth.currentUser; 
-  
-  const initialFilters: ProblemListFilters = {
-    difficultyFilter: 'all',
-    lastAskedFilter: 'all',
-    statusFilter: 'all', 
-    searchTerm: '',
-    sortKey: 'title',
-  };
-
-  const initialPaginatedProblemsData = await fetchProblemsForCompanyPage({
-    companyId: company.id,
-    page: initialPage,
-    pageSize: INITIAL_ITEMS_PER_PAGE,
-    filters: initialFilters,
-    userId: currentUser?.uid, 
-  });
-  
-  let initialProblems: LeetCodeProblem[] = [];
-  let initialTotalPages = 1;
-  let initialCurrentPage = 1;
-  let initialProblemDataError: string | null = null;
-
-  if ('error' in initialPaginatedProblemsData) {
-    console.error("Error fetching initial problems for company page:", initialPaginatedProblemsData.error);
-    initialProblemDataError = initialPaginatedProblemsData.error;
-  } else {
-    initialProblems = initialPaginatedProblemsData.problems;
-    initialTotalPages = initialPaginatedProblemsData.totalPages;
-    initialCurrentPage = initialPaginatedProblemsData.currentPage;
-  }
-  
-  const hasProblemsForFeatures = displayProblemCount > 0;
-
+  const { items: problems, total: totalProblems } = await getProblemsByCompanyFromDb(company.id) || { items: [], total: 0 };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-4 max-w-6xl">
-        <div className="mb-4">
-          <nav className="flex items-center gap-1 text-xs text-muted-foreground mb-3">
-            <Link href="/" className="hover:text-foreground transition-colors">
-              Home
-            </Link>
-            <span>/</span>
-            <Link href="/companies" className="hover:text-foreground transition-colors">
-              Companies
-            </Link>
-            <span>/</span>
-            <span className="text-foreground font-medium truncate">{company.name}</span>
-          </nav>
-          <Button asChild variant="ghost" size="sm" className="mb-3 -ml-2">
-            <Link href="/companies">
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              <span className="hidden sm:inline">Back to Companies</span>
-            </Link>
-          </Button>
-        </div>
+    <main className="container mx-auto px-4 py-8">
+      {/* Company Header Section */}
+      <section className="mb-8">
+        <nav className="mb-4 flex items-center space-x-2 text-muted-foreground">
+          <Link href="/companies" className="hover:text-foreground">
+            Companies
+          </Link>
+          <ChevronLeft className="h-4 w-4" />
+          <span className="text-foreground">{company.name}</span>
+        </nav>
 
-        <Card className="mb-4">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
+        <div className="flex flex-col md:flex-row gap-6 items-start">
+          <div className="flex-grow space-y-4">
+            <div className="flex items-center gap-4">
               {company.logo ? (
                 <Image
                   src={company.logo}
                   alt={`${company.name} logo`}
-                  width={48}
-                  height={48}
-                  className="rounded-lg border bg-background p-1 flex-shrink-0"
-                  data-ai-hint={`${company.name} logo`}
+                  width={64}
+                  height={64}
+                  className="rounded-lg border"
                   priority
                 />
               ) : (
-                <div className="h-12 w-12 rounded-lg border bg-muted/50 flex items-center justify-center flex-shrink-0">
-                  <Building2 className="h-6 w-6 text-primary" />
+                <div className="w-16 h-16 rounded-lg border flex items-center justify-center bg-muted">
+                  <Building2 className="h-8 w-8 text-muted-foreground" />
                 </div>
               )}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h1 className="text-xl sm:text-2xl font-bold truncate">
-                    {company.name} Interview Problems
-                  </h1>
-                  {hasProblemsForFeatures && (
-                    <Badge variant="secondary" className="text-xs flex-shrink-0">
-                      {displayProblemCount} Problem{displayProblemCount !== 1 ? 's' : ''} Listed
-                    </Badge>
-                  )}
-                </div>
-                {company.description && (
-                  <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2 mb-2">
-                    {company.description}
-                  </p>
-                )}
-                <div className="flex items-center gap-3">
-                  {company.website && (
-                    <Link
-                      href={company.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                      Website
-                    </Link>
-                  )}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {initialProblemDataError && (
-          <Card className="my-4 border-destructive bg-destructive/10">
-            <CardHeader>
-              <CardTitle className="text-destructive flex items-center text-lg">
-                <AlertTriangle className="mr-2 h-5 w-5" />
-                Failed to Load Problems
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-destructive/90 text-sm">
-                We encountered an issue trying to load the problems for {company.name}.
-                This might be a temporary issue with our services or with accessing the data.
-              </p>
-              <p className="text-xs text-destructive/70 mt-2">Error details: {initialProblemDataError}</p>
-              <Button variant="outline" size="sm" className="mt-3" onClick={() => window.location.reload()}>
-                Try Refreshing
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {!initialProblemDataError && hasProblemsForFeatures ? (
-          <>
-            <div className="mb-4">
-              <Suspense fallback={<div className="animate-pulse h-36 bg-muted rounded-lg" />}>
-                <CompanyProblemStats 
-                  company={company} 
-                  problems={allProblemsForAIFeatures.problems} 
-                  totalProblemsCount={displayProblemCount} 
-                />
-              </Suspense>
-            </div>
-            <Tabs defaultValue="problems" className="w-full">
-              <div className="mb-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <TabsList className="grid w-full sm:w-auto grid-cols-4 h-9">
-                    <TabsTrigger value="problems" className="text-xs px-2">
-                      <BookOpen className="h-3 w-3 sm:mr-1" />
-                      <span className="hidden sm:inline">Problems</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="ai-grouping" className="text-xs px-2">
-                      <Brain className="h-3 w-3 sm:mr-1" />
-                      <span className="hidden sm:inline">AI Groups</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="flashcards" className="text-xs px-2">
-                      <Target className="h-3 w-3 sm:mr-1" />
-                      <span className="hidden sm:inline">Cards</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="strategy" className="text-xs px-2">
-                      <Users className="h-3 w-3 sm:mr-1" />
-                      <span className="hidden sm:inline">Strategy</span>
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
-              </div>
-
-              <TabsContent value="problems" className="mt-0">
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <BookOpen className="h-4 w-4" />
-                      Coding Interview Problems for {company.name}
-                      <Badge variant="outline" className="text-xs">{displayProblemCount}</Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <Suspense fallback={<div className="animate-pulse h-48 bg-muted rounded" />}>
-                       <ProblemList
-                        key={company.id}
-                        companyId={company.id}
-                        companySlug={company.slug}
-                        initialProblems={initialProblems}
-                        initialTotalPages={initialTotalPages}
-                        initialCurrentPage={initialCurrentPage}
-                        itemsPerPage={INITIAL_ITEMS_PER_PAGE}
-                        initialFilters={initialFilters}
-                      />
-                    </Suspense>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="ai-grouping" className="mt-0">
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <Brain className="h-4 w-4" />
-                      AI-Powered Problem Grouping for {company.name}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <Suspense fallback={<div className="animate-pulse h-48 bg-muted rounded" />}>
-                      <AIGroupingSection problems={allProblemsForAIFeatures.problems} companyName={company.name} companySlug={company.slug} />
-                    </Suspense>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="flashcards" className="mt-0">
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <Target className="h-4 w-4" />
-                      Study Flashcards for {company.name}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <Suspense fallback={<div className="animate-pulse h-48 bg-muted rounded" />}>
-                      <DynamicFlashcardGenerator companyId={company.id} companyName={company.name} companySlug={company.slug} />
-                    </Suspense>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="strategy" className="mt-0">
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <Users className="h-4 w-4" />
-                      Interview Strategy for {company.name}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <Suspense fallback={<div className="animate-pulse h-48 bg-muted rounded" />}>
-                      <CompanyStrategyGenerator companyId={company.id} companyName={company.name} companySlug={company.slug} />
-                    </Suspense>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </>
-        ) : (
-          !initialProblemDataError && ( 
-            <Card className="text-center py-8">
-              <CardContent>
-                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                <h2 className="text-lg font-semibold mb-2">No Problems Available for {company.name}</h2>
-                <p className="text-muted-foreground text-sm mb-4 max-w-sm mx-auto">
-                  We don't have coding problems for {company.name} yet. You can help by adding some!
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">{company.name} Interview Questions</h1>
+                <p className="text-xl text-muted-foreground">
+                  Practice {totalProblems} Real Interview Problems
                 </p>
-                <div className="flex flex-col sm:flex-row gap-2 justify-center max-w-xs mx-auto">
-                  <Button asChild variant="outline" size="sm" className="flex-1">
-                    <Link href="/companies">
-                      <ChevronLeft className="h-4 w-4 mr-1" />
-                      Browse Companies
-                    </Link>
-                  </Button>
-                  <Button asChild variant="secondary" size="sm" className="flex-1">
-                    <Link href={`/submit-problem?companyId=${company.id}&companyName=${encodeURIComponent(company.name)}`}>
-                      <PlusSquare className="h-4 w-4 mr-1" />
-                      Add Problem
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )
-        )}
-      </div>
-    </div>
+              </div>
+            </div>
+
+            <div className="prose max-w-none dark:prose-invert">
+              <p>
+                Prepare for your {company.name} technical interview with our comprehensive collection 
+                of coding problems. These questions are carefully curated from real {company.name} interviews, 
+                covering various difficulty levels and topics frequently asked in their interview process.
+              </p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Total Problems</CardTitle>
+                  <CardDescription>{totalProblems} coding questions</CardDescription>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Mock Interviews</CardTitle>
+                  <CardDescription>AI-powered practice</CardDescription>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Success Rate</CardTitle>
+                  <CardDescription>Track your progress</CardDescription>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Difficulty</CardTitle>
+                  <CardDescription>All levels covered</CardDescription>
+                </CardHeader>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Interview Preparation Tips */}
+      <section className="mb-8">
+        <h2 className="text-2xl font-semibold mb-4">How to Prepare for {company.name} Interviews</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                Practice Strategically
+              </CardTitle>
+              <CardDescription>
+                Focus on {company.name}'s most frequently asked questions and their preferred problem types.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5" />
+                Use AI Mock Interviews
+              </CardTitle>
+              <CardDescription>
+                Get real interview experience with our AI interviewer specialized in {company.name}'s style.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                Learn Patterns
+              </CardTitle>
+              <CardDescription>
+                Understand common patterns in {company.name}'s interview questions to solve similar problems.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+      </section>
+
+      {/* Problem List Section */}
+      <section className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-semibold">Practice Problems</h2>
+        </div>
+        <Suspense fallback={<div>Loading problems...</div>}>
+          <ProblemList
+            companyId={company.id}
+            initialPage={page}
+            itemsPerPage={INITIAL_ITEMS_PER_PAGE}
+          />
+        </Suspense>
+      </section>
+    </main>
   );
 }
 

@@ -26,11 +26,11 @@ interface CompaniesPageProps {
 export async function generateMetadata({ searchParams }: CompaniesPageProps): Promise<Metadata> {
   const searchTerm = searchParams?.search || '';
   const pageTitle = searchTerm 
-    ? `Search Results for "${searchTerm}" | Company Interview Problem Explorer` 
-    : 'Explore Companies & Interview Problems | Company Interview Problem Explorer';
+    ? `${searchTerm} LeetCode Interview Questions | Company-wise Problems` 
+    : 'LeetCode Problems by Company | Company-wise Coding Interview Questions';
   const pageDescription = searchTerm
-    ? `Find companies matching "${searchTerm}" and their associated coding interview problems.`
-    : 'Browse, search, and filter companies to find coding problems frequently asked in their technical interviews. Prepare effectively for your next coding interview.';
+    ? `Explore ${searchTerm} coding interview questions from LeetCode. Find company-specific problems, difficulty levels, and interview patterns to prepare effectively.`
+    : 'Browse LeetCode problems organized by company. Find coding interview questions from top tech companies like Google, Amazon, Meta, and Microsoft. Comprehensive collection of company-wise programming problems with solutions.';
 
   const breadcrumbList = {
     "@context": "https://schema.org",
@@ -45,36 +45,75 @@ export async function generateMetadata({ searchParams }: CompaniesPageProps): Pr
       {
         "@type": "ListItem",
         "position": 2,
-        "name": "Companies",
+        "name": "Company-wise LeetCode Problems",
         "item": `${APP_URL}/companies`
       }
     ]
   };
-  if (searchTerm) {
-    breadcrumbList.itemListElement.push({
+
+  const itemList = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "Company-wise LeetCode Problems",
+    "description": "Comprehensive collection of coding interview problems organized by company",
+    "url": `${APP_URL}/companies`,
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Google LeetCode Problems",
+        "url": `${APP_URL}/company/google`
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Amazon LeetCode Problems",
+        "url": `${APP_URL}/company/amazon`
+      },
+      {
         "@type": "ListItem",
         "position": 3,
-        "name": `Search: "${searchTerm}"`,
-        "item": `${APP_URL}/companies?search=${encodeURIComponent(searchTerm)}`
-      });
-  }
-
+        "name": "Meta LeetCode Problems",
+        "url": `${APP_URL}/company/meta`
+      }
+    ]
+  };
 
   return {
     title: pageTitle,
     description: pageDescription,
+    keywords: [
+      'LeetCode company problems',
+      'company-wise coding questions',
+      'tech company interview problems',
+      'FAANG coding questions',
+      'Google interview problems',
+      'Amazon coding questions',
+      'Meta interview preparation',
+      'Microsoft coding problems',
+      'company specific leetcode',
+      'coding interview preparation'
+    ],
+    alternates: {
+      canonical: `${APP_URL}/companies`
+    },
     openGraph: {
       title: pageTitle,
       description: pageDescription,
-      url: `${APP_URL}/companies${searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : ''}`,
-      type: 'website', // Use 'website' for main listing and search results
-      images: [{ url: `${APP_URL}/icon.png`, alt: 'Company Interview Problem Explorer Logo' }],
+      url: `${APP_URL}/companies`,
+      type: 'website',
+      siteName: 'Company Interview Problem Explorer',
     },
-    alternates: {
-      canonical: `${APP_URL}/companies${searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : ''}`,
+    twitter: {
+      card: 'summary_large_image',
+      title: pageTitle,
+      description: pageDescription,
     },
     other: {
-      "script[type=\"application/ld+json\"]": JSON.stringify(breadcrumbList),
+      'script:ld+json': [
+        JSON.stringify(breadcrumbList),
+        JSON.stringify(itemList)
+      ]
     }
   };
 }
@@ -91,66 +130,51 @@ const getCompaniesWithCache = cache(async (page: number, pageSize: number, searc
   });
 });
 
-export default async function CompaniesPage({ searchParams }: CompaniesPageProps) {
-  const initialPage = 1;
+export default async function CompaniesPage({
+  searchParams,
+}: CompaniesPageProps) {
+  const page = Number(searchParams?.page) || 1;
   const searchTerm = searchParams?.search || '';
-
-  const {
-    companies: initialCompanies,
-    totalPages,
-    currentPage,
-    totalCompanies
-  } = await getCompaniesWithCache(initialPage, ITEMS_PER_PAGE, searchTerm);
-
-  const pageSubtitle = searchTerm
-    ? `Found ${totalCompanies} compan${totalCompanies === 1 ? 'y' : 'ies'} matching "${searchTerm}".`
-    : `Displaying ${initialCompanies.length > 0 ? 'companies' : 'no companies'}${totalCompanies > 0 ? ` out of ${totalCompanies} total.` : '.'} Scroll down to load more.`;
+  const companies = await getCompanies(page, searchTerm);
 
   return (
-    <div className="min-h-screen w-full">
-      {/* Main container with responsive padding */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
-        <section className="space-y-6 sm:space-y-8 lg:space-y-10">
-          
-          {/* Header section - Responsive typography and spacing */}
-          <div className="text-center sm:text-left space-y-3 sm:space-y-4">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-tight">
-              <span className="block sm:inline">Explore Companies</span>
-              <span className="block sm:inline text-primary"> & Their Interview Problems</span>
-            </h1>
-            
-            <div className="max-w-4xl mx-auto sm:mx-0">
-              <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground leading-relaxed">
-                {pageSubtitle}
-              </p>
-              
-              {/* Additional context for mobile users */}
-              <p className="mt-2 text-xs sm:text-sm text-muted-foreground/80 block sm:hidden">
-                Tap on any company to view their interview problems
-              </p>
-            </div>
+    <main className="container mx-auto px-4 py-8">
+      <section className="space-y-6">
+        <div className="flex flex-col space-y-4">
+          <h1 className="text-4xl font-bold tracking-tight">
+            LeetCode Problems by Company
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-[800px]">
+            Explore our comprehensive collection of coding interview questions organized by company. 
+            Find problems commonly asked at top tech companies like Google, Amazon, Meta, and Microsoft. 
+            Practice with real interview questions and improve your problem-solving skills.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4">
+          <div className="bg-muted/50 p-4 rounded-lg">
+            <h2 className="text-xl font-semibold mb-2">Why Practice Company-Specific Problems?</h2>
+            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+              <li>Companies often reuse or ask variations of their favorite problems</li>
+              <li>Learn company-specific patterns and coding style preferences</li>
+              <li>Focus your preparation on problems that matter for your target companies</li>
+              <li>Track your progress with company-wise problem statistics</li>
+            </ul>
           </div>
+        </div>
 
-          {/* Responsive separator */}
-          <Separator className="my-6 sm:my-8" />
-
-          {/* Company List */}
-          <div className="w-full">
-            <CompanyList
-              key={searchTerm} // Add key prop here
-              initialCompanies={initialCompanies}
-              initialSearchTerm={searchTerm}
-              initialTotalPages={totalPages}
-              itemsPerPage={ITEMS_PER_PAGE}
-            />
-          </div>
-
-          {/* Footer spacing for mobile scroll comfort */}
-          <div className="h-4 sm:h-6 lg:h-8" />
-          
-        </section>
-      </div>
-    </div>
+        <Separator className="my-6" />
+        
+        <div className="space-y-8">
+          <CompanyList
+            initialCompanies={companies.items}
+            initialSearchTerm={searchTerm}
+            initialTotalPages={companies.totalPages}
+            itemsPerPage={ITEMS_PER_PAGE}
+          />
+        </div>
+      </section>
+    </main>
   );
 }
 

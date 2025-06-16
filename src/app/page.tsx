@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, Bot, Brain, CheckSquare, BarChart3, Search, Sparkles, BookOpenCheck, FileSpreadsheet, Palette, Users, PlusSquare } from 'lucide-react';
@@ -110,22 +109,58 @@ const DynamicCallToAction = dynamic(
 );
 
 
-export default function ShowcasePage() {
+export default function HomePage() {
   return (
-    <div className="space-y-16 py-8">
+    <main className="container mx-auto px-4 py-8 space-y-12">
       {/* Hero Section */}
-      <section className="text-center py-12 bg-gradient-to-br from-primary/10 via-background to-accent/10 rounded-xl shadow-inner">
-        <div className="container mx-auto px-4">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 text-primary">
-            Company LeetCode Interview Question Explorer
-          </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Your AI-powered hub for targeted LeetCode-style coding interview preparation. Explore company-specific problems, practice with AI, and track your progress.
-          </p>
-          <Button asChild size="lg" className="group text-lg px-8 py-6 shadow-md hover:shadow-lg transition-shadow">
+      <section className="text-center space-y-6 py-12">
+        <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
+          Master Your Tech Interviews with
+          <span className="text-primary block">Company-Specific LeetCode Practice</span>
+        </h1>
+        <p className="mx-auto max-w-[700px] text-lg text-muted-foreground">
+          Practice coding problems from top tech companies, get AI-powered insights, and prepare effectively for your next interview.
+        </p>
+        <div className="flex flex-wrap justify-center gap-4">
+          <Button asChild size="lg">
             <Link href="/companies">
-              Explore Companies Now
-              <Search className="ml-2 h-5 w-5 group-hover:scale-110 transition-transform" />
+              Browse Company Problems
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+          </Button>
+        </div>
+      </section>
+
+      {/* Featured Companies Section */}
+      <section className="space-y-6">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold tracking-tight">
+            Popular Company Problems
+          </h2>
+          <p className="text-muted-foreground mt-2">
+            Practice with carefully curated problems from leading tech companies
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {['Google', 'Amazon', 'Meta', 'Microsoft'].map((company) => (
+            <Card key={company} className="hover:shadow-lg transition-all">
+              <Link href={`/companies?search=${company}`} className="block p-6">
+                <h3 className="text-lg font-semibold">
+                  {company} <span className="text-muted-foreground">Problems</span>
+                </h3>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Practice {company} interview questions
+                </p>
+                <ArrowRight className="mt-4 h-5 w-5 text-primary" />
+              </Link>
+            </Card>
+          ))}
+        </div>
+        <div className="text-center mt-8">
+          <Button asChild variant="outline">
+            <Link href="/companies">
+              View All Companies
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
         </div>
@@ -133,6 +168,6 @@ export default function ShowcasePage() {
 
       <DynamicFeaturesGrid />
       <DynamicCallToAction />
-    </div>
+    </main>
   );
 }

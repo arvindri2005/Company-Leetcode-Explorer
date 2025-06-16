@@ -27,7 +27,7 @@ export function useCompaniesCache() {
     useEffect(() => {
         const clearExpiredCache = () => {
             const now = Date.now();
-            setCache(prevCache => {
+            setCache((prevCache) => {
                 const newCache = { ...prevCache };
                 let hasChanges = false;
 

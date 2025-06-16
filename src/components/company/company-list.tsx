@@ -165,101 +165,94 @@ const CompanyList: React.FC<CompanyListProps> = ({
   }, []);
 
   return (
-    <div className="w-full mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-      <div className="space-y-4 sm:space-y-6 lg:space-y-8">
-        {/* Search Input and Suggestions Container */}
-        <div className="relative w-full max-w-2xl mx-auto" ref={suggestionsRef}>
+    <section aria-labelledby="company-list-heading" className="space-y-6">
+      <div className="flex flex-col space-y-4">
+        <h2 id="company-list-heading" className="sr-only">Browse Companies and Their Interview Problems</h2>
+        
+        <div className="relative">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground z-10" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              type="text"
-              placeholder="Search companies by name..."
+              type="search"
+              placeholder="Search companies (e.g., Google, Amazon, Meta...)"
               value={searchTermInput}
-              onChange={(e) => setSearchTermInput(e.target.value)}
-              onFocus={() => { if (suggestions.length > 0 || searchTermInput.trim().length > 0) setShowSuggestions(true);}}
-              className="w-full pl-9 sm:pl-10 pr-4 text-sm sm:text-base py-3 sm:py-4 lg:py-6 rounded-lg shadow-sm border-2 focus:border-primary transition-colors"
+              onChange={(e) => {
+                setSearchTermInput(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
+              className="pl-9"
+              aria-label="Search companies"
+              aria-describedby="search-description"
             />
-            {isLoadingSuggestions && (
-              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 animate-spin text-muted-foreground" />
-            )}
           </div>
-
-          {showSuggestions && searchTermInput.trim().length > 0 && (
-            <div className="absolute z-20 w-full mt-1 bg-card border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
-              {isLoadingSuggestions && suggestions.length === 0 ? (
-                <div className="p-3 text-center text-sm text-muted-foreground">Loading suggestions...</div>
-              ) : suggestions.length > 0 ? (
-                suggestions.map((suggestion) => (
-                  <div
-                    key={suggestion.id}
-                    className="flex items-center px-3 py-2.5 hover:bg-accent cursor-pointer text-sm"
-                    onMouseDown={(e) => { // Use onMouseDown to fire before input's onBlur
-                      e.preventDefault(); // Prevent input blur
-                      handleSuggestionClick(suggestion);
-                    }}
-                  >
-                    {suggestion.logo ? (
-                      <Image 
-                        src={suggestion.logo} 
-                        alt={`${suggestion.name} logo`} 
-                        width={24} 
-                        height={24} 
-                        className="h-6 w-6 rounded-sm mr-2.5 object-contain border"
-                        data-ai-hint={`${suggestion.name} logo`}
-                      />
-                    ) : (
-                      <div className="h-6 w-6 rounded-sm mr-2.5 bg-muted flex items-center justify-center border">
-                        <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                      </div>
-                    )}
-                    {suggestion.name}
-                  </div>
-                ))
-              ) : (
-                !isLoadingSuggestions && <div className="p-3 text-center text-sm text-muted-foreground">No companies found matching "{searchTermInput}".</div>
-              )}
+          <p id="search-description" className="sr-only">
+            Type to search for companies and their coding interview problems. Use arrow keys to navigate suggestions.
+          </p>
+          
+          {showSuggestions && suggestions.length > 0 && (
+            <div
+              ref={suggestionsRef}
+              className="absolute z-10 mt-1 w-full rounded-md bg-popover shadow-md"
+              role="listbox"
+              aria-label="Company suggestions"
+            >
+              {suggestions.map((company) => (
+                <button
+                  key={company.id}
+                  className="flex w-full items-center space-x-3 px-4 py-2 hover:bg-muted"
+                  role="option"
+                  onClick={() => handleSuggestionClick(company)}
+                >
+                  {company.logo ? (
+                    <Image
+                      src={company.logo}
+                      alt={`${company.name} logo`}
+                      width={24}
+                      height={24}
+                      className="rounded-sm"
+                    />
+                  ) : (
+                    <Building2 className="h-6 w-6 text-muted-foreground" />
+                  )}
+                  <span>{company.name}</span>
+                </button>
+              ))}
             </div>
-          )}
-        </div>
-
-        {/* Companies Grid - Fully Responsive */}
-        {displayedCompanies.length > 0 ? (
-          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
-            {displayedCompanies.map(company => (
-              <CompanyCard key={company.id} company={company} />
-            ))}
-          </div>
-        ) : (
-          !isLoadingMore && ( 
-            <div className="text-center py-8 sm:py-12 lg:py-16">
-              <p className="text-muted-foreground text-sm sm:text-base lg:text-lg">
-                {initialSearchTerm ? 'No companies found matching your search.' : 'No companies available.'}
-              </p>
-            </div>
-          )
-        )}
-
-        {/* Loading/End Indicator - Responsive */}
-        <div 
-          ref={loadMoreTriggerRef} 
-          className="h-8 sm:h-10 lg:h-12 flex items-center justify-center"
-        >
-          {isLoadingMore && (
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary" />
-              <span className="text-sm sm:text-base text-muted-foreground hidden sm:inline">
-                Loading more companies...
-              </span>
-            </div>
-          )}
-          {!isLoadingMore && !hasMore && displayedCompanies.length > 0 && (
-            <p className="text-muted-foreground text-sm sm:text-base lg:text-lg">
-              You've reached the end!
-            </p>
           )}
         </div>
       </div>
-    </div>
+
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {displayedCompanies.map((company) => (
+          <CompanyCard key={company.id} company={company} />
+        ))}
+      </div>
+
+      {/* Load more trigger */}
+      <div ref={loadMoreTriggerRef} className="h-10">
+        {isLoadingMore && (
+          <div className="flex justify-center">
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
+        )}
+      </div>
+
+      {!hasMore && displayedCompanies.length > 0 && (
+        <p className="text-center text-muted-foreground">
+          No more companies to load
+        </p>
+      )}
+
+      {displayedCompanies.length === 0 && !isLoadingMore && (
+        <div className="text-center space-y-2">
+          <p className="text-lg font-semibold">No companies found</p>
+          <p className="text-muted-foreground">
+            Try adjusting your search terms or browse our full list
+          </p>
+        </div>
+      )}
+    </section>
   );
 };
 

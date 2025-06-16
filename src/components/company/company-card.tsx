@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -15,6 +14,9 @@ interface CompanyCardProps {
 }
 
 const CompanyCardComponent: React.FC<CompanyCardProps> = ({ company }) => {
+  const problemCount = company.problemCount || 0;
+  const cardTitle = `${company.name} LeetCode Problems`;
+
   return (
     <Card className="hover:shadow-lg transition-all duration-300 flex flex-col h-full group">
       <CardHeader className="flex flex-col xs:flex-row items-start gap-3 p-3 sm:p-4 lg:p-5">
@@ -22,62 +24,67 @@ const CompanyCardComponent: React.FC<CompanyCardProps> = ({ company }) => {
           <div className="flex-shrink-0">
             <Image
               src={company.logo}
-              alt={`${company.name} logo`}
+              alt={`${company.name} company logo`}
               width={32}
               height={32}
               className="rounded-md border xs:w-8 xs:h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12"
-              data-ai-hint={`${company.name} logo`}
+              priority={true}
             />
           </div>
         )}
-        <div className="flex-1 min-w-0 w-full">
-          <CardTitle className="text-base sm:text-lg lg:text-xl truncate pr-2">
-            {company.name}
+        <div className="flex-grow min-w-0">
+          <CardTitle className="text-lg font-bold leading-tight truncate">
+            <Link href={`/company/${company.slug}`} className="hover:underline">
+              <span className="sr-only">Practice </span>
+              {cardTitle}
+            </Link>
           </CardTitle>
-          {company.description && (
-            <CardDescription className="mt-1 text-xs sm:text-sm line-clamp-2 lg:line-clamp-3 leading-relaxed">
-              {company.description}
-            </CardDescription>
-          )}
-           {typeof company.problemCount === 'number' && (
-            <p className="text-xs text-muted-foreground mt-1">
-              {company.problemCount} problem{company.problemCount !== 1 ? 's' : ''} listed
-            </p>
-          )}
+          <CardDescription className="line-clamp-2 mt-1">
+            {problemCount > 0 ? (
+              <>Practice {problemCount} coding interview questions commonly asked at {company.name} interviews.</>
+            ) : (
+              <>Explore coding interview questions from {company.name}'s technical interviews.</>
+            )}
+          </CardDescription>
         </div>
       </CardHeader>
-      
-      <CardContent className="flex-grow p-0" />
-      
-      <CardFooter className="flex flex-col gap-2 p-3 sm:p-4 lg:p-5 pt-2">
-        <div className="flex flex-col xs:flex-row gap-2 w-full">
-          {company.website && (
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="w-full xs:flex-1 group/btn text-xs sm:text-sm"
-            >
-              <Link href={company.website} target="_blank" rel="noopener noreferrer">
-                <span className="truncate">Website</span>
-                <ExternalLink className="ml-1 h-3 w-3 sm:h-3.5 sm:w-3.5 group-hover/btn:scale-105 transition-transform flex-shrink-0" />
-              </Link>
-            </Button>
+
+      <CardContent className="flex-grow p-3 sm:p-4 lg:p-5">
+        {company.description && (
+          <p className="text-sm text-muted-foreground line-clamp-3">
+            {company.description}
+          </p>
+        )}
+        <dl className="mt-3 grid grid-cols-2 gap-1 text-sm">
+          {problemCount > 0 && (
+            <>
+              <dt className="text-muted-foreground">Problem Count:</dt>
+              <dd className="font-medium">{problemCount}</dd>
+            </>
           )}
-          <Button
-            asChild
-            variant="default"
-            size="sm"
-            className={`w-full group/btn text-xs sm:text-sm ${
-              company.website ? 'xs:flex-1' : 'xs:w-full'
-            }`}
-          >
-            <Link href={`/company/${company.slug}`}>
-              <span className="truncate">View Problems</span>
-              <ArrowRight className="ml-1 h-3 w-3 sm:h-3.5 sm:w-3.5 group-hover/btn:translate-x-0.5 transition-transform flex-shrink-0" />
-            </Link>
-          </Button>
-        </div>
+          {company.averageDifficulty && (
+            <>
+              <dt className="text-muted-foreground">Avg. Difficulty:</dt>
+              <dd className="font-medium">{company.averageDifficulty}</dd>
+            </>
+          )}
+        </dl>
+      </CardContent>
+
+      <CardFooter className="p-3 sm:p-4 lg:p-5">
+        <Button
+          asChild
+          className="w-full group-hover:translate-x-1 transition-transform"
+          variant="default"
+        >
+          <Link href={`/company/${company.slug}`}>
+            <span>Practice Problems</span>
+            <ArrowRight className="ml-2 h-4 w-4" />
+            <span className="sr-only">
+              View all LeetCode problems for {company.name}
+            </span>
+          </Link>
+        </Button>
       </CardFooter>
     </Card>
   );
