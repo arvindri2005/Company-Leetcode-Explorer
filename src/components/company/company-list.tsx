@@ -81,7 +81,7 @@ const CompanyList: React.FC<CompanyListProps> = ({
         setHasMore(false);
       } else {
         setDisplayedCompanies(prev => [...prev, ...result.companies]);
-        setCurrentPage(nextPageToFetch);
+        setCurrentPage(prev => prev + 1);
         setHasMore(nextPageToFetch < result.totalPages);
         setTotalPages(result.totalPages);
       }
@@ -91,7 +91,7 @@ const CompanyList: React.FC<CompanyListProps> = ({
     } finally {
       setIsLoadingMore(false);
     }
-  }, [isLoadingMore, hasMore, currentPage, itemsPerPage, searchParams, fetchCompaniesWithCache]);
+  }, [isLoadingMore, hasMore, itemsPerPage, searchParams, fetchCompaniesWithCache]);
 
   // Effect for fetching suggestions when search input changes
   useEffect(() => {

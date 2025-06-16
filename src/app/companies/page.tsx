@@ -4,8 +4,12 @@ import { Separator } from '@/components/ui/separator';
 import type { Metadata } from 'next';
 import { cache } from 'react';
 
+// Use static rendering with custom cache behavior
 export const dynamic = 'force-static';
-export const revalidate = 3600; // Revalidate every hour
+// Enable static generation and caching
+export const preferredRegion = 'auto';
+// Disable automatic revalidation
+export const revalidate = false;
 
 const ITEMS_PER_PAGE = 9;
 // Define a base URL, ideally from an environment variable

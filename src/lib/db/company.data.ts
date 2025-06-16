@@ -14,6 +14,7 @@ import {
     FieldValue,
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
+import { triggerCompaniesRevalidation } from '@/app/actions/admin.actions';
 
 interface GetCompaniesParams {
     page?: number;
@@ -213,6 +214,15 @@ export const getAllCompanySlugs = async (): Promise<string[]> => {
     }
 };
 
+async function revalidateCompaniesPage() {
+    try {
+        await triggerCompaniesRevalidation();
+    } catch (error) {
+        console.error('Failed to revalidate companies page:', error);
+    }
+}
+
+// Update the addCompanyToDb function to trigger revalidation
 export const addCompanyToDb = async (
     companyData: Omit<
         Company,
@@ -267,6 +277,7 @@ export const addCompanyToDb = async (
         if (companyData.website === undefined) delete dataForFirestore.website;
 
         const docRef = await addDoc(companiesCol, dataForFirestore);
+        await revalidateCompaniesPage(); // Trigger revalidation after successful commit
         return { id: docRef.id };
     } catch (error) {
         const message =

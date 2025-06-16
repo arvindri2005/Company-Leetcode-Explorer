@@ -1,4 +1,3 @@
-
 'use server';
 
 import { doc, getDoc, collection, getDocs, updateDoc, serverTimestamp, writeBatch, query } from 'firebase/firestore';
@@ -115,4 +114,45 @@ export async function triggerAllCompanyProblemStatsUpdate(): Promise<{
   }
 }
 
-    
+/**
+ * Triggers a revalidation request to the specified path.
+ * @param path The path to revalidate.
+ * @returns {Promise<{ success: boolean; error?: string }>} Result of the revalidation request.
+ */
+export async function triggerRevalidation(path: string): Promise<{ success: boolean; error?: string }> {
+  const revalidationToken = process.env.REVALIDATION_TOKEN;
+  if (!revalidationToken) {
+    throw new Error('REVALIDATION_TOKEN is not set');
+  }
+
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/revalidate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        token: revalidationToken,
+        path
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to revalidate');
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Revalidation error:', error);
+    return { success: false, error: 'Failed to revalidate' };
+  }
+}
+
+/**
+ * Triggers revalidation for the companies page.
+ * @returns {Promise<{ success: boolean; error?: string }>} Result of the revalidation request.
+ */
+export async function triggerCompaniesRevalidation() {
+  return triggerRevalidation('/companies');
+}
+

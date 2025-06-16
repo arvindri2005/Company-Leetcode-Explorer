@@ -15,8 +15,10 @@ interface CompaniesCache {
     };
 }
 
-// Cache expiry time (5 minutes)
-const CACHE_EXPIRY = 5 * 60 * 1000;
+// Cache expiry time (30 minutes)
+const CACHE_EXPIRY = 30 * 60 * 1000;
+// Cleanup interval (10 minutes)
+const CLEANUP_INTERVAL = 10 * 60 * 1000;
 
 export function useCompaniesCache() {
     const [cache, setCache] = useState<CompaniesCache>({});
@@ -25,25 +27,25 @@ export function useCompaniesCache() {
     useEffect(() => {
         const clearExpiredCache = () => {
             const now = Date.now();
-            const newCache = { ...cache };
-            let hasChanges = false;
+            setCache(prevCache => {
+                const newCache = { ...prevCache };
+                let hasChanges = false;
 
-            Object.keys(newCache).forEach((key) => {
-                if (now - newCache[key].timestamp > CACHE_EXPIRY) {
-                    delete newCache[key];
-                    hasChanges = true;
-                }
+                Object.keys(newCache).forEach((key) => {
+                    if (now - newCache[key].timestamp > CACHE_EXPIRY) {
+                        delete newCache[key];
+                        hasChanges = true;
+                    }
+                });
+
+                return hasChanges ? newCache : prevCache;
             });
-
-            if (hasChanges) {
-                setCache(newCache);
-            }
         };
 
-        // Run cleanup every minute
-        const interval = setInterval(clearExpiredCache, 60 * 1000);
+        // Run cleanup every 10 minutes
+        const interval = setInterval(clearExpiredCache, CLEANUP_INTERVAL);
         return () => clearInterval(interval);
-    }, [cache]);
+    }, []);
 
     const getCacheKey = (
         page: number,
