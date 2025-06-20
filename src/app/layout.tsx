@@ -127,12 +127,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6342943619826199"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
+      <script 
+      async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6342943619826199"
+     crossorigin="anonymous">
+
+     </script>
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
