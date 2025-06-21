@@ -18,7 +18,7 @@ import StrategyListsSection from '@/components/profile/strategy-lists-section';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bookmark, CheckCircle2, Pencil, ListTodo, FolderKanban } from 'lucide-react';
-
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { signOut, updateProfile as updateFirebaseAuthProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
