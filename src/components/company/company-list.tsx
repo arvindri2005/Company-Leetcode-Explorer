@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Search, Loader2, Building2 } from 'lucide-react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useDebounce } from '@/hooks/use-debounce';
-import { useCompaniesCache } from '@/hooks/use-companies-cache';
 import { fetchCompanySuggestionsAction } from '@/app/actions';
 import Image from 'next/image';
 
@@ -16,14 +15,56 @@ interface Suggestion extends Pick<Company, 'id' | 'name' | 'slug' | 'logo'> {}
 interface CompanyListProps {
   initialCompanies: Company[];
   initialSearchTerm?: string;
-  initialTotalPages: number;
+  initialHasMore: boolean;
+  initialNextCursor?: string;
   itemsPerPage: number;
 }
+
+// Custom hook for cursor-based companies fetching
+const useCursorPagination = () => {
+  const fetchCompaniesWithCursor = useCallback(async (
+    cursor?: string, 
+    pageSize: number = 9, 
+    searchTerm?: string
+  ) => {
+    try {
+      const response = await fetch('/api/companies', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cursor,
+          pageSize,
+          searchTerm: searchTerm?.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+      return { 
+        companies: [], 
+        hasMore: false, 
+        nextCursor: undefined,
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      };
+    }
+  }, []);
+
+  return { fetchCompaniesWithCursor };
+};
 
 const CompanyList: React.FC<CompanyListProps> = ({ 
   initialCompanies, 
   initialSearchTerm = '',
-  initialTotalPages,
+  initialHasMore,
+  initialNextCursor,
   itemsPerPage,
 }) => {
   const [searchTermInput, setSearchTermInput] = useState(initialSearchTerm);
@@ -31,59 +72,64 @@ const CompanyList: React.FC<CompanyListProps> = ({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const debouncedSearchTerm = useDebounce(searchTermInput, 300);
+  
+  // Cursor-based pagination state
   const [displayedCompanies, setDisplayedCompanies] = useState<Company[]>(initialCompanies);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(initialTotalPages > 1);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(initialTotalPages);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [nextCursor, setNextCursor] = useState<string | undefined>(initialNextCursor);
+  
+  // Search suggestions state
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  
+  // Refs
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement>(null);
-  const { fetchCompaniesWithCache } = useCompaniesCache();
+  
+  // Custom hook for fetching
+  const { fetchCompaniesWithCursor } = useCursorPagination();
 
-  // Effect to reset displayed companies and pagination when initialCompanies or initialTotalPages change.
+  // Effect to reset displayed companies when initial data changes (due to search/navigation)
   useEffect(() => {
     setDisplayedCompanies(initialCompanies);
-    setCurrentPage(1);
-    setTotalPages(initialTotalPages);
-    setHasMore(initialTotalPages > 1);
+    setHasMore(initialHasMore);
+    setNextCursor(initialNextCursor);
     setIsLoadingMore(false);
-  }, [initialCompanies, initialTotalPages]);
+  }, [initialCompanies, initialHasMore, initialNextCursor]);
 
   const handleSuggestionClick = (suggestion: Suggestion) => {
     setSearchTermInput(suggestion.name);
     setShowSuggestions(false);
-    
-    const params = new URLSearchParams(searchParams.toString());
-    if (suggestion.name.trim()) {
-      params.set('search', suggestion.name.trim());
-    } else {
-      params.delete('search');
-    }
-    if(params.has('page')) params.delete('page');
-    
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    router.push(`/company/${suggestion.slug}`); 
   };
 
   const loadMoreCompanies = useCallback(async () => {
-    if (isLoadingMore || !hasMore) return;
+    if (isLoadingMore || !hasMore || !nextCursor) return;
 
     setIsLoadingMore(true);
-    const nextPageToFetch = currentPage + 1;
     const currentSearchQueryInUrl = searchParams.get('search') || '';
 
     try {
-      const result = await fetchCompaniesWithCache(nextPageToFetch, itemsPerPage, currentSearchQueryInUrl);
-      if ('error' in result) {
+      const result = await fetchCompaniesWithCursor(
+        nextCursor, 
+        itemsPerPage, 
+        currentSearchQueryInUrl
+      );
+      
+      if ('error' in result && result.error) {
         console.error("Error fetching more companies:", result.error);
         setHasMore(false);
       } else {
-        setDisplayedCompanies(prev => [...prev, ...result.companies]);
-        setCurrentPage(prev => prev + 1);
-        setHasMore(nextPageToFetch < result.totalPages);
-        setTotalPages(result.totalPages);
+        // Append new companies to existing ones, ensuring uniqueness by id
+        setDisplayedCompanies(prev => {
+          const existingIds = new Set(prev.map((c: Company) => c.id));
+          const newCompanies = (result.companies as Company[]).filter((c: Company) => !existingIds.has(c.id));
+          return [...prev, ...newCompanies];
+        });
+        setHasMore(result.hasMore);
+        setNextCursor(result.nextCursor);
       }
     } catch (e) {
       console.error("Exception fetching more companies:", e);
@@ -91,7 +137,7 @@ const CompanyList: React.FC<CompanyListProps> = ({
     } finally {
       setIsLoadingMore(false);
     }
-  }, [isLoadingMore, hasMore, itemsPerPage, searchParams, fetchCompaniesWithCache]);
+  }, [isLoadingMore, hasMore, nextCursor, itemsPerPage, searchParams, fetchCompaniesWithCursor]);
 
   // Effect for fetching suggestions when search input changes
   useEffect(() => {
@@ -129,7 +175,7 @@ const CompanyList: React.FC<CompanyListProps> = ({
     } else {
       params.delete('search');
     }
-    if(params.has('page')) params.delete('page');
+    // No page parameter needed for cursor-based pagination
     
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   }, [debouncedSearchTerm, router, pathname, searchParams, initialSearchTerm]);

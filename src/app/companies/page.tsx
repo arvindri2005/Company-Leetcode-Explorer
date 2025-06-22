@@ -15,7 +15,6 @@ const ITEMS_PER_PAGE = 9;
 // Define a base URL, ideally from an environment variable
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
 
-
 interface CompaniesPageProps {
   searchParams?: {
     page?: string; 
@@ -25,7 +24,9 @@ interface CompaniesPageProps {
 
 export async function generateMetadata({ searchParams }: CompaniesPageProps): Promise<Metadata> {
   // Await searchParams if it's a Promise (for Next.js dynamic route API)
-  const resolvedSearchParams = typeof searchParams?.then === 'function' ? await searchParams : searchParams;
+  const resolvedSearchParams = typeof (searchParams as any)?.then === "function"
+    ? await (searchParams as any)
+    : searchParams || {};
   const searchTerm = resolvedSearchParams?.search || '';
   const pageTitle = searchTerm 
     ? `Search Results for "${searchTerm}" | Company Interview Problem Explorer` 
@@ -61,7 +62,6 @@ export async function generateMetadata({ searchParams }: CompaniesPageProps): Pr
       });
   }
 
-
   return {
     title: pageTitle,
     description: pageDescription,
@@ -85,28 +85,27 @@ export async function generateMetadata({ searchParams }: CompaniesPageProps): Pr
 export const fetchCache = 'force-cache';
 
 // Cache the getCompanies function
-const getCompaniesWithCache = cache(async (page: number, pageSize: number, searchTerm: string) => {
+const getCompaniesWithCache = cache(async (pageSize: number, searchTerm: string) => {
   return getCompanies({
-    page,
     pageSize,
     searchTerm
   });
 });
 
 export default async function CompaniesPage({ searchParams }: CompaniesPageProps) {
-  const initialPage = 1;
   const searchTerm = searchParams?.search || '';
 
   const {
     companies: initialCompanies,
-    totalPages,
-    currentPage,
+    hasMore,
+    nextCursor,
     totalCompanies
-  } = await getCompaniesWithCache(initialPage, ITEMS_PER_PAGE, searchTerm);
+  } = await getCompaniesWithCache(ITEMS_PER_PAGE, searchTerm);
 
+  // Create a more accurate subtitle based on cursor pagination
   const pageSubtitle = searchTerm
-    ? `Found ${totalCompanies} compan${totalCompanies === 1 ? 'y' : 'ies'} matching "${searchTerm}".`
-    : `Displaying ${initialCompanies.length > 0 ? 'companies' : 'no companies'}${totalCompanies > 0 ? ` out of ${totalCompanies} total.` : '.'} Scroll down to load more.`;
+    ? `${initialCompanies.length > 0 ? `Showing ${initialCompanies.length}` : 'No'} compan${initialCompanies.length === 1 ? 'y' : 'ies'} matching "${searchTerm}".${hasMore ? ' Scroll down to load more.' : ''}`
+    : `${initialCompanies.length > 0 ? `Showing ${initialCompanies.length} companies` : 'No companies available'}.${hasMore ? ' Scroll down to load more.' : ''}`;
 
   return (
     <div className="min-h-screen w-full">
@@ -139,10 +138,11 @@ export default async function CompaniesPage({ searchParams }: CompaniesPageProps
           {/* Company List */}
           <div className="w-full">
             <CompanyList
-              key={searchTerm} // Add key prop here
+              key={searchTerm} // Add key prop here to force re-render on search change
               initialCompanies={initialCompanies}
               initialSearchTerm={searchTerm}
-              initialTotalPages={totalPages}
+              initialHasMore={hasMore}
+              initialNextCursor={nextCursor}
               itemsPerPage={ITEMS_PER_PAGE}
             />
           </div>
@@ -155,4 +155,3 @@ export default async function CompaniesPage({ searchParams }: CompaniesPageProps
     </div>
   );
 }
-
