@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { LeetCodeProblem, ProblemStatus, SimilarProblemDetail, GenerateProblemInsightsOutput } from '@/types';
@@ -401,11 +400,14 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
                         className="w-full font-medium"
                       >
                         <Link
-                          href={`/mock-interview/${problem.companySlug || companySlug}/${problem.slug}`}
+                          href={"#"}
                           className="flex items-center justify-center gap-2"
                           aria-disabled={isUserActionDisabled}
                           aria-label={`Start mock interview for ${problem.title}`}
-                          onClick={(e) => { if (isUserActionDisabled) { e.preventDefault(); redirectToLogin(); }}}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            toast({ title: 'Coming Soon', description: 'Mock interview feature is in development.', variant: 'default' });
+                          }}
                         >
                           <Bot className="h-4 w-4" />
                           <span className="hidden sm:inline">Mock Interview</span>

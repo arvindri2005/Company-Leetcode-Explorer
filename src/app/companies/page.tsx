@@ -24,7 +24,9 @@ interface CompaniesPageProps {
 }
 
 export async function generateMetadata({ searchParams }: CompaniesPageProps): Promise<Metadata> {
-  const searchTerm = searchParams?.search || '';
+  // Await searchParams if it's a Promise (for Next.js dynamic route API)
+  const resolvedSearchParams = typeof searchParams?.then === 'function' ? await searchParams : searchParams;
+  const searchTerm = resolvedSearchParams?.search || '';
   const pageTitle = searchTerm 
     ? `Search Results for "${searchTerm}" | Company Interview Problem Explorer` 
     : 'Explore Companies & Interview Problems | Company Interview Problem Explorer';
