@@ -4,23 +4,21 @@
 import type { LeetCodeProblem, ProblemListFilters, PaginatedProblemsResponse, ProblemStatus } from '@/types';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import ProblemCard from './problem-card';
-// import ProblemListControls from './problem-list-controls'; // Original import
 import { useAuth } from '@/contexts/auth-context';
-import { fetchProblemsForCompanyPage } from '@/app/actions/problem.actions';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useDebounce } from '@/hooks/use-debounce'; 
+import { useDebounce } from '@/hooks/use-debounce';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const ProblemListControls = dynamic(() => import('./problem-list-controls'), {
   loading: () => (
     <div className="mb-6 p-4 space-y-4 bg-card rounded-lg shadow">
-      <Skeleton className="h-10 w-full rounded-md" /> {/* Search Input Skeleton */}
+      <Skeleton className="h-10 w-full rounded-md" />
       <div className="flex flex-col sm:flex-row gap-4">
-        <Skeleton className="h-10 flex-1 rounded-md" /> {/* Filter Skeleton */}
-        <Skeleton className="h-10 flex-1 rounded-md" /> {/* Filter Skeleton */}
-        <Skeleton className="h-10 flex-1 rounded-md" /> {/* Sort Skeleton */}
+        <Skeleton className="h-10 flex-1 rounded-md" />
+        <Skeleton className="h-10 flex-1 rounded-md" />
+        <Skeleton className="h-10 flex-1 rounded-md" />
       </div>
     </div>
   ),
@@ -30,8 +28,8 @@ interface ProblemListProps {
   companyId: string;
   companySlug: string;
   initialProblems: LeetCodeProblem[];
-  initialTotalPages: number;
-  initialCurrentPage: number;
+  initialHasMore: boolean;
+  initialNextCursor?: string;
   itemsPerPage: number;
   initialFilters: ProblemListFilters;
 }
@@ -40,8 +38,8 @@ const ProblemList: React.FC<ProblemListProps> = ({
   companyId,
   companySlug,
   initialProblems,
-  initialTotalPages,
-  initialCurrentPage,
+  initialHasMore,
+  initialNextCursor,
   itemsPerPage,
   initialFilters,
 }) => {
@@ -53,71 +51,79 @@ const ProblemList: React.FC<ProblemListProps> = ({
   const debouncedSearchTerm = useDebounce(searchInput, 500);
 
   const [displayedProblems, setDisplayedProblems] = useState<LeetCodeProblem[]>(initialProblems);
-  const [currentPage, setCurrentPage] = useState(initialCurrentPage);
-  const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(initialCurrentPage < initialTotalPages);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [nextCursor, setNextCursor] = useState<string | undefined>(initialNextCursor);
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
 
-  // Effect to synchronize props to state when initial props change
   useEffect(() => {
     setDisplayedProblems(initialProblems);
-    setCurrentPage(initialCurrentPage);
-    setTotalPages(initialTotalPages);
-    setHasMore(initialCurrentPage < initialTotalPages);
+    setHasMore(initialHasMore);
+    setNextCursor(initialNextCursor);
     setSearchInput(initialFilters.searchTerm);
     setFilters(initialFilters);
-  }, [initialProblems, initialCurrentPage, initialTotalPages, initialFilters]);
+  }, [initialProblems, initialHasMore, initialNextCursor, initialFilters]);
 
-
-  const handleFilterChange = useCallback(async (newFiltersApplied: Partial<ProblemListFilters>) => {
-    const updatedFilters = { ...filters, ...newFiltersApplied, page: 1 }; // Reset to page 1 on filter change
-    setFilters(updatedFilters);
-    setCurrentPage(1);
-    setIsLoading(true);
+  const fetchProblems = useCallback(async (cursor?: string, newFilters?: Partial<ProblemListFilters>) => {
+    const currentFilters = newFilters ? { ...filters, ...newFilters } : filters;
+    if (!cursor) {
+      setIsLoading(true);
+    } else {
+      setIsLoadingMore(true);
+    }
 
     try {
-      const result = await fetchProblemsForCompanyPage({
-        companyId,
-        page: 1,
-        pageSize: itemsPerPage,
-        filters: updatedFilters,
-        userId: user?.uid,
+      const response = await fetch('/api/problems', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          companyId,
+          cursor,
+          pageSize: itemsPerPage,
+          filters: currentFilters,
+          userId: user?.uid,
+        }),
       });
 
-      if ('error' in result) {
-        toast({ title: 'Error Fetching Problems', description: result.error, variant: 'destructive' });
-        setDisplayedProblems([]); 
-        setTotalPages(1);
-        setHasMore(false);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result: PaginatedProblemsResponse = await response.json();
+      
+      if (cursor) {
+        setDisplayedProblems(prev => [...prev, ...result.problems]);
       } else {
         setDisplayedProblems(result.problems);
-        setTotalPages(result.totalPages);
-        setCurrentPage(result.currentPage);
-        setHasMore(result.currentPage < result.totalPages);
       }
+      setHasMore(result.hasMore ?? false);
+      setNextCursor(result.nextCursor);
+
     } catch (error) {
-      toast({ title: 'Error', description: 'Failed to fetch problems.', variant: 'destructive' });
-      setDisplayedProblems([]); 
-      setTotalPages(1);
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      toast({ title: 'Error Fetching Problems', description: errorMessage, variant: 'destructive' });
       setHasMore(false);
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
     }
-  }, [companyId, itemsPerPage, user?.uid, toast, filters]); 
+  }, [companyId, itemsPerPage, user?.uid, toast, filters]);
 
-  // Effect to handle debounced search term changes
+  const handleFilterChange = useCallback((newFiltersApplied: Partial<ProblemListFilters>) => {
+    const updatedFilters = { ...filters, ...newFiltersApplied };
+    setFilters(updatedFilters);
+    fetchProblems(undefined, updatedFilters);
+  }, [filters, fetchProblems]);
+
   useEffect(() => {
     if (debouncedSearchTerm !== filters.searchTerm) {
       handleFilterChange({ searchTerm: debouncedSearchTerm });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearchTerm, filters.searchTerm]); 
+  }, [debouncedSearchTerm, filters.searchTerm, handleFilterChange]);
 
-  // Effect to refresh problems with user-specific data when user logs in/out or if initial problems didn't have this data.
   useEffect(() => {
     const needsUserSpecificDataRefresh =
       user &&
@@ -127,41 +133,13 @@ const ProblemList: React.FC<ProblemListProps> = ({
     if (needsUserSpecificDataRefresh) {
       handleFilterChange(filters);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]); 
+  }, [user, displayedProblems, filters, handleFilterChange]);
 
-
-  const loadMoreProblems = useCallback(async () => {
-    if (isLoadingMore || !hasMore) return;
-
-    setIsLoadingMore(true);
-    const nextPageToFetch = currentPage + 1;
-
-    try {
-      const result = await fetchProblemsForCompanyPage({
-        companyId,
-        page: nextPageToFetch,
-        pageSize: itemsPerPage,
-        filters,
-        userId: user?.uid,
-      });
-
-      if ('error' in result) {
-        toast({ title: 'Error Fetching More Problems', description: result.error, variant: 'destructive' });
-        setHasMore(false);
-      } else {
-        setDisplayedProblems(prev => [...prev, ...result.problems]);
-        setCurrentPage(result.currentPage);
-        setTotalPages(result.totalPages);
-        setHasMore(result.currentPage < result.totalPages);
-      }
-    } catch (e) {
-      toast({ title: 'Error', description: 'Failed to load more problems.', variant: 'destructive' });
-      setHasMore(false);
-    } finally {
-      setIsLoadingMore(false);
+  const loadMoreProblems = useCallback(() => {
+    if (hasMore && nextCursor) {
+      fetchProblems(nextCursor);
     }
-  }, [isLoadingMore, hasMore, currentPage, itemsPerPage, companyId, filters, user?.uid, toast]);
+  }, [hasMore, nextCursor, fetchProblems]);
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
@@ -202,7 +180,6 @@ const ProblemList: React.FC<ProblemListProps> = ({
         handleFilterChange({ statusFilter: filters.statusFilter });
     }
   }, [filters.statusFilter, handleFilterChange]);
-
 
   return (
     <div>
