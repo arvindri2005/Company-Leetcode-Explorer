@@ -56,7 +56,7 @@ async function fetchAllProblemsForCompanyFromFirestore(
 export const getProblemsByCompanyFromDb = async (
     companyId: string,
     params: {
-        page?: number;
+        cursor?: string;
         pageSize?: number;
         difficultyFilter?: DifficultyFilter;
         lastAskedFilter?: LastAskedFilter;
@@ -65,7 +65,7 @@ export const getProblemsByCompanyFromDb = async (
     } = {}
 ): Promise<PaginatedProblemsResponse> => {
     const {
-        page = 1,
+        cursor,
         pageSize = 10,
         difficultyFilter = "all",
         lastAskedFilter = "all",
@@ -132,19 +132,28 @@ export const getProblemsByCompanyFromDb = async (
         });
 
         const totalProblems = processedProblems.length;
-        const totalPages = Math.ceil(totalProblems / pageSize) || 1;
-        const currentPageResult = Math.min(Math.max(1, page), totalPages);
-        const startIndex = (currentPageResult - 1) * pageSize;
+        
+        let startIndex = 0;
+        if (cursor) {
+            const cursorIndex = processedProblems.findIndex(p => p.id === cursor);
+            if (cursorIndex !== -1) {
+                startIndex = cursorIndex + 1;
+            }
+        }
+
         const paginatedProblems = processedProblems.slice(
             startIndex,
             startIndex + pageSize
         );
 
+        const hasMore = startIndex + pageSize < totalProblems;
+        const nextCursor = hasMore ? paginatedProblems[paginatedProblems.length - 1]?.id : undefined;
+
         return {
             problems: paginatedProblems,
             totalProblems,
-            totalPages,
-            currentPage: currentPageResult,
+            hasMore,
+            nextCursor,
         };
     } catch (error) {
         console.error(
@@ -154,8 +163,7 @@ export const getProblemsByCompanyFromDb = async (
         return {
             problems: [],
             totalProblems: 0,
-            totalPages: 1,
-            currentPage: 1,
+            hasMore: false,
         };
     }
 };

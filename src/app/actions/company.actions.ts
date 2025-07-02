@@ -177,7 +177,7 @@ export async function fetchCompaniesAction(
   }
 }
 
-/**
+/** 
  * Fetches a list of company names and slugs for search suggestions.
  * @param {string} searchTerm - The term to search for in company names.
  * @param {number} [limitNum=5] - Maximum number of suggestions to return.

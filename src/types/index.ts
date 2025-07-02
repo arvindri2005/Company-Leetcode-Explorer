@@ -398,8 +398,8 @@ export interface ProblemListFilters {
 export interface PaginatedProblemsResponse {
   problems: LeetCodeProblem[];
   totalProblems: number;
-  totalPages: number;
-  currentPage: number;
+  hasMore?: boolean;
+  nextCursor?: string;
 }
 
     

@@ -194,26 +194,21 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
     sortKey: 'title',
   };
 
-  const initialPaginatedProblemsData = await fetchProblemsForCompanyPage({
-    companyId: company.id,
-    page: initialPage,
+  const initialPaginatedProblemsData = await getProblemsByCompanyFromDb(company.id, {
     pageSize: INITIAL_ITEMS_PER_PAGE,
+    // @ts-ignore
     filters: initialFilters,
-    userId: currentUser?.uid, 
+    userId: currentUser?.uid,
   });
   
-  let initialProblems: LeetCodeProblem[] = [];
-  let initialTotalPages = 1;
-  let initialCurrentPage = 1;
+  let initialProblems: LeetCodeProblem[] = initialPaginatedProblemsData.problems;
+  let initialHasMore = initialPaginatedProblemsData.hasMore;
+  let initialNextCursor = initialPaginatedProblemsData.nextCursor;
   let initialProblemDataError: string | null = null;
 
   if ('error' in initialPaginatedProblemsData) {
     console.error("Error fetching initial problems for company page:", initialPaginatedProblemsData.error);
-    initialProblemDataError = initialPaginatedProblemsData.error;
-  } else {
-    initialProblems = initialPaginatedProblemsData.problems;
-    initialTotalPages = initialPaginatedProblemsData.totalPages;
-    initialCurrentPage = initialPaginatedProblemsData.currentPage;
+    initialProblemDataError = initialPaginatedProblemsData.error as string;
   }
   
   const hasProblemsForFeatures = displayProblemCount > 0;
@@ -366,8 +361,8 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
                         companyId={company.id}
                         companySlug={company.slug}
                         initialProblems={initialProblems}
-                        initialTotalPages={initialTotalPages}
-                        initialCurrentPage={initialCurrentPage}
+                        initialHasMore={initialHasMore ?? false}
+                        initialNextCursor={initialNextCursor}
                         itemsPerPage={INITIAL_ITEMS_PER_PAGE}
                         initialFilters={initialFilters}
                       />
