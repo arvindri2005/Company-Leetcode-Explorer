@@ -118,6 +118,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
     fetchProblems(undefined, updatedFilters);
   }, [filters, fetchProblems]);
 
+  const prevUserRef = useRef(user);
   useEffect(() => {
     if (debouncedSearchTerm !== filters.searchTerm) {
       handleFilterChange({ searchTerm: debouncedSearchTerm });
@@ -125,15 +126,12 @@ const ProblemList: React.FC<ProblemListProps> = ({
   }, [debouncedSearchTerm, filters.searchTerm, handleFilterChange]);
 
   useEffect(() => {
-    const needsUserSpecificDataRefresh =
-      user &&
-      displayedProblems.length > 0 &&
-      displayedProblems.some(p => typeof p.isBookmarked === 'undefined' || typeof p.currentStatus === 'undefined');
-
-    if (needsUserSpecificDataRefresh) {
+    const userJustLoggedIn = user && !prevUserRef.current;
+    if (userJustLoggedIn) {
       handleFilterChange(filters);
     }
-  }, [user, displayedProblems, filters, handleFilterChange]);
+    prevUserRef.current = user;
+  }, [user, filters, handleFilterChange]);
 
   const loadMoreProblems = useCallback(() => {
     if (hasMore && nextCursor) {
