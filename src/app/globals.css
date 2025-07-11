@@ -8,105 +8,145 @@ body {
 
 @layer base {
   :root {
-    --background: 47 14% 89%; /* HSL(47, 14%, 89%) - #E5E2D7 */
-    --foreground: 20 14.3% 4.1%; /* HSL(20, 14.3%, 4.1%) - A dark brown for text */
-
-    --card: 47 14% 95%; /* A slightly lighter shade for cards */
-    --card-foreground: 20 14.3% 10%;
-
-    --popover: 47 14% 95%;
-    --popover-foreground: 20 14.3% 10%;
-
-    --primary: 47 88% 59%; /* HSL(47, 88%, 59%) - #F7BC2D */
-    --primary-foreground: 47 88% 10%; /* Dark text for primary */
-
-    --secondary: 47 20% 80%; /* A muted yellow/beige for secondary elements */
-    --secondary-foreground: 47 20% 20%;
-
-    --muted: 47 15% 75%;
-    --muted-foreground: 47 15% 35%;
-
-    --accent: 17 88% 59%; /* HSL(17, 88%, 59%) - #F75A2D */
-    --accent-foreground: 0 0% 98%; /* Light text for accent */
-
+    /* Updated to match LeetCode Explorer color palette */
+    --background: 240 15% 7%;
+    /* Dark background similar to #0f0f23 */
+    --foreground: 240 5% 90%;
+    /* Light text similar to #e4e4e7 */
+    --card: 240 15% 10%;
+    /* Slightly lighter dark for cards */
+    --card-foreground: 240 5% 85%;
+    --popover: 240 15% 10%;
+    --popover-foreground: 240 5% 85%;
+    --primary: 174 100% 42%;
+    /* Teal color matching #00d4aa */
+    --primary-foreground: 0 0% 100%;
+    /* White text on primary */
+    --secondary: 240 10% 20%;
+    /* Muted dark for secondary elements */
+    --secondary-foreground: 240 5% 80%;
+    --muted: 240 8% 25%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 258 90% 66%;
+    /* Purple accent matching #7c3aed */
+    --accent-foreground: 0 0% 100%;
+    /* White text on accent */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-
-    --border: 47 14% 80%;
-    --input: 47 14% 85%;
-    --ring: 47 88% 50%; /* Slightly darker primary for ring */
-
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --border: 240 10% 18%;
+    /* Dark border */
+    --input: 240 15% 12%;
+    /* Dark input background */
+    --ring: 174 100% 42%;
+    /* Teal ring color */
+    --chart-1: 174 100% 42%;
+    /* Teal */
+    --chart-2: 258 90% 66%;
+    /* Purple */
+    --chart-3: 240 15% 30%;
+    /* Dark gray */
+    --chart-4: 174 80% 60%;
+    /* Light teal */
+    --chart-5: 258 70% 80%;
+    /* Light purple */
     --radius: 0.5rem;
 
-    /* Sidebar specific colors - can keep as is or adjust if sidebar is used extensively */
-    --sidebar-background: 47 14% 93%;
-    --sidebar-foreground: 20 10% 25%;
-    --sidebar-primary: 47 88% 59%;
-    --sidebar-primary-foreground: 47 88% 10%;
-    --sidebar-accent: 17 80% 65%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 47 14% 80%;
-    --sidebar-ring: 47 88% 50%;
+    /* Sidebar colors matching the theme */
+    --sidebar-background: 240 15% 8%;
+    --sidebar-foreground: 240 5% 85%;
+    --sidebar-primary: 174 100% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 258 90% 66%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 240 10% 18%;
+    --sidebar-ring: 174 100% 42%;
   }
 
   .dark {
-    --background: 20 14.3% 4.1%; /* Dark brown */
-    --foreground: 47 14% 89%; /* Light beige/yellow */
-
-    --card: 20 14.3% 8%;
-    --card-foreground: 47 14% 85%;
-
-    --popover: 20 14.3% 8%;
-    --popover-foreground: 47 14% 85%;
-
-    --primary: 47 88% 59%; /* #F7BC2D */
-    --primary-foreground: 47 88% 10%; /* Dark text on primary */
-
-    --secondary: 20 10% 15%;
-    --secondary-foreground: 47 10% 75%;
-
-    --muted: 20 10% 15%;
-    --muted-foreground: 47 10% 55%;
-
-    --accent: 17 88% 59%; /* #F75A2D */
-    --accent-foreground: 0 0% 98%; /* Light text on accent */
-
+    /* Dark mode uses the same colors as the main theme since it's already dark */
+    --background: 240 15% 7%;
+    --foreground: 240 5% 90%;
+    --card: 240 15% 10%;
+    --card-foreground: 240 5% 85%;
+    --popover: 240 15% 10%;
+    --popover-foreground: 240 5% 85%;
+    --primary: 174 100% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 10% 20%;
+    --secondary-foreground: 240 5% 80%;
+    --muted: 240 8% 25%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 258 90% 66%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
+    --border: 240 10% 18%;
+    --input: 240 15% 12%;
+    --ring: 174 100% 42%;
+    --chart-1: 174 100% 42%;
+    --chart-2: 258 90% 66%;
+    --chart-3: 240 15% 30%;
+    --chart-4: 174 80% 60%;
+    --chart-5: 258 70% 80%;
 
-    --border: 20 10% 18%;
-    --input: 20 10% 18%;
-    --ring: 47 88% 65%; /* Lighter primary for ring in dark mode */
-
-    /* chart colors can be adjusted for dark mode if needed */
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-
-    /* Sidebar specific colors for dark mode */
-    --sidebar-background: 20 10% 10%;
-    --sidebar-foreground: 47 10% 80%;
-    --sidebar-primary: 47 88% 59%;
-    --sidebar-primary-foreground: 47 88% 10%;
-    --sidebar-accent: 17 80% 65%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 20 10% 18%;
-    --sidebar-ring: 47 88% 65%;
+    /* Sidebar colors for dark mode */
+    --sidebar-background: 240 15% 6%;
+    --sidebar-foreground: 240 5% 85%;
+    --sidebar-primary: 174 100% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 258 90% 66%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 240 10% 18%;
+    --sidebar-ring: 174 100% 42%;
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
   }
-  body {
-    @apply bg-background text-foreground;
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 1s ease-out;
+}
+
+.animation-delay-200 {
+  animation-delay: 0.2s;
+  animation-fill-mode: both;
+}
+
+.animation-delay-400 {
+  animation-delay: 0.4s;
+  animation-fill-mode: both;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
 }

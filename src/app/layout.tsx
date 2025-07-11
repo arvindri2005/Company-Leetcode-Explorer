@@ -129,7 +129,7 @@ export default function RootLayout({
       <head>
       <script 
       async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6342943619826199"
-     crossorigin="anonymous">
+     crossOrigin="anonymous">
 
      </script>
       </head>
@@ -145,9 +145,9 @@ export default function RootLayout({
         >
           <AuthProvider>
             <CooldownStateProvider>
-              <div className="flex flex-col min-h-screen">
+              <div className="flex flex-col min-h-screen w-full">
                 <Header />
-                <main className="flex-grow container mx-auto px-4 py-8">
+                <main>
                   {children}
                   <SpeedInsights/>
                   <Analytics/>

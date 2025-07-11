@@ -3,6 +3,7 @@ import { getCompanies } from '@/lib/data';
 import { Separator } from '@/components/ui/separator';
 import type { Metadata } from 'next';
 import { cache } from 'react';
+import SearchBar from '@/components/ui/search-bar'
 
 // Use static rendering with custom cache behavior
 export const dynamic = 'force-static';
@@ -131,6 +132,8 @@ export default async function CompaniesPage({ searchParams }: CompaniesPageProps
               </p>
             </div>
           </div>
+
+          <SearchBar/>
 
           {/* Responsive separator */}
           <Separator className="my-6 sm:my-8" />
