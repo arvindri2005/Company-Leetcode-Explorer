@@ -8,58 +8,41 @@ body {
 
 @layer base {
   :root {
-    /* Updated to match LeetCode Explorer color palette */
-    --background: 240 15% 7%;
-    /* Dark background similar to #0f0f23 */
-    --foreground: 240 5% 90%;
-    /* Light text similar to #e4e4e7 */
-    --card: 240 15% 10%;
-    /* Slightly lighter dark for cards */
-    --card-foreground: 240 5% 85%;
-    --popover: 240 15% 10%;
-    --popover-foreground: 240 5% 85%;
-    --primary: 174 100% 42%;
-    /* Teal color matching #00d4aa */
-    --primary-foreground: 0 0% 100%;
-    /* White text on primary */
-    --secondary: 240 10% 20%;
-    /* Muted dark for secondary elements */
-    --secondary-foreground: 240 5% 80%;
-    --muted: 240 8% 25%;
-    --muted-foreground: 240 5% 65%;
-    --accent: 258 90% 66%;
-    /* Purple accent matching #7c3aed */
-    --accent-foreground: 0 0% 100%;
-    /* White text on accent */
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 10% 18%;
-    /* Dark border */
-    --input: 240 15% 12%;
-    /* Dark input background */
-    --ring: 174 100% 42%;
-    /* Teal ring color */
-    --chart-1: 174 100% 42%;
-    /* Teal */
-    --chart-2: 258 90% 66%;
-    /* Purple */
-    --chart-3: 240 15% 30%;
-    /* Dark gray */
-    --chart-4: 174 80% 60%;
-    /* Light teal */
-    --chart-5: 258 70% 80%;
-    /* Light purple */
-    --radius: 0.5rem;
-
-    /* Sidebar colors matching the theme */
-    --sidebar-background: 240 15% 8%;
-    --sidebar-foreground: 240 5% 85%;
-    --sidebar-primary: 174 100% 42%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 258 90% 66%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 240 10% 18%;
-    --sidebar-ring: 174 100% 42%;
+    /* Dark mode uses the same colors as the main theme since it's already dark */
+      --background: 240 15% 7%;
+      --foreground: 240 5% 90%;
+      --card: 240 15% 10%;
+      --card-foreground: 240 5% 85%;
+      --popover: 240 15% 10%;
+      --popover-foreground: 240 5% 85%;
+      --primary: 174 100% 42%;
+      --primary-foreground: 0 0% 100%;
+      --secondary: 240 10% 20%;
+      --secondary-foreground: 240 5% 80%;
+      --muted: 240 8% 25%;
+      --muted-foreground: 240 5% 65%;
+      --accent: 258 90% 66%;
+      --accent-foreground: 0 0% 100%;
+      --destructive: 0 62.8% 30.6%;
+      --destructive-foreground: 0 0% 98%;
+      --border: 240 10% 18%;
+      --input: 240 15% 12%;
+      --ring: 174 100% 42%;
+      --chart-1: 174 100% 42%;
+      --chart-2: 258 90% 66%;
+      --chart-3: 240 15% 30%;
+      --chart-4: 174 80% 60%;
+      --chart-5: 258 70% 80%;
+    
+      /* Sidebar colors for dark mode */
+      --sidebar-background: 240 15% 6%;
+      --sidebar-foreground: 240 5% 85%;
+      --sidebar-primary: 174 100% 42%;
+      --sidebar-primary-foreground: 0 0% 100%;
+      --sidebar-accent: 258 90% 66%;
+      --sidebar-accent-foreground: 0 0% 100%;
+      --sidebar-border: 240 10% 18%;
+      --sidebar-ring: 174 100% 42%;
   }
 
   .dark {
@@ -99,6 +82,26 @@ body {
     --sidebar-border: 240 10% 18%;
     --sidebar-ring: 174 100% 42%;
   }
+}
+
+@layer utilities {
+  .animated-gradient-background {
+    background: linear-gradient(270deg, #0f0c29, #302b63, #24243e);
+    background-size: 600% 600%;
+    animation: Gradient 25s ease infinite;
+  }
+}
+
+@keyframes Gradient {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
 }
 
 @keyframes fadeInUp {
