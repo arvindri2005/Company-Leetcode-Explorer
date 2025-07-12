@@ -94,13 +94,13 @@ describe('CompaniesPage', () => {
   describe('generateMetadata', () => {
     it('generates correct metadata for the default page', async () => {
       const metadata = await generateMetadata({ searchParams: {} });
-      expect(metadata.title).toBe('Explore Companies & Interview Problems | Company Interview Problem Explorer');
+      expect(metadata.title).toBe('Explore Companies');
       expect(metadata.description).toBe('Browse, search, and filter companies to find coding problems frequently asked in their technical interviews. Prepare effectively for your next coding interview.');
     });
 
     it('generates correct metadata for a search query', async () => {
       const metadata = await generateMetadata({ searchParams: { search: 'Google' } });
-      expect(metadata.title).toBe('Search Results for "Google" | Company Interview Problem Explorer');
+      expect(metadata.title).toBe('Explore Companies');
       expect(metadata.description).toBe('Find companies matching "Google" and their associated coding interview problems.');
     });
   });

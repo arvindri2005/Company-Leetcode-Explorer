@@ -9,6 +9,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useDebounce } from '@/hooks/use-debounce';
 import { fetchCompanySuggestionsAction } from '@/app/actions';
 import Image from 'next/image';
+import CompannySearchBar from './compnay-search-bar';
 
 interface Suggestion extends Pick<Company, 'id' | 'name' | 'slug' | 'logo'> {}
 
@@ -139,6 +140,18 @@ const CompanyList: React.FC<CompanyListProps> = ({
     }
   }, [isLoadingMore, hasMore, nextCursor, itemsPerPage, searchParams, fetchCompaniesWithCursor]);
 
+  useEffect(() => {
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    if (debouncedSearchTerm) {
+      current.set('search', debouncedSearchTerm);
+    } else {
+      current.delete('search');
+    }
+    const search = current.toString();
+    const query = search ? `?${search}` : '';
+    router.push(`${pathname}${query}`, { scroll: false });
+  }, [debouncedSearchTerm, pathname, router, searchParams]);
+
   // Effect for fetching suggestions when search input changes
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -164,21 +177,6 @@ const CompanyList: React.FC<CompanyListProps> = ({
 
     fetchSuggestions();
   }, [debouncedSearchTerm]);
-
-  // Effect for updating route based on search term
-  useEffect(() => {
-    if (debouncedSearchTerm === initialSearchTerm) return;
-
-    const params = new URLSearchParams(searchParams.toString());
-    if (debouncedSearchTerm.trim()) {
-      params.set('search', debouncedSearchTerm.trim());
-    } else {
-      params.delete('search');
-    }
-    // No page parameter needed for cursor-based pagination
-    
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [debouncedSearchTerm, router, pathname, searchParams, initialSearchTerm]);
 
   // Effect for infinite scroll using Intersection Observer
   useEffect(() => {
@@ -214,64 +212,21 @@ const CompanyList: React.FC<CompanyListProps> = ({
     <div className="w-full mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
       <div className="space-y-4 sm:space-y-6 lg:space-y-8">
         {/* Search Input and Suggestions Container */}
-        <div className="relative w-full max-w-2xl mx-auto" ref={suggestionsRef}>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground z-10" />
-            <Input
-              type="text"
-              placeholder="Search companies by name..."
-              value={searchTermInput}
-              onChange={(e) => setSearchTermInput(e.target.value)}
-              onFocus={() => { if (suggestions.length > 0 || searchTermInput.trim().length > 0) setShowSuggestions(true);}}
-              className="w-full pl-9 sm:pl-10 pr-4 text-sm sm:text-base py-3 sm:py-4 lg:py-6 rounded-lg shadow-sm border-2 focus:border-primary transition-colors"
-            />
-            {isLoadingSuggestions && (
-              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 animate-spin text-muted-foreground" />
-            )}
-          </div>
-
-          {showSuggestions && searchTermInput.trim().length > 0 && (
-            <div className="absolute z-20 w-full mt-1 bg-card border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
-              {isLoadingSuggestions && suggestions.length === 0 ? (
-                <div className="p-3 text-center text-sm text-muted-foreground">Loading suggestions...</div>
-              ) : suggestions.length > 0 ? (
-                suggestions.map((suggestion) => (
-                  <div
-                    key={suggestion.id}
-                    className="flex items-center px-3 py-2.5 hover:bg-accent cursor-pointer text-sm"
-                    onMouseDown={(e) => { // Use onMouseDown to fire before input's onBlur
-                      e.preventDefault(); // Prevent input blur
-                      handleSuggestionClick(suggestion);
-                    }}
-                  >
-                    {suggestion.logo ? (
-                      <Image 
-                        src={suggestion.logo} 
-                        alt={`${suggestion.name} logo`} 
-                        width={24} 
-                        height={24} 
-                        className="h-6 w-6 rounded-sm mr-2.5 object-contain border"
-                        data-ai-hint={`${suggestion.name} logo`}
-                      />
-                    ) : (
-                      <div className="h-6 w-6 rounded-sm mr-2.5 bg-muted flex items-center justify-center border">
-                        <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                      </div>
-                    )}
-                    {suggestion.name}
-                  </div>
-                ))
-              ) : (
-                !isLoadingSuggestions && <div className="p-3 text-center text-sm text-muted-foreground">No companies found matching "{searchTermInput}".</div>
-              )}
-            </div>
-          )}
-        </div>
+        <CompannySearchBar
+          searchTermInput={searchTermInput}
+          setSearchTermInput={setSearchTermInput}
+          isLoadingSuggestions={isLoadingSuggestions}
+          suggestions={suggestions}
+          showSuggestions={showSuggestions}
+          setShowSuggestions={setShowSuggestions}
+          handleSuggestionClick={handleSuggestionClick}
+          suggestionsRef={suggestionsRef}
+        />
 
         {/* Companies Grid - Fully Responsive */}
         {displayedCompanies.length > 0 ? (
-          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
-            {displayedCompanies.map(company => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+            {displayedCompanies.map((company) => (
               <CompanyCard key={company.id} company={company} />
             ))}
           </div>

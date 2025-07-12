@@ -42,8 +42,8 @@ const organizationStructuredData = {
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: 'Company Interview Problem Explorer | AI Interview Prep, LeetCode Questions',
-    template: '%s | Company Interview Problem Explorer',
+    default: 'Byte To offer | AI Interview Prep',
+    template: '%s',
   },
   description: 'Master coding interviews with AI-driven tools. Explore company-specific LeetCode problems (Google, Amazon, Meta, etc.), engage in mock interviews, generate flashcards, and get personalized prep strategies for software engineering roles.',
   applicationName: 'Company Interview Problem Explorer',

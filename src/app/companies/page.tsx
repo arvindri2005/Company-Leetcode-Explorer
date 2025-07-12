@@ -29,9 +29,7 @@ export async function generateMetadata({ searchParams }: CompaniesPageProps): Pr
     ? await (searchParams as any)
     : searchParams || {};
   const searchTerm = resolvedSearchParams?.search || '';
-  const pageTitle = searchTerm 
-    ? `Search Results for "${searchTerm}" | Company Interview Problem Explorer` 
-    : 'Explore Companies & Interview Problems | Company Interview Problem Explorer';
+  const pageTitle ='Explore Companies';
   const pageDescription = searchTerm
     ? `Find companies matching "${searchTerm}" and their associated coding interview problems.`
     : 'Browse, search, and filter companies to find coding problems frequently asked in their technical interviews. Prepare effectively for your next coding interview.';
@@ -121,19 +119,8 @@ export default async function CompaniesPage({ searchParams }: CompaniesPageProps
               <span className="block sm:inline text-primary"> & Their Interview Problems</span>
             </h1>
             
-            <div className="max-w-4xl mx-auto sm:mx-0">
-              <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground leading-relaxed">
-                {pageSubtitle}
-              </p>
-              
-              {/* Additional context for mobile users */}
-              <p className="mt-2 text-xs sm:text-sm text-muted-foreground/80 block sm:hidden">
-                Tap on any company to view their interview problems
-              </p>
-            </div>
+            
           </div>
-
-          <SearchBar/>
 
           {/* Responsive separator */}
           <Separator className="my-6 sm:my-8" />
