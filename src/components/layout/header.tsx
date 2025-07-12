@@ -58,34 +58,33 @@ const Header = () => {
 
   const commonNavLinks = (isMobile = false) => (
     <>
-      <Link 
-        href="/companies" 
-        className={`nav-link ${isMobile ? 'mobile-nav-link' : ''}`}
+      <Link
+        href="/companies"
+        className={`nav-link ${isMobile ? 'mobile-nav-link font-bold py-3' : ''}`}
         onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
       >
         Explore Companies
       </Link>
-      <Link 
-        href="/submit" 
-        className={`nav-link ${isMobile ? 'mobile-nav-link' : ''}`}
+      <Link
+        href="/submit"
+        className={`nav-link ${isMobile ? 'mobile-nav-link font-bold py-3' : ''}`}
         onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
       >
         Submit Problem
       </Link>
-      <Link 
-        href="/add-company" 
-        className={`nav-link ${isMobile ? 'mobile-nav-link' : ''}`}
+      <Link
+        href="/add-company"
+        className={`nav-link ${isMobile ? 'mobile-nav-link font-bold py-3' : ''}`}
         onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
       >
         Add Company
       </Link>
       {!isAdminStatusLoading && isUserAdmin && (
-        <Link 
-          href="/admin" 
-          className={`nav-link ${isMobile ? 'mobile-nav-link' : ''}`}
+        <Link
+          href="/admin"
+          className={`nav-link ${isMobile ? 'mobile-nav-link font-bold py-3' : ''}`}
           onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
         >
-          <ShieldCheck className="w-4 h-4 mr-1" />
           Admin Panel
         </Link>
       )}
@@ -100,19 +99,17 @@ const Header = () => {
     if (user) {
       return (
         <>
-          <Link 
-            href="/profile" 
-            className={`nav-link ${isMobile ? 'mobile-nav-link' : ''}`}
+          <Link
+            href="/profile"
+            className={`nav-link ${isMobile ? 'mobile-nav-link font-bold py-3' : ''}`}
             onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
           >
-            <User className="w-4 h-4 mr-1" />
             Profile
           </Link>
-          <button 
+          <button
             onClick={() => { handleLogout(); if(isMobile) setIsMobileMenuOpen(false); }}
-            className={`nav-link logout-btn ${isMobile ? 'mobile-nav-link' : ''}`}
+            className={`nav-link logout-btn ${isMobile ? 'mobile-nav-link font-bold py-3' : ''}`}
           >
-            <LogOut className="w-4 h-4 mr-1" />
             Logout
           </button>
         </>
@@ -121,20 +118,18 @@ const Header = () => {
 
     return (
       <>
-        <Link 
-          href="/login" 
-          className={`nav-link ${isMobile ? 'mobile-nav-link' : ''}`}
+        <Link
+          href="/login"
+          className={`nav-link ${isMobile ? 'mobile-nav-link font-bold py-3' : ''}`}
           onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
         >
-          <LogIn className="w-4 h-4 mr-1" />
           Login
         </Link>
-        <Link 
-          href="/signup" 
-          className={`nav-link ${isMobile ? 'mobile-nav-link' : ''}`}
+        <Link
+          href="/signup"
+          className={`nav-link ${isMobile ? 'mobile-nav-link font-bold py-3' : ''}`}
           onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
         >
-          <UserPlus className="w-4 h-4 mr-1" />
           Sign Up
         </Link>
       </>
@@ -160,7 +155,6 @@ const Header = () => {
           <div className="nav-links">
             {commonNavLinks()}
             {authLinks()}
-            <ThemeSwitcher />
           </div>
           {/* Mobile Menu Button */}
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -174,10 +168,12 @@ const Header = () => {
                 <SheetTitle>Navigation</SheetTitle>
               </SheetHeader>
               <div className="flex flex-col mt-6">
-                {commonNavLinks(true)}
-                {authLinks(true)}
-                <div className="mt-4">
-                  <ThemeSwitcher />
+                <div className="mobile-nav-section">
+                  {commonNavLinks(true)}
+                </div>
+                <hr className="mobile-nav-divider" />
+                <div className="mobile-nav-section">
+                  {authLinks(true)}
                 </div>
               </div>
             </SheetContent>
