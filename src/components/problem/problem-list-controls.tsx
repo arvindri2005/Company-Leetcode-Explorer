@@ -41,7 +41,7 @@ const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
   const statusOptionsToDisplay = PROBLEM_STATUS_OPTIONS.filter(opt => opt.value !== 'none');
 
   return (
-    <div className="mb-6 p-4 bg-card rounded-lg shadow space-y-4">
+    <div className="mb-6 p-4 bg-card rounded-xl shadow space-y-4">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         <Input
@@ -49,7 +49,7 @@ const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
           placeholder="Search problems by title or tag..."
           value={searchTerm}
           onChange={(e) => onSearchTermChange(e.target.value)}
-          className="pl-10 text-base py-3 rounded-md shadow-sm w-full"
+          className="pl-10 text-base py-3 rounded-lg shadow-sm w-full"
         />
       </div>
       <div className="flex flex-col sm:flex-row gap-4 sm:items-end justify-between">

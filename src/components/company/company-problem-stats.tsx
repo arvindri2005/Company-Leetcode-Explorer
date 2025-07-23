@@ -126,7 +126,7 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({ company, prob
   const lastAskedOrder: LastAskedPeriod[] = ['last_30_days', 'within_3_months', 'within_6_months', 'older_than_6_months'];
 
   return (
-    <Card className="shadow-sm my-4">
+    <Card className="shadow-sm my-4 rounded-xl">
       <CardHeader className="py-2 px-3">
         <CardTitle className="flex items-center text-base">
           <ListChecks className="mr-1.5 h-4 w-4 text-primary" />
@@ -153,7 +153,7 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({ company, prob
             Difficulty Distribution
           </h3>
           {displayTotalProblems > 0 || Object.values(difficultyCounts).some(c => c > 0) ? (
-            <div className="w-full h-5 flex rounded-sm overflow-hidden border border-border bg-muted">
+            <div className="w-full h-5 flex rounded-md overflow-hidden border border-border bg-muted">
               {difficultyOrder.map(level => (
                 <BarSegment
                   key={level}
@@ -176,7 +176,7 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({ company, prob
             Recency Distribution
           </h3>
           {problemsWithRecencyData > 0 || Object.values(recencyCounts).some(c => c > 0) ? (
-            <div className="w-full h-5 flex rounded-sm overflow-hidden border border-border bg-muted">
+            <div className="w-full h-5 flex rounded-md overflow-hidden border border-border bg-muted">
               {lastAskedOrder.map(period => (
                 <BarSegment
                   key={period}

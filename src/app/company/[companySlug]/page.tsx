@@ -12,8 +12,8 @@ import Image from 'next/image';
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { auth } from '@/lib/firebase';
-import { fetchProblemsForCompanyPage } from '@/app/actions/problem.actions';
 import dynamic from 'next/dynamic';
+import CompanyHeader from '@/components/company/company-header';
 
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
@@ -237,57 +237,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
           </Button>
         </div>
 
-        <Card className="mb-4">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              {company.logo ? (
-                <Image
-                  src={company.logo}
-                  alt={`${company.name} logo`}
-                  width={48}
-                  height={48}
-                  className="rounded-lg border bg-background p-1 flex-shrink-0"
-                  data-ai-hint={`${company.name} logo`}
-                  priority
-                />
-              ) : (
-                <div className="h-12 w-12 rounded-lg border bg-muted/50 flex items-center justify-center flex-shrink-0">
-                  <Building2 className="h-6 w-6 text-primary" />
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h1 className="text-xl sm:text-2xl font-bold truncate">
-                    {company.name} Interview Problems
-                  </h1>
-                  {hasProblemsForFeatures && (
-                    <Badge variant="secondary" className="text-xs flex-shrink-0">
-                      {displayProblemCount} Problem{displayProblemCount !== 1 ? 's' : ''} Listed
-                    </Badge>
-                  )}
-                </div>
-                {company.description && (
-                  <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2 mb-2">
-                    {company.description}
-                  </p>
-                )}
-                <div className="flex items-center gap-3">
-                  {company.website && (
-                    <Link
-                      href={company.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                      Website
-                    </Link>
-                  )}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <CompanyHeader company={company} />
 
         {initialProblemDataError && (
           <Card className="my-4 border-destructive bg-destructive/10">
@@ -324,20 +274,20 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
             <Tabs defaultValue="problems" className="w-full">
               <div className="mb-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <TabsList className="grid w-full sm:w-auto grid-cols-4 h-9">
-                    <TabsTrigger value="problems" className="text-xs px-2">
+                  <TabsList className="grid grid-cols-4 h-10 w-full rounded-lg overflow-hidden bg-muted">
+                    <TabsTrigger value="problems" className="text-xs px-2 rounded-lg">
                       <BookOpen className="h-3 w-3 sm:mr-1" />
                       <span className="hidden sm:inline">Problems</span>
                     </TabsTrigger>
-                    <TabsTrigger value="ai-grouping" className="text-xs px-2">
+                    <TabsTrigger value="ai-grouping" className="text-xs px-2 rounded-lg">
                       <Brain className="h-3 w-3 sm:mr-1" />
                       <span className="hidden sm:inline">AI Groups</span>
                     </TabsTrigger>
-                    <TabsTrigger value="flashcards" className="text-xs px-2">
+                    <TabsTrigger value="flashcards" className="text-xs px-2 rounded-lg">
                       <Target className="h-3 w-3 sm:mr-1" />
                       <span className="hidden sm:inline">Cards</span>
                     </TabsTrigger>
-                    <TabsTrigger value="strategy" className="text-xs px-2">
+                    <TabsTrigger value="strategy" className="text-xs px-2 rounded-lg">
                       <Users className="h-3 w-3 sm:mr-1" />
                       <span className="hidden sm:inline">Strategy</span>
                     </TabsTrigger>
@@ -346,7 +296,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
               </div>
 
               <TabsContent value="problems" className="mt-0">
-                <Card>
+                <Card className="rounded-xl">
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-base">
                       <BookOpen className="h-4 w-4" />
@@ -372,7 +322,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
               </TabsContent>
 
               <TabsContent value="ai-grouping" className="mt-0">
-                <Card>
+                <Card className="rounded-xl">
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-base">
                       <Brain className="h-4 w-4" />
@@ -388,7 +338,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
               </TabsContent>
 
               <TabsContent value="flashcards" className="mt-0">
-                <Card>
+                <Card className="rounded-xl">
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-base">
                       <Target className="h-4 w-4" />
@@ -404,7 +354,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
               </TabsContent>
 
               <TabsContent value="strategy" className="mt-0">
-                <Card>
+                <Card className="rounded-xl">
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-base">
                       <Users className="h-4 w-4" />
@@ -422,7 +372,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
           </>
         ) : (
           !initialProblemDataError && ( 
-            <Card className="text-center py-8">
+            <Card className="text-center py-8 rounded-xl">
               <CardContent>
                 <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
                 <h2 className="text-lg font-semibold mb-2">No Problems Available for {company.name}</h2>

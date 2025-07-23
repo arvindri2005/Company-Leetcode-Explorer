@@ -50,28 +50,23 @@ const ProblemStatusIconComponent: React.FC<{ status: ProblemStatus }> = ({ statu
   if (status === 'none' || !PROBLEM_STATUS_DISPLAY[status]) return null;
 
   const statusConfig = {
-    solved: { Icon: CheckCircle2, bgColor: 'bg-green-50', borderColor: 'border-green-200' },
-    attempted: { Icon: Pencil, bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200' },
-    todo: { Icon: ListTodo, bgColor: 'bg-blue-50', borderColor: 'border-blue-200' }
+    solved: { Icon: CheckCircle2, bgColor: 'bg-green-100', textColor: 'text-green-800' },
+    attempted: { Icon: Pencil, bgColor: 'bg-yellow-100', textColor: 'text-yellow-800' },
+    todo: { Icon: ListTodo, bgColor: 'bg-blue-100', textColor: 'text-blue-800' }
   };
 
   const config = statusConfig[status as keyof typeof statusConfig];
   if (!config) return null;
 
-  const { Icon } = config;
+  const { Icon, bgColor, textColor } = config;
 
   return (
     <TooltipProvider delayDuration={300}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className={cn(
-            "flex items-center justify-center rounded-full p-1.5 transition-all duration-200",
-            config.bgColor,
-            config.borderColor,
-            "border"
-          )}>
+          <div className={cn("flex items-center justify-center w-8 h-8 rounded-full", bgColor)}>
             <Icon
-              className={cn("h-4 w-4", PROBLEM_STATUS_DISPLAY[status]?.colorClass)}
+              className={cn("h-5 w-5", textColor)}
               aria-label={`Status: ${PROBLEM_STATUS_DISPLAY[status]?.label}`}
             />
           </div>
@@ -86,7 +81,6 @@ const ProblemStatusIconComponent: React.FC<{ status: ProblemStatus }> = ({ statu
 const ProblemStatusIcon = React.memo(ProblemStatusIconComponent);
 
 
-// Internal component for AI button tooltip content to isolate re-renders due to cooldown timer
 const AITooltipContentComponent: React.FC<{ defaultText: string; user: FirebaseUser | null }> = ({ defaultText, user }) => {
   const { canUseAI, isLoadingCooldown, formattedRemainingTime } = useAICooldown();
   const isAIButtonCurrentlyDisabled = isLoadingCooldown || !canUseAI;
@@ -248,44 +242,29 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
   return (
     <>
       <Card className={cn(
-        "group relative flex flex-col h-full transition-all duration-300 ease-out",
-        "hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1",
-        "border-border/50 hover:border-primary/20",
-        "bg-gradient-to-br from-card via-card to-muted/5"
+        "flex flex-col h-full",
+        "bg-card border border-border/50 rounded-2xl shadow-sm",
+        "transition-all duration-300 ease-in-out",
+        "hover:shadow-md hover:border-primary/30"
       )}>
-        {user && currentStatus !== 'none' && (
-          <div className={cn(
-            "absolute top-0 left-0 right-0 h-1 rounded-t-lg transition-all duration-300",
-            currentStatus === 'solved' && "bg-green-500",
-            currentStatus === 'attempted' && "bg-yellow-500",
-            currentStatus === 'todo' && "bg-blue-500"
-          )} />
-        )}
-
-        <CardHeader className="pb-3">
-          <div className="flex justify-between items-start gap-3">
+        <CardHeader className="p-4">
+          <div className="flex justify-between items-start gap-4">
             <div className="flex items-start gap-3 flex-1 min-w-0">
               {user && <ProblemStatusIcon status={currentStatus} />}
               <div className="flex-1 min-w-0">
-                <CardTitle className={cn(
-                  "text-lg sm:text-xl leading-tight font-semibold",
-                  "text-foreground group-hover:text-primary transition-colors duration-200",
-                  "break-words hyphens-auto"
-                )}>
+                <CardTitle className="text-lg font-semibold text-card-foreground leading-snug">
                   {problem.title}
                 </CardTitle>
                 {problem.lastAskedPeriod && (
-                  <div className="flex items-center gap-1.5 mt-2">
-                    <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                    <Badge variant="outline" className="text-xs font-normal">
-                      {lastAskedPeriodDisplayMap[problem.lastAskedPeriod]}
-                    </Badge>
+                  <div className="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground">
+                    <Clock className="h-3.5 w-3.5" />
+                    <span>{lastAskedPeriodDisplayMap[problem.lastAskedPeriod]}</span>
                   </div>
                 )}
               </div>
             </div>
-
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex flex-col items-end gap-2 flex-shrink-0">
+              <DifficultyBadge difficulty={problem.difficulty} />
               {user && (
                 <TooltipProvider delayDuration={300}>
                   <Tooltip>
@@ -295,21 +274,17 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
                         size="icon"
                         onClick={handleToggleBookmark}
                         disabled={isTogglingBookmark || isUserActionDisabled}
-                        className={cn(
-                          "h-9 w-9 rounded-full transition-all duration-200",
-                          "hover:bg-primary/10 hover:scale-110",
-                          isBookmarked && "bg-primary/5"
-                        )}
+                        className="h-8 w-8 rounded-full"
                         aria-label={isBookmarked ? `Remove bookmark for ${problem.title}` : `Add bookmark for ${problem.title}`}
                       >
                         {isTogglingBookmark ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
                           <Star className={cn(
-                            "h-4 w-4 transition-all duration-200",
+                            "h-5 w-5 transition-all duration-200",
                             isBookmarked
-                              ? "fill-yellow-400 text-yellow-400 scale-110"
-                              : "text-muted-foreground hover:text-yellow-400 hover:scale-110"
+                              ? "fill-yellow-400 text-yellow-500"
+                              : "text-muted-foreground hover:text-yellow-400"
                           )} />
                         )}
                       </Button>
@@ -320,215 +295,121 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
                   </Tooltip>
                 </TooltipProvider>
               )}
-              <DifficultyBadge difficulty={problem.difficulty} />
             </div>
           </div>
         </CardHeader>
 
-        <CardContent className="flex-grow space-y-4">
+        <CardContent className="p-4 flex-grow">
           {problemTags.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Topics ({problemTags.length})
-                </h4>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {problemTags.slice(0, 6).map(tag => (
+            <div className="mb-4">
+              <h4 className="text-sm font-medium text-muted-foreground mb-2">Topics</h4>
+              <div className="flex flex-wrap gap-2">
+                {problemTags.slice(0, 4).map(tag => (
                   <TagBadge key={tag} tag={tag} />
                 ))}
-                {problemTags.length > 6 && (
-                  <Badge variant="outline" className="text-xs">
-                    +{problemTags.length - 6} more
+                {problemTags.length > 4 && (
+                  <Badge variant="outline" className="text-xs font-normal">
+                    +{problemTags.length - 4} more
                   </Badge>
                 )}
               </div>
             </div>
           )}
-
-          <div className="flex items-center justify-between pt-2 border-t border-border/30">
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <TrendingUp className="h-3.5 w-3.5" />
-                <span>Trending</span>
-              </div>
-              {problem.lastAskedPeriod && (
-                <div className="flex items-center gap-1">
-                  <Zap className="h-3.5 w-3.5" />
-                  <span>Recent</span>
-                </div>
-              )}
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <TrendingUp className="h-4 w-4" />
+              <span>Trending</span>
             </div>
+            {problem.lastAskedPeriod && (
+              <div className="flex items-center gap-1.5">
+                <Zap className="h-4 w-4" />
+                <span>Recent</span>
+              </div>
+            )}
           </div>
         </CardContent>
 
-        <CardFooter className="p-4 pt-2">
-          <div className="w-full space-y-3">
-            <div className="grid grid-cols-2 gap-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="default"
-                      size="sm"
-                      className="w-full font-medium flex items-center justify-center gap-2"
-                      disabled={!problem.link}
-                      onClick={() => {
-                        if (problem.link) {
-                          window.open(problem.link, '_blank', 'noopener,noreferrer');
-                        }
-                      }}
-                      aria-label={`Solve problem: ${problem.title} on external site`}
+        <CardFooter className="p-4 pt-0 flex flex-col items-stretch gap-2">
+          <div className="flex gap-2 w-full">
+            <Button
+              size="sm"
+              className="flex-1 rounded-full"
+              disabled={!problem.link}
+              onClick={() => {
+                if (problem.link) {
+                  window.open(problem.link, '_blank', 'noopener,noreferrer');
+                }
+              }}
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Solve
+            </Button>
+            <Button
+              asChild
+              variant="secondary"
+              size="sm"
+              className="flex-1 rounded-full"
+            >
+              <Link
+                href={"#"}
+                aria-disabled={isUserActionDisabled}
+                onClick={(e) => {
+                  e.preventDefault();
+                  toast({ title: 'Coming Soon', description: 'Mock interview feature is in development.', variant: 'default' });
+                }}
+              >
+                <Bot className="h-4 w-4 mr-2" />
+                Mock
+              </Link>
+            </Button>
+          </div>
+          <div className="flex gap-2 w-full">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 text-xs rounded-full"
+              onClick={handleFindSimilar}
+              disabled={isLoadingSimilar || isAIActionDisabled}
+            >
+              {isLoadingSimilar ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
+              Similar
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 text-xs rounded-full"
+              onClick={handleGenerateInsights}
+              disabled={isLoadingInsights || isAIActionDisabled}
+            >
+              {isLoadingInsights ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Lightbulb className="h-4 w-4 mr-2" />}
+              Hints
+            </Button>
+            {user && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="w-10 rounded-full"
+                    disabled={isUpdatingStatus || isUserActionDisabled}
+                  >
+                    {isUpdatingStatus ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreVertical className="h-4 w-4" />}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel>Progress Status</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {PROBLEM_STATUS_OPTIONS.map(opt => (
+                    <DropdownMenuItem
+                      key={opt.value}
+                      onSelect={() => handleStatusUpdate(opt.value)}
+                      disabled={currentStatus === opt.value || isUpdatingStatus}
                     >
-                      <ExternalLink className="h-4 w-4" />
-                      <span className="hidden sm:inline">Solve Problem</span>
-                      <span className="sm:hidden">Solve</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent><p>{problem.link ? "Open Problem" : "Link unavailable"}</p></TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                     <Button
-                        asChild
-                        variant="secondary"
-                        size="sm"
-                        className="w-full font-medium"
-                      >
-                        <Link
-                          href={"#"}
-                          className="flex items-center justify-center gap-2"
-                          aria-disabled={isUserActionDisabled}
-                          aria-label={`Start mock interview for ${problem.title}`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            toast({ title: 'Coming Soon', description: 'Mock interview feature is in development.', variant: 'default' });
-                          }}
-                        >
-                          <Bot className="h-4 w-4" />
-                          <span className="hidden sm:inline">Mock Interview</span>
-                          <span className="sm:hidden">Mock</span>
-                        </Link>
-                      </Button>
-                  </TooltipTrigger>
-                  <TooltipContent><p>{isUserActionDisabled ? "Login to start mock interview" : "Practice with AI Interviewer"}</p></TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-
-            <div className={cn(
-              "grid gap-2",
-              user ? "grid-cols-3" : "grid-cols-2" 
-            )}>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleFindSimilar}
-                      disabled={isLoadingSimilar || isAIActionDisabled}
-                      className="w-full text-xs"
-                      aria-label={`Find AI suggested similar problems for ${problem.title}`}
-                    >
-                      {isLoadingSimilar && !isSimilarDialogSharedOpen ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <Sparkles className="h-3.5 w-3.5 text-primary" />
-                      )}
-                      <span className="ml-1.5 hidden sm:inline">Similar</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                     <AITooltipContent defaultText="Find Similar Problems (AI)" user={user} />
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleGenerateInsights}
-                      disabled={isLoadingInsights || isAIActionDisabled}
-                      className="w-full text-xs"
-                      aria-label={`Get AI insights and hints for ${problem.title}`}
-                    >
-                      {isLoadingInsights && !isInsightsDialogOpen ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <Lightbulb className="h-3.5 w-3.5 text-primary" />
-                      )}
-                      <span className="ml-1.5 hidden sm:inline">Hints</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <AITooltipContent defaultText="Get AI Insights & Hints" user={user} />
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              {user && (
-                <DropdownMenu>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={isUpdatingStatus || isUserActionDisabled}
-                            className="w-full text-xs"
-                            aria-label={`Update progress status for ${problem.title}`}
-                          >
-                            {isUpdatingStatus ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            ) : (
-                              <MoreVertical className="h-3.5 w-3.5" />
-                            )}
-                            <span className="ml-1.5 hidden sm:inline">Status</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                      </TooltipTrigger>
-                      <TooltipContent><p>{isUserActionDisabled ? "Login to update status" : "Update Progress Status"}</p></TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuLabel>Progress Status</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {PROBLEM_STATUS_OPTIONS.map(opt => (
-                      <DropdownMenuItem
-                        key={opt.value}
-                        onSelect={() => handleStatusUpdate(opt.value)}
-                        disabled={currentStatus === opt.value || isUpdatingStatus}
-                        className="flex items-center gap-2"
-                      >
-                        {opt.value === 'solved' && <CheckCircle2 className="h-4 w-4 text-green-600" />}
-                        {opt.value === 'attempted' && <Pencil className="h-4 w-4 text-yellow-600" />}
-                        {opt.value === 'todo' && <ListTodo className="h-4 w-4 text-blue-600" />}
-                        {opt.label}
-                        {currentStatus === opt.value && (
-                          <Badge variant="secondary" className="ml-auto text-xs">
-                            Current
-                          </Badge>
-                        )}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-            {user && !isLoadingCooldown && !canUseAI && (
-              <div className="mt-2 text-xs text-destructive flex items-center justify-center">
-                <AlertCircle size={14} className="mr-1" />
-                AI features on cooldown: {formattedRemainingTime}
-              </div>
+                      {opt.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         </CardFooter>
@@ -560,3 +441,4 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
 
 const ProblemCard = React.memo(ProblemCardComponent);
 export default ProblemCard;
+
