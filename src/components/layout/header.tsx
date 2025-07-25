@@ -157,7 +157,7 @@ const Header = () => {
             {authLinks()}
           </div>
           {/* Mobile Menu Button */}
-          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen} modal={false}>
             <SheetTrigger asChild>
               <button className="mobile-menu-btn">
                 <Menu className="w-6 h-6" />

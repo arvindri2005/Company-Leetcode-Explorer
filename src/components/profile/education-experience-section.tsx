@@ -45,7 +45,7 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
           </CardTitle>
           <CardDescription>Your academic qualifications.</CardDescription>
         </div>
-        <Dialog open={isEducationDialogOpen} onOpenChange={setIsEducationDialogOpen}>
+        <Dialog open={isEducationDialogOpen} onOpenChange={setIsEducationDialogOpen} modal={false}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm">
               <PlusCircle className="mr-2 h-4 w-4" /> Add Education

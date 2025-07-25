@@ -39,7 +39,7 @@ const SimilarProblemsDialog: React.FC<SimilarProblemsDialogProps> = ({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent className="max-w-2xl">
+      <AlertDialogContent className="max-w-2xl flex flex-col max-h-[90vh]">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-2xl">
             AI Suggested Similar Problems for "{currentProblemTitle}"
@@ -49,7 +49,7 @@ const SimilarProblemsDialog: React.FC<SimilarProblemsDialogProps> = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
         
-        <ScrollArea className="max-h-[60vh] pr-4">
+        <div className="flex-grow overflow-y-auto pr-4">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-10">
               <Loader2 className="h-10 w-10 animate-spin text-primary mb-3" />
@@ -105,9 +105,9 @@ const SimilarProblemsDialog: React.FC<SimilarProblemsDialogProps> = ({
               AI could not find any significantly similar problems from other platforms at this time.
             </p>
           )}
-        </ScrollArea>
+        </div>
         
-        <AlertDialogFooter>
+        <AlertDialogFooter className="pt-4">
           <AlertDialogCancel onClick={onClose}>Close</AlertDialogCancel>
         </AlertDialogFooter>
       </AlertDialogContent>

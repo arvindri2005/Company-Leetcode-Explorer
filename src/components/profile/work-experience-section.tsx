@@ -46,7 +46,7 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
           </CardTitle>
           <CardDescription>Your professional roles and responsibilities.</CardDescription>
         </div>
-        <Dialog open={isWorkDialogOpen} onOpenChange={setIsWorkDialogOpen}>
+        <Dialog open={isWorkDialogOpen} onOpenChange={setIsWorkDialogOpen} modal={false}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm">
               <PlusCircle className="mr-2 h-4 w-4" /> Add Work Experience

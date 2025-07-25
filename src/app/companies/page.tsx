@@ -3,7 +3,6 @@ import { getCompanies } from '@/lib/data';
 import { Separator } from '@/components/ui/separator';
 import type { Metadata } from 'next';
 import { cache } from 'react';
-import SearchBar from '@/components/ui/search-bar'
 
 // Use static rendering with custom cache behavior
 export const dynamic = 'force-static';
@@ -12,7 +11,7 @@ export const preferredRegion = 'auto';
 // Disable automatic revalidation
 export const revalidate = false;
 
-const ITEMS_PER_PAGE = 9;
+const ITEMS_PER_PAGE = 20;
 // Define a base URL, ideally from an environment variable
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
 
@@ -100,11 +99,6 @@ export default async function CompaniesPage({ searchParams }: CompaniesPageProps
     nextCursor,
     totalCompanies
   } = await getCompaniesWithCache(ITEMS_PER_PAGE, searchTerm);
-
-  // Create a more accurate subtitle based on cursor pagination
-  const pageSubtitle = searchTerm
-    ? `${initialCompanies.length > 0 ? `Showing ${initialCompanies.length}` : 'No'} compan${initialCompanies.length === 1 ? 'y' : 'ies'} matching "${searchTerm}".${hasMore ? ' Scroll down to load more.' : ''}`
-    : `${initialCompanies.length > 0 ? `Showing ${initialCompanies.length} companies` : 'No companies available'}.${hasMore ? ' Scroll down to load more.' : ''}`;
 
   return (
     <div className="min-h-screen w-full">

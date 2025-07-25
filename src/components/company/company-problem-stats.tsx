@@ -78,8 +78,6 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({ company, prob
   const displayTotalProblems = totalProblemsCount ?? company.problemCount ?? problems.length;
 
   if (displayTotalProblems === 0 && !company.statsLastUpdatedAt) {
-     // If no problems AND stats haven't been updated (e.g. new company), don't show stats card.
-     // The company page itself will show a "no problems" message.
     return null;
   }
 
@@ -126,7 +124,7 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({ company, prob
   const lastAskedOrder: LastAskedPeriod[] = ['last_30_days', 'within_3_months', 'within_6_months', 'older_than_6_months'];
 
   return (
-    <Card className="shadow-sm my-4 rounded-xl">
+    <Card className="bg-card border border-border rounded-xl p-6 mb-8 shadow-sm">
       <CardHeader className="py-2 px-3">
         <CardTitle className="flex items-center text-base">
           <ListChecks className="mr-1.5 h-4 w-4 text-primary" />
@@ -134,16 +132,6 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({ company, prob
         </CardTitle>
         <CardDescription className="text-xs">
           Breakdown of {displayTotalProblems} problem{displayTotalProblems === 1 ? '' : 's'}.
-          {company.statsLastUpdatedAt && (
-            <span className="block text-xs text-muted-foreground/80">
-              Stats last updated: {new Date(company.statsLastUpdatedAt).toLocaleDateString()}
-            </span>
-          )}
-           {!company.statsLastUpdatedAt && displayTotalProblems > 0 && (
-            <span className="block text-xs text-amber-600">
-              Overall company stats are pending update (run admin action). Current stats are based on loaded problems.
-            </span>
-          )}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 px-3 pb-3 pt-1.5">

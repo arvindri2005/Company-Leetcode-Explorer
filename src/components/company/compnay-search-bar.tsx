@@ -20,6 +20,7 @@ interface SearchBarProps {
   setShowSuggestions: (value: boolean) => void;
   handleSuggestionClick: (suggestion: Suggestion) => void;
   suggestionsRef: React.RefObject<HTMLDivElement>;
+  onSearch?: () => void;
 }
 
 const CompnaySearchBar: React.FC<SearchBarProps> = ({
@@ -31,7 +32,14 @@ const CompnaySearchBar: React.FC<SearchBarProps> = ({
   setShowSuggestions,
   handleSuggestionClick,
   suggestionsRef,
+  onSearch,
 }) => {
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      onSearch?.();
+    }
+  };
+
   return (
     <div className="relative w-full max-w-[800px] mx-auto">
       <div className="max-w-[800px] mx-auto text-center">
@@ -45,10 +53,13 @@ const CompnaySearchBar: React.FC<SearchBarProps> = ({
             onChange={(e) => setSearchTermInput(e.target.value)}
             onFocus={() => {
               if (suggestions.length > 0 || searchTermInput.trim().length > 0) setShowSuggestions(true);
-            }}>
+            }}
+            onKeyPress={handleKeyPress}
+          >
           </input>
           
           <button
+            onClick={onSearch}
             className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-[#00d4aa] to-[#7c3aed] border-none rounded-full w-12 h-12 text-white cursor-pointer transition-all duration-300 hover:scale-110 flex items-center justify-center">
           <FaSearch />
           </button>

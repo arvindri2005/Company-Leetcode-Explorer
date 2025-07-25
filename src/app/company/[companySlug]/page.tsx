@@ -274,7 +274,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
             <Tabs defaultValue="problems" className="w-full">
               <div className="mb-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <TabsList className="grid grid-cols-4 h-10 w-full rounded-lg overflow-hidden bg-muted">
+                  <TabsList className="bg-card border border-border rounded-xl shadow-sm grid grid-cols-4 h-10 w-full overflow-hidden">
                     <TabsTrigger value="problems" className="text-xs px-2 rounded-lg">
                       <BookOpen className="h-3 w-3 sm:mr-1" />
                       <span className="hidden sm:inline">Problems</span>
@@ -296,7 +296,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
               </div>
 
               <TabsContent value="problems" className="mt-0">
-                <Card className="rounded-xl">
+                <Card className="bg-card border border-border rounded-xl  mb-8 shadow-sm">
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-base">
                       <BookOpen className="h-4 w-4" />
@@ -322,7 +322,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
               </TabsContent>
 
               <TabsContent value="ai-grouping" className="mt-0">
-                <Card className="rounded-xl">
+                <Card className="bg-card border border-border rounded-xl  mb-8 shadow-sm">
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-base">
                       <Brain className="h-4 w-4" />
@@ -338,7 +338,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
               </TabsContent>
 
               <TabsContent value="flashcards" className="mt-0">
-                <Card className="rounded-xl">
+                <Card className="bg-card border border-border rounded-xl  mb-8 shadow-sm">
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-base">
                       <Target className="h-4 w-4" />
@@ -354,7 +354,7 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
               </TabsContent>
 
               <TabsContent value="strategy" className="mt-0">
-                <Card className="rounded-xl">
+                <Card className="bg-card border border-border rounded-xl  mb-8 shadow-sm">
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-base">
                       <Users className="h-4 w-4" />

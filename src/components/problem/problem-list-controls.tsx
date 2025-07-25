@@ -42,37 +42,52 @@ const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
 
   return (
     <div className="mb-6 p-4 bg-card rounded-xl shadow space-y-4">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+      {/* <div className="relative">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/70" />
         <Input
           type="text"
           placeholder="Search problems by title or tag..."
           value={searchTerm}
           onChange={(e) => onSearchTermChange(e.target.value)}
-          className="pl-10 text-base py-3 rounded-lg shadow-sm w-full"
+          className="
+            pl-12 
+            text-base 
+            py-4 
+            rounded-full 
+            w-full 
+            bg-background/80 
+            border-muted 
+            shadow-sm 
+            hover:bg-background/90 
+            focus-visible:ring-2 
+            focus-visible:ring-primary/30 
+            focus-visible:border-primary 
+            transition-colors
+            duration-200
+          "
         />
-      </div>
+      </div> */}
       <div className="flex flex-col sm:flex-row gap-4 sm:items-end justify-between">
         <div className="flex flex-col sm:flex-row flex-wrap gap-4">
           <div>
-            <Label htmlFor="difficulty-filter" className="mb-1.5 flex items-center text-sm font-medium">
-              <Filter size={16} className="mr-2 text-muted-foreground" /> Filter by Difficulty
-            </Label>
-            <Select
-              value={difficultyFilter}
-              onValueChange={(value) => onDifficultyFilterChange(value as DifficultyFilter)}
-            >
-              <SelectTrigger id="difficulty-filter" className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Select difficulty" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Difficulties</SelectItem>
-                <SelectItem value="Easy">Easy</SelectItem>
-                <SelectItem value="Medium">Medium</SelectItem>
-                <SelectItem value="Hard">Hard</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+                <Label htmlFor="difficulty-filter" className="mb-1.5 flex items-center text-sm font-medium">
+                  <Filter size={16} className="mr-2 text-muted-foreground" /> Filter by Difficulty
+                </Label>
+                <Select
+                  value={difficultyFilter}
+                  onValueChange={(value) => onDifficultyFilterChange(value as DifficultyFilter)}
+                >
+                  <SelectTrigger id="difficulty-filter" className="w-full sm:w-[180px] rounded-full">
+                  <SelectValue placeholder="Select difficulty" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-lg">
+                  <SelectItem value="all">All Difficulties</SelectItem>
+                  <SelectItem value="Easy">Easy</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="Hard">Hard</SelectItem>
+                  </SelectContent>
+                </Select>
+                </div>
           <div>
             <Label htmlFor="last-asked-filter" className="mb-1.5 flex items-center text-sm font-medium">
               <CalendarDays size={16} className="mr-2 text-muted-foreground" /> Filter by Last Asked
@@ -136,9 +151,6 @@ const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
               </SelectContent>
             </Select>
           </div>
-        </div>
-        <div className="text-sm text-muted-foreground text-right mt-2 sm:mt-0 whitespace-nowrap">
-          Displaying {problemCount} problem{problemCount !== 1 ? 's' : ''}
         </div>
       </div>
     </div>

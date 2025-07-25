@@ -181,7 +181,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
 
   return (
     <div>
-      <ProblemListControls
+      {/* <ProblemListControls
         difficultyFilter={filters.difficultyFilter}
         onDifficultyFilterChange={(value) => handleFilterChange({ difficultyFilter: value })}
         sortKey={filters.sortKey}
@@ -194,7 +194,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
         onSearchTermChange={setSearchInput}
         problemCount={displayedProblems.length}
         showStatusFilter={!!user}
-      />
+      /> */}
       {isLoading && displayedProblems.length === 0 ? (
         <div className="flex justify-center items-center py-10">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />

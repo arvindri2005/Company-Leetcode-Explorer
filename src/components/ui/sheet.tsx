@@ -7,7 +7,13 @@ import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-const Sheet = SheetPrimitive.Root
+interface SheetProps extends React.ComponentProps<typeof SheetPrimitive.Root> {
+  modal?: boolean;
+}
+
+const Sheet: React.FC<SheetProps> = ({ modal = true, ...props }) => (
+  <SheetPrimitive.Root {...props} modal={modal} />
+);
 
 const SheetTrigger = SheetPrimitive.Trigger
 

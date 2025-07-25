@@ -320,7 +320,7 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({ com
 
 
   return (
-    <div className="mt-12 py-8">
+    <div className="bg-card border border-border rounded-xl p-6 mb-8 shadow-sm">
       <Separator className="my-8" />
       <div className="text-center mb-8">
         <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">

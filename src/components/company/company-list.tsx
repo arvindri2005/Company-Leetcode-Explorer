@@ -9,7 +9,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useDebounce } from '@/hooks/use-debounce';
 import { fetchCompanySuggestionsAction } from '@/app/actions';
 import Image from 'next/image';
-import CompannySearchBar from './compnay-search-bar';
+import CompnaySearchBar from './compnay-search-bar';
 
 interface Suggestion extends Pick<Company, 'id' | 'name' | 'slug' | 'logo'> {}
 
@@ -101,9 +101,19 @@ const CompanyList: React.FC<CompanyListProps> = ({
   }, [initialCompanies, initialHasMore, initialNextCursor]);
 
   const handleSuggestionClick = (suggestion: Suggestion) => {
-    setSearchTermInput(suggestion.name);
+    setSearchTermInput(suggestion.name)
     setShowSuggestions(false);
     router.push(`/company/${suggestion.slug}`); 
+  };
+
+  const handleSearch = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (searchTermInput.trim()) {
+      params.set('search', searchTermInput.trim());
+    } else {
+      params.delete('search');
+    }
+    router.push(`${pathname}?${params.toString()}`);
   };
 
   const loadMoreCompanies = useCallback(async () => {
@@ -140,17 +150,6 @@ const CompanyList: React.FC<CompanyListProps> = ({
     }
   }, [isLoadingMore, hasMore, nextCursor, itemsPerPage, searchParams, fetchCompaniesWithCursor]);
 
-  useEffect(() => {
-    const current = new URLSearchParams(Array.from(searchParams.entries()));
-    if (debouncedSearchTerm) {
-      current.set('search', debouncedSearchTerm);
-    } else {
-      current.delete('search');
-    }
-    const search = current.toString();
-    const query = search ? `?${search}` : '';
-    router.push(`${pathname}${query}`, { scroll: false });
-  }, [debouncedSearchTerm, pathname, router, searchParams]);
 
   // Effect for fetching suggestions when search input changes
   useEffect(() => {
@@ -212,7 +211,7 @@ const CompanyList: React.FC<CompanyListProps> = ({
     <div className="w-full mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
       <div className="space-y-4 sm:space-y-6 lg:space-y-8">
         {/* Search Input and Suggestions Container */}
-        <CompannySearchBar
+        <CompnaySearchBar
           searchTermInput={searchTermInput}
           setSearchTermInput={setSearchTermInput}
           isLoadingSuggestions={isLoadingSuggestions}
@@ -221,6 +220,7 @@ const CompanyList: React.FC<CompanyListProps> = ({
           setShowSuggestions={setShowSuggestions}
           handleSuggestionClick={handleSuggestionClick}
           suggestionsRef={suggestionsRef}
+          onSearch={handleSearch}
         />
 
         {/* Companies Grid - Fully Responsive */}
