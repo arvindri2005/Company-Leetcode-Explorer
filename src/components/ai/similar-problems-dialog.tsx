@@ -1,30 +1,30 @@
 
 'use client';
 
-import type { SimilarProblemDetail } from '@/types'; // Updated to use local type from flow if preferred, or ensure types/index.ts is synced
+import type { SimilarProblemDetail } from '@/types';
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-} from '@/components/ui/alert-dialog';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import DifficultyBadge from '@/components/problem/difficulty-badge';
 import TagBadge from '@/components/problem/tag-badge';
 import Link from 'next/link';
-import { ExternalLink, Lightbulb, Tag, Globe, Loader2 } from 'lucide-react'; // Added Globe and Loader2
+import { ExternalLink, Lightbulb, Tag, Globe, Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge'; // For platform badge
+import { Badge } from '@/components/ui/badge';
 
 interface SimilarProblemsDialogProps {
   isOpen: boolean;
   onClose: () => void;
   currentProblemTitle: string;
-  similarProblems: SimilarProblemDetail[]; // Ensure this type matches the AI flow's output structure, including 'platform'
+  similarProblems: SimilarProblemDetail[];
   isLoading: boolean;
 }
 
@@ -38,16 +38,16 @@ const SimilarProblemsDialog: React.FC<SimilarProblemsDialogProps> = ({
   if (!isOpen) return null;
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent className="max-w-2xl flex flex-col max-h-[90vh]">
-        <AlertDialogHeader>
-          <AlertDialogTitle className="text-2xl">
+    <Dialog open={isOpen} onOpenChange={onClose} modal={false}>
+      <DialogContent className="max-w-2xl flex flex-col max-h-[90vh]">
+        <DialogHeader>
+          <DialogTitle className="text-2xl">
             AI Suggested Similar Problems for "{currentProblemTitle}"
-          </AlertDialogTitle>
-          <AlertDialogDescription>
+          </DialogTitle>
+          <DialogDescription>
             These problems from various platforms are conceptually similar based on AI analysis.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+          </DialogDescription>
+        </DialogHeader>
         
         <div className="flex-grow overflow-y-auto pr-4">
           {isLoading ? (
@@ -107,11 +107,13 @@ const SimilarProblemsDialog: React.FC<SimilarProblemsDialogProps> = ({
           )}
         </div>
         
-        <AlertDialogFooter className="pt-4">
-          <AlertDialogCancel onClick={onClose}>Close</AlertDialogCancel>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        <DialogFooter className="pt-4">
+          <DialogClose asChild>
+            <Button onClick={onClose} variant="outline">Close</Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

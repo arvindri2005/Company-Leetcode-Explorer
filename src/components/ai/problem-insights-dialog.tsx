@@ -3,14 +3,14 @@
 
 import type { GenerateProblemInsightsOutput } from '@/types';
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-} from '@/components/ui/alert-dialog';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, Lightbulb, Brain, ListChecks, AlertTriangle, Code } from 'lucide-react';
@@ -36,17 +36,17 @@ const ProblemInsightsDialog: React.FC<ProblemInsightsDialogProps> = ({
   if (!isOpen) return null;
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent className="max-w-lg">
-        <AlertDialogHeader>
-          <AlertDialogTitle className="text-2xl flex items-center">
+    <Dialog open={isOpen} onOpenChange={onClose} modal={false}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="text-2xl flex items-center">
             <Brain size={28} className="mr-3 text-primary" />
             AI Insights for "{problemTitle}"
-          </AlertDialogTitle>
-          <AlertDialogDescription>
+          </DialogTitle>
+          <DialogDescription>
             Key concepts, common approaches, and a hint to guide your thinking.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+          </DialogDescription>
+        </DialogHeader>
         
         <ScrollArea className="max-h-[60vh] pr-3 -mr-3"> {/* Added negative margin to offset scrollbar space */}
           {isLoading ? (
@@ -121,11 +121,11 @@ const ProblemInsightsDialog: React.FC<ProblemInsightsDialogProps> = ({
           )}
         </ScrollArea>
         
-        <AlertDialogFooter className="mt-2">
-          <AlertDialogCancel onClick={onClose}>Close</AlertDialogCancel>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        <DialogFooter className="mt-2">
+          <DialogClose onClick={onClose}>Close</DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 
