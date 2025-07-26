@@ -4,7 +4,7 @@ import StatsSection from '@/components/landing/stats-section';
 import SearchSection from '@/components/landing/search-section';
 import Footer from '@/components/landing/footer';
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://bytetooffer.com';
 
 export const metadata: Metadata = {
   title: 'Company LeetCode Interview Questions | AI-Powered Prep Explorer',

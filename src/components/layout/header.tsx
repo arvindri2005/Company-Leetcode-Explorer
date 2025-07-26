@@ -57,38 +57,48 @@ const Header = () => {
   };
 
   const commonNavLinks = (isMobile = false) => (
-    <>
-      <Link
-        href="/companies"
-        className={`nav-link ${isMobile ? 'mobile-nav-link font-bold py-3' : ''}`}
-        onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
-      >
-        Explore Companies
-      </Link>
-      <Link
-        href="/submit"
-        className={`nav-link ${isMobile ? 'mobile-nav-link font-bold py-3' : ''}`}
-        onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
-      >
-        Submit Problem
-      </Link>
-      <Link
-        href="/add-company"
-        className={`nav-link ${isMobile ? 'mobile-nav-link font-bold py-3' : ''}`}
-        onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
-      >
-        Add Company
-      </Link>
-      {!isAdminStatusLoading && isUserAdmin && (
-        <Link
-          href="/admin"
-          className={`nav-link ${isMobile ? 'mobile-nav-link font-bold py-3' : ''}`}
-          onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
-        >
-          Admin Panel
-        </Link>
-      )}
-    </>
+      <>
+          <Link
+              href="/companies"
+              className={`nav-link ${
+                  isMobile ? "mobile-nav-link font-bold py-3" : ""
+              }`}
+              onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
+          >
+              Explore Companies
+          </Link>
+          <Link
+              href="/submit-problem"
+              className={`nav-link ${
+                  isMobile ? "mobile-nav-link font-bold py-3" : ""
+              }`}
+              onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
+          >
+              Submit Problem
+          </Link>
+          <Link
+              href="/add-company"
+              className={`nav-link ${
+                  isMobile ? "mobile-nav-link font-bold py-3" : ""
+              }`}
+              onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
+          >
+              Add Company
+          </Link>
+          {!isAdminStatusLoading && isUserAdmin && (
+              <Link
+                  href="/admin"
+                  className={`nav-link ${
+                      isMobile ? "mobile-nav-link font-bold py-3" : ""
+                  }`}
+                  onClick={
+                      isMobile ? () => setIsMobileMenuOpen(false) : undefined
+                  }
+              >
+                  Admin Panel
+              </Link>
+          )}
+      </>
   );
 
   const authLinks = (isMobile = false) => {
