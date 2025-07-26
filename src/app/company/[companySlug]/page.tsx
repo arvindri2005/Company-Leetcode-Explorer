@@ -43,6 +43,10 @@ interface CompanyPageProps {
 }
 
 export async function generateMetadata({ params }: CompanyPageProps): Promise<Metadata> {
+  // Await params if it's a Promise (Next.js dynamic route API)
+  if (typeof params?.then === 'function') {
+    params = await params;
+  }
   const company = await getCompanyBySlug(params.companySlug);
   if (!company) {
     return {
@@ -156,6 +160,10 @@ export async function generateMetadata({ params }: CompanyPageProps): Promise<Me
 }
 
 export default async function CompanyPage({ params, searchParams }: CompanyPageProps) {
+  // Await params if it's a Promise (Next.js dynamic route API)
+  if (typeof params.then === 'function') {
+    params = await params;
+  }
   const company = await getCompanyBySlug(params.companySlug);
 
   if (!company) {
@@ -183,7 +191,12 @@ export default async function CompanyPage({ params, searchParams }: CompanyPageP
   // This ensures the displayed total reflects the actual number of problems, while AI features might operate on a subset.
   const displayProblemCount = company.problemCount ?? allProblemsForAIFeatures.totalProblems;
   
-  const initialPage = searchParams?.page ? parseInt(searchParams.page, 10) : 1;
+  // Await searchParams if it's a Promise (Next.js dynamic route API)
+  let awaitedSearchParams = searchParams;
+  if (typeof searchParams?.then === 'function') {
+    awaitedSearchParams = await searchParams;
+  }
+  const initialPage = awaitedSearchParams?.page ? parseInt(awaitedSearchParams.page, 10) : 1;
   const currentUser = auth.currentUser; 
   
   const initialFilters: ProblemListFilters = {
