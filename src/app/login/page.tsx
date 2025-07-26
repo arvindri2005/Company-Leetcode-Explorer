@@ -11,7 +11,7 @@ export const metadata = {
 export default function LoginPage() {
   return (
     <section className="flex justify-center items-center py-12">
-      <Card className="w-full max-w-md shadow-xl">
+      <Card className="w-full max-w-md border border-border rounded-3xl mb-8 shadow-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold tracking-tight">Welcome Back!</CardTitle>
           <CardDescription className="text-lg">Sign in to access your account.</CardDescription>

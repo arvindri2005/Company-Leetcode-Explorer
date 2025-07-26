@@ -9,7 +9,7 @@ body {
 
 @layer base {
   :root {
-    --radius: 0.5rem;
+    --radius: 1rem;
     /* Dark mode uses the same colors as the main theme since it's already dark */
       --background: 240 15% 7%;
       --foreground: 240 5% 90%;

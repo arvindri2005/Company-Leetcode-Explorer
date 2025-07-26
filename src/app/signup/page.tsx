@@ -10,7 +10,7 @@ export const metadata = {
 export default function SignupPage() {
   return (
     <section className="flex justify-center items-center py-12">
-      <Card className="w-full max-w-md shadow-xl">
+      <Card className="w-full max-w-md border border-border rounded-3xl mb-8 shadow-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold tracking-tight">Create an Account</CardTitle>
           <CardDescription className="text-lg">Join us and start exploring!</CardDescription>

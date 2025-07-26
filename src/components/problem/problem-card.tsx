@@ -364,26 +364,38 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
             </Button>
           </div>
           <div className="flex gap-2 w-full">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 text-xs rounded-full"
-              onClick={handleFindSimilar}
-              disabled={isLoadingSimilar || isAIActionDisabled}
-            >
-              {isLoadingSimilar ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
-              Similar
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 text-xs rounded-full"
-              onClick={handleGenerateInsights}
-              disabled={isLoadingInsights || isAIActionDisabled}
-            >
-              {isLoadingInsights ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Lightbulb className="h-4 w-4 mr-2" />}
-              Hints
-            </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 text-xs rounded-full"
+            onClick={() => {
+              if (!user) {
+                redirectToLogin();
+                return;
+              }
+              handleFindSimilar();
+            }}
+            disabled={isLoadingSimilar}
+          >
+            {isLoadingSimilar ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
+            Similar
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 text-xs rounded-full"
+            onClick={() => {
+              if (!user) {
+                redirectToLogin();
+                return;
+              }
+              handleGenerateInsights();
+            }}
+            disabled={isLoadingInsights}
+          >
+            {isLoadingInsights ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Lightbulb className="h-4 w-4 mr-2" />}
+            Hints
+          </Button>
             {user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
