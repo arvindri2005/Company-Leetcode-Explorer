@@ -23,12 +23,12 @@ const geistMono = Geist_Mono({
   display: 'swap', // Explicitly set swap
 });
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://bytetooffer.com';
 
 const organizationStructuredData = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  "name": "Company Interview Problem Explorer",
+  "name": "Byte to Offer",
   "url": APP_URL,
   "logo": `${APP_URL}/icon.png`,
   "description": "Master coding interviews with AI-driven tools. Explore company-specific problems, engage in mock interviews, generate flashcards, and get personalized prep strategies. Your ultimate hub for targeted coding interview preparation.",
@@ -40,72 +40,88 @@ const organizationStructuredData = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(APP_URL),
-  title: {
-    default: 'Byte To offer | AI Interview Prep',
-    template: '%s',
-  },
-  description: 'Master coding interviews with AI-driven tools. Explore company-specific LeetCode problems (Google, Amazon, Meta, etc.), engage in mock interviews, generate flashcards, and get personalized prep strategies for software engineering roles.',
-  applicationName: 'Company Interview Problem Explorer',
-  keywords: ['LeetCode', 'Coding Interview Questions', 'Interview Prep', 'AI Interviewer', 'Google Interview Questions', 'Amazon Interview Questions', 'Meta Interview Questions', 'Microsoft Interview Questions', 'Software Engineer Interview', 'Tech Interview', 'Data Structures', 'Algorithms'],
-  authors: [{ name: 'Bite to Offer', url: APP_URL }], // Link to your site or author page
-  manifest: '/site.webmanifest',
-  openGraph: {
-    title: 'Company Interview Problem Explorer | AI-Powered LeetCode Interview Prep',
-    description: 'Your ultimate hub for targeted coding interview preparation. AI mock interviews, problem insights, company-specific LeetCode questions, and more.',
-    url: APP_URL,
-    siteName: 'Company Interview Problem Explorer',
-    images: [
-      {
-        url: '/og-image.png', // Ensure this image exists in /public
-        width: 1200,
-        height: 630,
-        alt: 'Company Interview Problem Explorer - AI-Powered Interview Prep for LeetCode style questions',
-      },
-    ],
-    locale: 'en_US',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Company Interview Problem Explorer | AI-Powered LeetCode Interview Prep',
-    description: 'Master coding interviews with AI-driven tools for targeted preparation. Explore LeetCode questions for top tech companies.',
-    images: [`${APP_URL}/og-image.png`], // Ensure this image exists
-    // site: '@YourTwitterHandle', // Add if you have a Twitter handle for the app
-    // creator: '@YourTwitterHandle', // Add if you have a Twitter handle for the creator
-  },
-  icons: {
-    icon: [
-      { url: '/favicon.ico', type: 'image/x-icon', sizes: 'any' },
-      { url: '/icon.png', type: 'image/png', sizes: '192x192' },
-      { url: '/icon-512.png', type: 'image/png', sizes: '512x512' }
-    ],
-    shortcut: ['/favicon.ico'],
-    apple: [
-      { url: '/apple-touch-icon.png', sizes: '180x180' }
-    ],
-    other: [
-       {
-        rel: 'mask-icon',
-        url: '/safari-pinned-tab.svg',
-        color: '#F7BC2D',
-      },
-    ],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
+    metadataBase: new URL(APP_URL),
+    title: {
+        default: "Byte To offer",
+        template: "%s",
     },
-  },
-  other: {
-    "script[type=\"application/ld+json\"]": JSON.stringify(organizationStructuredData),
-  }
+    description:
+        "Master coding interviews with AI-driven tools. Explore company-specific interview problems (Google, Amazon, Meta, etc.), engage in mock interviews, generate flashcards, and get personalized prep strategies for software engineering roles.",
+    applicationName: "Byte to Offer",
+    keywords: [
+        "LeetCode",
+        "Coding Interview Questions",
+        "Interview Prep",
+        "AI Interviewer",
+        "Google Interview Questions",
+        "Amazon Interview Questions",
+        "Meta Interview Questions",
+        "Microsoft Interview Questions",
+        "Software Engineer Interview",
+        "Tech Interview",
+        "Data Structures",
+        "Algorithms",
+    ],
+    authors: [{ name: "Bite to Offer", url: APP_URL }], // Link to your site or author page
+    manifest: "/site.webmanifest",
+    openGraph: {
+        title: "Byte to Offer",
+        description:
+            "Your ultimate hub for targeted coding interview preparation. AI mock interviews, problem insights, company-specific interview questions, and more.",
+        url: APP_URL,
+        siteName: "Byte to Offer",
+        images: [
+            {
+                url: "/og-image.png", // Ensure this image exists in /public
+                width: 1200,
+                height: 630,
+                alt: "Byte to Offer - AI-Powered Interview Prep for Software Engineers",
+            },
+        ],
+        locale: "en_US",
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Byte to Offer | AI-Powered interview Interview Prep",
+        description:
+            "Master coding interviews with AI-driven tools for targeted preparation. Explore interview questions for top tech companies.",
+        images: [`${APP_URL}/og-image.png`], // Ensure this image exists
+        // site: '@YourTwitterHandle', // Add if you have a Twitter handle for the app
+        // creator: '@YourTwitterHandle', // Add if you have a Twitter handle for the creator
+    },
+    icons: {
+        icon: [
+            { url: "/favicon.ico", type: "image/x-icon", sizes: "any" },
+            { url: "/icon.png", type: "image/png", sizes: "192x192" },
+            { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
+        ],
+        shortcut: ["/favicon.ico"],
+        apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+        other: [
+            {
+                rel: "mask-icon",
+                url: "/safari-pinned-tab.svg",
+                color: "#F7BC2D",
+            },
+        ],
+    },
+    robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+            index: true,
+            follow: true,
+            "max-video-preview": -1,
+            "max-image-preview": "large",
+            "max-snippet": -1,
+        },
+    },
+    other: {
+        'script[type="application/ld+json"]': JSON.stringify(
+            organizationStructuredData
+        ),
+    },
 };
 
 export const viewport: Viewport = {

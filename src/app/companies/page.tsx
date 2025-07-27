@@ -16,7 +16,7 @@ const ITEMS_PER_PAGE = 20;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 
 export async function generateMetadata(): Promise<Metadata> {
-    const pageTitle = "Explore Companies | ByteToOffer";
+    const pageTitle = "Explore Companies";
     const pageDescription =
         "Browse, search, and filter companies to find coding problems frequently asked in their technical interviews. Prepare effectively for your next coding interview with ByteToOffer.";
     const canonicalUrl = `${APP_URL}/companies`;

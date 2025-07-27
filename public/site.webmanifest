@@ -1,8 +1,8 @@
 
 {
-    "name": "Company LeetCode Explorer",
-    "short_name": "LeetCode Explorer",
-    "description": "Explore LeetCode questions by company, with AI-powered insights.",
+    "name": "Byte to Offer",
+    "short_name": "Byte2Offer",
+    "description": "Explore interview questions by company, with AI-powered insights.",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#E5E2D7",

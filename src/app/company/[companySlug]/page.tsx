@@ -8,7 +8,7 @@ import ProblemLoadError from '@/components/company/page/problem-load-error';
 import NoProblemsAvailable from '@/components/company/page/no-problems-available';
 import CompanyTabs from '@/components/company/page/company-tabs';
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://bytetooffer.com';
 const INITIAL_ITEMS_PER_PAGE = 15;
 
 interface CompanyPageProps {
@@ -26,8 +26,8 @@ export async function generateMetadata({ params }: CompanyPageProps): Promise<Me
   }
 
   const problemCount = company.problemCount ?? 0;
-  const title = `${company.name} Coding Problems & Interview Prep | ${problemCount} Questions`;
-  const description = `Explore ${problemCount} coding interview questions from ${company.name}. Practice LeetCode style problems, understand common patterns, and prepare for your technical interviews.`;
+  const title = `${company.name} Interview Problems`;
+  const description = `Explore ${problemCount} coding interview questions from ${company.name}. Practice problems, understand common patterns, and prepare for your technical interviews.`;
 
   const companyKeywords = [
     company.name,
@@ -57,37 +57,42 @@ export async function generateMetadata({ params }: CompanyPageProps): Promise<Me
     "name": company.name,
     "url": `${APP_URL}/company/${company.slug}`,
     "logo": company.logo,
-    "description": `Find LeetCode style coding interview questions and preparation material for ${company.name}.`,
+    "description": `Find coding interview questions and preparation material for ${company.name}.`,
     ...(company.website && { "sameAs": [company.website] }),
   };
 
   return {
-    title,
-    description,
-    keywords: uniqueKeywords,
-    alternates: {
-      canonical: `${APP_URL}/company/${company.slug}`,
-    },
-    openGraph: {
       title,
       description,
-      url: `${APP_URL}/company/${company.slug}`,
-      siteName: 'Company Interview Problem Explorer',
-      images: company.logo ? [{ url: company.logo, alt: `${company.name} logo` }] : [],
-      type: 'profile',
-      profile: {
-        username: company.slug,
-      }
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: company.logo ? [company.logo] : [],
-    },
-    other: {
-       "script[type=\"application/ld+json\"]": JSON.stringify([organizationSchema, breadcrumbList]),
-    }
+      keywords: uniqueKeywords,
+      alternates: {
+          canonical: `${APP_URL}/company/${company.slug}`,
+      },
+      openGraph: {
+          title,
+          description,
+          url: `${APP_URL}/company/${company.slug}`,
+          siteName: "Byte to Offer",
+          images: company.logo
+              ? [{ url: company.logo, alt: `${company.name} logo` }]
+              : [],
+          type: "profile",
+          profile: {
+              username: company.slug,
+          },
+      },
+      twitter: {
+          card: "summary_large_image",
+          title,
+          description,
+          images: company.logo ? [company.logo] : [],
+      },
+      other: {
+          'script[type="application/ld+json"]': JSON.stringify([
+              organizationSchema,
+              breadcrumbList,
+          ]),
+      },
   };
 }
 

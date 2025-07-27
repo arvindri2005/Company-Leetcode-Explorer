@@ -1,21 +1,22 @@
-
 // src/app/robots.txt/route.ts
 export async function GET() {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:9002"; // Fallback for local dev
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 
-    const robotsTxtContent = `User-agent: *
+    const robotsTxtContent = `
+# robots.txt for ${appUrl}
+# Last updated: ${new Date().toISOString().split("T")[0]}
+# This file tells search engines what to crawl and what to avoid
+
+User-agent: *
+Disallow: /admin/
+Disallow: /api/
 Allow: /
-Disallow: /admin/ # Disallow crawling of the admin section
 
-# Allow all crawlers to access all content by default.
-# You can add specific Disallow rules if certain paths should not be crawled.
-# For example:
-# Disallow: /api/ # If you had sensitive API routes you didn't want indexed
-
+# Sitemap location
 Sitemap: ${appUrl}/sitemap.xml
 `;
 
-    return new Response(robotsTxtContent, {
+    return new Response(robotsTxtContent.trim(), {
         headers: {
             "Content-Type": "text/plain",
         },
