@@ -49,7 +49,7 @@ export const FEATURES: Feature[] = [
 
 export const STATS: Stat[] = [
     { number: "2000+", label: "Problems Available" },
-    { number: "50K+", label: "Active Users" },
+    { number: "5K+", label: "Active Users" },
     { number: "95%", label: "Success Rate" },
     { number: "500+", label: "Companies Covered" },
 ];

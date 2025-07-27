@@ -28,10 +28,10 @@ export default function HeroSection() {
             <FaRocket />
             Start Exploring
           </button>
-          <button className="px-8 py-4 bg-transparent text-[#e4e4e7] border-2 border-[#374151] rounded-full text-lg font-semibold cursor-pointer transition-all duration-300 no-underline inline-flex items-center gap-2 hover:border-[#00d4aa] hover:text-[#00d4aa]">
+          {/* <button className="px-8 py-4 bg-transparent text-[#e4e4e7] border-2 border-[#374151] rounded-full text-lg font-semibold cursor-pointer transition-all duration-300 no-underline inline-flex items-center gap-2 hover:border-[#00d4aa] hover:text-[#00d4aa]">
             <FaPlay />
             Watch Demo
-          </button>
+          </button> */}
         </div>
       </div>
     </section>
