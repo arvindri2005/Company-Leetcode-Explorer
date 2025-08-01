@@ -44,6 +44,15 @@ const Header = React.memo(() => {
               Explore Companies
           </Link>
           <Link
+              href="/job-applications"
+              className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${
+                  isMobile ? "block py-4 border-b border-gray-200/10 font-bold" : ""
+              }`}
+              onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
+          >
+              Job Applications
+          </Link>
+          <Link
               href="/submit-problem"
               className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${
                   isMobile ? "block py-4 border-b border-gray-200/10 font-bold" : ""

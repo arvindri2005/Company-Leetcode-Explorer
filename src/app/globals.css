@@ -47,43 +47,7 @@ body {
       --sidebar-ring: 174 100% 42%;
   }
 
-  .dark {
-    /* Dark mode uses the same colors as the main theme since it's already dark */
-    --background: 240 15% 7%;
-    --foreground: 240 5% 90%;
-    --card: 240 15% 10%;
-    --card-foreground: 240 5% 85%;
-    --popover: 240 15% 10%;
-    --popover-foreground: 240 5% 85%;
-    --primary: 174 100% 42%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 10% 20%;
-    --secondary-foreground: 240 5% 80%;
-    --muted: 240 8% 25%;
-    --muted-foreground: 240 5% 65%;
-    --accent: 258 90% 66%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 10% 18%;
-    --input: 240 15% 12%;
-    --ring: 174 100% 42%;
-    --chart-1: 174 100% 42%;
-    --chart-2: 258 90% 66%;
-    --chart-3: 240 15% 30%;
-    --chart-4: 174 80% 60%;
-    --chart-5: 258 70% 80%;
-
-    /* Sidebar colors for dark mode */
-    --sidebar-background: 240 15% 6%;
-    --sidebar-foreground: 240 5% 85%;
-    --sidebar-primary: 174 100% 42%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 258 90% 66%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 240 10% 18%;
-    --sidebar-ring: 174 100% 42%;
-  }
+  
 }
 
 @layer utilities {
