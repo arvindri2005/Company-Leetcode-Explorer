@@ -1,6 +1,7 @@
 
 import Footer from "@/components/landing/footer";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 
@@ -88,7 +89,11 @@ export default function PrivacyPolicyPage() {
 
                     <h2 className="mt-8 text-2xl font-bold">7. Contact Us</h2>
                     <p>
-                        If you have any questions about this Privacy Policy, please contact us at: [Your Contact Information]
+                        If you have any questions about this Privacy Policy, please{" "}
+                        <Link href="/contact" className="text-primary hover:underline">
+                            contact us
+                        </Link>
+                        .
                     </p>
                 </div>
             </div>

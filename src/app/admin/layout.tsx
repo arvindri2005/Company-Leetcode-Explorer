@@ -9,12 +9,13 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { checkUserAdminStatus } from '@/app/actions/admin.actions';
+import { AdminNav } from '@/components/admin/admin-nav';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null); // null for loading, true/false for status
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
   useEffect(() => {
     async function verifyAdmin() {
@@ -29,7 +30,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           return;
         }
 
-        // Check admin status from Firestore
         const adminStatus = await checkUserAdminStatus(user.uid);
         setIsAdmin(adminStatus);
 
@@ -46,7 +46,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     verifyAdmin();
   }, [user, authLoading, router, toast]);
 
-  if (authLoading || isAdmin === null) { // Show loading if auth is loading OR admin check is pending
+  if (authLoading || isAdmin === null) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
@@ -55,13 +55,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!user || !isAdmin) { // Fallback if redirect hasn't fired or for stricter rendering
+  if (!user || !isAdmin) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center p-6">
         <ShieldAlert className="h-16 w-16 text-destructive mb-4" />
         <h1 className="text-2xl font-bold text-destructive mb-2">Access Denied</h1>
         <p className="text-muted-foreground mb-6">
-          You are not authorized to view this page. If you believe this is an error, please contact support or ensure your UID is in the 'admins' collection in Firestore.
+          You are not authorized to view this page. If you believe this is an error, please contact support.
         </p>
         <Button asChild>
           <Link href="/">Go to Homepage</Link>
@@ -70,5 +70,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <AdminNav />
+      </div>
+      {children}
+    </div>
+  );
 }

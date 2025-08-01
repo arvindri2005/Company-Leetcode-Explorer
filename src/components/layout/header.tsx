@@ -9,39 +9,19 @@ import { signOut } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { checkUserAdminStatus } from '@/app/actions/admin.actions';
+import React, { useState, useCallback, useMemo } from 'react';
 
 const Header = React.memo(() => {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isUserAdmin, setIsUserAdmin] = useState(false);
-  const [isAdminStatusLoading, setIsAdminStatusLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchAdminStatus = async () => {
-      if (user && !authLoading) {
-        setIsAdminStatusLoading(true);
-        const adminStatus = await checkUserAdminStatus(user.uid);
-        setIsUserAdmin(adminStatus);
-        setIsAdminStatusLoading(false);
-      } else if (!user && !authLoading) {
-        setIsUserAdmin(false);
-        setIsAdminStatusLoading(false);
-      }
-    };
-
-    fetchAdminStatus();
-  }, [user, authLoading]);
 
   const handleLogout = useCallback(async () => {
     try {
       if (auth) {
         await signOut(auth);
         toast({ title: 'Logged Out', description: 'You have been successfully logged out.' });
-        setIsUserAdmin(false);
         router.push('/');
       } else {
         toast({ title: 'Logout Failed', description: 'Authentication not initialized.', variant: 'destructive' });
@@ -81,21 +61,8 @@ const Header = React.memo(() => {
           >
               Add Company
           </Link>
-          {!isAdminStatusLoading && isUserAdmin && (
-              <Link
-                  href="/admin"
-                  className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${
-                      isMobile ? "block py-4 border-b border-gray-200/10 font-bold" : ""
-                  }`}
-                  onClick={
-                      isMobile ? () => setIsMobileMenuOpen(false) : undefined
-                  }
-              >
-                  Admin Panel
-              </Link>
-          )}
       </>
-  ), [isAdminStatusLoading, isUserAdmin]);
+  ), []);
 
   const authLinks = useMemo(() => (isMobile = false) => {
     if (authLoading) {

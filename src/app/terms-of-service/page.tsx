@@ -1,6 +1,7 @@
 
 import Footer from "@/components/landing/footer";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 
@@ -58,7 +59,7 @@ export default function TermsOfServicePage() {
 
                     <h2 className="mt-8 text-2xl font-bold">6. Governing Law</h2>
                     <p>
-                        These Terms shall be governed by and construed in accordance with the laws of the State of [Your State], without giving effect to any choice or conflict of law provision or rule.
+                        These Terms shall be governed by and construed in accordance with the laws of the State of Delaware, without giving effect to any choice or conflict of law provision or rule.
                     </p>
 
                     <h2 className="mt-8 text-2xl font-bold">7. Changes to Terms</h2>
@@ -68,7 +69,11 @@ export default function TermsOfServicePage() {
 
                     <h2 className="mt-8 text-2xl font-bold">8. Contact Us</h2>
                     <p>
-                        If you have any questions about these Terms, please contact us at: [Your Contact Information]
+                        If you have any questions about these Terms, please{" "}
+                        <Link href="/contact" className="text-primary hover:underline">
+                            contact us
+                        </Link>
+                        .
                     </p>
                 </div>
             </div>
