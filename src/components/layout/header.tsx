@@ -1,22 +1,18 @@
 
 'use client';
-import './header.css';
-
 import Link from 'next/link';
 import Image from 'next/image';
-import { PlusSquare, Building, LogIn, UserPlus, User, LogOut, Menu, Search, ShieldCheck } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Menu } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import React, { useState, useEffect } from 'react';
-import { ThemeSwitcher } from '@/components/theme-switcher';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { checkUserAdminStatus } from '@/app/actions/admin.actions';
 
-const Header = () => {
+const Header = React.memo(() => {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
@@ -40,7 +36,7 @@ const Header = () => {
     fetchAdminStatus();
   }, [user, authLoading]);
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       if (auth) {
         await signOut(auth);
@@ -54,14 +50,14 @@ const Header = () => {
       console.error('Logout error:', error);
       toast({ title: 'Logout Failed', description: 'Could not log you out. Please try again.', variant: 'destructive' });
     }
-  };
+  }, [toast, router]);
 
-  const commonNavLinks = (isMobile = false) => (
+  const commonNavLinks = useMemo(() => (isMobile = false) => (
       <>
           <Link
               href="/companies"
-              className={`nav-link ${
-                  isMobile ? "mobile-nav-link font-bold py-3" : ""
+              className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${
+                  isMobile ? "block py-4 border-b border-gray-200/10 font-bold text-teal-400" : ""
               }`}
               onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
           >
@@ -69,8 +65,8 @@ const Header = () => {
           </Link>
           <Link
               href="/submit-problem"
-              className={`nav-link ${
-                  isMobile ? "mobile-nav-link font-bold py-3" : ""
+              className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${
+                  isMobile ? "block py-4 border-b border-gray-200/10 font-bold" : ""
               }`}
               onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
           >
@@ -78,8 +74,8 @@ const Header = () => {
           </Link>
           <Link
               href="/add-company"
-              className={`nav-link ${
-                  isMobile ? "mobile-nav-link font-bold py-3" : ""
+              className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${
+                  isMobile ? "block py-4 border-b border-gray-200/10 font-bold" : ""
               }`}
               onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
           >
@@ -88,8 +84,8 @@ const Header = () => {
           {!isAdminStatusLoading && isUserAdmin && (
               <Link
                   href="/admin"
-                  className={`nav-link ${
-                      isMobile ? "mobile-nav-link font-bold py-3" : ""
+                  className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${
+                      isMobile ? "block py-4 border-b border-gray-200/10 font-bold" : ""
                   }`}
                   onClick={
                       isMobile ? () => setIsMobileMenuOpen(false) : undefined
@@ -99,11 +95,11 @@ const Header = () => {
               </Link>
           )}
       </>
-  );
+  ), [isAdminStatusLoading, isUserAdmin]);
 
-  const authLinks = (isMobile = false) => {
+  const authLinks = useMemo(() => (isMobile = false) => {
     if (authLoading) {
-      return <span className="nav-link">Loading...</span>;
+      return <span className="text-gray-200">Loading...</span>;
     }
 
     if (user) {
@@ -111,14 +107,14 @@ const Header = () => {
         <>
           <Link
             href="/profile"
-            className={`nav-link ${isMobile ? 'mobile-nav-link font-bold py-3' : ''}`}
+            className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${isMobile ? 'block py-4 border-b border-gray-200/10 font-bold' : ''}`}
             onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
           >
             Profile
           </Link>
           <button
             onClick={() => { handleLogout(); if(isMobile) setIsMobileMenuOpen(false); }}
-            className={`nav-link logout-btn ${isMobile ? 'mobile-nav-link font-bold py-3' : ''}`}
+            className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${isMobile ? 'block py-4 border-b border-gray-200/10 font-bold' : ''}`}
           >
             Logout
           </button>
@@ -130,27 +126,27 @@ const Header = () => {
       <>
         <Link
           href="/login"
-          className={`nav-link ${isMobile ? 'mobile-nav-link font-bold py-3' : ''}`}
+          className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${isMobile ? 'block py-4 border-b border-gray-200/10 font-bold' : ''}`}
           onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
         >
           Login
         </Link>
         <Link
           href="/signup"
-          className={`nav-link ${isMobile ? 'mobile-nav-link font-bold py-3' : ''}`}
+          className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${isMobile ? 'block py-4 border-b border-gray-200/10 font-bold' : ''}`}
           onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
         >
           Sign Up
         </Link>
       </>
     );
-  };
+  }, [authLoading, user, handleLogout]);
 
   return (
     <>
-      <nav className="navbar">
-        <div className="nav-container">
-          <Link href="/" className="logo">
+      <nav className="fixed top-0 w-full bg-opacity-95 bg-gray-900 backdrop-blur-lg z-50 py-4 transition-all duration-300 ease-in-out border-b border-gray-200/10">
+        <div className="container mx-auto flex justify-between items-center px-8">
+          <Link href="/" className="text-2xl font-bold text-teal-400 no-underline flex items-center gap-2">
             <Image
               src="/icon.png"
               alt="App Icon"
@@ -162,26 +158,23 @@ const Header = () => {
             Byte To Offer
           </Link>
           {/* Desktop Navigation */}
-          <div className="nav-links">
+          <div className="hidden md:flex items-center gap-8">
             {commonNavLinks()}
             {authLinks()}
           </div>
           {/* Mobile Menu Button */}
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen} modal={false}>
             <SheetTrigger asChild>
-              <button className="mobile-menu-btn">
+              <button className="md:hidden bg-transparent border-none text-gray-200 cursor-pointer p-2">
                 <Menu className="w-6 h-6" />
               </button>
             </SheetTrigger>
             <SheetContent side="right" className="w-80">
-              <SheetHeader>
-                <SheetTitle>Navigation</SheetTitle>
-              </SheetHeader>
               <div className="flex flex-col mt-6">
                 <div className="mobile-nav-section">
                   {commonNavLinks(true)}
                 </div>
-                <hr className="mobile-nav-divider" />
+                <hr className="my-4 border-gray-200/10" />
                 <div className="mobile-nav-section">
                   {authLinks(true)}
                 </div>
@@ -192,6 +185,6 @@ const Header = () => {
       </nav>
     </>
   );
-};
+});
 
 export default Header;

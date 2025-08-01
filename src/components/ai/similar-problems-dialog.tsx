@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { SimilarProblemDetail } from '@/types';
@@ -9,27 +8,108 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogClose,
 } from '@/components/ui/dialog';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerClose,
+} from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import DifficultyBadge from '@/components/problem/difficulty-badge';
 import TagBadge from '@/components/problem/tag-badge';
 import Link from 'next/link';
-import { ExternalLink, Lightbulb, Tag, Globe, Loader2 } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ExternalLink, Lightbulb, Tag, Globe, Loader2, Search, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import React from 'react';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 interface SimilarProblemsDialogProps {
   isOpen: boolean;
   onClose: () => void;
   currentProblemTitle: string;
-  similarProblems: SimilarProblemDetail[];
+  similarProblems: SimilarProblemDetail[] | null;
   isLoading: boolean;
 }
 
-import { cn } from '@/lib/utils';
-import React, { useState, useEffect } from 'react';
+const SimilarProblemCard = ({ problem }: { problem: SimilarProblemDetail }) => (
+  <Card className="bg-muted/20 border-none shadow-sm">
+    <CardHeader>
+      <div className="flex justify-between items-start gap-2">
+        <CardTitle className="text-lg">{problem.title}</CardTitle>
+        {problem.difficulty && <DifficultyBadge difficulty={problem.difficulty} />}
+      </div>
+      <CardDescription className="flex items-center text-xs text-muted-foreground gap-1.5 pt-1">
+        <Globe size={14} />
+        Platform: <Badge variant="secondary" className="text-xs">{problem.platform}</Badge>
+      </CardDescription>
+    </CardHeader>
+    <CardContent className="space-y-3">
+      {problem.tags && problem.tags.length > 0 && (
+        <div>
+          <h4 className="text-sm font-semibold mb-2 flex items-center">
+            <Tag size={16} className="mr-2 text-primary" /> Tags
+          </h4>
+          <div className="flex flex-wrap gap-1">
+            {problem.tags.map(tag => (
+              <TagBadge key={tag} tag={tag} />
+            ))}
+          </div>
+        </div>
+      )}
+      <div>
+        <h4 className="text-sm font-semibold mb-2 flex items-center">
+          <Lightbulb size={16} className="mr-2 text-primary" /> Similarity Reason
+        </h4>
+        <p className="text-sm text-foreground/80">{problem.similarityReason}</p>
+      </div>
+    </CardContent>
+    <CardFooter>
+      <Button asChild variant="outline" size="sm" className="w-full group">
+        <Link href={problem.link} target="_blank" rel="noopener noreferrer">
+          View on {problem.platform}
+          <ExternalLink className="ml-2 h-4 w-4 group-hover:scale-105 transition-transform" />
+        </Link>
+      </Button>
+    </CardFooter>
+  </Card>
+);
+
+const SimilarProblemsContent = ({ similarProblems, isLoading }: { similarProblems: SimilarProblemDetail[] | null, isLoading: boolean }) => {
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 space-y-4">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+        <p className="text-lg text-muted-foreground">Finding similar problems...</p>
+        <p className="text-sm text-muted-foreground/80">Please wait a moment.</p>
+      </div>
+    );
+  }
+
+  if (!similarProblems || similarProblems.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 space-y-4 text-center">
+        <AlertTriangle size={48} className="text-destructive" />
+        <h3 className="text-xl font-semibold">No Similar Problems Found</h3>
+        <p className="text-muted-foreground max-w-sm">
+          We couldn't find any significantly similar problems at this time. This might be a unique problem!
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 py-2">
+      {similarProblems.map((problem, index) => (
+        <SimilarProblemCard key={`${problem.platform}-${problem.title}-${index}`} problem={problem} />
+      ))}
+    </div>
+  );
+};
 
 const SimilarProblemsDialog: React.FC<SimilarProblemsDialogProps> = ({
   isOpen,
@@ -38,105 +118,56 @@ const SimilarProblemsDialog: React.FC<SimilarProblemsDialogProps> = ({
   similarProblems,
   isLoading,
 }) => {
-  const [contentHeightClass, setContentHeightClass] = useState("max-h-0");
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
-  useEffect(() => {
-    if (!isLoading && similarProblems !== null) {
-      const timer = setTimeout(() => {
-        setContentHeightClass("max-h-[1000px]"); // Adjust value as needed
-      }, 50);
-      return () => clearTimeout(timer);
-    } else {
-      setContentHeightClass("max-h-0");
-    }
-  }, [isLoading, similarProblems]);
-
-  if (!isOpen) return null;
+  if (isDesktop) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-3xl w-[95vw] md:w-full max-h-[90vh] flex flex-col p-0">
+          <DialogHeader className="p-6 pb-4 flex-shrink-0">
+            <DialogTitle className="text-xl sm:text-2xl font-bold flex items-start">
+              <Search size={28} className="mr-3 text-primary flex-shrink-0 mt-1" />
+              <span>Similar Problems to "{currentProblemTitle}"</span>
+            </DialogTitle>
+            <DialogDescription className="text-sm">
+              These problems are conceptually similar based on AI analysis.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-grow overflow-y-auto px-6">
+            <SimilarProblemsContent similarProblems={similarProblems} isLoading={isLoading} />
+          </div>
+          <DialogFooter className="p-6 pt-4 flex-shrink-0">
+            <Button onClick={onClose} variant="outline" className="w-full sm:w-auto">
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose} modal={false}>
-      <DialogContent className="max-w-2xl flex flex-col max-h-[90vh] border border-border rounded-3xl mb-8 shadow-sm">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">
-            AI Suggested Similar Problems for "{currentProblemTitle}"
-          </DialogTitle>
-          <DialogDescription>
-            These problems from various platforms are conceptually similar based on AI analysis.
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="flex-grow overflow-y-auto">
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-10">
-              <Loader2 className="h-10 w-10 animate-spin text-primary mb-3" />
-              <p className="text-muted-foreground">Searching for similar problems...</p>
-            </div>
-          ) : (
-            <div className={cn(
-              "transition-all duration-500 ease-in-out overflow-hidden",
-              contentHeightClass
-            )}>
-              {similarProblems.length > 0 ? (
-                <div className="space-y-4 py-4">
-                  {similarProblems.map((problem, index) => (
-                    <Card key={`${problem.platform}-${problem.title}-${index}`} className="border border-border rounded-3xl mb-8 shadow-sm">
-                      <CardHeader>
-                        <div className="flex justify-between items-start gap-2">
-                          <CardTitle className="text-lg">{problem.title}</CardTitle>
-                          {problem.difficulty && <DifficultyBadge difficulty={problem.difficulty} />}
-                        </div>
-                        <CardDescription className="flex items-center text-xs text-muted-foreground gap-1.5 pt-1">
-                            <Globe size={14} />
-                            Platform: <Badge variant="secondary" className="text-xs">{problem.platform}</Badge>
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        {problem.tags && problem.tags.length > 0 && (
-                          <div className="mb-3">
-                            <h4 className="text-xs font-semibold text-muted-foreground mb-1 flex items-center">
-                              <Tag size={14} className="mr-1" /> Tags
-                            </h4>
-                            <div className="flex flex-wrap gap-1">
-                              {problem.tags.map(tag => (
-                                <TagBadge key={tag} tag={tag} />
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                         <div className="mt-2 pt-2 border-t">
-                            <h4 className="text-xs font-semibold text-muted-foreground mb-1 flex items-center">
-                                <Lightbulb size={14} className="mr-1 text-primary" /> Similarity Reason
-                            </h4>
-                            <p className="text-sm text-foreground">{problem.similarityReason}</p>
-                         </div>
-                      </CardContent>
-                      <CardFooter>
-                        <Button asChild variant="outline" size="sm" className="w-full group">
-                          <Link href={problem.link} target="_blank" rel="noopener noreferrer">
-                            View on {problem.platform}
-                            <ExternalLink className="ml-2 h-4 w-4 group-hover:scale-105 transition-transform" />
-                          </Link>
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center py-10 text-muted-foreground">
-                  AI could not find any significantly similar problems from other platforms at this time.
-                </p>
-              )}
-            </div>
-          )}
+    <Drawer open={isOpen} onClose={onClose}>
+      <DrawerContent>
+        <DrawerHeader className="text-left">
+          <DrawerTitle className="text-xl font-bold flex items-start">
+            <Search size={24} className="mr-2 text-primary flex-shrink-0 mt-1" />
+            Similar Problems to "{currentProblemTitle}"
+          </DrawerTitle>
+          <DrawerDescription>
+            These problems are conceptually similar based on AI analysis.
+          </DrawerDescription>
+        </DrawerHeader>
+        <div className="overflow-y-auto px-6 max-h-[60vh]" data-vaul-no-drag>
+          <SimilarProblemsContent similarProblems={similarProblems} isLoading={isLoading} />
         </div>
-        
-        <DialogFooter className="pt-4">
-          <DialogClose asChild>
-            <Button onClick={onClose} variant="outline">Close</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        <DrawerFooter className="pt-2">
+          <DrawerClose asChild>
+            <Button variant="outline">Close</Button>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 };
 
