@@ -34,8 +34,18 @@ export async function generateMetadata({ params }: CompanyPageProps): Promise<Me
     `${company.name} interview questions`,
     `${company.name} coding problems`,
     `${company.name} LeetCode problems`,
-    'technical interview prep',
-    'software engineer interview',
+    `${company.name} interview prep`,
+    `${company.name} coding interview`,
+    `${company.name} software engineer interview`,
+    `${company.name} technical interview`,
+    `${company.name} LeetCode`,
+    `${company.name} interview preparation`,
+    `${company.name} interview practice`,
+    `${company.name} coding challenges`,
+    `${company.name} data structures`,
+    `${company.name} algorithms`,
+    `${company.name} tech interview questions`,
+    `${company.name} coding interview questions`,
   ];
 
   const tagKeywords = company.commonTags?.map(ct => ct.tag) ?? [];
@@ -76,10 +86,7 @@ export async function generateMetadata({ params }: CompanyPageProps): Promise<Me
           images: company.logo
               ? [{ url: company.logo, alt: `${company.name} logo` }]
               : [],
-          type: "profile",
-          profile: {
-              username: company.slug,
-          },
+          type: "article"
       },
       twitter: {
           card: "summary_large_image",
@@ -112,8 +119,7 @@ export default async function CompanyPage({ params }: CompanyPageProps) {
   };
 
   const initialPaginatedProblemsData = await getProblemsByCompanyFromDb(company.id, {
-    pageSize: INITIAL_ITEMS_PER_PAGE,
-    filters: initialFilters,
+    pageSize: INITIAL_ITEMS_PER_PAGE
   });
 
   if ('error' in initialPaginatedProblemsData) {
