@@ -1,4 +1,3 @@
-"use client";
 
 import Footer from "@/components/landing/footer";
 import { useFormState, useFormStatus } from "react-dom";
