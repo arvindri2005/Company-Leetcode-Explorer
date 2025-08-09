@@ -5,8 +5,8 @@ import type { Company } from '@/types';
 import { Separator } from '@/components/ui/separator';
 
 export const metadata = {
-  title: 'Submit New Problem',
-  description: 'Add a new Interview problem to the database.',
+  title: 'Submit New Interview Problem',
+  description: 'Contribute to Byte To Offer by submitting a new interview problem. Share your knowledge with the community and help others prepare for their tech interviews.',
 };
 
 export default async function SubmitProblemPage() {

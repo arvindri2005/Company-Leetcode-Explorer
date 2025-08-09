@@ -3,8 +3,8 @@ import CompanySubmissionForm from '@/components/company/company-submission-form'
 import { Separator } from '@/components/ui/separator';
 
 export const metadata = {
-  title: 'Add New Company',
-  description: 'Add a new company to the platform.',
+  title: 'Add New Company | Byte To Offer',
+  description: 'Help grow the Byte To Offer platform by adding a new company. Your contributions help us provide a comprehensive resource for tech interview preparation.',
 };
 
 export default async function AddCompanyPage() {

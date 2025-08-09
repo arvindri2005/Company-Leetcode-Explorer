@@ -21,8 +21,14 @@ import JobApplicationForm from '@/components/job-application/job-application-for
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import StatusBadge from '@/components/job-application/status-badge';
+import type { Metadata } from 'next';
 
 type SortKey = 'appliedDate-desc' | 'appliedDate-asc' | 'companyName-asc' | 'companyName-desc';
+
+export const metadata: Metadata = {
+    title: 'Job Application Tracker | Byte To Offer',
+    description: 'Track and manage your job applications seamlessly. Keep a log of companies you have applied to, interview dates, and application statuses to stay organized in your job hunt.',
+};
 
 export default function JobApplicationsPage() {
     const { user, loading: authLoading } = useAuth();

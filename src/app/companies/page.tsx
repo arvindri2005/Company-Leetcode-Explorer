@@ -1,25 +1,30 @@
 import CompanyList from "@/components/company/company-list";
-import { getCompanies } from "@/lib/data";
+import Pagination from "@/components/company/pagination";
+import { getCompaniesWithTotalCount } from "@/lib/data";
 import { Separator } from "@/components/ui/separator";
 import type { Metadata } from "next";
-import { cache } from "react";
+
 type CompaniesPageProps = {
-    searchParams?: { [key: string]: string };
+    searchParams?: { [key: string]: string | string[] | undefined };
 };
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 export const preferredRegion = "auto";
-export const revalidate = false;
-export const fetchCache = "force-cache";
 
-const ITEMS_PER_PAGE = 20;
+const ITEMS_PER_PAGE = 30;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 
-export async function generateMetadata(): Promise<Metadata> {
-    const pageTitle = "Explore Companies";
+export async function generateMetadata({
+    searchParams,
+}: CompaniesPageProps): Promise<Metadata> {
+    const page = searchParams?.page ? parseInt(searchParams.page as string) : 1;
+    const pageTitle = `Explore Companies ${page > 1 ? ` - Page ${page}` : ""}`;
     const pageDescription =
-        "Browse, search, and filter companies to find coding problems frequently asked in their technical interviews. Prepare effectively for your next coding interview with ByteToOffer.";
-    const canonicalUrl = `${APP_URL}/companies`;
+        "Browse and filter companies to find coding problems asked in their technical interviews. Prepare for your next coding interview with ByteToOffer.";
+    const canonicalUrl = `${APP_URL}/companies${
+        page > 1 ? `?page=${page}` : ""
+    }`;
+
     const breadcrumbList = {
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
@@ -34,11 +39,21 @@ export async function generateMetadata(): Promise<Metadata> {
                 "@type": "ListItem",
                 position: 2,
                 name: "Companies",
-                item: canonicalUrl,
+                item: `${APP_URL}/companies`,
             },
         ],
     };
-    return {
+
+    if (page > 1) {
+        breadcrumbList.itemListElement.push({
+            "@type": "ListItem",
+            position: 3,
+            name: `Page ${page}`,
+            item: canonicalUrl,
+        });
+    }
+
+    const metadata: Metadata = {
         title: pageTitle,
         description: pageDescription,
         openGraph: {
@@ -55,25 +70,35 @@ export async function generateMetadata(): Promise<Metadata> {
             "ld+json": JSON.stringify(breadcrumbList),
         },
     };
-}
 
-const getCompaniesWithCache = cache(
-    async (pageSize: number, searchTerm: string) => {
-        return getCompanies({
-            pageSize,
-            searchTerm,
-        });
+    // Add prev/next links for pagination
+    if (page > 1) {
+        metadata.alternates!.prev = `${APP_URL}/companies?page=${page - 1}`;
     }
-);
+    // Note: We don't know total pages here, so we can't add a 'next' link reliably
+    // without another data fetch. This is a limitation to consider.
+
+    return metadata;
+}
 
 export default async function CompaniesPage({
     searchParams,
 }: CompaniesPageProps) {
+    const currentPage = searchParams?.page
+        ? parseInt(searchParams.page as string)
+        : 1;
+    const searchTerm = (searchParams?.search as string) || "";
+
     const {
         companies: initialCompanies,
         hasMore,
+        totalPages,
         nextCursor,
-    } = await getCompaniesWithCache(ITEMS_PER_PAGE, "");
+    } = await getCompaniesWithTotalCount({
+        page: currentPage,
+        pageSize: ITEMS_PER_PAGE,
+        searchTerm,
+    });
 
     return (
         <main
@@ -105,11 +130,20 @@ export default async function CompaniesPage({
                     >
                         <CompanyList
                             initialCompanies={initialCompanies}
-                            initialSearchTerm={""}
+                            initialSearchTerm={searchTerm}
                             initialHasMore={hasMore}
                             initialNextCursor={nextCursor}
                             itemsPerPage={ITEMS_PER_PAGE}
+                            currentPage={currentPage}
+                            totalPages={totalPages}
                         />
+                        <div className="sr-only">
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                searchTerm={searchTerm}
+                            />
+                        </div>
                     </section>
                 </section>
             </div>

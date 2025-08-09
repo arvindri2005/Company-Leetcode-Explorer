@@ -1,4 +1,3 @@
-
 "use client";
 
 import Footer from "@/components/landing/footer";
@@ -6,6 +5,7 @@ import { useFormState, useFormStatus } from "react-dom";
 import { sendContactMessage } from "@/app/contact/actions";
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import type { Metadata } from "next";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -20,6 +20,11 @@ function SubmitButton() {
         </button>
     );
 }
+
+export const metadata: Metadata = {
+    title: 'Contact Us | Byte To Offer',
+    description: 'Have questions or feedback? Contact the Byte To Offer team. We are here to help you with your technical interview preparation needs.',
+};
 
 export default function ContactPage() {
     const [state, formAction] = useFormState(sendContactMessage, null);

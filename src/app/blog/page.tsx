@@ -5,8 +5,8 @@ import type { Metadata } from "next";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 
 export const metadata: Metadata = {
-    title: "Blog | Byte To Offer",
-    description: "Read the latest articles from the Byte To Offer team.",
+    title: "Tech Interview Insights Blog | Byte To Offer",
+    description: "Explore articles on acing coding interviews, data structures, algorithms, and AI-powered interview prep. Stay ahead with Byte To Offer's expert insights.",
     alternates: {
         canonical: `${APP_URL}/blog`,
     },

@@ -10,6 +10,8 @@ export async function GET() {
 User-agent: *
 Disallow: /admin/
 Disallow: /api/
+Disallow: /_next/
+Disallow: /submit-problem?*
 Allow: /
 
 # Sitemap location
