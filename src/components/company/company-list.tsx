@@ -14,6 +14,8 @@ interface CompanyListProps {
     initialHasMore: boolean;
     initialNextCursor?: string;
     itemsPerPage: number;
+    currentPage: number;
+    totalPages: number;
 }
 
 const CompanyList: React.FC<CompanyListProps> = ({
@@ -22,6 +24,8 @@ const CompanyList: React.FC<CompanyListProps> = ({
     initialHasMore,
     initialNextCursor,
     itemsPerPage,
+    currentPage,
+    totalPages,
 }) => {
     const [searchTermInput, setSearchTermInput] = useState(initialSearchTerm);
     const router = useRouter();
@@ -35,6 +39,8 @@ const CompanyList: React.FC<CompanyListProps> = ({
     const [nextCursor, setNextCursor] = useState<string | undefined>(
         initialNextCursor
     );
+
+
     interface Suggestion
         extends Pick<Company, "id" | "name" | "slug" | "logo"> {}
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -66,6 +72,8 @@ const CompanyList: React.FC<CompanyListProps> = ({
         } else {
             params.delete("search");
         }
+        // Reset page to 1 on new search
+        params.delete("page");
         router.push(`${pathname}?${params.toString()}`);
     };
 

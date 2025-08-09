@@ -67,11 +67,13 @@ describe('CompanyList', () => {
         thresholds: [0],
       };
     });
+    // Mock history.pushState
+    global.history.pushState = jest.fn();
   });
 
   beforeEach(() => {
     jest.useFakeTimers();
-    jest.clearAllMocks();
+    jest.clearAllMMocks();
     mockSearchParams = new URLSearchParams();
     (fetchCompanySuggestionsAction as jest.Mock).mockResolvedValue([]);
     
@@ -95,6 +97,8 @@ describe('CompanyList', () => {
         initialHasMore={true}
         initialNextCursor="cursor1"
         itemsPerPage={2}
+        currentPage={1}
+        totalPages={5}
       />
     );
     expect(screen.getByText('Company A')).toBeInTheDocument();
@@ -107,8 +111,9 @@ describe('CompanyList', () => {
       <CompanyList
         initialCompanies={[]}
         initialHasMore={false}
-        initialNextCursor={undefined}
         itemsPerPage={9}
+        currentPage={1}
+        totalPages={1}
       />
     );
     expect(screen.getByText('No companies available.')).toBeInTheDocument();
@@ -120,31 +125,33 @@ describe('CompanyList', () => {
         initialCompanies={[]}
         initialSearchTerm="NonExistent"
         initialHasMore={false}
-        initialNextCursor={undefined}
         itemsPerPage={9}
+        currentPage={1}
+        totalPages={1}
       />
     );
     expect(screen.getByText('No companies found matching your search.')).toBeInTheDocument();
   });
 
-  it('updates search term input and debounces correctly', async () => {
+  it('updates search term input and triggers navigation on search', async () => {
     render(
       <CompanyList
         initialCompanies={[]}
         initialHasMore={false}
-        initialNextCursor={undefined}
         itemsPerPage={9}
+        currentPage={1}
+        totalPages={1}
       />
     );
     const searchInput = screen.getByPlaceholderText('Search for Companies... e.g., Amazon, Google');
-    await act(async () => {
-        await user.type(searchInput, 'test');
-        await jest.advanceTimersByTimeAsync(300);
-    });
-
+    await user.type(searchInput, 'test');
     expect(searchInput).toHaveValue('test');
+
+    const searchButton = screen.getByRole('button', { name: /search/i });
+    await user.click(searchButton);
+
     await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith('/companies?search=test', { scroll: false });
+        expect(mockPush).toHaveBeenCalledWith('/companies?search=test');
     });
   });
 
@@ -156,8 +163,9 @@ describe('CompanyList', () => {
       <CompanyList
         initialCompanies={[]}
         initialHasMore={false}
-        initialNextCursor={undefined}
         itemsPerPage={9}
+        currentPage={1}
+        totalPages={1}
       />
     );
     const searchInput = screen.getByPlaceholderText('Search for Companies... e.g., Amazon, Google');
@@ -172,7 +180,7 @@ describe('CompanyList', () => {
     });
   });
 
-  it('loads more companies on intersection', async () => {
+  it('loads more companies on intersection and updates URL', async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({
@@ -188,6 +196,8 @@ describe('CompanyList', () => {
         initialHasMore={true}
         initialNextCursor="initialCursor"
         itemsPerPage={1}
+        currentPage={1}
+        totalPages={2}
       />
     );
 
@@ -199,6 +209,7 @@ describe('CompanyList', () => {
       expect(global.fetch).toHaveBeenCalledWith('/api/companies', expect.any(Object));
       expect(screen.getByText('Company D')).toBeInTheDocument();
       expect(screen.getByText("You've reached the end!")).toBeInTheDocument();
+      expect(global.history.pushState).toHaveBeenCalledWith({ path: '/companies?page=2' }, '', '/companies?page=2');
     });
   });
 });

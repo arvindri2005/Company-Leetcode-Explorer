@@ -235,12 +235,9 @@ export async function getCompaniesWithTotalCount({
         const offset = (currentPage - 1) * pageSize;
 
         // Get the actual data with limit
-        const dataQuery = query(baseQuery, limit(pageSize));
+        let finalQuery = query(baseQuery, limit(pageSize));
 
-        // For offset, we need to skip documents (this is expensive for large offsets!)
-        let finalQuery = dataQuery;
         if (offset > 0) {
-            // This is inefficient for large offsets - consider using cursor-based pagination instead
             const skipQuery = query(baseQuery, limit(offset));
             const skipSnapshot = await getDocs(skipQuery);
             if (skipSnapshot.docs.length > 0) {
@@ -256,13 +253,22 @@ export async function getCompaniesWithTotalCount({
 
         const querySnapshot = await getDocs(finalQuery);
         const companies = querySnapshot.docs.map(mapFirestoreDocToCompany);
+        const hasMore = currentPage < totalPages;
+
+        let nextCursor: string | undefined;
+        if (hasMore && querySnapshot.docs.length > 0) {
+            const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
+            nextCursor = generateCursorKey(searchTerm, "next");
+            paginationCursors.set(nextCursor, lastDoc);
+        }
 
         return {
             companies,
             totalCompanies,
             totalPages,
             currentPage,
-            hasMore: currentPage < totalPages,
+            hasMore,
+            nextCursor,
         };
     } catch (error) {
         console.error("Error in getCompaniesWithTotalCount:", error);

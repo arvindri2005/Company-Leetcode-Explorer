@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Company } from "@/types";
@@ -8,17 +8,20 @@ interface CompanyCardProps {
 }
 
 const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
+    const [imgSrc, setImgSrc] = useState(company.logo);
+
     return (
         <article className="group relative flex flex-col h-full transition-all duration-300 ease-out overflow-hidden rounded-xl bg-white/5 backdrop-blur-lg border border-white/10 shadow-lg shadow-black/10 hover:border-white/20 hover:shadow-xl hover:-translate-y-1">
             <header className="p-4 flex items-center gap-3">
                 {company.logo && (
                     <Image
-                        src={company.logo}
+                        src={imgSrc}
                         alt={`${company.name} logo`}
                         width={48}
                         height={48}
                         className="rounded-full border-2 border-white/20 object-contain"
                         priority
+                        onError={() => setImgSrc("/icon.png")}
                     />
                 )}
                 <div className="flex-1 min-w-0">
