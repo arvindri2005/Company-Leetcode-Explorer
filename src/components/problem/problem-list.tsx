@@ -217,7 +217,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
             );
 
             // Add AMP ad after every 5 problems
-            if ((index + 1) % 5 === 0 && index !== displayedProblems.length - 1) {
+            if ((index + 1) % 6 === 0 && index !== displayedProblems.length - 1) {
               elements.push(
                 <div key={`ad-${index}`} className="col-span-full w-full my-4">
                   <amp-ad
