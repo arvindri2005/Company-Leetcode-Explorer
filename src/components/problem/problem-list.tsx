@@ -202,17 +202,39 @@ const ProblemList: React.FC<ProblemListProps> = ({
         </div>
       ) : displayedProblems.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {displayedProblems.map(problem => (
-            <ProblemCard
-              key={problem.id}
-              problem={problem}
-              companySlug={problem.companySlug || companySlug}
-              initialIsBookmarked={problem.isBookmarked}
-              onBookmarkChanged={handleProblemBookmarkChange}
-              problemStatus={problem.currentStatus || 'none'}
-              onProblemStatusChange={handleProblemStatusChange}
-            />
-          ))}
+          {displayedProblems.map((problem, index) => {
+            const elements = [];
+            elements.push(
+              <ProblemCard
+                key={problem.id}
+                problem={problem}
+                companySlug={problem.companySlug || companySlug}
+                initialIsBookmarked={problem.isBookmarked}
+                onBookmarkChanged={handleProblemBookmarkChange}
+                problemStatus={problem.currentStatus || 'none'}
+                onProblemStatusChange={handleProblemStatusChange}
+              />
+            );
+
+            // Add AMP ad after every 5 problems
+            if ((index + 1) % 5 === 0 && index !== displayedProblems.length - 1) {
+              elements.push(
+                <div key={`ad-${index}`} className="col-span-full w-full my-4">
+                  <amp-ad
+                    width="100vw" 
+                    height="320"
+                    type="adsense"
+                    data-ad-client="ca-pub-6342943619826199"
+                    data-ad-slot="9953857815"
+                    data-auto-format="rspv"
+                    data-full-width="">
+                  </amp-ad>
+                </div>
+              );
+            }
+
+            return elements;
+          })}
         </div>
       ) : (
         <p className="text-center text-muted-foreground py-10">

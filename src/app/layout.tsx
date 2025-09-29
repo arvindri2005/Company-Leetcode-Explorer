@@ -143,11 +143,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-      <script 
-      async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6342943619826199"
-     crossOrigin="anonymous">
+        <script async custom-element="amp-ad" src="https://cdn.ampproject.org/v0/amp-ad-0.1.js"></script>
+        <script async src="https://cdn.ampproject.org/v0.js"></script>
+<script async custom-element="amp-ad"
+        src="https://cdn.ampproject.org/v0/amp-ad-0.1.js"></script>
 
-     </script>
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
