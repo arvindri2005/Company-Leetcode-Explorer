@@ -217,21 +217,21 @@ const ProblemList: React.FC<ProblemListProps> = ({
             );
 
             // Add AMP ad after every 5 problems
-            if ((index + 1) % 6 === 0 && index !== displayedProblems.length - 1) {
-              elements.push(
-                <div key={`ad-${index}`} className="col-span-full w-full my-4">
-                  <amp-ad
-                    width="100vw" 
-                    height="320"
-                    type="adsense"
-                    data-ad-client="ca-pub-6342943619826199"
-                    data-ad-slot="9953857815"
-                    data-auto-format="rspv"
-                    data-full-width="">
-                  </amp-ad>
-                </div>
-              );
-            }
+            // if ((index + 1) % 6 === 0 && index !== displayedProblems.length - 1) {
+            //   elements.push(
+            //     <div key={`ad-${index}`} className="col-span-full w-full my-4">
+            //       <amp-ad
+            //         width="100vw" 
+            //         height="320"
+            //         type="adsense"
+            //         data-ad-client="ca-pub-6342943619826199"
+            //         data-ad-slot="9953857815"
+            //         data-auto-format="rspv"
+            //         data-full-width="">
+            //       </amp-ad>
+            //     </div>
+            //   );
+            // }
             if (index == displayedProblems.length - 1) {
               elements.push(
                 <div key={`ad-${index}`} className="col-span-full w-full my-4">
