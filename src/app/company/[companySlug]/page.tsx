@@ -12,10 +12,11 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://bytetooffer.com';
 const INITIAL_ITEMS_PER_PAGE = 15;
 
 interface CompanyPageProps {
-  params: { companySlug: string };
+  params: Promise<{ companySlug: string }>;
 }
 
-export async function generateMetadata({ params }: CompanyPageProps): Promise<Metadata> {
+export async function generateMetadata(props: CompanyPageProps): Promise<Metadata> {
+  const params = await props.params;
   const company = await getCompanyBySlug(params.companySlug);
 
   if (!company) {
@@ -103,7 +104,8 @@ export async function generateMetadata({ params }: CompanyPageProps): Promise<Me
   };
 }
 
-export default async function CompanyPage({ params }: CompanyPageProps) {
+export default async function CompanyPage(props: CompanyPageProps) {
+  const params = await props.params;
   const company = await getCompanyBySlug(params.companySlug);
 
   if (!company) {

@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import type { Metadata } from "next";
 
 type CompaniesPageProps = {
-    searchParams?: { [key: string]: string | string[] | undefined };
+    searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
 export const dynamic = "force-dynamic";
@@ -14,9 +14,8 @@ export const preferredRegion = "auto";
 const ITEMS_PER_PAGE = 30;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 
-export async function generateMetadata({
-    searchParams,
-}: CompaniesPageProps): Promise<Metadata> {
+export async function generateMetadata(props: CompaniesPageProps): Promise<Metadata> {
+    const searchParams = await props.searchParams;
     const page = searchParams?.page ? parseInt(searchParams.page as string) : 1;
     const pageTitle = `Explore Companies ${page > 1 ? ` - Page ${page}` : ""}`;
     const pageDescription =
@@ -81,9 +80,8 @@ export async function generateMetadata({
     return metadata;
 }
 
-export default async function CompaniesPage({
-    searchParams,
-}: CompaniesPageProps) {
+export default async function CompaniesPage(props: CompaniesPageProps) {
+    const searchParams = await props.searchParams;
     const currentPage = searchParams?.page
         ? parseInt(searchParams.page as string)
         : 1;

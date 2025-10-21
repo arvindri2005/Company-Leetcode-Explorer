@@ -17,12 +17,13 @@ import React, { useEffect, useState, use } from 'react'; // Import use
 import { usePathname, useRouter } from 'next/navigation';
 
 interface MockInterviewPageProps {
-  params: { companySlug: string; problemSlug: string };
+  params: Promise<{ companySlug: string; problemSlug: string }>;
   // If params were definitely a Promise, the type would be:
   // params: Promise<{ companySlug: string; problemSlug: string; }>;
 }
 
-export default function MockInterviewPage({ params: paramsFromProps }: MockInterviewPageProps) {
+export default function MockInterviewPage(props: MockInterviewPageProps) {
+  const paramsFromProps = use(props.params);
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
