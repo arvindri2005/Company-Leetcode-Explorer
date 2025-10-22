@@ -155,6 +155,13 @@ describe('Company Data', () => {
   });
 
   describe('addCompanyToDb', () => {
+    it('should add a company successfully', async () => {
+        mockGetDocs.mockResolvedValue({ docs: [], empty: true });
+        mockAddDoc.mockResolvedValue({ id: 'new-id' });
+        const result = await companyData.addCompanyToDb({ name: 'New Company', logo: 'logo.png', description: '', website: '' });
+        expect(result.id).toBe('new-id');
+    });
+
     it('should return error if company exists', async () => {
         mockGetDocs.mockResolvedValue({ docs: mockFirestoreDocs([mockCompanies[0]]), empty: false });
         const result = await companyData.addCompanyToDb({ name: 'Company A', description: '', website: '', logo: '' });
@@ -178,6 +185,27 @@ describe('Company Data', () => {
   describe('Cache Logic', () => {
     beforeEach(() => { jest.useFakeTimers(); });
     afterEach(() => { jest.useRealTimers(); });
+
+    it('getCompanyById should cache results', async () => {
+        mockGetDoc.mockResolvedValue(mockFirestoreDocs([mockCompanies[0]])[0]);
+        await companyData.getCompanyById('1');
+        await companyData.getCompanyById('1');
+        expect(mockGetDoc).toHaveBeenCalledTimes(1);
+    });
+
+    it('getCompanyBySlug should cache results', async () => {
+        mockGetDocs.mockResolvedValue({ docs: mockFirestoreDocs([mockCompanies[0]]), empty: false });
+        await companyData.getCompanyBySlug('company-a');
+        await companyData.getCompanyBySlug('company-a');
+        expect(mockGetDocs).toHaveBeenCalledTimes(1);
+    });
+
+    it('getAllCompanySlugs should cache results', async () => {
+        mockGetDocs.mockResolvedValue({ docs: mockFirestoreDocs(mockCompanies), empty: false });
+        await companyData.getAllCompanySlugs();
+        await companyData.getAllCompanySlugs();
+        expect(mockGetDocs).toHaveBeenCalledTimes(1);
+    });
 
     it('should expire company cache', async () => {
         mockGetDoc.mockResolvedValue(mockFirestoreDocs([mockCompanies[0]])[0]);
