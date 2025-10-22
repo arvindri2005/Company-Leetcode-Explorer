@@ -7,9 +7,10 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function slugify(text: string): string {
-  if (!text) return '';
+  if (typeof text !== 'string') {
+    return '';
+  }
   return text
-    .toString()
     .toLowerCase()
     .trim()
     .replace(/\s+/g, '-') // Replace spaces with -

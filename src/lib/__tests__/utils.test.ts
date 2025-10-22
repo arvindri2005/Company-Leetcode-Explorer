@@ -28,6 +28,16 @@ describe('slugify', () => {
   it('should handle strings with only special characters', () => {
     expect(slugify('!@#$%^&*')).toBe('');
   });
+
+  it('should return an empty string for non-string inputs', () => {
+    expect(slugify(null as any)).toBe('');
+    expect(slugify(undefined as any)).toBe('');
+    expect(slugify(123 as any)).toBe('');
+    expect(slugify({ a: 1 } as any)).toBe('');
+    expect(slugify(['a', 'b'] as any)).toBe('');
+    expect(slugify(true as any)).toBe('');
+    expect(slugify(NaN as any)).toBe('');
+  });
 });
 
 describe('cn', () => {
