@@ -82,6 +82,10 @@ describe('Button', () => {
     ['icon'],
   ] as const)('renders with %s size', (size) => {
     render(<Button size={size}>{size}</Button>);
-    expect(screen.getByRole('button', { name: size })).toHaveClass(buttonVariants({ size }));
+    const button = screen.getByRole('button', { name: size });
+    const expectedClasses = buttonVariants({ size }).split(' ');
+    // Remove the rounded-lg class since it's overridden by rounded-full for the icon size
+    const filteredClasses = expectedClasses.filter(cls => !(size === 'icon' && cls === 'rounded-lg'));
+    expect(button).toHaveClass(filteredClasses.join(' '));
   });
 });

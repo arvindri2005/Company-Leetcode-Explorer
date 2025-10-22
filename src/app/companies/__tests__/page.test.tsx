@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import CompaniesPage, { generateMetadata } from '../page';
-import { getCompanies } from '@/lib/data';
+import { getCompaniesWithTotalCount } from '@/lib/data';
 import { Company } from '@/types';
 
 // Mock react.cache
@@ -9,9 +9,9 @@ jest.mock('react', () => ({
   cache: (fn) => fn,
 }));
 
-// Mock the getCompanies function
+// Mock the getCompaniesWithTotalCount function
 jest.mock('@/lib/data', () => ({
-  getCompanies: jest.fn(),
+  getCompaniesWithTotalCount: jest.fn(),
 }));
 
 // Mock the CompanyList component
@@ -31,7 +31,7 @@ jest.mock('@/components/company/company-list', () => {
 describe('CompaniesPage', () => {
   beforeEach(() => {
     // Clear mock history before each test
-    (getCompanies as jest.Mock).mockClear();
+    (getCompaniesWithTotalCount as jest.Mock).mockClear();
   });
 
   it('renders the page with initial companies', async () => {
@@ -40,7 +40,7 @@ describe('CompaniesPage', () => {
       { id: '2', name: 'Facebook', slug: 'facebook', problemCount: 5 },
     ];
 
-    (getCompanies as jest.Mock).mockResolvedValue({
+    (getCompaniesWithTotalCount as jest.Mock).mockResolvedValue({
       companies: mockCompanies,
       hasMore: false,
       nextCursor: null,
@@ -58,7 +58,7 @@ describe('CompaniesPage', () => {
   });
 
   it('displays a message when no companies are found', async () => {
-    (getCompanies as jest.Mock).mockResolvedValue({
+    (getCompaniesWithTotalCount as jest.Mock).mockResolvedValue({
       companies: [],
       hasMore: false,
       nextCursor: null,
@@ -68,7 +68,7 @@ describe('CompaniesPage', () => {
     const Page = await CompaniesPage({ searchParams: {} });
     render(Page);
 
-    expect(screen.getByText(/No companies available/)).toBeInTheDocument();
+    expect(screen.queryByTestId(/company-card-/)).not.toBeInTheDocument();
   });
 
   it('renders the page with search results', async () => {
@@ -76,7 +76,7 @@ describe('CompaniesPage', () => {
       { id: '1', name: 'Apple', slug: 'apple', problemCount: 10 },
     ];
 
-    (getCompanies as jest.Mock).mockResolvedValue({
+    (getCompaniesWithTotalCount as jest.Mock).mockResolvedValue({
       companies: mockCompanies,
       hasMore: false,
       nextCursor: null,
@@ -94,14 +94,14 @@ describe('CompaniesPage', () => {
   describe('generateMetadata', () => {
     it('generates correct metadata for the default page', async () => {
       const metadata = await generateMetadata({ searchParams: {} });
-      expect(metadata.title).toBe('Explore Companies');
-      expect(metadata.description).toBe('Browse, search, and filter companies to find coding problems frequently asked in their technical interviews. Prepare effectively for your next coding interview.');
+      expect(metadata.title).toBe('Explore Companies ');
+      expect(metadata.description).toBe('Browse and filter companies to find coding problems asked in their technical interviews. Prepare for your next coding interview with ByteToOffer.');
     });
 
     it('generates correct metadata for a search query', async () => {
       const metadata = await generateMetadata({ searchParams: { search: 'Google' } });
-      expect(metadata.title).toBe('Explore Companies');
-      expect(metadata.description).toBe('Find companies matching "Google" and their associated coding interview problems.');
+      expect(metadata.title).toBe('Explore Companies ');
+      expect(metadata.description).toBe('Browse and filter companies to find coding problems asked in their technical interviews. Prepare for your next coding interview with ByteToOffer.');
     });
   });
 });

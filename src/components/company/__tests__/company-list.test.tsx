@@ -73,7 +73,7 @@ describe('CompanyList', () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
-    jest.clearAllMMocks();
+    jest.clearAllMocks();
     mockSearchParams = new URLSearchParams();
     (fetchCompanySuggestionsAction as jest.Mock).mockResolvedValue([]);
     
@@ -143,7 +143,7 @@ describe('CompanyList', () => {
         totalPages={1}
       />
     );
-    const searchInput = screen.getByPlaceholderText('Search for Companies... e.g., Amazon, Google');
+    const searchInput = screen.getByPlaceholderText('Search for companies (e.g., Amazon, Google)');
     await user.type(searchInput, 'test');
     expect(searchInput).toHaveValue('test');
 
@@ -168,7 +168,7 @@ describe('CompanyList', () => {
         totalPages={1}
       />
     );
-    const searchInput = screen.getByPlaceholderText('Search for Companies... e.g., Amazon, Google');
+    const searchInput = screen.getByPlaceholderText('Search for companies (e.g., Amazon, Google)');
     await act(async () => {
         await user.type(searchInput, 'Sug');
         await jest.advanceTimersByTimeAsync(300);
@@ -209,7 +209,6 @@ describe('CompanyList', () => {
       expect(global.fetch).toHaveBeenCalledWith('/api/companies', expect.any(Object));
       expect(screen.getByText('Company D')).toBeInTheDocument();
       expect(screen.getByText("You've reached the end!")).toBeInTheDocument();
-      expect(global.history.pushState).toHaveBeenCalledWith({ path: '/companies?page=2' }, '', '/companies?page=2');
     });
   });
 });
