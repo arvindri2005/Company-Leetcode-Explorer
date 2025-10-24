@@ -1,3 +1,11 @@
+/**
+ * @fileoverview A client-side component to display aggregated statistics about a company's problems.
+ *
+ * This component visualizes pre-calculated statistics for a company's coding
+ * problems, including the distribution of difficulty levels and how recently
+ * problems were asked. It also lists the most common tags associated with the
+ * company's problems.
+ */
 'use client';
 
 import type { LeetCodeProblem, LastAskedPeriod, Company } from '@/types';
@@ -7,6 +15,9 @@ import TagBadge from '@/components/problem/tag-badge';
 import { ListChecks, CalendarClock, TagsIcon, Percent } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+/**
+ * Props for the CompanyProblemStats component.
+ */
 interface CompanyProblemStatsProps {
   company: Company;
 }
@@ -36,6 +47,9 @@ const lastAskedPeriodTextColors: Record<LastAskedPeriod, string> = {
   'older_than_6_months': 'text-white',
 };
 
+/**
+ * Props for the BarSegment component.
+ */
 interface BarSegmentProps {
   label: string;
   value: number;
@@ -44,6 +58,13 @@ interface BarSegmentProps {
   textColor: string;
 }
 
+/**
+ * Renders a single colored segment within a composite progress bar.
+ * The width of the segment is proportional to its value relative to the total.
+ *
+ * @param {BarSegmentProps} props - The props for the component.
+ * @returns {JSX.Element | null} The rendered bar segment, or null if its value is zero.
+ */
 const BarSegment: React.FC<BarSegmentProps> = ({ label, value, total, bgColor, textColor }) => {
   if (value === 0 || total === 0) return null;
   const percentage = (value / total) * 100;
@@ -70,6 +91,17 @@ const BarSegment: React.FC<BarSegmentProps> = ({ label, value, total, bgColor, t
   );
 };
 
+/**
+ * Renders a card displaying various statistics about a company's interview problems.
+ *
+ * This component visualizes the breakdown of problems by difficulty and recency
+ * using composite bar charts. It also lists the most frequently occurring tags.
+ * The component will only render if the necessary pre-calculated statistics are
+ * available in the `company` prop.
+ *
+ * @param {CompanyProblemStatsProps} props - The props for the component.
+ * @returns {JSX.Element | null} The rendered statistics card, or null if stats are unavailable.
+ */
 const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({ company }) => {
   const { statsLastUpdatedAt, difficultyCounts, recencyCounts, commonTags, problemCount } = company;
 

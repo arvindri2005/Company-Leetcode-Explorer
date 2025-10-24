@@ -1,10 +1,25 @@
 
+/**
+ * @fileoverview Defines the Privacy Policy page for the application.
+ *
+ * This file contains a static Next.js page component that displays the
+ * company's privacy policy. It includes metadata to inform search engines
+ * not to index this page.
+ */
 import Footer from "@/components/landing/footer";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 
+/**
+ * Metadata for the Privacy Policy page.
+ *
+ * This object provides SEO information and explicitly tells search engine robots
+ * not to index or follow links on this page.
+ *
+ * @type {Metadata}
+ */
 export const metadata: Metadata = {
     title: "Privacy Policy | Byte To Offer",
     description: "Privacy Policy for Byte To Offer.",
@@ -17,7 +32,15 @@ export const metadata: Metadata = {
     },
 };
 
-
+/**
+ * Renders the static Privacy Policy page.
+ *
+ * This component displays the full text of the website's privacy policy,
+ * formatted for readability. It includes sections on data collection, use,
+ * security, user rights, and contact information.
+ *
+ * @returns {JSX.Element} The rendered Privacy Policy page.
+ */
 export default function PrivacyPolicyPage() {
     return (
         <div className="bg-background w-full">

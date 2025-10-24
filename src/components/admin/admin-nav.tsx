@@ -1,10 +1,21 @@
 
+/**
+ * @fileoverview Defines the navigation menu component for the admin dashboard.
+ *
+ * This client-side component renders the main navigation links for the admin
+ * section of the application. It uses the `usePathname` hook to highlight the
+ * currently active link.
+ */
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
+/**
+ * An array of navigation link objects for the admin section.
+ * Each object contains the href and the display label for a link.
+ */
 const adminNavLinks = [
     { href: "/admin", label: "Dashboard" },
     { href: "/admin/bulk-add-companies", label: "Bulk Add Companies" },
@@ -12,6 +23,15 @@ const adminNavLinks = [
     { href: "/admin/contact-messages", label: "Contact Messages" },
 ];
 
+/**
+ * Renders the primary navigation bar for the admin dashboard.
+ *
+ * This component maps over the `adminNavLinks` array to create a list of
+ * navigation links. It dynamically applies styling to indicate the current
+ * active page based on the URL pathname.
+ *
+ * @returns {JSX.Element} The rendered navigation component.
+ */
 export function AdminNav() {
     const pathname = usePathname();
 

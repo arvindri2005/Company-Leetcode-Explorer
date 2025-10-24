@@ -2,7 +2,7 @@ import type { User as FirebaseUser } from "firebase/auth";
 import { z } from "zod"; // Import Zod
 
 /**
- * Represents the periods when a LeetCode problem was reportedly last asked.
+ * @description Represents the periods when a LeetCode problem was reportedly last asked.
  */
 export type LastAskedPeriod =
     | "last_30_days"
@@ -11,7 +11,7 @@ export type LastAskedPeriod =
     | "older_than_6_months";
 
 /**
- * Options for selecting the last asked period in UI elements, with user-friendly labels.
+ * @description Options for selecting the last asked period in UI elements, with user-friendly labels.
  */
 export const lastAskedPeriodOptions: ReadonlyArray<{
     value: LastAskedPeriod;
@@ -24,7 +24,7 @@ export const lastAskedPeriodOptions: ReadonlyArray<{
 ] as const;
 
 /**
- * Mapping from LastAskedPeriod values to display-friendly strings.
+ * @description Mapping from LastAskedPeriod values to display-friendly strings.
  */
 export const lastAskedPeriodDisplayMap: Record<LastAskedPeriod, string> = {
     last_30_days: "Last 30 days",
@@ -34,7 +34,7 @@ export const lastAskedPeriodDisplayMap: Record<LastAskedPeriod, string> = {
 };
 
 /**
- * Represents a LeetCode problem stored in the application.
+ * @description Represents a LeetCode problem stored in the application.
  */
 export interface LeetCodeProblem {
     id: string;
@@ -54,7 +54,7 @@ export interface LeetCodeProblem {
 }
 
 /**
- * Represents a company entity in the application.
+ * @description Represents a company entity in the application.
  */
 export interface Company {
     id: string;
@@ -78,7 +78,7 @@ export interface Company {
 }
 
 /**
- * Input structure for AI flows that process LeetCode problem details.
+ * @description Input structure for AI flows that process LeetCode problem details.
  */
 export interface AIProblemInput {
     title: string;
@@ -90,8 +90,7 @@ export interface AIProblemInput {
 
 // --- Types for Find Similar Questions Flow ---
 /**
- * Represents the current problem's details for the similar questions AI flow.
- * This type might be more aligned with the AI flow's internal Zod schema now.
+ * @description Represents the current problem's details for the similar questions AI flow.
  */
 export interface CurrentProblemInput {
     // This might be less used if flow exports its Zod type
@@ -102,7 +101,7 @@ export interface CurrentProblemInput {
 }
 
 /**
- * Detailed information about a problem identified as similar by the AI.
+ * @description Detailed information about a problem identified as similar by the AI.
  * This is used by components like SimilarProblemsDialog.
  */
 export interface SimilarProblemDetail {
@@ -115,16 +114,15 @@ export interface SimilarProblemDetail {
 }
 
 /**
- * Output structure for the "Find Similar Questions" AI flow, used by components.
+ * @description Output structure for the "Find Similar Questions" AI flow, used by components.
  */
 export interface FindSimilarQuestionsOutput {
-    // This might be less used if flow exports its Zod type
     similarProblems: SimilarProblemDetail[];
 }
 
 // --- Types for Mock Interview Flow ---
 /**
- * Represents a message in a chat conversation.
+ * @description Represents a message in a chat conversation.
  */
 export interface ChatMessage {
     role: "user" | "model";
@@ -132,7 +130,7 @@ export interface ChatMessage {
 }
 
 /**
- * Input structure for the "Mock Interview" AI flow.
+ * @description Input structure for the "Mock Interview" AI flow.
  */
 export interface MockInterviewInput {
     problemTitle: string;
@@ -147,7 +145,7 @@ export interface MockInterviewInput {
 }
 
 /**
- * Output structure for the "Mock Interview" AI flow.
+ * @description Output structure for the "Mock Interview" AI flow.
  */
 export interface MockInterviewOutput {
     interviewerResponse: string;
@@ -164,7 +162,7 @@ export interface MockInterviewOutput {
 
 // --- Types for Flashcard Generation Flow ---
 /**
- * Represents a single flashcard with a front and back.
+ * @description Represents a single flashcard with a front and back.
  */
 export interface Flashcard {
     front: string;
@@ -172,7 +170,7 @@ export interface Flashcard {
 }
 
 /**
- * Input structure for problem details used in flashcard generation.
+ * @description Input structure for problem details used in flashcard generation.
  */
 export interface FlashcardProblemInput {
     title: string;
@@ -182,7 +180,7 @@ export interface FlashcardProblemInput {
 }
 
 /**
- * Input structure for the "Generate Flashcards" AI flow.
+ * @description Input structure for the "Generate Flashcards" AI flow.
  */
 export interface GenerateFlashcardsInput {
     companyName: string;
@@ -190,13 +188,16 @@ export interface GenerateFlashcardsInput {
 }
 
 /**
- * Output structure for the "Generate Flashcards" AI flow.
+ * @description Output structure for the "Generate Flashcards" AI flow.
  */
 export interface GenerateFlashcardsOutput {
     flashcards: Flashcard[];
 }
 
 // --- User Experience Types ---
+/**
+ * @description Zod schema for validating education experience data.
+ */
 export const EducationExperienceSchema = z.object({
     id: z.string().optional(), // Firestore document ID, optional for new entries
     degree: z.string().min(2, "Degree is required."),
@@ -209,8 +210,14 @@ export const EducationExperienceSchema = z.object({
         .or(z.literal("")),
     gpa: z.string().optional().or(z.literal("")), // Keep as string to allow various formats or N/A
 });
+/**
+ * @description Represents a user's educational experience.
+ */
 export type EducationExperience = z.infer<typeof EducationExperienceSchema>;
 
+/**
+ * @description Zod schema for validating work experience data.
+ */
 export const WorkExperienceSchema = z.object({
     id: z.string().optional(), // Firestore document ID
     jobTitle: z.string().min(2, "Job title is required."),
@@ -225,11 +232,14 @@ export const WorkExperienceSchema = z.object({
         .optional()
         .or(z.literal("")),
 });
+/**
+ * @description Represents a user's work experience.
+ */
 export type WorkExperience = z.infer<typeof WorkExperienceSchema>;
 
 // --- Types for Company Strategy Generation Flow ---
 /**
- * Represents the target role level for company-specific strategy generation.
+ * @description Represents the target role level for company-specific strategy generation.
  */
 export type TargetRoleLevel =
     | "internship"
@@ -238,7 +248,7 @@ export type TargetRoleLevel =
     | "general";
 
 /**
- * Options for selecting the target role level in UI elements.
+ * @description Options for selecting the target role level in UI elements.
  */
 export const targetRoleLevelOptions: ReadonlyArray<{
     value: TargetRoleLevel;
@@ -251,7 +261,7 @@ export const targetRoleLevelOptions: ReadonlyArray<{
 ] as const;
 
 /**
- * Input structure for problem details used in company strategy generation.
+ * @description Input structure for problem details used in company strategy generation.
  */
 export interface CompanyStrategyProblemInput {
     title: string;
@@ -261,7 +271,7 @@ export interface CompanyStrategyProblemInput {
 }
 
 /**
- * Input structure for the "Generate Company Strategy" AI flow.
+ * @description Input structure for the "Generate Company Strategy" AI flow.
  */
 export interface GenerateCompanyStrategyInput {
     companyName: string;
@@ -272,7 +282,7 @@ export interface GenerateCompanyStrategyInput {
 }
 
 /**
- * Zod schema for a key topic to focus on.
+ * @description Zod schema for a key topic to focus on.
  */
 export const FocusTopicSchema = z.object({
     topic: z
@@ -286,10 +296,13 @@ export const FocusTopicSchema = z.object({
             "A brief explanation (1-2 sentences) of why this topic is particularly relevant for interviews at this company, based on the provided problem data and target role level if specified."
         ),
 });
+/**
+ * @description Represents a key topic to focus on for interview preparation.
+ */
 export type FocusTopic = z.infer<typeof FocusTopicSchema>;
 
 /**
- * Zod schema for a single actionable item in a strategy todo list.
+ * @description Zod schema for a single actionable item in a strategy todo list.
  */
 export const StrategyTodoItemSchema = z.object({
     text: z
@@ -302,10 +315,13 @@ export const StrategyTodoItemSchema = z.object({
         .default(false)
         .describe("Whether the task is completed. Defaults to false."),
 });
+/**
+ * @description Represents a single actionable item in a strategy to-do list.
+ */
 export type StrategyTodoItem = z.infer<typeof StrategyTodoItemSchema>;
 
 /**
- * Output structure for the "Generate Company Strategy" AI flow.
+ * @description Output structure for the "Generate Company Strategy" AI flow.
  */
 export interface GenerateCompanyStrategyOutput {
     preparationStrategy: string;
@@ -315,7 +331,7 @@ export interface GenerateCompanyStrategyOutput {
 
 // --- User Authentication and Profile Types ---
 /**
- * Represents a user's profile information stored in Firestore.
+ * @description Represents a user's profile information stored in Firestore.
  */
 export interface UserProfile {
     uid: string;
@@ -326,7 +342,7 @@ export interface UserProfile {
 }
 
 /**
- * Defines the shape of the authentication context.
+ * @description Defines the shape of the authentication context.
  */
 export interface AuthContextType {
     /** The currently authenticated Firebase user object, or null if not logged in. */
@@ -339,7 +355,9 @@ export interface AuthContextType {
     syncUserProfileIfNeeded: (firebaseUser: FirebaseUser) => Promise<void>;
 }
 
-/** Information stored for each bookmarked problem, including slugs for link generation. */
+/**
+ * @description Information stored for each bookmarked problem, including slugs for link generation.
+ */
 export interface BookmarkedProblemInfo {
     problemId: string;
     companySlug: string;
@@ -349,13 +367,13 @@ export interface BookmarkedProblemInfo {
 
 // --- Types for Personalized Progress Tracking ---
 /**
- * Represents the status of a user's progress on a problem.
+ * @description Represents the status of a user's progress on a problem.
  * 'none' indicates no status has been set or it has been cleared.
  */
 export type ProblemStatus = "solved" | "attempted" | "todo" | "none";
 
 /**
- * Options for selecting problem status in UI elements.
+ * @description Options for selecting problem status in UI elements.
  */
 export const PROBLEM_STATUS_OPTIONS: ReadonlyArray<{
     value: ProblemStatus;
@@ -377,7 +395,7 @@ export const PROBLEM_STATUS_OPTIONS: ReadonlyArray<{
 ] as const;
 
 /**
- * Display properties (label, icon, color) for each problem status (excluding 'none').
+ * @description Display properties (label, icon, color) for each problem status (excluding 'none').
  */
 export const PROBLEM_STATUS_DISPLAY: Record<
     Exclude<ProblemStatus, "none">,
@@ -397,7 +415,7 @@ export const PROBLEM_STATUS_DISPLAY: Record<
 };
 
 /**
- * Information stored for each problem a user has marked with a status.
+ * @description Information stored for each problem a user has marked with a status.
  */
 export interface UserProblemStatusInfo {
     problemId: string; // Not explicitly stored as key is problemId, but useful for type clarity
@@ -409,7 +427,7 @@ export interface UserProblemStatusInfo {
 
 // --- Types for AI Problem Insights Flow ---
 /**
- * Input structure for the "Generate Problem Insights" AI flow.
+ * @description Input structure for the "Generate Problem Insights" AI flow.
  */
 export interface GenerateProblemInsightsInput {
     title: string;
@@ -419,7 +437,7 @@ export interface GenerateProblemInsightsInput {
 }
 
 /**
- * Output structure for the "Generate Problem Insights" AI flow.
+ * @description Output structure for the "Generate Problem Insights" AI flow.
  */
 export interface GenerateProblemInsightsOutput {
     keyConcepts: string[];
@@ -429,7 +447,7 @@ export interface GenerateProblemInsightsOutput {
 }
 
 /**
- * Represents a saved strategy todo list for a user and a company.
+ * @description Represents a saved strategy todo list for a user and a company.
  * This now also includes the preparation strategy and focus topics.
  */
 export interface SavedStrategyTodoList {
@@ -442,11 +460,26 @@ export interface SavedStrategyTodoList {
 }
 
 // --- Types for Problem List Pagination & Filtering ---
+/**
+ * @description Represents the difficulty filter options for a problem list.
+ */
 export type DifficultyFilter = "all" | LeetCodeProblem["difficulty"];
+/**
+ * @description Represents the sorting options for a problem list.
+ */
 export type SortKey = "title" | "difficulty" | "lastAsked";
+/**
+ * @description Represents the last asked filter options for a problem list.
+ */
 export type LastAskedFilter = "all" | LastAskedPeriod;
+/**
+ * @description Represents the status filter options for a problem list.
+ */
 export type StatusFilter = ProblemStatus | "all";
 
+/**
+ * @description Represents the combined filter and sort state for a problem list.
+ */
 export interface ProblemListFilters {
     difficultyFilter: DifficultyFilter;
     lastAskedFilter: LastAskedFilter;
@@ -455,6 +488,9 @@ export interface ProblemListFilters {
     sortKey: SortKey;
 }
 
+/**
+ * @description Represents the response structure for a paginated list of problems.
+ */
 export interface PaginatedProblemsResponse {
     problems: LeetCodeProblem[];
     totalProblems: number;
@@ -462,29 +498,44 @@ export interface PaginatedProblemsResponse {
     nextCursor?: string;
 }
 
+/**
+ * @description Props for the FeatureCard component.
+ */
 export interface FeatureCardProps {
     icon: any; // Accept any to allow passing icon component type
     title: string;
     description: string;
 }
 
+/**
+ * @description Props for the StatItem component.
+ */
 export interface StatItemProps {
     number: string;
     label: string;
 }
 
+/**
+ * @description Represents a feature of the application.
+ */
 export interface Feature {
     icon: any; // Accept any to allow passing icon component type
     title: string;
     description: string;
 }
 
+/**
+ * @description Represents a statistic about the application.
+ */
 export interface Stat {
     number: string;
     label: string;
 }
 
 // --- Types for Job Application Tracking ---
+/**
+ * @description Zod schema for the status of a job application.
+ */
 export const JobApplicationStatusSchema = z.enum([
     "Applied",
     "Interviewing",
@@ -492,8 +543,14 @@ export const JobApplicationStatusSchema = z.enum([
     "Rejected",
     "Wishlist",
 ]);
+/**
+ * @description Represents the status of a job application.
+ */
 export type JobApplicationStatus = z.infer<typeof JobApplicationStatusSchema>;
 
+/**
+ * @description Zod schema for a job application.
+ */
 export const JobApplicationSchema = z.object({
     id: z.string().optional(), // Firestore document ID
     userId: z.string(),
@@ -509,8 +566,14 @@ export const JobApplicationSchema = z.object({
     updatedAt: z.date().optional(),
 });
 
+/**
+ * @description Represents a job application.
+ */
 export type JobApplication = z.infer<typeof JobApplicationSchema>;
 
+/**
+ * @description Options for selecting the job application status in UI elements.
+ */
 export const JOB_APPLICATION_STATUS_OPTIONS: ReadonlyArray<{
     value: JobApplicationStatus;
     label: string;

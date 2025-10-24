@@ -8,6 +8,12 @@ import {
 } from "react-icons/fa";
 import { Feature, Stat } from "@/types";
 
+/**
+ * @const FEATURES
+ * @description An array of objects, where each object represents a key feature of the application.
+ * Each feature has an icon, a title, and a description.
+ * @type {Feature[]}
+ */
 export const FEATURES: Feature[] = [
     {
         icon: FaSearch,
@@ -47,6 +53,12 @@ export const FEATURES: Feature[] = [
     },
 ];
 
+/**
+ * @const STATS
+ * @description An array of objects representing key statistics about the application.
+ * Each stat has a number and a label.
+ * @type {Stat[]}
+ */
 export const STATS: Stat[] = [
     { number: "2000+", label: "Problems Available" },
     { number: "5K+", label: "Active Users" },

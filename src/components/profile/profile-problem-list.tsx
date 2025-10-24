@@ -7,11 +7,28 @@ import ProblemCard from '@/components/problem/problem-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2 } from 'lucide-react';
 
+/**
+ * @interface ProblemWithStatusAndBookmark
+ * @description Extends the LeetCodeProblem type to include optional status and bookmark information.
+ * @property {ProblemStatus} [currentStatus] - The user's current status for the problem.
+ * @property {boolean} [isBookmarked] - Whether the user has bookmarked the problem.
+ */
 interface ProblemWithStatusAndBookmark extends LeetCodeProblem {
   currentStatus?: ProblemStatus;
   isBookmarked?: boolean;
 }
 
+/**
+ * @interface ProfileProblemListProps
+ * @description Props for the ProfileProblemList component.
+ * @property {string} title - The title to be displayed for the list.
+ * @property {ProblemWithStatusAndBookmark[]} problems - An array of problems to display.
+ * @property {boolean} isLoading - A flag to indicate if the problem list is currently loading.
+ * @property {'bookmarks' | 'status'} listType - The type of list, used for potential differentiation in handling.
+ * @property {(problemId: string, newStatus: boolean) => void} [onBookmarkChanged] - Optional callback function for when a problem's bookmark status changes.
+ * @property {(problemId: string, newStatus: ProblemStatus) => void} [onProblemStatusChange] - Optional callback function for when a problem's status changes.
+ * @property {string} [companySlugForProblemCard] - Optional company slug to be used as a fallback for all problem cards in the list.
+ */
 interface ProfileProblemListProps {
   title: string;
   problems: ProblemWithStatusAndBookmark[];
@@ -22,6 +39,12 @@ interface ProfileProblemListProps {
   companySlugForProblemCard?: string; // If all problems belong to one company, for fallback
 }
 
+/**
+ * @function ProfileProblemList
+ * @description A component that displays a grid of LeetCode problems from a user's profile, such as bookmarked problems or problems with a specific status.
+ * @param {ProfileProblemListProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered list of problem cards, a loading skeleton, or a message if the list is empty.
+ */
 const ProfileProblemList: React.FC<ProfileProblemListProps> = ({
   title,
   problems,

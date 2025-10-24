@@ -1,20 +1,46 @@
 
+/**
+ * @fileoverview Defines the admin page for bulk-adding coding problems from a file.
+ *
+ * This file exports a Next.js page component that provides an interface for
+ * administrators to upload an Excel or CSV file to add or update multiple
+ * coding problems associated with various companies. It includes instructions and
+ * renders the `BulkProblemUploadForm`, which handles file processing and submission.
+ */
 import BulkProblemUploadForm from '@/components/problem/bulk-problem-upload-form';
 import { Separator } from '@/components/ui/separator';
-import { getCompanies } from '@/lib/data'; 
+import { getCompanies } from '@/lib/data';
 import type { Metadata } from 'next';
 
+/**
+ * Metadata for the "Bulk Add LeetCode Problems" admin page.
+ *
+ * This object provides SEO information and explicitly tells search engine robots
+ * not to index this administrative page.
+ *
+ * @type {Metadata}
+ */
 export const metadata: Metadata = {
   title: 'Admin: Bulk Add LeetCode Problems',
   description: 'Upload an Excel (.xlsx) or CSV (.csv) file to add multiple LeetCode problems.',
-  robots: { // Prevent indexing of this admin page
+  robots: {
     index: false,
     follow: false,
   }
 };
 
+/**
+ * Renders the admin page for bulk-uploading coding problem data.
+ *
+ * This server component sets up the page layout and provides detailed instructions
+ * on the required file format and column headers. It fetches a list of existing
+ * company names to pass to the form, which can be used for validation or providing
+ * suggestions. It then renders the `BulkProblemUploadForm` component.
+ *
+ * @returns {Promise<JSX.Element>} The rendered bulk-add problems page.
+ */
 export default async function AdminBulkAddProblemsPage() {
-  const companiesData = await getCompanies({ pageSize: 50 }); 
+  const companiesData = await getCompanies({ pageSize: 50 });
   const companyNames = companiesData.companies.map(c => c.name);
 
   return (

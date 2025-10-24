@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Defines the search section component for the landing page.
+ *
+ * This client-side component provides a prominent search bar that allows users
+ * to quickly find companies. It manages the state for the search input, fetches
+ * autocomplete suggestions as the user types, and handles the navigation logic
+ * for both direct searches and suggestion clicks.
+ */
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -9,6 +17,17 @@ import type { Company } from '@/types';
 
 interface Suggestion extends Pick<Company, 'id' | 'name' | 'slug' | 'logo'> {}
 
+/**
+ * Renders a search section with an interactive company search bar.
+ *
+ * This component serves as the stateful parent for the `CompanySearchBar`. It handles:
+ * - Debouncing user input to efficiently fetch search suggestions.
+ * - Calling the `fetchCompanySuggestionsAction` server action.
+ * - Managing the display and lifecycle of the suggestions dropdown.
+ * - Handling navigation when a user clicks a suggestion or submits a search.
+ *
+ * @returns {JSX.Element} The rendered search section component.
+ */
 export default function SearchSection() {
   const [searchTermInput, setSearchTermInput] = useState('');
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);

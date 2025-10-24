@@ -16,7 +16,15 @@ import {
   Timestamp
 } from 'firebase/firestore';
 
-
+/**
+ * @function dbToggleBookmarkProblem
+ * @description Toggles a bookmark for a specific problem for a given user. If the bookmark exists, it's removed. If not, it's created.
+ * @param {string} userId - The ID of the user.
+ * @param {string} problemId - The ID of the problem to bookmark.
+ * @param {string} companySlug - The slug of the company associated with the problem.
+ * @param {string} problemSlug - The slug of the problem.
+ * @returns {Promise<{ isBookmarked: boolean; error?: string }>} A promise that resolves to an object indicating the new bookmark status and an optional error message.
+ */
 export const dbToggleBookmarkProblem = async (userId: string, problemId: string, companySlug: string, problemSlug: string): Promise<{ isBookmarked: boolean; error?: string }> => {
   if (!userId || !problemId) return { isBookmarked: false, error: 'User ID and Problem ID are required.' };
   const bookmarkDocRef = doc(db, 'users', userId, 'bookmarkedProblems', problemId);
@@ -40,6 +48,12 @@ export const dbToggleBookmarkProblem = async (userId: string, problemId: string,
   }
 };
 
+/**
+ * @function dbGetUserBookmarkedProblemsInfo
+ * @description Fetches information about all problems bookmarked by a specific user.
+ * @param {string} userId - The ID of the user.
+ * @returns {Promise<BookmarkedProblemInfo[]>} A promise that resolves to an array of bookmarked problem information.
+ */
 export const dbGetUserBookmarkedProblemsInfo = async (userId: string): Promise<BookmarkedProblemInfo[]> => {
   if (!userId) return [];
   try {
@@ -60,6 +74,16 @@ export const dbGetUserBookmarkedProblemsInfo = async (userId: string): Promise<B
   }
 };
 
+/**
+ * @function dbSetProblemStatus
+ * @description Sets or removes the status of a specific problem for a user.
+ * @param {string} userId - The ID of the user.
+ * @param {string} problemId - The ID of the problem.
+ * @param {ProblemStatus} status - The new status of the problem ('none' to remove).
+ * @param {string} companySlug - The slug of the company associated with the problem.
+ * @param {string} problemSlug - The slug of the problem.
+ * @returns {Promise<{ success: boolean; error?: string }>} A promise that resolves to an object indicating success or failure.
+ */
 export const dbSetProblemStatus = async (
   userId: string,
   problemId: string,
@@ -88,6 +112,12 @@ export const dbSetProblemStatus = async (
   }
 };
 
+/**
+ * @function dbGetAllUserProblemStatuses
+ * @description Fetches all problem statuses for a given user.
+ * @param {string} userId - The ID of the user.
+ * @returns {Promise<Record<string, UserProblemStatusInfo>>} A promise that resolves to a dictionary mapping problem IDs to their status information.
+ */
 export const dbGetAllUserProblemStatuses = async (userId: string): Promise<Record<string, UserProblemStatusInfo>> => {
   if (!userId) return {};
   const statuses: Record<string, UserProblemStatusInfo> = {};
@@ -114,7 +144,13 @@ export const dbGetAllUserProblemStatuses = async (userId: string): Promise<Recor
   }
 };
 
-
+/**
+ * @function dbUpdateUserDisplayName
+ * @description Updates the display name for a user in the Firestore database.
+ * @param {string} userId - The ID of the user to update.
+ * @param {string} newDisplayName - The new display name for the user.
+ * @returns {Promise<{ success: boolean; error?: string }>} A promise that resolves to an object indicating success or failure.
+ */
 export const dbUpdateUserDisplayName = async (
   userId: string,
   newDisplayName: string
@@ -134,7 +170,13 @@ export const dbUpdateUserDisplayName = async (
   }
 };
 
-// --- Education Experience ---
+/**
+ * @function dbAddUserEducation
+ * @description Adds a new education experience entry to a user's profile.
+ * @param {string} userId - The ID of the user.
+ * @param {Omit<EducationExperience, 'id'>} educationData - The education experience data to add.
+ * @returns {Promise<{ id: string | null; error?: string }>} A promise that resolves to an object containing the new document's ID or an error.
+ */
 export const dbAddUserEducation = async (userId: string, educationData: Omit<EducationExperience, 'id'>): Promise<{ id: string | null; error?: string }> => {
   if (!userId) return { id: null, error: 'User ID is required.' };
   try {
@@ -148,6 +190,12 @@ export const dbAddUserEducation = async (userId: string, educationData: Omit<Edu
   }
 };
 
+/**
+ * @function dbGetUserEducation
+ * @description Fetches all education experience entries for a user.
+ * @param {string} userId - The ID of the user.
+ * @returns {Promise<EducationExperience[]>} A promise that resolves to an array of education experiences.
+ */
 export const dbGetUserEducation = async (userId: string): Promise<EducationExperience[]> => {
   if (!userId) return [];
   try {
@@ -165,7 +213,13 @@ export const dbGetUserEducation = async (userId: string): Promise<EducationExper
   }
 };
 
-// --- Work Experience ---
+/**
+ * @function dbAddUserWorkExperience
+ * @description Adds a new work experience entry to a user's profile.
+ * @param {string} userId - The ID of the user.
+ * @param {Omit<WorkExperience, 'id'>} workData - The work experience data to add.
+ * @returns {Promise<{ id: string | null; error?: string }>} A promise that resolves to an object containing the new document's ID or an error.
+ */
 export const dbAddUserWorkExperience = async (userId: string, workData: Omit<WorkExperience, 'id'>): Promise<{ id: string | null; error?: string }> => {
   if (!userId) return { id: null, error: 'User ID is required.' };
   try {
@@ -179,6 +233,12 @@ export const dbAddUserWorkExperience = async (userId: string, workData: Omit<Wor
   }
 };
 
+/**
+ * @function dbGetUserWorkExperience
+ * @description Fetches all work experience entries for a user.
+ * @param {string} userId - The ID of the user.
+ * @returns {Promise<WorkExperience[]>} A promise that resolves to an array of work experiences.
+ */
 export const dbGetUserWorkExperience = async (userId: string): Promise<WorkExperience[]> => {
   if (!userId) return [];
   try {
@@ -196,7 +256,15 @@ export const dbGetUserWorkExperience = async (userId: string): Promise<WorkExper
   }
 };
 
-
+/**
+ * @function dbSaveStrategyTodoList
+ * @description Saves or updates an AI-generated preparation strategy to-do list for a specific company for a user.
+ * @param {string} userId - The ID of the user.
+ * @param {string} companyId - The ID of the company the strategy is for.
+ * @param {string} companyName - The name of the company.
+ * @param {Pick<GenerateCompanyStrategyOutput, 'preparationStrategy' | 'focusTopics' | 'todoItems'>} strategyData - The strategy data to be saved.
+ * @returns {Promise<{ success: boolean; error?: string }>} A promise that resolves to an object indicating success or failure.
+ */
 export const dbSaveStrategyTodoList = async (
   userId: string,
   companyId: string,
@@ -225,6 +293,12 @@ export const dbSaveStrategyTodoList = async (
   }
 };
 
+/**
+ * @function dbGetUserStrategyTodoLists
+ * @description Fetches all saved AI-generated strategy to-do lists for a user.
+ * @param {string} userId - The ID of the user.
+ * @returns {Promise<SavedStrategyTodoList[]>} A promise that resolves to an array of saved strategy to-do lists.
+ */
 export const dbGetUserStrategyTodoLists = async (userId: string): Promise<SavedStrategyTodoList[]> => {
   if (!userId) return [];
   try {
@@ -252,6 +326,13 @@ export const dbGetUserStrategyTodoLists = async (userId: string): Promise<SavedS
   }
 };
 
+/**
+ * @function dbGetStrategyTodoListForCompany
+ * @description Fetches a specific AI-generated strategy to-do list for a user and company.
+ * @param {string} userId - The ID of the user.
+ * @param {string} companyId - The ID of the company.
+ * @returns {Promise<SavedStrategyTodoList | null>} A promise that resolves to the saved strategy to-do list, or null if not found.
+ */
 export const dbGetStrategyTodoListForCompany = async (userId: string, companyId: string): Promise<SavedStrategyTodoList | null> => {
   if (!userId || !companyId) return null;
   const todoListDocRef = doc(db, 'users', userId, 'strategyTodoLists', companyId);
@@ -279,6 +360,15 @@ export const dbGetStrategyTodoListForCompany = async (userId: string, companyId:
   }
 };
 
+/**
+ * @function dbUpdateStrategyTodoItemStatus
+ * @description Updates the completion status of a single to-do item within a user's saved strategy list.
+ * @param {string} userId - The ID of the user.
+ * @param {string} companyId - The ID of the company associated with the to-do list.
+ * @param {number} itemIndex - The index of the item to update within the `items` array.
+ * @param {boolean} isCompleted - The new completion status of the item.
+ * @returns {Promise<{ success: boolean; error?: string }>} A promise that resolves to an object indicating success or failure.
+ */
 export const dbUpdateStrategyTodoItemStatus = async (
   userId: string,
   companyId: string,

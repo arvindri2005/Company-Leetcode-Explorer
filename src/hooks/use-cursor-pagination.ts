@@ -8,6 +8,14 @@ interface CompaniesResponse {
     error?: string;
 }
 
+/**
+ * @function useCursorPagination
+ * @description A custom hook that provides a function for fetching paginated company data using a cursor-based approach.
+ * This is primarily used for infinite scrolling features.
+ * @returns {{
+ *   fetchCompaniesWithCursor: (cursor?: string, pageSize?: number, searchTerm?: string) => Promise<CompaniesResponse>;
+ * }} An object containing the `fetchCompaniesWithCursor` function.
+ */
 export const useCursorPagination = () => {
     const fetchCompaniesWithCursor = useCallback(
         async (

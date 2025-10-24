@@ -1,4 +1,12 @@
 
+/**
+ * @fileoverview Defines the layout and access control for the admin section.
+ *
+ * This client-side component acts as a protective wrapper for all routes under `/admin`.
+ * It checks if the current user is authenticated and has administrative privileges.
+ * It displays a loading state during verification, a "denied" message for unauthorized
+ * users, and the actual admin content (including a navigation bar) for authorized admins.
+ */
 'use client';
 
 import React, { useEffect, useState, type ReactNode } from 'react';
@@ -11,6 +19,20 @@ import { useToast } from '@/hooks/use-toast';
 import { checkUserAdminStatus } from '@/app/actions/admin.actions';
 import { AdminNav } from '@/components/admin/admin-nav';
 
+/**
+ * Provides the layout and enforces authorization for the admin dashboard.
+ *
+ * This component performs the following steps:
+ * 1. Checks for an authenticated user. If not found, redirects to the login page.
+ * 2. If a user is found, it calls a server action (`checkUserAdminStatus`) to verify their admin rights.
+ * 3. While checking, a loading spinner is displayed.
+ * 4. If the user is not an admin, it displays an "Access Denied" message and redirects to the homepage.
+ * 5. If the user is a verified admin, it renders the admin navigation menu and the specific admin page content (`children`).
+ *
+ * @param {{ children: React.ReactNode }} props - The props for the component.
+ * @param {React.ReactNode} props.children - The specific admin page component to be rendered within the layout.
+ * @returns {JSX.Element} The rendered admin layout, a loading indicator, or an access denied screen.
+ */
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();

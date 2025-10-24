@@ -1,4 +1,12 @@
 
+/**
+ * @fileoverview Defines a component for switching between light, dark, and system themes.
+ *
+ * This client-side component provides a user interface for changing the application's
+ * theme. It offers two display variants: a compact dropdown menu for desktop and a more
+ * explicit list of buttons for mobile navigation menus. It uses the `next-themes`
+ * library to manage the theme state.
+ */
 'use client';
 
 import * as React from 'react';
@@ -13,10 +21,30 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+/**
+ * Props for the ThemeSwitcher component.
+ */
 interface ThemeSwitcherProps {
+  /**
+   * If true, renders a mobile-friendly version of the theme switcher.
+   * @default false
+   */
   isMobile?: boolean;
 }
 
+/**
+ * Renders a UI control for switching the application's color theme.
+ *
+ * This component provides two distinct UIs based on the `isMobile` prop:
+ * - **Desktop (default):** A dropdown menu triggered by an icon button that shows
+ *   the current theme (sun for light, moon for dark) and allows selection of
+ *   Light, Dark, or System.
+ * - **Mobile (`isMobile={true}`):** A list of full-width buttons for Light, Dark,
+ *   and System, suitable for inclusion in a sidebar or mobile menu.
+ *
+ * @param {ThemeSwitcherProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered theme switcher.
+ */
 export function ThemeSwitcher({ isMobile = false }: ThemeSwitcherProps) {
   const { setTheme, resolvedTheme } = useTheme();
 

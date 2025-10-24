@@ -1,4 +1,13 @@
 
+/**
+ * @fileoverview Server-side actions for managing company data.
+ *
+ * This module contains Next.js server actions for creating, reading, updating,
+ * and deleting company-related information in the Firestore database. It includes
+ * functions for adding single companies, bulk-adding from a file, fetching
+ * paginated company lists, and providing search suggestions. These actions also
+ * handle cache revalidation to ensure data consistency across the application.
+ */
 'use server';
 
 import type { Company, LastAskedPeriod } from '@/types';
@@ -9,9 +18,18 @@ import { db } from '@/lib/firebase';
 import { slugify } from '@/lib/utils';
 
 /**
- * Adds a new company to the database.
- * @param {Omit<Company, 'id' | 'normalizedName' | 'slug'>} companyDataInput - The data for the company to add.
- * @returns {Promise<{ success: boolean; data?: Company; error?: string }>} Result of the operation.
+ * Adds a new company to the database after validating and cleaning the input data.
+ *
+ * This action ensures that the company name is present, prefixes `http(s)://` to
+ * website and logo URLs if missing, and validates the URLs. It then calls the
+ * database layer to create the new company record and triggers cache revalidation
+ * for relevant pages.
+ *
+ * @param {Omit<Company, 'id' | 'normalizedName' | 'slug'>} companyDataInput - The data for the
+ * new company, excluding fields that are generated automatically.
+ * @returns {Promise<{ success: boolean; data?: Company; error?: string }>} A promise that resolves
+ * to an object indicating the success of the operation. If successful, the `data` property
+ * contains the newly created company object. If not, the `error` property contains a message.
  */
 export async function addCompany(
   companyDataInput: Omit<Company, 'id' | 'normalizedName' | 'slug'>
@@ -60,10 +78,20 @@ interface RawExcelCompanyData { name: string; logo?: string; description?: strin
 interface BulkAddCompanyDetailedResult { rowIndex: number; name: string; status: 'added' | 'updated' | 'skipped' | 'error'; message: string; }
 
 /**
- * Adds or updates multiple companies from an Excel sheet.
- * If a company with the same name (case-insensitive) exists, its logo and description are updated.
- * @param {RawExcelCompanyData[]} companiesFromExcel - Array of raw company data parsed from Excel.
- * @returns {Promise<{ addedCount: number; updatedCount: number; skippedCount: number; errorCount: number; detailedResults: BulkAddCompanyDetailedResult[] }>} Summary and detailed results.
+ * Processes a bulk import of companies, adding new ones and updating existing ones.
+ *
+ * This action takes an array of raw company data, typically parsed from a file.
+ * It iterates through each entry, checking for an existing company by a case-insensitive
+ * name match. If a company exists, it updates fields like logo, description, and website
+ * if new values are provided. If it doesn't exist, a new company is created. The function
+ * performs URL validation and cleaning. It also efficiently triggers cache revalidation for all
+ * affected companies and pages.
+ *
+ * @param {RawExcelCompanyData[]} companiesFromExcel - An array of raw company data objects.
+ * @returns {Promise<{ addedCount: number; updatedCount: number; skippedCount: number; errorCount: number; detailedResults: BulkAddCompanyDetailedResult[] }>}
+ * A promise that resolves to an object summarizing the operation, including counts for
+ * added, updated, skipped, and errored records, along with a detailed breakdown of the
+ * outcome for each row.
  */
 export async function bulkAddCompanies(
   companiesFromExcel: RawExcelCompanyData[]
@@ -158,12 +186,18 @@ export async function bulkAddCompanies(
 }
 
 /**
- * Fetches a paginated list of companies, optionally filtered by a search term.
- * This is the main action for displaying the full list of companies.
- * @param {number} page - The current page number (1-indexed).
- * @param {number} pageSize - The number of companies per page.
- * @param {string} [searchTerm] - Optional search term to filter companies by name or description.
- * @returns {Promise<{ companies: Company[]; totalPages: number; totalCompanies: number; currentPage: number; error?: string }>} Paginated company data or an error object.
+ * Fetches a paginated and optionally filtered list of companies from the database.
+ *
+ * This server action serves as the primary method for retrieving companies for display
+ * in lists. It wraps the internal `getAllCompaniesFromDbInternal` function, providing
+ * pagination and search capabilities.
+ *
+ * @param {number} page - The page number to retrieve (1-indexed).
+ * @param {number} pageSize - The number of companies to include per page.
+ * @param {string} [searchTerm] - An optional string to filter companies by name.
+ * @returns {Promise<{ companies: Company[]; totalPages: number; totalCompanies: number; currentPage: number; error?: string }>}
+ * A promise that resolves to an object containing the list of companies for the requested
+ * page and pagination metadata. If an error occurs, the `error` property will be set.
  */
 export async function fetchCompaniesAction(
   page: number, pageSize: number, searchTerm?: string
@@ -177,11 +211,18 @@ export async function fetchCompaniesAction(
   }
 }
 
-/** 
- * Fetches a list of company names and slugs for search suggestions.
- * @param {string} searchTerm - The term to search for in company names.
- * @param {number} [limitNum=5] - Maximum number of suggestions to return.
- * @returns {Promise<Array<Pick<Company, 'id' | 'name' | 'slug'>> | { error: string }>} Array of suggestions or an error object.
+/**
+ * Fetches a limited list of company suggestions for autocomplete or search features.
+ *
+ * This action queries the database for companies whose normalized name starts with the
+ * provided search term. It is optimized to be fast and return a small, relevant set
+ * of data (id, name, slug, logo) suitable for display in a search dropdown.
+ *
+ * @param {string} searchTerm - The search term to match against the beginning of company names.
+ * @param {number} [limitNum=5] - The maximum number of suggestions to return. Defaults to 5.
+ * @returns {Promise<Array<Pick<Company, 'id' | 'name' | 'slug' | 'logo'>> | { error: string }>}
+ * A promise that resolves to an array of company suggestion objects or an error object.
+ * Returns an empty array if the search term is too short.
  */
 export async function fetchCompanySuggestionsAction(
   searchTerm: string,

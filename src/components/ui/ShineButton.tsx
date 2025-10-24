@@ -4,11 +4,25 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { FaRocket } from 'react-icons/fa';
 
+/**
+ * @interface ShineButtonProps
+ * @extends React.ButtonHTMLAttributes<HTMLButtonElement>
+ * @description Defines the props for the ShineButton component.
+ * @property {React.ReactNode} children - The content to be displayed inside the button.
+ * @property {React.ElementType} [icon] - An optional icon component to be displayed next to the children. Defaults to FaRocket.
+ */
 interface ShineButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   icon?: React.ElementType;
 }
 
+/**
+ * @function ShineButton
+ * @description A stylized button component with a gradient background, hover effects, and an optional icon. It forwards a ref to the underlying button element.
+ * @param {ShineButtonProps} props - The props for the component.
+ * @param {React.Ref<HTMLButtonElement>} ref - The ref to be forwarded to the button element.
+ * @returns {JSX.Element} The rendered shine button component.
+ */
 const ShineButton = React.forwardRef<HTMLButtonElement, ShineButtonProps>(
   ({ children, className, icon: Icon = FaRocket, ...props }, ref) => {
     return (

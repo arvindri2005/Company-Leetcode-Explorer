@@ -1,4 +1,12 @@
 
+/**
+ * @fileoverview A client-side component for generating, viewing, and saving an AI-powered interview strategy.
+ *
+ * This component provides a user interface for creating a personalized interview
+ * preparation plan for a specific company. It allows users to select a target
+ * role level, generate a strategy using an AI service, view the results, and
+ * save the strategy to their profile for later access.
+ */
 'use client';
 
 import type { GenerateCompanyStrategyOutput, FocusTopic, TargetRoleLevel, StrategyTodoItem, SavedStrategyTodoList } from '@/types';
@@ -10,23 +18,43 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Lightbulb, Target, Loader2, ListChecks, Brain, UserCheck, Save, CheckSquare, RefreshCw, Info, LogIn, AlertCircle } from 'lucide-react'; // Added AlertCircle
+import { Lightbulb, Target, Loader2, ListChecks, Brain, UserCheck, Save, CheckSquare, RefreshCw, Info, LogIn, AlertCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAuth } from '@/contexts/auth-context';
-import { useAICooldown } from '@/hooks/use-ai-cooldown'; // Import cooldown hook
+import { useAICooldown } from '@/hooks/use-ai-cooldown';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+/**
+ * Props for the CompanyStrategyGenerator component.
+ */
 interface CompanyStrategyGeneratorProps {
+  /** The unique ID of the company. */
   companyId: string;
+  /** The name of the company. */
   companyName: string;
+  /** The URL slug for the company. */
   companySlug: string;
 }
 
+/**
+ * Renders an interactive section for generating and managing an AI-powered company-specific interview strategy.
+ *
+ * This component handles the full lifecycle of the strategy feature:
+ * - On mount, it checks if a user is logged in and tries to load a previously saved strategy for the company.
+ * - Provides controls to select a target role and trigger AI strategy generation.
+ * - Manages AI cooldowns to prevent feature abuse.
+ * - Displays loading states while fetching or generating data.
+ * - Renders the generated strategy, including a markdown plan, key focus topics, and an actionable to-do list.
+ * - Allows the user to save a newly generated strategy or update an existing one.
+ *
+ * @param {CompanyStrategyGeneratorProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered strategy generator component.
+ */
 const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({ companyId, companyName, companySlug }) => {
   const [strategyData, setStrategyData] = useState<GenerateCompanyStrategyOutput | null>(null);
   const [isAILoading, setIsAILoading] = useState(false); // Renamed isLoading

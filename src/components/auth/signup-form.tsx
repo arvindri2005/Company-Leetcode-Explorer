@@ -1,4 +1,13 @@
 
+/**
+ * @fileoverview Defines the user registration (sign-up) form component.
+ *
+ * This client-side component provides a form for new users to create an account
+ * with their display name, email, and password. It uses `react-hook-form` for
+ * form management, `zod` for validation, and Firebase Authentication for the
+ * user creation process. It handles loading states, error messages, and redirects
+ * upon successful registration.
+ */
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -21,8 +30,11 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/auth-context'; // Import useAuth
+import { useAuth } from '@/contexts/auth-context';
 
+/**
+ * Zod schema for validating the sign-up form fields.
+ */
 const signupFormSchema = z.object({
   displayName: z.string().min(2, { message: 'Display name must be at least 2 characters.'}).max(50),
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -31,6 +43,21 @@ const signupFormSchema = z.object({
 
 type SignupFormValues = z.infer<typeof signupFormSchema>;
 
+/**
+ * Renders an interactive sign-up form.
+ *
+ * This component handles the entire user registration flow:
+ * - Displays display name, email, and password input fields.
+ * - Validates user input using the `signupFormSchema`.
+ * - On submission, it creates a new user with Firebase Authentication.
+ * - Updates the user's Firebase profile with their display name.
+ * - Triggers a sync to create a corresponding user profile in Firestore.
+ * - Shows a loading indicator during submission.
+ * - Displays success or error notifications (toasts).
+ * - Redirects the user to their profile upon successful sign-up.
+ *
+ * @returns {JSX.Element} The rendered sign-up form component.
+ */
 export default function SignupForm() {
   const { toast } = useToast();
   const router = useRouter();

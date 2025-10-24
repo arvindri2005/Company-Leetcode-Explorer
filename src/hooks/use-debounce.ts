@@ -1,6 +1,14 @@
 
 import { useState, useEffect } from 'react';
 
+/**
+ * @function useDebounce
+ * @description A custom hook that debounces a value. It will only update the returned value if the input value has not changed for a specified delay.
+ * @template T The type of the value to be debounced.
+ * @param {T} value - The value to debounce.
+ * @param {number} delay - The debounce delay in milliseconds.
+ * @returns {T} The debounced value.
+ */
 export function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 

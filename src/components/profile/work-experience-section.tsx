@@ -17,6 +17,16 @@ import { WorkExperienceSchema as workExperienceFormSchema } from '@/types'; // R
 
 type WorkExperienceFormValues = z.infer<typeof workExperienceFormSchema>;
 
+/**
+ * @interface WorkExperienceSectionProps
+ * @description Props for the WorkExperienceSection component.
+ * @property {string} userId - The user's ID.
+ * @property {WorkExperience[]} workExperience - An array of the user's work experiences.
+ * @property {boolean} isLoadingWorkExperience - Flag indicating if work experience data is loading.
+ * @property {(data: WorkExperienceFormValues) => Promise<void>} handleAddWorkExperience - Async function to handle adding a new work experience entry.
+ * @property {boolean} isWorkDialogOpen - Flag indicating if the 'add work experience' dialog is open.
+ * @property {(isOpen: boolean) => void} setIsWorkDialogOpen - Function to set the state of the 'add work experience' dialog.
+ */
 interface WorkExperienceSectionProps {
   userId: string; // Needed for keying if delete/edit were added
   workExperience: WorkExperience[];
@@ -27,6 +37,12 @@ interface WorkExperienceSectionProps {
   setIsWorkDialogOpen: (isOpen: boolean) => void;
 }
 
+/**
+ * @function WorkExperienceSection
+ * @description A component that displays a user's professional work experience and provides a dialog to add new entries.
+ * @param {WorkExperienceSectionProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered section displaying work history, a loading state, or an empty state message.
+ */
 const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
   workExperience,
   isLoadingWorkExperience,

@@ -1,8 +1,23 @@
 
+/**
+ * @fileoverview API route for fetching a paginated and filtered list of problems for a company.
+ *
+ * This file defines a Next.js API route that handles POST requests to retrieve
+ * coding problems associated with a specific company. It supports cursor-based
+ * pagination, various filters (difficulty, recency, status, search term), and
+ * sorting. It uses Zod for robust input validation.
+ */
 import { NextResponse } from 'next/server';
 import { getProblemsByCompanyFromDb } from '@/lib/data';
 import { z } from 'zod';
 
+/**
+ * Zod schema for validating the incoming request body for fetching problems.
+ *
+ * This schema ensures that the request contains a valid company ID, and that
+ * optional parameters like cursor, pageSize, and filters are of the correct type
+ * and within acceptable ranges.
+ */
 const problemRequestSchema = z.object({
   companyId: z.string(),
   cursor: z.string().optional(),
@@ -17,6 +32,18 @@ const problemRequestSchema = z.object({
   userId: z.string().optional(),
 });
 
+/**
+ * Handles POST requests to fetch a list of problems for a specific company.
+ *
+ * This function validates the request body against the `problemRequestSchema`.
+ * If valid, it passes the parameters to the `getProblemsByCompanyFromDb` function
+ * to query the database. It returns a paginated list of problems based on the
+ * provided cursor, page size, filters, and sorting options.
+ *
+ * @param {Request} request - The incoming HTTP request object.
+ * @returns {Promise<NextResponse>} A response containing a paginated list of problems
+ * and a new cursor, or an error response if the request is invalid or an issue occurs.
+ */
 export async function POST(request: Request) {
   try {
     const body = await request.json();

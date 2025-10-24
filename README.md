@@ -57,9 +57,20 @@ Don't wait - start practicing with our cutting-edge platform today!
 -   **Data Fetching & Caching**: Next.js Server Actions, `unstable_cache`
 -   **Excel Parsing**: `xlsx` library
 
-## 🤝 Contributing
+## 📂 Project Structure
 
-Contributions are welcome! This project is open source, and we encourage you to contribute to make it even better. If you have ideas for new features, bug fixes, or improvements, please feel free to submit pull requests or open issues. Let's work together to help more software engineers ace their technical interviews!
+Here is a high-level overview of the key directories in this project:
+
+-   `src/app`: Contains the core of the Next.js application, following the App Router paradigm. Each folder represents a route.
+    -   `src/app/api`: Houses API route handlers.
+    -   `src/app/actions`: Contains Next.js Server Actions for server-side logic.
+-   `src/components`: Reusable React components used throughout the application.
+    -   `src/components/ui`: Auto-generated components from ShadCN UI.
+-   `src/lib`: Core utility functions, Firebase configuration, and database interaction logic.
+-   `src/ai`: All AI-related logic, including Genkit flow definitions and configurations.
+-   `src/hooks`: Custom React hooks for shared client-side logic.
+-   `src/types`: TypeScript type definitions used across the project.
+-   `public`: Static assets like images and fonts.
 
 ## 🚀 Getting Started
 
@@ -208,6 +219,28 @@ npm run genkit:dev
 ```
 
 This will typically start the Genkit UI on `http://localhost:4000`.
+
+### 10. Running Tests
+
+This project uses Jest for testing. You can run the test suite with the following commands:
+
+```bash
+# Run all tests once
+npm test
+
+# Run tests in watch mode
+npm test:watch
+```
+
+## 部署 (Deployment)
+
+The easiest way to deploy this Next.js application is by using [Vercel](https://vercel.com/), the creators of Next.js.
+
+1.  Push your cloned repository to your own Git provider (GitHub, GitLab, Bitbucket).
+2.  Go to the [Vercel dashboard](https://vercel.com/dashboard) and create a new project.
+3.  Import your repository. Vercel will automatically detect that it's a Next.js project.
+4.  **Configure Environment Variables**: In the project settings on Vercel, add all the environment variables from your `.env.local` file.
+5.  Click **Deploy**. Vercel will build and deploy your application.
 
 ## 🤝 Contributing
 

@@ -1,6 +1,22 @@
+/**
+ * @fileoverview A component that displays the key features of the application.
+ *
+ * This component renders a section for the landing page that highlights the
+ * main features of Byte to Offer. It dynamically creates a grid of `FeatureCard`
+ * components based on a constant array of feature data.
+ */
 import { FeatureCard } from '@/components/ui/feature-card';
 import { FEATURES } from '@/constants/features';
 
+/**
+ * Renders the "Features" section of the landing page.
+ *
+ * This component creates a grid layout to display the application's key features.
+ * It iterates over the `FEATURES` constant, passing the data for each feature
+ * (icon, title, description) to a `FeatureCard` component for rendering.
+ *
+ * @returns {JSX.Element} The rendered features section.
+ */
 export default function FeaturesSection() {
   return (
     <section id="features" className="py-20 px-8">

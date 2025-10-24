@@ -7,6 +7,15 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowRight, Bot, Brain, CheckSquare, BarChart3, Search, Sparkles, BookOpenCheck, FileSpreadsheet, Palette, Users, PlusSquare } from 'lucide-react';
 
+/**
+ * @interface FeatureCardProps
+ * @description Defines the props for the FeatureCard component.
+ * @property {React.ElementType} icon - The icon component to be displayed.
+ * @property {string} title - The title of the feature.
+ * @property {string} description - A brief description of the feature.
+ * @property {string} link - The URL the card should link to.
+ * @property {string} linkText - The text to display on the button.
+ */
 interface FeatureCardProps {
   icon: React.ElementType;
   title: string;
@@ -15,6 +24,12 @@ interface FeatureCardProps {
   linkText: string;
 }
 
+/**
+ * @function FeatureCard
+ * @description A reusable card component to display a single feature.
+ * @param {FeatureCardProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered feature card.
+ */
 const FeatureCard: React.FC<FeatureCardProps> = ({ icon: Icon, title, description, link, linkText }) => (
   <Card className="flex flex-col h-full shadow-lg hover:shadow-xl transition-shadow duration-300">
     <CardHeader className="flex flex-row items-start gap-4 pb-4">
@@ -38,7 +53,11 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon: Icon, title, descriptio
   </Card>
 );
 
-
+/**
+ * @function HomeFeaturesGrid
+ * @description A section component that displays a grid of features for the homepage.
+ * @returns {JSX.Element} The rendered grid of feature cards.
+ */
 export const HomeFeaturesGrid = () => {
   return (
     <section className="container mx-auto px-4">

@@ -3,6 +3,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
+/**
+ * @function CompanyCardSkeleton
+ * @description A skeleton loader component that mimics the appearance of a CompanyCard, used to indicate loading state.
+ * @returns {JSX.Element} The rendered skeleton component.
+ */
 const CompanyCardSkeleton = () => {
   return (
     <Card className={cn(

@@ -35,6 +35,13 @@ interface CooldownStateProviderProps {
   children: ReactNode;
 }
 
+/**
+ * @function CooldownStateProvider
+ * @description A provider component that manages and exposes the state for an AI feature cooldown timer.
+ * It handles storing the cooldown end time in localStorage and provides values and functions to its children.
+ * @param {CooldownStateProviderProps} props - The props for the component.
+ * @returns {JSX.Element} The provider component wrapping its children.
+ */
 export const CooldownStateProvider: React.FC<CooldownStateProviderProps> = ({ 
   children 
 }) => {
@@ -154,7 +161,13 @@ export const CooldownStateProvider: React.FC<CooldownStateProviderProps> = ({
   );
 };
 
-// --- Custom Hook to Consume Context ---
+/**
+ * @function useAICooldown
+ * @description A custom hook to consume the AI feature cooldown context.
+ * It provides access to the cooldown state, such as whether the feature can be used, the remaining time, and a function to start the cooldown.
+ * @throws {Error} If used outside of a `CooldownStateProvider`.
+ * @returns {AICooldownContextType} The cooldown context, including state and control functions.
+ */
 export function useAICooldown(): AICooldownContextType {
   const context = useContext(CooldownInternalCtx);
   if (context === undefined) {

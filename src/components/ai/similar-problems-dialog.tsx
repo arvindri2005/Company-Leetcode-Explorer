@@ -1,3 +1,11 @@
+/**
+ * @fileoverview A responsive dialog/drawer component for displaying AI-generated similar coding problems.
+ *
+ * This component adapts its presentation based on the viewport size, using a
+ * standard dialog for desktop and a swipeable drawer for mobile. It is responsible
+ * for showing a list of conceptually similar problems found by an AI service,
+ * and it handles the loading and empty/error states for this data.
+ */
 'use client';
 
 import type { SimilarProblemDetail } from '@/types';
@@ -28,6 +36,9 @@ import { Badge } from '@/components/ui/badge';
 import React from 'react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 
+/**
+ * Props for the SimilarProblemsDialog component.
+ */
 interface SimilarProblemsDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -36,6 +47,11 @@ interface SimilarProblemsDialogProps {
   isLoading: boolean;
 }
 
+/**
+ * Renders a single card displaying the details of a similar problem.
+ * @param {{ problem: SimilarProblemDetail }} props - The props for the component.
+ * @returns {JSX.Element} A card with information about a similar problem.
+ */
 const SimilarProblemCard = ({ problem }: { problem: SimilarProblemDetail }) => (
   <Card className="bg-muted/20 border-none shadow-sm">
     <CardHeader>
@@ -79,6 +95,11 @@ const SimilarProblemCard = ({ problem }: { problem: SimilarProblemDetail }) => (
   </Card>
 );
 
+/**
+ * Renders the main content for the similar problems dialog, handling loading and empty states.
+ * @param {{ similarProblems: SimilarProblemDetail[] | null; isLoading: boolean }} props - The props for the component.
+ * @returns {JSX.Element} The content to be displayed inside the dialog/drawer.
+ */
 const SimilarProblemsContent = ({ similarProblems, isLoading }: { similarProblems: SimilarProblemDetail[] | null, isLoading: boolean }) => {
   if (isLoading) {
     return (
@@ -111,6 +132,17 @@ const SimilarProblemsContent = ({ similarProblems, isLoading }: { similarProblem
   );
 };
 
+/**
+ * Renders a responsive dialog or drawer to display AI-generated similar problems.
+ *
+ * This component adapts its layout based on the screen size, using a `Dialog` for
+ * desktop views and a `Drawer` for mobile views. It serves as the main entry point for
+ * displaying the similar problems UI, managing the open/close state and passing
+ * data down to the `SimilarProblemsContent` component.
+ *
+ * @param {SimilarProblemsDialogProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered Dialog or Drawer for displaying similar problems.
+ */
 const SimilarProblemsDialog: React.FC<SimilarProblemsDialogProps> = ({
   isOpen,
   onClose,

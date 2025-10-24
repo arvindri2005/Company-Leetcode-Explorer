@@ -1,3 +1,12 @@
+/**
+ * @fileoverview Defines the user profile page, which serves as a personal dashboard.
+ *
+ * This is a comprehensive client-side component that handles the display and management
+ * of all user-specific data. It fetches and renders information such as user details,
+ * progress statistics, bookmarked problems, problem statuses, saved AI strategies,
+ * and educational/work background. It uses various sub-components to organize the UI
+ * and server actions to interact with the backend.
+ */
 "use client";
 
 import { useAuth } from "@/contexts/auth-context";
@@ -57,11 +66,17 @@ import {
 } from "@/app/actions";
 import { getProblemByCompanySlugAndProblemSlug } from "@/lib/data";
 
+/**
+ * Extends the LeetCodeProblem type to include user-specific status information.
+ */
 interface ProblemWithDetails extends LeetCodeProblem {
     currentStatus?: ProblemStatus;
     isBookmarked?: boolean;
 }
 
+/**
+ * Zod schema for validating the display name update form.
+ */
 const displayNameFormSchema = z.object({
     displayName: z
         .string()
@@ -70,12 +85,34 @@ const displayNameFormSchema = z.object({
 });
 type DisplayNameFormValues = z.infer<typeof displayNameFormSchema>;
 
+/**
+ * Zod schema for validating the education form (client-side).
+ */
 const educationClientSchema = EducationExperienceSchema.omit({ id: true });
 type EducationFormValues = z.infer<typeof educationClientSchema>;
 
+/**
+ * Zod schema for validating the work experience form (client-side).
+ */
 const workExperienceClientSchema = WorkExperienceSchema.omit({ id: true });
 type WorkExperienceFormValues = z.infer<typeof workExperienceClientSchema>;
 
+/**
+ * Renders the user profile page, a comprehensive dashboard for user-specific information.
+ *
+ * This component acts as a central hub for all user interactions and data. It manages:
+ * - Authentication state, redirecting to login if the user is not authenticated.
+ * - Fetching and displaying user info, education, and work history.
+ * - Fetching and displaying lists of problems (bookmarked, solved, attempted, to-do).
+ * - Displaying and managing saved AI-generated study strategies and their to-do lists.
+ * - Handling updates to user data, such as changing a display name, adding background info,
+ *   or toggling to-do items, through various server actions.
+ * - State management for loading, editing, and form submissions across multiple sections.
+ *
+ * It is composed of several smaller, focused components to keep the UI organized.
+ *
+ * @returns {JSX.Element | null} The rendered profile page, a loading skeleton, or `null` if redirecting.
+ */
 export default function ProfilePage() {
     const {
         user,

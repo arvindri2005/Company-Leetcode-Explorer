@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Defines the custom 404 "Not Found" page for the application.
+ *
+ * This client component is automatically rendered by the Next.js App Router when a
+ * requested path does not match any existing route. It provides a user-friendly
+ * message, a search bar to help users find a company, and links to navigate to the
+ * homepage or the main companies list.
+ */
 "use client";
 
 import Link from "next/link";
@@ -12,6 +20,16 @@ import type { Company } from "@/types";
 
 interface Suggestion extends Pick<Company, "id" | "name" | "slug" | "logo"> {}
 
+/**
+ * Renders the 404 "Page Not Found" error page.
+ *
+ * This component displays a helpful message indicating that the requested page
+ * could not be found. It includes an integrated company search bar that provides
+ * autocomplete suggestions, allowing users to quickly search for a specific company.
+ * It also offers clear navigation options to return to the homepage or browse all companies.
+ *
+ * @returns {JSX.Element} The rendered 404 Not Found page.
+ */
 export default function NotFound() {
     const [searchTermInput, setSearchTermInput] = useState("");
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);

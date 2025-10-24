@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Defines the dynamic page for displaying a single company's details and problems.
+ *
+ * This file contains the server component for the `/company/[companySlug]` route.
+ * It fetches the company's data based on the slug, generates dynamic metadata for SEO,
+ * retrieves the initial list of associated problems, and renders the main page layout.
+ * It also includes `generateStaticParams` to pre-render pages for known companies at build time.
+ */
 import { getCompanyBySlug, getProblemsByCompanyFromDb, getAllCompanySlugs } from '@/lib/data';
 import type { Company, LeetCodeProblem, ProblemListFilters } from '@/types';
 import type { Metadata } from 'next';
@@ -11,10 +19,24 @@ import CompanyTabs from '@/components/company/page/company-tabs';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://bytetooffer.com';
 const INITIAL_ITEMS_PER_PAGE = 15;
 
+/**
+ * Defines the props structure for the CompanyPage, including the dynamic route parameters.
+ */
 interface CompanyPageProps {
   params: Promise<{ companySlug: string }>;
 }
 
+/**
+ * Dynamically generates metadata for a specific company page.
+ *
+ * This function fetches company details by its slug to create a highly relevant
+ * title, description, keywords, and Open Graph tags for SEO. It also generates
+ * structured data (BreadcrumbList, Organization) for rich search results. If the
+ * company is not found, it returns metadata for a "Not Found" page.
+ *
+ * @param {CompanyPageProps} props - The props containing the dynamic route parameters.
+ * @returns {Promise<Metadata>} A promise that resolves to the generated metadata object.
+ */
 export async function generateMetadata(props: CompanyPageProps): Promise<Metadata> {
   const params = await props.params;
   const company = await getCompanyBySlug(params.companySlug);
@@ -104,6 +126,19 @@ export async function generateMetadata(props: CompanyPageProps): Promise<Metadat
   };
 }
 
+/**
+ * Renders the page for a specific company.
+ *
+ * This server component fetches the company's details based on the slug from the URL.
+ * If the company is not found, it renders a `CompanyNotFound` component. Otherwise, it
+ * fetches the first page of problems for that company. It then passes this initial data
+ * to the `CompanyTabs` client component, which handles the interactive display of
+ * problems, AI tools, and other company-specific information. It also handles
+ * error states for problem fetching.
+ *
+ * @param {CompanyPageProps} props - The props containing the dynamic route parameters.
+ * @returns {Promise<JSX.Element>} The rendered company page or a not-found component.
+ */
 export default async function CompanyPage(props: CompanyPageProps) {
   const params = await props.params;
   const company = await getCompanyBySlug(params.companySlug);
@@ -168,6 +203,17 @@ export default async function CompanyPage(props: CompanyPageProps) {
   );
 }
 
+/**
+ * Generates static paths for known company pages at build time.
+ *
+ * This Next.js function is used during the build process to fetch all existing
+ * company slugs. It creates a list of `params` objects, allowing Next.js to
+ * pre-render a static HTML page for each company. This improves performance
+ * and SEO for the most important company pages.
+ *
+ * @returns {Promise<Array<{ companySlug: string }>>} A promise that resolves to an array of
+ * objects, where each object contains a `companySlug` for a page to be statically generated.
+ */
 export async function generateStaticParams() {
   try {
     const companySlugs = await getAllCompanySlugs();

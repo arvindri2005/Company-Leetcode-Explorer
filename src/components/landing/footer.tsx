@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Defines the footer component for the application.
+ *
+ * This component renders the site's footer, which includes links to important
+ * informational pages like the Privacy Policy, Terms of Service, and Contact page,
+ * as well as the copyright notice.
+ */
 export default function Footer() {
     return (
         <footer className="bg-black/50 py-12 px-8 text-center border-t border-white/10">
@@ -30,4 +37,3 @@ export default function Footer() {
         </footer>
     );
   }
-  

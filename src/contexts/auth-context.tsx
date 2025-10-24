@@ -10,6 +10,13 @@ import { syncUserProfile as syncUserProfileAction } from '@/app/actions'; // Ser
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/**
+ * @function AuthProvider
+ * @description Provides authentication context to its children components.
+ * It manages the current user's state, loading status, and profile synchronization with the backend.
+ * @param {{ children: ReactNode }} props - The props for the component.
+ * @returns {JSX.Element} The provider component.
+ */
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -66,6 +73,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+/**
+ * @function useAuth
+ * @description A custom hook to access the authentication context.
+ * It provides an easy way to get the current user, loading state, and other auth-related values.
+ * @throws {Error} If used outside of an `AuthProvider`.
+ * @returns {AuthContextType} The authentication context.
+ */
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {

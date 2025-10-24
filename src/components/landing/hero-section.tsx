@@ -1,9 +1,27 @@
+/**
+ * @fileoverview Defines the hero section component for the landing page.
+ *
+ * This client-side component renders the main "above-the-fold" content for the
+ * homepage. It includes the primary headline, a descriptive paragraph, a call-to-action
+ * button, and a decorative background with floating shapes.
+ */
 'use client';
 
 import { FaRocket, FaPlay } from 'react-icons/fa';
 import { FloatingShapes } from '@/components/ui/floatingShapes';
 import { useRouter } from 'next/navigation';
 
+/**
+ * Renders the hero section of the landing page.
+ *
+ * This component is designed to be the first thing a user sees. It features a large,
+ * attention-grabbing headline, a subtitle explaining the site's value proposition,
+ * and a prominent "Start Exploring" button that navigates the user to the main
+ * companies page. It also includes an animated `FloatingShapes` background for
+ * visual appeal.
+ *
+ * @returns {JSX.Element} The rendered hero section.
+ */
 export default function HeroSection() {
 
   const router = useRouter();

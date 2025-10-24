@@ -1,3 +1,8 @@
+/**
+ * @file firebase.ts
+ * @description This file initializes the Firebase app and exports the Firestore database and Auth instances.
+ * It includes checks for necessary environment variables and ensures that Firebase is only initialized once.
+ */
 
 import { initializeApp, getApps, getApp, type FirebaseOptions } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';

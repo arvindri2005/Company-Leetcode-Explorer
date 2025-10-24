@@ -1,4 +1,12 @@
 
+/**
+ * @fileoverview A client-side component for displaying an interactive list of coding problems.
+ *
+ * This component is responsible for rendering a list of problems for a specific
+ * company. It handles client-side filtering, sorting, searching, and infinite
+ * scrolling for pagination. It receives an initial set of data from the server
+ * and then fetches subsequent data on the client as needed.
+ */
 'use client';
 
 import type { LeetCodeProblem, ProblemListFilters, PaginatedProblemsResponse, ProblemStatus } from '@/types';
@@ -11,6 +19,7 @@ import { useDebounce } from '@/hooks/use-debounce';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 
+// Dynamically import the controls to show a skeleton while they load.
 const ProblemListControls = dynamic(() => import('./problem-list-controls'), {
   loading: () => (
     <div className="mb-6 p-4 space-y-4 bg-card rounded-lg shadow">
@@ -24,6 +33,9 @@ const ProblemListControls = dynamic(() => import('./problem-list-controls'), {
   ),
 });
 
+/**
+ * Props for the ProblemList component.
+ */
 interface ProblemListProps {
   companyId: string;
   companySlug: string;
@@ -34,6 +46,21 @@ interface ProblemListProps {
   initialFilters: ProblemListFilters;
 }
 
+/**
+ * Renders an interactive, filterable, and paginated list of coding problems.
+ *
+ * This component manages the state and logic for:
+ * - Displaying an initial list of problems.
+ * - Handling user interactions with `ProblemListControls` to filter and sort the data.
+ * - Debouncing search input to trigger API calls efficiently.
+ * - Implementing infinite scroll using `IntersectionObserver` to load more problems.
+ * - Fetching data from the `/api/problems` endpoint based on the current state.
+ * - Updating the local state of individual problem cards (e.g., bookmark status)
+ *   in response to user actions, providing an optimistic UI update.
+ *
+ * @param {ProblemListProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered problem list and its controls.
+ */
 const ProblemList: React.FC<ProblemListProps> = ({
   companyId,
   companySlug,

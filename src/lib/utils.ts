@@ -2,10 +2,23 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
+/**
+ * @function cn
+ * @description A utility function to merge Tailwind CSS classes. It uses `clsx` to conditionally apply classes and `tailwind-merge` to resolve conflicting classes.
+ * @param {...ClassValue[]} inputs - A list of class values to be merged.
+ * @returns {string} The merged class string.
+ */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * @function slugify
+ * @description Converts a string into a URL-friendly slug.
+ * It converts the string to lowercase, trims whitespace, replaces spaces with hyphens, and removes non-alphanumeric characters except for hyphens.
+ * @param {string} text - The string to be converted.
+ * @returns {string} The slugified string.
+ */
 export function slugify(text: string): string {
   if (typeof text !== 'string') {
     return '';

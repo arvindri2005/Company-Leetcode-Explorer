@@ -1,8 +1,19 @@
 
+/**
+ * @fileoverview Admin page for viewing contact form submissions.
+ *
+ * This file defines a Next.js page component that fetches and displays all
+ * messages submitted through the contact form. The messages are retrieved from
+ * the `contact-messages` collection in Firestore and displayed in a table,
+ * sorted by creation date. This page is intended for administrative use only.
+ */
 import { db } from "@/lib/firebase";
 import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { format } from "date-fns";
 
+/**
+ * Represents a single contact message document from Firestore.
+ */
 interface ContactMessage {
     id: string;
     name: string;
@@ -11,6 +22,14 @@ interface ContactMessage {
     createdAt: string;
 }
 
+/**
+ * Fetches and formats all contact messages from the Firestore database.
+ *
+ * This function queries the `contact-messages` collection, orders the results
+ * in descending order by their creation timestamp, and formats the data for display.
+ *
+ * @returns {Promise<ContactMessage[]>} A promise that resolves to an array of contact messages.
+ */
 async function getContactMessages(): Promise<ContactMessage[]> {
     if (!db) {
         console.error("Firestore is not initialized.");
@@ -33,6 +52,14 @@ async function getContactMessages(): Promise<ContactMessage[]> {
     });
 }
 
+/**
+ * Renders the admin page for displaying contact form messages.
+ *
+ * This server component fetches all contact messages by calling `getContactMessages`
+ * and then renders them in a structured HTML table for easy review by an administrator.
+ *
+ * @returns {Promise<JSX.Element>} The rendered contact messages page.
+ */
 export default async function ContactMessagesPage() {
     const messages = await getContactMessages();
 

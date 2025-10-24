@@ -1,9 +1,19 @@
+/**
+ * @fileoverview Defines the main page for listing all companies.
+ *
+ * This file contains the server component for the `/companies` route. It handles
+ * fetching the initial, paginated list of companies, generates dynamic metadata
+ * for SEO based on the current page, and renders the main company list component.
+ */
 import CompanyList from "@/components/company/company-list";
 import Pagination from "@/components/company/pagination";
 import { getCompaniesWithTotalCount } from "@/lib/data";
 import { Separator } from "@/components/ui/separator";
 import type { Metadata } from "next";
 
+/**
+ * Defines the props structure for the CompaniesPage, primarily for accessing search parameters.
+ */
 type CompaniesPageProps = {
     searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 };
@@ -14,6 +24,16 @@ export const preferredRegion = "auto";
 const ITEMS_PER_PAGE = 30;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 
+/**
+ * Dynamically generates metadata for the companies page.
+ *
+ * This function creates SEO-friendly metadata, including a dynamic title that
+ * reflects the current page number. It also generates a canonical URL and
+ * structured data (BreadcrumbList) for rich search results.
+ *
+ * @param {CompaniesPageProps} props - The props containing the search parameters.
+ * @returns {Promise<Metadata>} A promise that resolves to the generated metadata object.
+ */
 export async function generateMetadata(props: CompaniesPageProps): Promise<Metadata> {
     const searchParams = await props.searchParams;
     const page = searchParams?.page ? parseInt(searchParams.page as string) : 1;
@@ -80,6 +100,19 @@ export async function generateMetadata(props: CompaniesPageProps): Promise<Metad
     return metadata;
 }
 
+/**
+ * Renders the main page for browsing and searching companies.
+ *
+ * This server component is responsible for:
+ * 1. Parsing the current page number and any search term from the URL's search parameters.
+ * 2. Fetching the initial set of companies for the current page using `getCompaniesWithTotalCount`.
+ * 3. Rendering the page structure, including a header.
+ * 4. Passing the initial data down to the `CompanyList` client component, which handles
+ *    client-side interactions like infinite scrolling and filtering.
+ *
+ * @param {CompaniesPageProps} props - The props containing the search parameters.
+ * @returns {Promise<JSX.Element>} The rendered companies page.
+ */
 export default async function CompaniesPage(props: CompaniesPageProps) {
     const searchParams = await props.searchParams;
     const currentPage = searchParams?.page

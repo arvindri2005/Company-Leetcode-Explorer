@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Defines the main landing page for the application.
+ *
+ * This file constructs the homepage by assembling several distinct sections,
+ * including a hero section, features display, statistics, a search component,
+ * and a footer. It also exports Next.js metadata for SEO and social sharing,
+ * including structured data for rich search results.
+ */
 import type { Metadata } from "next";
 import HeroSection from "@/components/landing/hero-section";
 import FeaturesSection from "@/components/landing/feature-section";
@@ -7,6 +15,15 @@ import Footer from "@/components/landing/footer";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 
+/**
+ * Metadata for the landing page.
+ *
+ * This object provides SEO and social sharing information for the homepage,
+ * including the title, description, keywords, Open Graph data for social media,
+ * a canonical URL, and structured data (Schema.org) for search engines.
+ *
+ * @type {Metadata}
+ */
 export const metadata: Metadata = {
     title: "Byte to offer",
     description:
@@ -70,6 +87,14 @@ export const metadata: Metadata = {
     },
 };
 
+/**
+ * Renders the main landing page of the application.
+ *
+ * This component serves as the entry point for the site and is composed of
+ * several modular sections that highlight the application's purpose and features.
+ *
+ * @returns {JSX.Element} The rendered homepage component.
+ */
 export default function ShowcasePage() {
     return (
         <div className="bg-background w-full">

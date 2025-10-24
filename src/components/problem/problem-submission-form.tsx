@@ -1,8 +1,15 @@
 
+/**
+ * @fileoverview A client-side form for submitting a new coding problem.
+ *
+ * This component provides a comprehensive form for users to contribute new coding
+ * interview problems. It uses `react-hook-form` for form management, `zod` for
+ * validation, and calls a server action to save the data.
+ */
 'use client';
 
 import type { Company, LeetCodeProblem, LastAskedPeriod } from '@/types';
-import { lastAskedPeriodOptions } from '@/types'; // Import options
+import { lastAskedPeriodOptions } from '@/types';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -24,24 +31,46 @@ import { addProblem } from '@/app/actions';
 import { useState } from 'react';
 import { Loader2, PlusCircle, CalendarClock } from 'lucide-react';
 
+/**
+ * Props for the ProblemSubmissionForm component.
+ */
 interface ProblemSubmissionFormProps {
+  /** A list of companies to populate the company selection dropdown. */
   companies: Company[];
 }
 
+/**
+ * Zod schema for validating the problem submission form fields.
+ */
 const problemFormSchema = z.object({
   title: z.string().min(3, { message: 'Title must be at least 3 characters.' }).max(150),
   difficulty: z.enum(['Easy', 'Medium', 'Hard'], { required_error: 'Difficulty is required.' }),
   link: z.string().url({ message: 'Please enter a valid Interview Problem URL.' }),
-  tags: z.string().optional(), // Made tags optional
+  tags: z.string().optional(),
   companyId: z.string({ required_error: 'Please select a company.' }),
   lastAskedPeriod: z.enum(
-    lastAskedPeriodOptions.map(opt => opt.value) as [LastAskedPeriod, ...LastAskedPeriod[]], 
+    lastAskedPeriodOptions.map(opt => opt.value) as [LastAskedPeriod, ...LastAskedPeriod[]],
     { required_error: 'Please select how recently this problem was asked.' }
   ),
 });
 
 type ProblemFormValues = z.infer<typeof problemFormSchema>;
 
+/**
+ * Renders a form for users to submit a new coding interview problem.
+ *
+ * This component handles the full submission workflow:
+ * - Displays input fields for all problem details (title, difficulty, link, etc.).
+ * - Populates a dropdown with the list of available companies.
+ * - Validates user input against the `problemFormSchema`.
+ * - Shows a loading state during form submission.
+ * - Calls the `addProblem` server action to save the data.
+ * - Provides user feedback (success or error) via toasts.
+ * - Resets the form upon a successful submission.
+ *
+ * @param {ProblemSubmissionFormProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered problem submission form.
+ */
 export default function ProblemSubmissionForm({ companies }: ProblemSubmissionFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);

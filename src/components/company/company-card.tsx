@@ -1,12 +1,34 @@
+/**
+ * @fileoverview Defines a card component for displaying a summary of a company.
+ *
+ * This component renders a visually appealing card that shows a company's logo,
+ * name, and the number of associated interview problems. It includes a link to
+ * the detailed company page. It also has a fallback for broken logo images.
+ */
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Company } from "@/types";
 
+/**
+ * Props for the CompanyCard component.
+ */
 interface CompanyCardProps {
+    /** The company data to display. */
     company: Company;
 }
 
+/**
+ * Renders a card with summary information about a company.
+ *
+ * This component is designed to be used in a grid or list of companies. It displays
+ * key information and provides a clear call-to-action to view the company's problems.
+ * It includes an error handler for the company logo to show a fallback icon if the
+ * image fails to load.
+ *
+ * @param {CompanyCardProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered company card.
+ */
 const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
     const [imgSrc, setImgSrc] = useState(company.logo);
 

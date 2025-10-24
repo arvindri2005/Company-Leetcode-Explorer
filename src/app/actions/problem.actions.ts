@@ -1,4 +1,13 @@
 
+/**
+ * @fileoverview Server-side actions for managing coding problem data.
+ *
+ * This module provides Next.js server actions for creating and retrieving
+ * coding problems from the Firestore database. It includes functions for adding
+ * a single problem, bulk-adding problems from a file, and fetching details
+ * for a batch of problems. These actions also handle data validation and
+ * cache revalidation for affected pages and data sets.
+ */
 'use server';
 
 import type { LeetCodeProblem, LastAskedPeriod, PaginatedProblemsResponse, ProblemListFilters, UserProblemStatusInfo, BookmarkedProblemInfo } from '@/types';
@@ -8,10 +17,19 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { slugify } from '@/lib/utils';
 
 /**
- * Adds a new LeetCode problem to the database.
- * If a problem with the same title and companyId already exists, it updates the lastAskedPeriod.
- * @param {Omit<LeetCodeProblem, 'id' | 'normalizedTitle' | 'companySlug' | 'slug'>} problemDataInput - The data for the problem to add.
- * @returns {Promise<{ success: boolean; data?: LeetCodeProblem; updated?: boolean; error?: string }>} Result of the operation.
+ * Adds a new coding problem to the database or updates an existing one.
+ *
+ * This action validates the input data, ensuring required fields are present and
+ * the problem link is valid. It checks if a problem with the same title already exists
+ * for the given company. If so, it updates the `lastAskedPeriod`; otherwise, it creates
+ * a new problem document. It then triggers cache revalidation for all relevant
+ * company and problem pages.
+ *
+ * @param {Omit<LeetCodeProblem, 'id' | 'normalizedTitle' | 'companySlug' | 'slug'>} problemDataInput - The data for the problem to add, excluding auto-generated fields.
+ * @returns {Promise<{ success: boolean; data?: LeetCodeProblem; updated?: boolean; error?: string }>}
+ * A promise that resolves to an object indicating the outcome. On success, `data` contains
+ * the added/updated problem. The `updated` flag is true if an existing record was modified.
+ * On failure, `error` contains a descriptive message.
  */
 export async function addProblem(
   problemDataInput: Omit<LeetCodeProblem, 'id' | 'normalizedTitle' | 'companySlug' | 'slug'>
@@ -63,9 +81,20 @@ interface RawExcelProblemData { title: string; difficulty: string; link: string;
 interface BulkAddDetailedResult { rowIndex: number; title: string; status: 'added' | 'updated' | 'error'; message: string; }
 
 /**
- * Adds multiple LeetCode problems from an Excel sheet.
- * @param {RawExcelProblemData[]} problemsFromExcel - Array of raw problem data parsed from Excel.
- * @returns {Promise<{ addedCount: number; updatedCount: number; errorCount: number; detailedResults: BulkAddDetailedResult[] }>} Summary and detailed results of the bulk operation.
+ * Processes a bulk import of coding problems, adding new ones and updating existing ones.
+ *
+ * This action takes an array of raw problem data, typically from a file upload. It
+ * validates each row for required fields (title, company name, difficulty, etc.) and
+ * correct formatting. For each valid entry, it calls the underlying `addProblemToDb`
+ * function, which handles the logic of either creating a new problem or updating an
+ * existing one based on a title match. It aggregates the results and triggers a broad
+ * cache revalidation for all affected companies and pages.
+ *
+ * @param {RawExcelProblemData[]} problemsFromExcel - An array of raw problem data objects.
+ * @returns {Promise<{ addedCount: number; updatedCount: number; errorCount: number; detailedResults: BulkAddDetailedResult[] }>}
+ * A promise that resolves to an object summarizing the bulk operation, including counts
+ * for added, updated, and errored records, along with a detailed breakdown of the
+ * outcome for each row.
  */
 export async function bulkAddProblems(
   problemsFromExcel: RawExcelProblemData[]
@@ -134,9 +163,17 @@ export async function bulkAddProblems(
 }
 
 /**
- * Fetches full details for a batch of problem IDs, belonging to specific companies.
- * @param {Array<{problemId: string, companyId: string}>} problemRefs - An array of objects containing problemId and companyId.
- * @returns {Promise<LeetCodeProblem[]>} An array of LeetCodeProblem objects. Returns empty if input is empty or on error.
+ * Fetches the full details for a batch of specified problems.
+ *
+ * This action is designed for efficiently retrieving multiple problem documents when their
+ * IDs and parent company IDs are known. It's useful for scenarios like displaying a
+ * list of bookmarked problems where the full problem objects are needed.
+ *
+ * @param {Array<{problemId: string, companyId: string}>} problemRefs - An array of objects,
+ * where each object contains a `problemId` and its corresponding `companyId`.
+ * @returns {Promise<LeetCodeProblem[]>} A promise that resolves to an array of the requested
+ * `LeetCodeProblem` objects. It filters out any problems that could not be found and
+ * returns an empty array if the input is empty or an error occurs.
  */
 export async function getProblemDetailsBatchAction(problemRefs: Array<{problemId: string, companyId: string}>): Promise<LeetCodeProblem[]> {
   if (!problemRefs || problemRefs.length === 0) return [];

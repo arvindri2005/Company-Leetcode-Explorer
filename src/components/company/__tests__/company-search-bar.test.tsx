@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import CompanySearchBar from '../compnay-search-bar';
+import CompanySearchBar from '../company-search-bar';
 
 describe('CompanySearchBar', () => {
   const mockSetSearchTermInput = jest.fn();

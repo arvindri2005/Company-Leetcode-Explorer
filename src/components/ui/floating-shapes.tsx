@@ -1,3 +1,8 @@
+/**
+ * @function FloatingShapes
+ * @description A decorative component that renders several animated, floating, gradient-colored shapes for background effect.
+ * @returns {JSX.Element} The rendered container with floating shapes.
+ */
 export function FloatingShapes() {
     return (
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-[1]">

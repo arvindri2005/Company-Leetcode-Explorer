@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Defines a highly interactive card component for displaying a single coding problem.
+ *
+ * This client-side component renders all details for a coding problem and includes
+ * numerous interactive elements for user engagement. This includes bookmarking,
+ * setting problem status, and triggering various AI-powered features like finding
+ * similar problems and generating hints.
+ */
 'use client';
 
 import type { LeetCodeProblem, ProblemStatus, SimilarProblemDetail, GenerateProblemInsightsOutput } from '@/types';
@@ -17,7 +25,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import React, { useState, useEffect, Suspense, useCallback } from 'react'; 
+import React, { useState, useEffect, Suspense, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { useToast } from '@/hooks/use-toast';
 import { performSimilarQuestionSearch, toggleBookmarkProblemAction, setProblemStatusAction, generateProblemInsightsAction } from '@/app/actions';
@@ -28,7 +36,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useRouter, usePathname } from 'next/navigation';
 import type { User as FirebaseUser } from 'firebase/auth';
 
-
+// Dynamically import dialogs to avoid including them in the initial bundle.
 const SimilarProblemsDialog = dynamic(() => import('@/components/ai/similar-problems-dialog'), {
   loading: () => <p>Loading dialog...</p>,
 });
@@ -36,7 +44,9 @@ const ProblemInsightsDialog = dynamic(() => import('@/components/ai/problem-insi
   loading: () => <p>Loading dialog...</p>,
 });
 
-
+/**
+ * Props for the ProblemCard component.
+ */
 interface ProblemCardProps {
   problem: LeetCodeProblem;
   companySlug: string;
@@ -46,6 +56,11 @@ interface ProblemCardProps {
   onProblemStatusChange?: (problemId: string, newStatus: ProblemStatus) => void;
 }
 
+/**
+ * Renders an icon representing the user's progress status for a problem.
+ * @param {{ status: ProblemStatus }} props - The props for the component.
+ * @returns {JSX.Element | null} The rendered status icon with a tooltip, or null.
+ */
 const ProblemStatusIconComponent: React.FC<{ status: ProblemStatus }> = ({ status }) => {
   if (status === 'none' || !PROBLEM_STATUS_DISPLAY[status]) return null;
 
@@ -81,6 +96,12 @@ const ProblemStatusIconComponent: React.FC<{ status: ProblemStatus }> = ({ statu
 const ProblemStatusIcon = React.memo(ProblemStatusIconComponent);
 
 
+/**
+ * Renders the dynamic content for an AI feature's tooltip.
+ * It shows the default text, a login prompt, or the remaining cooldown time.
+ * @param {{ defaultText: string; user: FirebaseUser | null }} props - The props for the component.
+ * @returns {JSX.Element} The content for the tooltip.
+ */
 const AITooltipContentComponent: React.FC<{ defaultText: string; user: FirebaseUser | null }> = ({ defaultText, user }) => {
   const { canUseAI, isLoadingCooldown, formattedRemainingTime } = useAICooldown();
   const isAIButtonCurrentlyDisabled = isLoadingCooldown || !canUseAI;
@@ -95,7 +116,22 @@ const AITooltipContentComponent: React.FC<{ defaultText: string; user: FirebaseU
 };
 const AITooltipContent = React.memo(AITooltipContentComponent);
 
-
+/**
+ * Renders a detailed and highly interactive card for a single coding problem.
+ *
+ * This component is a central piece of the UI, displaying problem details like
+ * title, difficulty, and tags. It provides numerous user actions:
+ * - Link to solve the problem externally.
+ * - Button to start a mock interview (feature in development).
+ * - AI-powered tools to find similar problems and generate hints/insights.
+ * - User-specific actions like bookmarking and setting a progress status (e.g., Solved, To-Do).
+ *
+ * It manages its own state for these interactions and communicates changes
+ * back to parent components via callbacks.
+ *
+ * @param {ProblemCardProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered problem card.
+ */
 const ProblemCardComponent: React.FC<ProblemCardProps> = ({
   problem,
   companySlug,

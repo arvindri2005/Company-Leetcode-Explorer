@@ -1,23 +1,57 @@
+/**
+ * @fileoverview A client-side component for displaying an interactive and paginated list of companies.
+ *
+ * This component is responsible for rendering the main list of companies on the `/companies`
+ * page. It receives an initial set of data from the server and then handles all
+ * client-side interactions, including infinite scrolling to load more companies,
+ * a debounced search with autocomplete suggestions, and updating the URL.
+ */
 "use client";
-// Essential imports
+
 import type { Company } from "@/types";
 import { useState, useEffect, useRef, useCallback } from "react";
 import CompanyCard from "./company-card";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useDebounce } from "@/hooks/use-debounce";
 import { fetchCompanySuggestionsAction } from "@/app/actions";
-import CompnaySearchBar from "./compnay-search-bar";
+import CompanySearchBar from "./company-search-bar";
 
+/**
+ * Props for the CompanyList component.
+ */
 interface CompanyListProps {
+    /** The initial array of companies to display, fetched on the server. */
     initialCompanies: Company[];
+    /** The initial search term from the URL search parameters. */
     initialSearchTerm?: string;
+    /** A boolean indicating if more companies can be loaded. */
     initialHasMore: boolean;
+    /** The cursor to use for fetching the next page of companies. */
     initialNextCursor?: string;
+    /** The number of items to fetch per page for pagination. */
     itemsPerPage: number;
+    /** The current page number, used for pagination state. */
     currentPage: number;
+    /** The total number of pages available. */
     totalPages: number;
 }
 
+/**
+ * Renders an interactive, searchable, and infinitely scrolling list of companies.
+ *
+ * This component takes an initial list of companies from its props (server-rendered)
+ * and then manages subsequent data fetching on the client. Key features include:
+ * - **Infinite Scroll:** Uses an `IntersectionObserver` to automatically fetch and
+ *   append the next page of companies when the user scrolls to the bottom.
+ * - **Search with Autocomplete:** Includes a search bar that fetches company
+ *   suggestions as the user types (debounced) and allows submitting a search to
+ *   filter the company list, updating the URL accordingly.
+ * - **State Management:** Manages the list of displayed companies, loading states,
+ *   pagination cursors, and search suggestions.
+ *
+ * @param {CompanyListProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered list of companies with search and pagination functionality.
+ */
 const CompanyList: React.FC<CompanyListProps> = ({
     initialCompanies,
     initialSearchTerm = "",
@@ -191,7 +225,7 @@ const CompanyList: React.FC<CompanyListProps> = ({
             aria-label="Company List"
         >
             <div className="space-y-4 sm:space-y-6 lg:space-y-8">
-                <CompnaySearchBar
+                <CompanySearchBar
                     searchTermInput={searchTermInput}
                     setSearchTermInput={setSearchTermInput}
                     isLoadingSuggestions={isLoadingSuggestions}

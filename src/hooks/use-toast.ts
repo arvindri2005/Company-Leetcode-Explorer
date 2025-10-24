@@ -74,6 +74,13 @@ const addToRemoveQueue = (toastId: string) => {
   toastTimeouts.set(toastId, timeout)
 }
 
+/**
+ * @function reducer
+ * @description A reducer function to manage the state of the toasts. It handles adding, updating, dismissing, and removing toasts.
+ * @param {State} state - The current state of the toasts.
+ * @param {Action} action - The action to be performed on the state.
+ * @returns {State} The new state after applying the action.
+ */
 export const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "ADD_TOAST":
@@ -142,6 +149,12 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, "id">
 
+/**
+ * @function toast
+ * @description A function to create and display a new toast notification.
+ * @param {Toast} props - The properties of the toast to be displayed.
+ * @returns {{ id: string; dismiss: () => void; update: (props: ToasterToast) => void; }} An object containing the ID of the new toast, and functions to dismiss or update it.
+ */
 function toast({ ...props }: Toast) {
   const id = genId()
 
@@ -171,6 +184,12 @@ function toast({ ...props }: Toast) {
   }
 }
 
+/**
+ * @function useToast
+ * @description A custom hook that provides access to the toast notification system.
+ * It returns the current state of toasts, the `toast` function to create new toasts, and a `dismiss` function to close them.
+ * @returns {{ toasts: ToasterToast[]; toast: (props: Toast) => { id: string; dismiss: () => void; update: (props: ToasterToast) => void; }; dismiss: (toastId?: string) => void; }} The toast system's state and action functions.
+ */
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState)
 

@@ -1,4 +1,12 @@
 
+/**
+ * @fileoverview A client-side component for handling bulk problem uploads from a file.
+ *
+ * This component provides a UI for administrators to upload an Excel or CSV file
+ * containing coding problem data. It handles client-side file parsing, header
+ * validation, submission to a server action, and the display of detailed
+ * results and a summary of the operation.
+ */
 'use client';
 
 import type { LastAskedPeriod } from '@/types';
@@ -12,16 +20,23 @@ import { Loader2, UploadCloud, FileSpreadsheet, AlertCircle, CheckCircle, Info }
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
+/**
+ * Represents the expected structure of a row from the uploaded file (client-side).
+ * Headers must match these keys exactly.
+ */
 interface RawExcelProblemDataForClient {
   Title: string;
-  Difficulty: string; 
+  Difficulty: string;
   Link: string;
-  Tags: string; 
+  Tags: string;
   'Company Name': string;
-  'Last Asked Period': LastAskedPeriod; 
-  [key: string]: any; 
+  'Last Asked Period': LastAskedPeriod;
+  [key: string]: any;
 }
 
+/**
+ * Represents the detailed result for a single row processed in the bulk upload.
+ */
 interface BulkAddResult {
   rowIndex: number;
   title: string;
@@ -29,10 +44,29 @@ interface BulkAddResult {
   message: string;
 }
 
+/**
+ * Props for the BulkProblemUploadForm component.
+ */
 interface BulkProblemUploadFormProps {
-  companyNames: string[]; 
+  /** An array of available company names, used for informational display. */
+  companyNames: string[];
 }
 
+/**
+ * Renders a form for uploading a file to bulk-add or update coding problems.
+ *
+ * This component manages the entire file upload and processing workflow:
+ * - Allows the user to select an `.xlsx` or `.csv` file.
+ * - Parses the file on the client side using the `xlsx` library.
+ * - Validates that all required column headers are present in the file.
+ * - Calls the `bulkAddProblemsAction` server action with the parsed data.
+ * - Displays a loading state while processing.
+ * - Renders a comprehensive summary and detailed, color-coded results of the
+ *   operation in a scrollable view.
+ *
+ * @param {BulkProblemUploadFormProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered bulk upload form component.
+ */
 export default function BulkProblemUploadForm({ companyNames }: BulkProblemUploadFormProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);

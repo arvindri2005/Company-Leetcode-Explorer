@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Defines the main header and navigation component for the application.
+ *
+ * This client-side component renders the site's primary navigation bar. It is
+ * responsive, displaying a full horizontal menu on desktop and a collapsible
+ * side sheet for mobile. It also dynamically shows authentication-related links
+ * (Login/Sign Up or Profile/Logout) based on the user's auth state.
+ */
 "use client";
 import Link from "next/link";
 import Image from "next/image";
@@ -16,6 +24,17 @@ import {
 } from "@/components/ui/sheet";
 import React, { useState, useCallback, useMemo } from "react";
 
+/**
+ * Renders the main application header and navigation bar.
+ *
+ * This component is memoized with `React.memo` for performance optimization. It
+ * handles both desktop and mobile navigation layouts. The navigation links are
+ * generated dynamically based on the user's authentication status, which is
+ * consumed from the `useAuth` context. The mobile menu is implemented using a
+ * `Sheet` component that slides in from the side.
+ *
+ * @returns {JSX.Element} The rendered header component.
+ */
 const Header = React.memo(() => {
     const { user, loading: authLoading } = useAuth();
     const { toast } = useToast();

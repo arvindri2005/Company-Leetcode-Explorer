@@ -1,9 +1,24 @@
 
+/**
+ * @fileoverview Defines the main blog listing page for the application.
+ *
+ * This file contains the Next.js page component for the `/blog` route. It
+ * displays a list of blog post summaries. Currently, the posts are hardcoded
+ * as a placeholder. It also includes metadata for SEO purposes.
+ */
 import Footer from "@/components/landing/footer";
 import type { Metadata } from "next";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 
+/**
+ * Metadata for the Blog page.
+ *
+ * Provides SEO information like the title, description, and canonical URL
+ * for the main blog listing page.
+ *
+ * @type {Metadata}
+ */
 export const metadata: Metadata = {
     title: "Tech Interview Insights Blog | Byte To Offer",
     description: "Explore articles on acing coding interviews, data structures, algorithms, and AI-powered interview prep. Stay ahead with Byte To Offer's expert insights.",
@@ -12,6 +27,12 @@ export const metadata: Metadata = {
     },
 };
 
+/**
+ * A hardcoded array of blog post data.
+ *
+ * @description This is a placeholder for a dynamic content management system (CMS)
+ * or a database. Each object represents a blog post with its title, date, excerpt, and slug.
+ */
 const blogPosts = [
     {
         title: "Mastering the Coding Interview: A Step-by-Step Guide",
@@ -33,6 +54,15 @@ const blogPosts = [
     },
 ];
 
+/**
+ * Renders the main blog page, listing all available blog posts.
+ *
+ * This component displays a title and a list of post summaries based on the
+ * `blogPosts` array. Each summary includes the title, date, an excerpt, and a
+ * "Read more" link (currently non-functional).
+ *
+ * @returns {JSX.Element} The rendered blog listing page.
+ */
 export default function BlogPage() {
     return (
         <div className="bg-background w-full">
@@ -46,8 +76,8 @@ export default function BlogPage() {
                     {blogPosts.map((post) => (
                         <div key={post.slug}>
                             <h2 className="text-2xl font-bold">
-                                <a 
-                                // href={`/blog/${post.slug}`} 
+                                <a
+                                // href={`/blog/${post.slug}`}
                                 className="hover:underline">
                                     {post.title}
                                 </a>

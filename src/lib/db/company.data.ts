@@ -159,7 +159,13 @@ async function fetchCompaniesWithCursor(
     };
 }
 
-// Optimized main function using cursor-based pagination
+/**
+ * @function getCompanies
+ * @description Fetches a paginated list of companies using a performant cursor-based method.
+ * This is the primary function for listing companies and is optimized for speed by not calculating total counts.
+ * @param {GetCompaniesParams} [params={}] - The parameters for fetching companies, including page size, search term, and cursor.
+ * @returns {Promise<PaginatedCompaniesResponse>} A promise that resolves to a paginated list of companies with cursor information.
+ */
 export async function getCompanies({
     page = 1,
     pageSize = 9,
@@ -200,8 +206,14 @@ export async function getCompanies({
     }
 }
 
-// Alternative function that provides traditional pagination with total counts
-// Use this only when you specifically need total counts (slower)
+/**
+ * @function getCompaniesWithTotalCount
+ * @description Fetches a paginated list of companies using traditional offset-based pagination.
+ * This function is less performant as it calculates the total number of companies to provide total page counts, which involves an expensive Firestore count operation.
+ * Use this only when total counts are absolutely necessary.
+ * @param {Omit<GetCompaniesParams, "cursor">} [params={}] - The parameters for fetching companies, including page and page size.
+ * @returns {Promise<PaginatedCompaniesResponse>} A promise that resolves to a paginated list of companies with full pagination details.
+ */
 export async function getCompaniesWithTotalCount({
     page = 1,
     pageSize = 9,
@@ -282,7 +294,14 @@ export async function getCompaniesWithTotalCount({
     }
 }
 
-// Infinite scroll helper - loads next batch of companies
+/**
+ * @function loadMoreCompanies
+ * @description Fetches the next batch of companies for an infinite scroll feature.
+ * @param {string} currentCursor - The cursor pointing to the last item of the previously fetched list.
+ * @param {number} [pageSize=9] - The number of companies to fetch.
+ * @param {string} [searchTerm] - An optional search term to filter the companies.
+ * @returns {Promise<{ companies: Company[]; nextCursor?: string; hasMore: boolean; }>} A promise that resolves to the next set of companies and pagination info.
+ */
 export async function loadMoreCompanies(
     currentCursor: string,
     pageSize: number = 9,
@@ -354,6 +373,13 @@ async function fetchCompanyByIdFromFirestore(
     return undefined;
 }
 
+/**
+ * @function getCompanyById
+ * @description Fetches a single company by its document ID.
+ * @param {string} id - The unique identifier of the company.
+ * @param {boolean} [useCache=true] - Whether to use the in-memory cache to retrieve the company.
+ * @returns {Promise<Company | undefined>} A promise that resolves to the company object or undefined if not found.
+ */
 export const getCompanyById = async (
     id: string,
     useCache: boolean = true
@@ -403,6 +429,13 @@ async function fetchCompanyBySlugFromFirestore(
     return undefined;
 }
 
+/**
+ * @function getCompanyBySlug
+ * @description Fetches a single company by its URL-friendly slug.
+ * @param {string} slug - The slug of the company.
+ * @param {boolean} [useCache=true] - Whether to use the in-memory cache to retrieve the company.
+ * @returns {Promise<Company | undefined>} A promise that resolves to the company object or undefined if not found.
+ */
 export const getCompanyBySlug = async (
     slug: string,
     useCache: boolean = true
@@ -443,6 +476,12 @@ async function fetchAllCompanySlugsFromFirestore(
     return slugs;
 }
 
+/**
+ * @function getAllCompanySlugs
+ * @description Fetches the slugs of all companies in the database. This is useful for generating static site paths.
+ * @param {boolean} [useCache=true] - Whether to use the in-memory cache to retrieve the slugs.
+ * @returns {Promise<string[]>} A promise that resolves to an array of all company slugs.
+ */
 export const getAllCompanySlugs = async (
     useCache: boolean = true
 ): Promise<string[]> => {
@@ -454,13 +493,22 @@ export const getAllCompanySlugs = async (
     }
 };
 
-// Cache invalidation function
+/**
+ * @function invalidateCompaniesCache
+ * @description Clears all in-memory caches related to company data, including single company cache, slug cache, and pagination cursors.
+ * This should be called after any write operation (add, update, delete) to ensure data consistency.
+ */
 export const invalidateCompaniesCache = () => {
     singleCompanyCache.clear();
     cachedSlugs = null;
     paginationCursors.clear();
 };
 
+/**
+ * @function revalidateCompaniesPage
+ * @description Triggers a revalidation of the Next.js pages that display company data and invalidates the in-memory cache.
+ * @async
+ */
 async function revalidateCompaniesPage() {
     try {
         await triggerCompaniesRevalidation();
@@ -470,7 +518,12 @@ async function revalidateCompaniesPage() {
     }
 }
 
-// Optimized add function
+/**
+ * @function addCompanyToDb
+ * @description Adds a new company to the Firestore database. It checks for duplicates by slug before adding.
+ * @param {Omit<Company, 'id' | 'slug' | 'problemCount' | 'difficultyCounts' | 'recencyCounts' | 'commonTags' | 'statsLastUpdatedAt'>} companyData - The company data to add.
+ * @returns {Promise<{ id: string | null; error?: string; alreadyExists?: boolean }>} A promise that resolves to an object containing the new company's ID, or an error if the operation failed.
+ */
 export const addCompanyToDb = async (
     companyData: Omit<
         Company,

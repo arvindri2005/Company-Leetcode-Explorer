@@ -1,5 +1,13 @@
 
-'use client'; // Required because we use useAuth and useRouter client-side
+/**
+ * @fileoverview Defines the page for conducting an AI-powered mock interview for a specific coding problem.
+ *
+ * This client-side component serves as the main user interface for the mock interview feature.
+ * It fetches the relevant company and problem data based on the dynamic URL slugs. It handles
+ * loading states, authentication checks, and renders the `MockInterviewChat` component where
+ * the actual interview interaction takes place.
+ */
+'use client';
 
 import { getProblemByCompanySlugAndProblemSlug, getCompanyBySlug } from '@/lib/data';
 import type { LeetCodeProblem, Company } from '@/types';
@@ -11,17 +19,31 @@ import { ExternalLink, ChevronLeft, LogIn, Loader2, Info } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import DifficultyBadge from '@/components/problem/difficulty-badge';
 import TagBadge from '@/components/problem/tag-badge';
-// import type { Metadata } from 'next'; // Metadata generation would be complex in a full client component
 import { useAuth } from '@/contexts/auth-context';
-import React, { useEffect, useState, use } from 'react'; // Import use
+import React, { useEffect, useState, use } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
+/**
+ * Defines the props structure for the MockInterviewPage, including the dynamic route parameters.
+ */
 interface MockInterviewPageProps {
   params: Promise<{ companySlug: string; problemSlug: string }>;
-  // If params were definitely a Promise, the type would be:
-  // params: Promise<{ companySlug: string; problemSlug: string; }>;
 }
 
+/**
+ * Renders the mock interview page for a specific company and problem.
+ *
+ * This component orchestrates the entire mock interview experience. It performs the following:
+ * 1. Uses the `use` hook to resolve the dynamic route parameters (`companySlug`, `problemSlug`).
+ * 2. Fetches the corresponding company and problem data from the database.
+ * 3. Checks for user authentication, displaying a login prompt if the user is not signed in.
+ * 4. Handles loading states while fetching data and authenticating.
+ * 5. Displays error messages if the company or problem cannot be found.
+ * 6. Renders the main chat interface (`MockInterviewChat`) along with problem details once all data is loaded and validated.
+ *
+ * @param {MockInterviewPageProps} props - The props containing the dynamic route parameters.
+ * @returns {JSX.Element} The rendered mock interview page, or a loading/error/login state.
+ */
 export default function MockInterviewPage(props: MockInterviewPageProps) {
   const paramsFromProps = use(props.params);
   const { user, loading: authLoading } = useAuth();

@@ -35,6 +35,16 @@ import { EducationExperienceSchema as educationFormSchema } from "@/types"; // R
 
 type EducationFormValues = z.infer<typeof educationFormSchema>;
 
+/**
+ * @interface EducationExperienceSectionProps
+ * @description Props for the EducationExperienceSection component.
+ * @property {string} userId - The ID of the user.
+ * @property {EducationExperience[]} educationHistory - A list of the user's educational experiences.
+ * @property {boolean} isLoadingEducation - A flag indicating if the education data is loading.
+ * @property {(data: EducationFormValues) => Promise<void>} handleAddEducation - The function to call when adding a new education entry.
+ * @property {boolean} isEducationDialogOpen - A flag indicating if the education dialog is open.
+ * @property {(isOpen: boolean) => void} setIsEducationDialogOpen - The function to call when setting the education dialog open state.
+ */
 interface EducationExperienceSectionProps {
     userId: string; // Needed for keying if delete/edit were added
     educationHistory: EducationExperience[];
@@ -45,6 +55,12 @@ interface EducationExperienceSectionProps {
     setIsEducationDialogOpen: (isOpen: boolean) => void;
 }
 
+/**
+ * @function EducationExperienceSection
+ * @description A component that displays a user's educational background and allows them to add new entries.
+ * @param {EducationExperienceSectionProps} props - The props for the component.
+ * @returns {JSX.Element} - The rendered component.
+ */
 const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
     educationHistory,
     isLoadingEducation,

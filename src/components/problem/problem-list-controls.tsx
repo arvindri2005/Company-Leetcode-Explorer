@@ -1,14 +1,24 @@
 
+/**
+ * @fileoverview A client-side component for filtering and sorting a list of problems.
+ *
+ * This component provides a set of UI controls (dropdowns and a search input)
+ * that allow the user to filter a list of coding problems by difficulty,
+ * recency, and status, as well as sort the list. It is a controlled component,
+ * with its state managed by a parent.
+ */
 'use client';
 
-import type { LeetCodeProblem, LastAskedPeriod, ProblemStatus, DifficultyFilter, SortKey, LastAskedFilter, StatusFilter } from '@/types'; // Import types directly
+import type { DifficultyFilter, SortKey, LastAskedFilter, StatusFilter } from '@/types';
 import { lastAskedPeriodOptions, PROBLEM_STATUS_OPTIONS } from '@/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Filter, ArrowUpDown, CalendarDays, Search, CheckSquare } from 'lucide-react';
+import { Filter, ArrowUpDown, CalendarDays, CheckSquare } from 'lucide-react';
 import React from 'react';
 
+/**
+ * Props for the ProblemListControls component.
+ */
 interface ProblemListControlsProps {
   difficultyFilter: DifficultyFilter;
   onDifficultyFilterChange: (filter: DifficultyFilter) => void;
@@ -20,10 +30,21 @@ interface ProblemListControlsProps {
   onStatusFilterChange: (filter: StatusFilter) => void;
   searchTerm: string;
   onSearchTermChange: (term: string) => void;
-  problemCount: number; // Number of currently displayed problems
+  problemCount: number;
   showStatusFilter?: boolean;
 }
 
+/**
+ * The core component for rendering the filter and sort controls for a problem list.
+ *
+ * This component is designed to be fully controlled by its parent. It receives the
+ * current filter and sort values as props and calls callback functions when the user
+ * changes a selection. This allows the parent component to handle the logic of
+ * re-fetching or re-filtering the problem data.
+ *
+ * @param {ProblemListControlsProps} props - The props for configuring the controls.
+ * @returns {JSX.Element} The rendered controls component.
+ */
 const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
   difficultyFilter,
   onDifficultyFilterChange,
@@ -157,5 +178,9 @@ const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
   );
 };
 
+/**
+ * A memoized version of the `ProblemListControlsComponent` to optimize performance
+ * by preventing unnecessary re-renders when props have not changed.
+ */
 const ProblemListControls = React.memo(ProblemListControlsComponent);
 export default ProblemListControls;

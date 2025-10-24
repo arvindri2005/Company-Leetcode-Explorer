@@ -2,6 +2,11 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardHeader, CardFooter, CardContent } from "@/components/ui/card";
 
+/**
+ * @function FeatureCardSkeleton
+ * @description A skeleton loader component that mimics the appearance of a single feature card.
+ * @returns {JSX.Element} The rendered skeleton component for a feature card.
+ */
 const FeatureCardSkeleton = () => (
   <Card className="flex flex-col h-full shadow-lg">
     <CardHeader className="flex flex-row items-start gap-4 pb-4">
@@ -19,6 +24,11 @@ const FeatureCardSkeleton = () => (
   </Card>
 );
 
+/**
+ * @function FeatureGridSkeleton
+ * @description A skeleton loader component that mimics the appearance of the entire feature grid section, used to indicate a loading state.
+ * @returns {JSX.Element} The rendered skeleton component for the feature grid.
+ */
 export const FeatureGridSkeleton = () => {
   return (
     <section className="container mx-auto px-4 py-8">

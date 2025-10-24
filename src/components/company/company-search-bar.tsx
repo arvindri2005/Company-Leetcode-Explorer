@@ -1,8 +1,18 @@
+/**
+ * @fileoverview A reusable search bar component with autocomplete suggestions for companies.
+ *
+ * This client-side component provides a search input field that fetches and displays
+ * a list of company suggestions as the user types. It is designed to be a controlled
+ * component, with its state managed by a parent component.
+ */
 import React from "react";
 import { Loader2, Building2 } from "lucide-react";
 import Image from "next/image";
 import { FaSearch } from "react-icons/fa";
 
+/**
+ * Represents the structure of a single search suggestion item.
+ */
 interface Suggestion {
     id: string;
     name: string;
@@ -10,6 +20,9 @@ interface Suggestion {
     slug: string;
 }
 
+/**
+ * Props for the CompanySearchBar component.
+ */
 interface SearchBarProps {
     searchTermInput: string;
     setSearchTermInput: (value: string) => void;
@@ -22,7 +35,18 @@ interface SearchBarProps {
     onSearch?: () => void;
 }
 
-const CompnaySearchBar: React.FC<SearchBarProps> = ({
+/**
+ * Renders a search bar for finding companies, complete with autocomplete suggestions.
+ *
+ * This component is a controlled input that displays a dropdown of company suggestions
+ * as the user types. It handles keyboard events (like "Enter" to search), click events
+ * on suggestions, and the display of loading states. The actual fetching of suggestions
+ * and the search action are handled by the parent component through callbacks and props.
+ *
+ * @param {SearchBarProps} props - The props for configuring the search bar's state and behavior.
+ * @returns {JSX.Element} The rendered company search bar component.
+ */
+const CompanySearchBar: React.FC<SearchBarProps> = ({
     searchTermInput,
     setSearchTermInput,
     isLoadingSuggestions,
@@ -155,4 +179,4 @@ const CompnaySearchBar: React.FC<SearchBarProps> = ({
     );
 };
 
-export default CompnaySearchBar;
+export default CompanySearchBar;

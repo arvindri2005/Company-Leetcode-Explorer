@@ -1,10 +1,25 @@
 
+/**
+ * @fileoverview Defines the Terms of Service page for the application.
+ *
+ * This file contains a static Next.js page component that displays the
+ * website's terms of service. It includes metadata to inform search engines
+ * not to index this page.
+ */
 import Footer from "@/components/landing/footer";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 
+/**
+ * Metadata for the Terms of Service page.
+ *
+ * This object provides SEO information and explicitly tells search engine robots
+ * not to index or follow links on this page.
+ *
+ * @type {Metadata}
+ */
 export const metadata: Metadata = {
     title: "Terms of Service | Byte To Offer",
     description: "Terms of Service for Byte To Offer.",
@@ -17,7 +32,15 @@ export const metadata: Metadata = {
     },
 };
 
-
+/**
+ * Renders the static Terms of Service page.
+ *
+ * This component displays the full text of the website's terms of service,
+ * formatted for readability. It covers user responsibilities, intellectual
+ * property rights, disclaimers, and other legal notices.
+ *
+ * @returns {JSX.Element} The rendered Terms of Service page.
+ */
 export default function TermsOfServicePage() {
     return (
         <div className="bg-background w-full">

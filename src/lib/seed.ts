@@ -47,6 +47,12 @@ const initialProblemsData: (Omit<LeetCodeProblem, 'id' | 'normalizedTitle'> & { 
   { title: 'Meeting Rooms II', normalizedTitle: 'meeting rooms ii', difficulty: 'Medium', link: 'https://leetcode.com/problems/meeting-rooms-ii/', tags: ['Array', 'Heap', 'Greedy', 'Sorting'], companyId: 'apple', lastAskedPeriod: 'within_6_months' },
 ];
 
+/**
+ * @function seedDatabase
+ * @description Seeds the Firestore database with initial company and problem data.
+ * It checks if the collections are empty before seeding to prevent overwriting existing data.
+ * @returns {Promise<void>} A promise that resolves when the seeding process is complete.
+ */
 export async function seedDatabase() {
   console.log('Starting database seed...');
   const batch = writeBatch(db);

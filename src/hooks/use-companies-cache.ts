@@ -20,6 +20,21 @@ const CACHE_EXPIRY = 30 * 60 * 1000;
 // Cleanup interval (10 minutes)
 const CLEANUP_INTERVAL = 10 * 60 * 1000;
 
+/**
+ * @function useCompaniesCache
+ * @description A custom hook that provides a caching layer for fetching company data.
+ * It manages an in-memory cache with an expiry time, automatically clears stale entries,
+ * and provides a function to fetch data that intelligently uses the cache.
+ * @returns {{
+ *   fetchCompaniesWithCache: (page: number, pageSize: number, searchTerm?: string) => Promise<{
+ *     companies: Company[];
+ *     totalPages: number;
+ *     totalCompanies: number;
+ *     currentPage: number;
+ *   } | { error: string; }>;
+ *   clearCache: () => void;
+ * }} An object containing the cached fetch function and a function to clear the cache.
+ */
 export function useCompaniesCache() {
     const [cache, setCache] = useState<CompaniesCache>({});
 

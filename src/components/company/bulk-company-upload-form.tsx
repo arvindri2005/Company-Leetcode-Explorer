@@ -1,4 +1,12 @@
 
+/**
+ * @fileoverview A client-side component for handling bulk company uploads from a file.
+ *
+ * This component provides a user interface for administrators to upload an Excel or
+ * CSV file containing company data. It handles file parsing, validation of headers,
+ * submission to a server action for processing, and the display of detailed
+- * results and a summary of the operation.
+ */
 'use client';
 
 import { useState } from 'react';
@@ -11,14 +19,21 @@ import { Loader2, UploadCloud, FileSpreadsheet, AlertCircle, CheckCircle, Info, 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
+/**
+ * Represents the expected structure of a row from the uploaded file (client-side).
+ * Headers must match these keys.
+ */
 interface RawExcelCompanyDataForClient {
   Name: string;
   Logo?: string;
   Description?: string;
-  Website?: string; 
-  [key: string]: any; 
+  Website?: string;
+  [key: string]: any;
 }
 
+/**
+ * Represents the detailed result for a single row processed in the bulk upload.
+ */
 interface BulkAddCompanyResult {
   rowIndex: number;
   name: string;
@@ -26,10 +41,30 @@ interface BulkAddCompanyResult {
   message: string;
 }
 
+/**
+ * Props for the BulkCompanyUploadForm component.
+ */
 interface BulkCompanyUploadFormProps {
-  existingCompanyNames: string[]; 
+  /** An array of existing company names, used for informational purposes. */
+  existingCompanyNames: string[];
 }
 
+/**
+ * Renders a form for uploading a file to bulk-add or update companies.
+ *
+ * This component manages the file selection, parsing, and submission process.
+ * Key functionalities include:
+ * - Allowing the user to select an `.xlsx` or `.csv` file.
+ * - Parsing the file content using the `xlsx` library on the client side.
+ * - Validating the presence of required column headers (`Name`).
+ * - Calling a server action (`bulkAddCompaniesAction`) with the parsed data.
+ * - Displaying a loading state during processing.
+ * - Rendering a detailed, color-coded summary of the results (added, updated, skipped, error)
+ *   in a scrollable area.
+ *
+ * @param {BulkCompanyUploadFormProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered bulk upload form component.
+ */
 export default function BulkCompanyUploadForm({ existingCompanyNames }: BulkCompanyUploadFormProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);

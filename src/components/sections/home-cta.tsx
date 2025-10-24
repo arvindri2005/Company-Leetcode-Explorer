@@ -6,6 +6,11 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
+/**
+ * @function HomeCta
+ * @description A call-to-action section for the homepage, encouraging users to sign up.
+ * @returns {JSX.Element} The rendered call-to-action section.
+ */
 export const HomeCta = () => {
   return (
     <section className="text-center py-12 mt-10">

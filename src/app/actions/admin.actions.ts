@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Server-side actions available only to administrators.
+ *
+ * This module contains functions for administrative tasks such as checking user admin status,
+ * triggering data recalculations, and managing cache revalidation for specific parts of the site.
+ * These actions are protected and should only be callable by authenticated admin users.
+ */
 'use server';
 
 import { doc, getDoc, collection, getDocs, updateDoc, serverTimestamp, writeBatch, query } from 'firebase/firestore';
@@ -7,8 +14,8 @@ import { getProblemsByCompanyFromDb } from '@/lib/data'; // Assuming this can fe
 
 /**
  * Checks if a user is an administrator by looking up their UID in the 'admins' collection.
- * @param userId The Firebase UID of the user to check.
- * @returns {Promise<boolean>} True if the user is an admin, false otherwise.
+ * @param {string} userId The Firebase UID of the user to check.
+ * @returns {Promise<boolean>} A promise that resolves to `true` if the user is an admin, and `false` otherwise.
  */
 export async function checkUserAdminStatus(userId: string): Promise<boolean> {
   if (!userId) {
@@ -31,9 +38,17 @@ export async function checkUserAdminStatus(userId: string): Promise<boolean> {
 
 
 /**
- * Recalculates and updates problem statistics (difficulty, recency, common tags)
- * for all companies in the database.
- * @returns {Promise<{success: boolean; message: string; updatedCompaniesCount?: number; errors?: any[]}>} Result of the operation.
+ * Recalculates and updates problem statistics for all companies in the database.
+ *
+ * This function iterates through every company, fetches all their associated problems,
+ * and recalculates aggregate statistics such as difficulty counts, recency counts,
+ * the top 7 common tags, and the total problem count. It then updates each
+ * company document in Firestore with the fresh stats. This is a potentially
+ * long-running and resource-intensive operation.
+ *
+ * @returns {Promise<{success: boolean; message: string; updatedCompaniesCount?: number; errors?: Array<{companyId: string; companyName: string; error: string}>}>}
+ * An object detailing the outcome of the operation, including the number of companies
+ * updated and a list of any errors that occurred.
  */
 export async function triggerAllCompanyProblemStatsUpdate(): Promise<{
   success: boolean;
@@ -115,9 +130,15 @@ export async function triggerAllCompanyProblemStatsUpdate(): Promise<{
 }
 
 /**
- * Triggers a revalidation request to the specified path.
- * @param path The path to revalidate.
- * @returns {Promise<{ success: boolean; error?: string }>} Result of the revalidation request.
+ * Triggers a Next.js on-demand revalidation request for a specific cache tag.
+ *
+ * This function sends a POST request to a dedicated API endpoint (`/api/revalidate`)
+ * to invalidate the cache for a given path. It requires a secret token for authorization,
+ * which must be configured in the environment variables.
+ *
+ * @param {string} path - The path (cache tag) to revalidate (e.g., '/companies').
+ * @returns {Promise<{success: boolean; error?: string}>} An object indicating whether the
+ * revalidation request was successfully initiated.
  */
 export async function triggerRevalidation(path: string): Promise<{ success: boolean; error?: string }> {
   const revalidationToken = process.env.REVALIDATION_TOKEN;
@@ -149,8 +170,11 @@ export async function triggerRevalidation(path: string): Promise<{ success: bool
 }
 
 /**
- * Triggers revalidation for the companies page.
- * @returns {Promise<{ success: boolean; error?: string }>} Result of the revalidation request.
+ * A specific admin action to trigger the revalidation of the main companies page (`/companies`).
+ *
+ * This is a convenience wrapper around `triggerRevalidation` for a commonly revalidated path.
+ *
+ * @returns {Promise<{success: boolean; error?: string}>} The result of the revalidation request.
  */
 export async function triggerCompaniesRevalidation() {
   return triggerRevalidation('/companies');

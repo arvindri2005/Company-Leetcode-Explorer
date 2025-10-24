@@ -5,7 +5,12 @@ export * from "./db/company.data";
 export * from "./db/problem.data";
 export * from "./db/user.data";
 
-// This function remains here as it's general or can be further refactored if needed.
+/**
+ * @function hasData
+ * @description Checks if there is any company and problem data in the Firestore database.
+ * This is useful for determining if the initial data seeding process needs to be run.
+ * @returns {Promise<{ companies: boolean; problems: boolean; }>} A promise that resolves to an object indicating the presence of company and problem data.
+ */
 export const hasData = async (): Promise<{
     companies: boolean;
     problems: boolean;

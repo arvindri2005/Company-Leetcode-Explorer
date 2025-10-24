@@ -1,8 +1,29 @@
 
+/**
+ * @fileoverview Defines the API route for generating the `sitemap.xml` file.
+ *
+ * This file contains a Next.js API route handler that dynamically generates a
+ * sitemap for the website. The sitemap is crucial for SEO, as it helps search
+ * engines discover and index the site's pages. This route includes static public
+ * pages and dynamically adds all public company detail pages.
+ */
 import { getAllCompanySlugs } from '@/lib/data';
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002'; // Fallback for local dev
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
 
+/**
+ * Handles GET requests to generate the `sitemap.xml` file content.
+ *
+ * This function constructs an XML sitemap by:
+ * 1. Defining a list of static public pages with their update frequency and priority.
+ * 2. Fetching all company slugs from the database to create URLs for each dynamic company page.
+ * 3. Combining these lists into a valid XML sitemap structure.
+ *
+ * It intentionally excludes administrative and user-specific pages.
+ *
+ * @returns {Promise<Response>} A response object containing the `sitemap.xml`
+ * content with an `application/xml` content type.
+ */
 export async function GET() {
   const today = new Date().toISOString();
 
@@ -11,7 +32,6 @@ export async function GET() {
     { path: '/companies', changefreq: 'daily', priority: '1' },
     { path: '/login', changefreq: 'weekly', priority: '0.5' },
     { path: '/signup', changefreq: 'weekly', priority: '0.5' },
-    // Removed: /bulk-add-companies, /bulk-add-problems as they are now admin routes
   ];
 
   let sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -43,9 +63,6 @@ export async function GET() {
   } catch (error) {
     console.error("Error fetching company slugs for sitemap:", error);
   }
-  
-  // Admin pages, mock interview pages, profile, submit-problem, add-company are excluded.
-  // Admin pages will be disallowed by robots.txt.
 
   sitemapXml += `
 </urlset>`;

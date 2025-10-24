@@ -1,12 +1,34 @@
+/**
+ * @fileoverview A component to display an error message when problems fail to load.
+ *
+ * This component renders a distinct error card that informs the user that the
+ * list of problems for a company could not be fetched. It displays the specific
+ * error message and provides a button to refresh the page.
+ */
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
 
+/**
+ * Props for the ProblemLoadError component.
+ */
 interface ProblemLoadErrorProps {
+  /** The name of the company for which the problems failed to load. */
   companyName: string;
+  /** The error message to display. */
   error: string;
 }
 
+/**
+ * Renders an error message card for when problem data fails to load.
+ *
+ * This component is used to handle and display errors that occur during the
+ * initial server-side fetch of problems for a company page. It provides clear
+ * feedback to the user and a simple action to attempt recovery by reloading the page.
+ *
+ * @param {ProblemLoadErrorProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered error card component.
+ */
 export default function ProblemLoadError({ companyName, error }: ProblemLoadErrorProps) {
   return (
     <Card className="my-4 border-destructive bg-destructive/10">

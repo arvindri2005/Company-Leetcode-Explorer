@@ -23,6 +23,14 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 
+/**
+ * @interface StrategyListsSectionProps
+ * @description Props for the StrategyListsSection component.
+ * @property {SavedStrategyTodoList[]} strategyTodoLists - An array of saved strategy to-do lists.
+ * @property {boolean} isLoadingStrategyTodoLists - Flag indicating whether the strategy lists are being loaded.
+ * @property {string | null} updatingTodoItemId - The ID of the to-do item currently being updated, or null if none.
+ * @property {(companyId: string, itemIndex: number, newStatus: boolean) => Promise<void>} handleToggleTodoItem - Function to handle toggling the completion status of a to-do item.
+ */
 interface StrategyListsSectionProps {
     strategyTodoLists: SavedStrategyTodoList[];
     isLoadingStrategyTodoLists: boolean;
@@ -34,6 +42,12 @@ interface StrategyListsSectionProps {
     ) => Promise<void>;
 }
 
+/**
+ * @function StrategyListsSection
+ * @description A component that displays a user's saved AI-generated strategy to-do lists for various companies.
+ * @param {StrategyListsSectionProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered section with an accordion of strategy lists, a loading state, or an empty state message.
+ */
 const StrategyListsSection: React.FC<StrategyListsSectionProps> = ({
     strategyTodoLists,
     isLoadingStrategyTodoLists,

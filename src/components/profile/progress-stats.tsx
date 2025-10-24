@@ -5,6 +5,14 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart3, CheckCircle2, Pencil, ListTodo } from 'lucide-react';
 
+/**
+ * @interface ProgressStatsProps
+ * @description Props for the ProgressStats component.
+ * @property {object} stats - An object containing the user's problem-solving statistics.
+ * @property {number} stats.solved - The number of problems the user has solved.
+ * @property {number} stats.attempted - The number of problems the user has attempted.
+ * @property {number} stats.todo - The number of problems the user has marked as to-do.
+ */
 interface ProgressStatsProps {
   stats: {
     solved: number;
@@ -13,6 +21,12 @@ interface ProgressStatsProps {
   };
 }
 
+/**
+ * @function ProgressStats
+ * @description A component that displays a user's problem-solving statistics in a card format.
+ * @param {ProgressStatsProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered card with progress statistics.
+ */
 const ProgressStats: React.FC<ProgressStatsProps> = ({ stats }) => {
   return (
       <Card className="bg-card border border-border rounded-xl  mb-8 shadow-sm">

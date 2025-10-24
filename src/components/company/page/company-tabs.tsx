@@ -1,3 +1,12 @@
+/**
+ * @fileoverview A client-side component that organizes company details into interactive tabs.
+ *
+ * This component serves as the main content area for a company page. It uses a
+ * tab-based layout to separate the list of problems from various AI-powered
+ * features like question grouping, flashcard generation, and strategy creation.
+ * It uses dynamic imports to lazy-load the AI feature components, improving
+ * initial page load performance.
+ */
 "use client";
 
 import { Suspense, useState, useEffect } from 'react';
@@ -10,6 +19,8 @@ import ProblemList from '@/components/problem/problem-list';
 import type { Company, LeetCodeProblem, ProblemListFilters } from '@/types';
 import { getProblemsByCompanyFromDb } from '@/lib/data';
 
+// Dynamically import AI components to reduce the initial bundle size.
+// A custom loading skeleton is shown while the component is being fetched.
 const AIGroupingSection = dynamic(() => import('@/components/ai/ai-grouping-section'), {
   loading: () => <div className="animate-pulse h-48 bg-muted rounded-lg p-4 text-center text-sm text-muted-foreground">Loading AI Grouping...</div>,
 });
@@ -28,6 +39,9 @@ const CompanyProblemStats = dynamic(() => import('@/components/company/company-p
 
 const MAX_PROBLEMS_FOR_AI_FEATURES = 200;
 
+/**
+ * Props for the CompanyTabs component.
+ */
 interface CompanyTabsProps {
   company: Company;
   displayProblemCount: number;
@@ -38,6 +52,17 @@ interface CompanyTabsProps {
   itemsPerPage: number;
 }
 
+/**
+ * Renders a tabbed interface for a company's problems and AI-powered tools.
+ *
+ * This component sets up the main content area of a company page, organizing
+ * different features into selectable tabs. It fetches a separate, potentially larger,
+ * list of problems specifically for the AI features to ensure they have enough
+ * context to provide meaningful results, without slowing down the initial problem list display.
+ *
+ * @param {CompanyTabsProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered tabbed component.
+ */
 export default function CompanyTabs({
   company,
   displayProblemCount,

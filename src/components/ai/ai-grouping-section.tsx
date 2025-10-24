@@ -1,4 +1,12 @@
 
+/**
+ * @fileoverview A client-side component that provides an AI-powered feature to group coding problems.
+ *
+ * This component displays a button that, when clicked, sends a list of coding
+ * problems to an AI service to be categorized into logical groups based on their
+ * underlying concepts. It handles user authentication, AI feature cooldowns,
+ * loading states, and the display of the grouped results in an accordion.
+ */
 'use client';
 
 import type { LeetCodeProblem, AIProblemInput } from '@/types';
@@ -10,19 +18,38 @@ import { useToast } from '@/hooks/use-toast';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import ProblemCard from '@/components/problem/problem-card';
-import { Sparkles, Loader2, LogIn, Info, AlertCircle } from 'lucide-react'; // Added AlertCircle
+import { Sparkles, Loader2, LogIn, Info, AlertCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/auth-context';
-import { useAICooldown } from '@/hooks/use-ai-cooldown'; // Import cooldown hook
+import { useAICooldown } from '@/hooks/use-ai-cooldown';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+/**
+ * Props for the AIGroupingSection component.
+ */
 interface AIGroupingSectionProps {
+  /** The list of problems to be potentially grouped. */
   problems: LeetCodeProblem[];
+  /** The name of the company the problems belong to. */
   companyName: string;
+  /** The slug of the company, used for generating links. */
   companySlug: string;
 }
 
+/**
+ * Renders a section with a button to trigger AI-powered grouping of coding problems.
+ *
+ * This component manages the entire lifecycle of the AI grouping feature:
+ * - Checks if the user is logged in and prompts them to log in if not.
+ * - Manages a cooldown period for the AI feature to prevent abuse.
+ * - Displays loading indicators while the AI is processing.
+ * - Shows success or error notifications (toasts) based on the outcome.
+ * - Renders the AI-generated groups in an interactive accordion if the operation is successful.
+ *
+ * @param {AIGroupingSectionProps} props - The props for the component.
+ * @returns {JSX.Element | null} The rendered component, or `null` if there are no problems to group.
+ */
 const AIGroupingSection: React.FC<AIGroupingSectionProps> = ({ problems, companyName, companySlug }) => {
   const { user, loading: authLoading } = useAuth();
   const { canUseAI, startCooldown, formattedRemainingTime, isLoadingCooldown } = useAICooldown(); // Cooldown hook

@@ -1,17 +1,40 @@
+/**
+ * @fileoverview A client-side component for rendering pagination controls.
+ *
+ * This component generates a user-friendly set of pagination links, including
+ * page numbers, previous/next buttons, and ellipses for large page ranges.
+ * It is designed to work with URL search parameters to construct the correct links.
+ */
 'use client';
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import React from 'react'; // Import React
+import React from 'react';
 
+/**
+ * Props for the PaginationControls component.
+ */
 interface PaginationControlsProps {
+  /** The current active page number. */
   currentPage: number;
+  /** The total number of available pages. */
   totalPages: number;
+  /** The base path for the pagination links (e.g., '/companies'). */
   basePath: string;
 }
 
+/**
+ * The core component for rendering pagination controls.
+ *
+ * This component calculates which page numbers to display based on the current page
+ * and total pages, including ellipses for condensed views. It constructs page URLs
+ * while preserving existing search parameters. It does not render if there's only one page.
+ *
+ * @param {PaginationControlsProps} props - The props for the component.
+ * @returns {JSX.Element | null} The rendered pagination controls, or null if not needed.
+ */
 const PaginationControlsComponent: React.FC<PaginationControlsProps> = ({
   currentPage,
   totalPages,
@@ -29,8 +52,8 @@ const PaginationControlsComponent: React.FC<PaginationControlsProps> = ({
     return null;
   }
 
-  const pageNumbers = [];
-  const maxVisiblePages = 5; // Max number of page links to show (e.g., 1 ... 4 5 6 ... 10)
+  const pageNumbers: (number | string)[] = [];
+  const maxVisiblePages = 5;
 
   if (totalPages <= maxVisiblePages) {
     for (let i = 1; i <= totalPages; i++) {
@@ -62,7 +85,6 @@ const PaginationControlsComponent: React.FC<PaginationControlsProps> = ({
       pageNumbers.push(totalPages);
     }
   }
-
 
   return (
     <div className="flex items-center justify-center space-x-2 py-4">
@@ -102,5 +124,8 @@ const PaginationControlsComponent: React.FC<PaginationControlsProps> = ({
   );
 };
 
+/**
+ * A memoized version of the `PaginationControlsComponent` to prevent unnecessary re-renders.
+ */
 const PaginationControls = React.memo(PaginationControlsComponent);
 export default PaginationControls;

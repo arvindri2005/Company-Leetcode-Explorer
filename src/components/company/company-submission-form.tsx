@@ -1,4 +1,12 @@
 
+/**
+ * @fileoverview A client-side form for submitting a new company to the database.
+ *
+ * This component provides a complete form with fields for a company's name,
+ * logo URL, description, and website. It uses `react-hook-form` for form
+ * state management and `zod` for validation. Upon submission, it calls a
+ * server action to add the company and provides user feedback via toasts.
+ */
 'use client';
 
 import type { Company } from '@/types';
@@ -22,6 +30,9 @@ import { addCompany as addCompanyAction } from '@/app/actions';
 import { useState } from 'react';
 import { Loader2, PlusCircle, Link as LinkIcon } from 'lucide-react';
 
+/**
+ * Zod schema for validating the company submission form fields.
+ */
 const companyFormSchema = z.object({
   name: z.string().min(2, { message: 'Company name must be at least 2 characters.' }).max(100),
   logo: z.string().url({ message: 'Please enter a valid URL for the logo.' }).optional().or(z.literal('')),
@@ -31,6 +42,19 @@ const companyFormSchema = z.object({
 
 type CompanyFormValues = z.infer<typeof companyFormSchema>;
 
+/**
+ * Renders a form for users to submit information about a new company.
+ *
+ * This component handles the entire submission process:
+ * - Displays input fields for the company's name, logo, description, and website.
+ * - Enforces validation rules, such as minimum name length and valid URLs for optional fields.
+ * - Shows a loading state on the submit button during the submission process.
+ * - Calls the `addCompanyAction` server action with the form data.
+ * - Displays success or error notifications (toasts) to the user.
+ * - Resets the form upon successful submission.
+ *
+ * @returns {JSX.Element} The rendered company submission form.
+ */
 export default function CompanySubmissionForm() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);

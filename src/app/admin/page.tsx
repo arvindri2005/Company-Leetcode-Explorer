@@ -1,22 +1,31 @@
 
-'use client'; // Make the parent page a client component to handle state for the trigger button
+/**
+ * @fileoverview Defines the main dashboard page for the admin section.
+ *
+ * This client-side component serves as the central hub for administrative tasks.
+ * It presents a dashboard with cards that link to different management pages
+ * (e.g., bulk-adding companies and problems) and includes interactive components
+ * for triggering administrative actions, such as recalculating company statistics.
+ */
+'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { FileSpreadsheet, LibraryBig, Settings, RefreshCw, Loader2, AlertTriangle } from 'lucide-react';
+import { FileSpreadsheet, LibraryBig, Settings, RefreshCw, Loader2 } from 'lucide-react';
 import { useState } from 'react';
-import { triggerAllCompanyProblemStatsUpdate } from '@/app/actions/admin.actions'; // Import the new action
+import { triggerAllCompanyProblemStatsUpdate } from '@/app/actions/admin.actions';
 import { useToast } from '@/hooks/use-toast';
-// Metadata should be moved to a layout or defined statically if this page becomes more complex.
-// For now, assuming this page might not need specific dynamic metadata based on its content.
-// export const metadata: Metadata = {
-//   title: 'Admin Dashboard',
-//   description: 'Manage application data and settings.',
-// };
 
-
-// Client component to handle the stats update button interaction
+/**
+ * A client component that provides a button to trigger the recalculation of all company stats.
+ *
+ * This component manages the state for the update process, including loading indicators
+ * and displaying the results (success or failure message) of the operation. It calls the
+ * `triggerAllCompanyProblemStatsUpdate` server action and provides user feedback via toasts.
+ *
+ * @returns {JSX.Element} A card component with a button to trigger the stats update.
+ */
 function UpdateStatsButton() {
   const [isLoading, setIsLoading] = useState(false);
   const [resultMessage, setResultMessage] = useState<string | null>(null);
@@ -96,6 +105,16 @@ function UpdateStatsButton() {
 }
 
 
+/**
+ * Renders the main dashboard for the administrative section.
+ *
+ * This page provides a high-level overview of available administrative tasks,
+ * presented as a series of cards. Each card links to a specific admin function,
+ * such as bulk data uploading, or contains interactive elements for site management,
+ * like the button for updating company stats.
+ *
+ * @returns {JSX.Element} The rendered admin dashboard page.
+ */
 export default function AdminDashboardPage() {
   return (
     <section className="space-y-8">
@@ -143,8 +162,7 @@ export default function AdminDashboardPage() {
             </Button>
           </CardContent>
         </Card>
-        
-        {/* New Card for Update Stats Button */}
+
         <UpdateStatsButton />
 
       </div>

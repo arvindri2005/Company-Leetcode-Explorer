@@ -1,4 +1,12 @@
 
+/**
+ * @fileoverview Defines the user login form component.
+ *
+ * This client-side component provides a form for users to sign in with their
+ * email and password. It uses `react-hook-form` for form management, `zod` for
+ * validation, and Firebase Authentication for the sign-in process. It also
+ * handles loading states, error messages, and redirection upon successful login.
+ */
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -22,6 +30,9 @@ import { auth } from '@/lib/firebase';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
+/**
+ * Zod schema for validating the login form fields.
+ */
 const loginFormSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
@@ -29,6 +40,19 @@ const loginFormSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginFormSchema>;
 
+/**
+ * Renders an interactive login form.
+ *
+ * This component handles the entire user login flow:
+ * - Displays email and password input fields.
+ * - Validates user input using the `loginFormSchema`.
+ * - On submission, it attempts to sign the user in via Firebase Authentication.
+ * - Shows a loading indicator during the submission process.
+ * - Displays success or error notifications (toasts) based on the outcome.
+ * - Redirects the user to their profile or a specified `redirectUrl` on successful login.
+ *
+ * @returns {JSX.Element} The rendered login form component.
+ */
 export default function LoginForm() {
   const { toast } = useToast();
   const router = useRouter();

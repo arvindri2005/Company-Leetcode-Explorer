@@ -1,4 +1,12 @@
 
+/**
+ * @fileoverview A client-side component for generating AI-powered study flashcards.
+ *
+ * This component provides a user interface for creating a set of study flashcards
+ * based on the coding problems associated with a specific company. It handles user
+ * authentication, AI feature cooldowns, loading states, and the display of the
+ * generated flashcards in an interactive accordion.
+ */
 'use client';
 
 import type { Flashcard } from '@/types';
@@ -7,22 +15,42 @@ import { Button } from '@/components/ui/button';
 import { generateFlashcardsAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BrainCircuit, Loader2, LogIn, Info, AlertCircle } from 'lucide-react'; // Added AlertCircle
+import { BrainCircuit, Loader2, LogIn, Info, AlertCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAuth } from '@/contexts/auth-context';
-import { useAICooldown } from '@/hooks/use-ai-cooldown'; // Import cooldown hook
+import { useAICooldown } from '@/hooks/use-ai-cooldown';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+/**
+ * Props for the FlashcardGenerator component.
+ */
 interface FlashcardGeneratorProps {
+  /** The unique ID of the company. */
   companyId: string;
+  /** The name of the company. */
   companyName: string;
+  /** The URL slug for the company. */
   companySlug: string;
 }
 
+/**
+ * Renders an interactive section for generating AI-powered study flashcards for a company.
+ *
+ * This component manages the entire flashcard generation process:
+ * - Checks if the user is logged in, showing a login prompt if not.
+ * - Enforces a cooldown period for the AI feature to prevent misuse.
+ * - Displays loading indicators during AI processing.
+ * - Provides user feedback via toasts for success, failure, or cooldown states.
+ * - Renders the generated flashcards (question on the front, answer on the back)
+ *   in an accordion format for an interactive study experience.
+ *
+ * @param {FlashcardGeneratorProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered flashcard generator component.
+ */
 const FlashcardGenerator: React.FC<FlashcardGeneratorProps> = ({ companyId, companyName, companySlug }) => {
   const { user, loading: authLoading } = useAuth();
   const { canUseAI, startCooldown, formattedRemainingTime, isLoadingCooldown } = useAICooldown(); // Cooldown hook

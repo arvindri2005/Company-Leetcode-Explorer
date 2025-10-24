@@ -1,12 +1,33 @@
 
+/**
+ * @fileoverview Defines a header component for displaying company information.
+ *
+ * This component renders a prominent header section for a company, including
+ * its logo, name, website, and description. It's typically used at the top of
+ * a company's detail page.
+ */
 import type { Company } from '@/types';
 import { Building2 } from 'lucide-react';
 import Image from 'next/image';
 
+/**
+ * Props for the CompanyHeader component.
+ */
 interface CompanyHeaderProps {
+  /** The company data object to display. */
   company: Company;
 }
 
+/**
+ * Renders a detailed header for a specific company.
+ *
+ * This component displays the company's logo (with a fallback icon), name,
+ * a clickable link to their website, and their description. It is designed to
+ * be a visually distinct and informative block at the top of a page.
+ *
+ * @param {CompanyHeaderProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered company header section.
+ */
 export default function CompanyHeader({ company }: CompanyHeaderProps) {
   return (
     <section className="bg-card border border-border rounded-xl p-6 mb-8 shadow-sm">

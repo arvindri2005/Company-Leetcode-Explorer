@@ -1,4 +1,12 @@
 
+/**
+ * @fileoverview A client-side component providing a real-time chat interface for an AI-powered mock interview.
+ *
+ * This comprehensive component manages the entire state and user interaction for a
+ * mock interview session. It handles text and voice input, text-to-speech output,
+ * conversation history, loading states, AI cooldowns, and the rendering of
+ * formatted chat messages and feedback from the AI interviewer.
+ */
 'use client';
 
 import type { LeetCodeProblem, ChatMessage } from '@/types';
@@ -17,11 +25,19 @@ import { Separator } from '../ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAICooldown } from '@/hooks/use-ai-cooldown';
 
+/**
+ * Props for the MockInterviewChat component.
+ */
 interface MockInterviewChatProps {
+  /** The coding problem object for the interview. */
   problem: LeetCodeProblem;
-  companySlug: string; 
+  /** The slug of the company associated with the problem. */
+  companySlug: string;
 }
 
+/**
+ * Extends the ChatMessage type with a unique ID for rendering lists.
+ */
 interface UIMessage extends ChatMessage {
     id: string;
     suggestedFollowUps?: string[];
@@ -30,6 +46,21 @@ interface UIMessage extends ChatMessage {
 const SpeechRecognition = (typeof window !== 'undefined') ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null;
 const speechSynthesis = (typeof window !== 'undefined') ? window.speechSynthesis : null;
 
+/**
+ * Renders the main chat interface for the AI mock interview.
+ *
+ * This component orchestrates the entire interview flow:
+ * - Initializes the session by sending a starting prompt to the AI.
+ * - Manages and displays the conversation history.
+ * - Handles user input via a textarea, including keyboard shortcuts.
+ * - Integrates with the Web Speech API for voice-to-text input and text-to-speech output.
+ * - Submits user turns to the AI, displays loading states, and renders the AI's response.
+ * - Formats and displays structured feedback from the AI.
+ * - Enforces a cooldown on AI usage to prevent abuse.
+ *
+ * @param {MockInterviewChatProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered mock interview chat interface.
+ */
 const MockInterviewChat: React.FC<MockInterviewChatProps> = ({ problem, companySlug }) => {
   const [conversation, setConversation] = useState<UIMessage[]>([]);
   const [userInput, setUserInput] = useState('');

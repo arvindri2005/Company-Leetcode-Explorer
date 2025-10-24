@@ -1,3 +1,11 @@
+/**
+ * @fileoverview A responsive dialog/drawer component for displaying AI-generated insights about a coding problem.
+ *
+ * This component uses a standard dialog for desktop views and a swipeable drawer
+ * for mobile views to present information like key concepts, common data structures,
+ * algorithms, and a high-level hint for a specific problem. It handles loading
+ * and error states for the insights data.
+ */
 "use client";
 
 import React from "react";
@@ -33,6 +41,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { GenerateProblemInsightsOutput } from "@/types";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
+/**
+ * Props for the ProblemInsightsDialog component.
+ */
 interface ProblemInsightsDialogProps {
     isOpen: boolean;
     onClose: () => void;
@@ -41,6 +52,11 @@ interface ProblemInsightsDialogProps {
     isLoading: boolean;
 }
 
+/**
+ * A reusable component for displaying a single section of insights.
+ * @param {{ title: string; icon: React.ReactNode; children: React.ReactNode }} props - The props for the component.
+ * @returns {JSX.Element} A card containing a titled section of content.
+ */
 const InsightSection = ({
     title,
     icon,
@@ -59,6 +75,11 @@ const InsightSection = ({
     </Card>
 );
 
+/**
+ * Renders the main content of the insights dialog, handling loading and empty states.
+ * @param {{ insights: GenerateProblemInsightsOutput | null; isLoading: boolean }} props - The props for the component.
+ * @returns {JSX.Element} The content to be displayed inside the dialog/drawer.
+ */
 const InsightsContent = ({
     insights,
     isLoading,
@@ -155,6 +176,17 @@ const InsightsContent = ({
     );
 };
 
+/**
+ * Renders a responsive dialog or drawer to display AI-generated problem insights.
+ *
+ * This component dynamically switches between a `Dialog` on desktop screens
+ * (>= 768px) and a `Drawer` on mobile screens. It serves as the main entry point
+ * for displaying the insights UI, managing the open/close state and passing the
+ * relevant data down to the `InsightsContent` component.
+ *
+ * @param {ProblemInsightsDialogProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered Dialog or Drawer component.
+ */
 export default function ProblemInsightsDialog({
     isOpen,
     onClose,

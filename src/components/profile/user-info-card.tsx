@@ -17,6 +17,17 @@ const displayNameFormSchema = z.object({
 });
 type DisplayNameFormValues = z.infer<typeof displayNameFormSchema>;
 
+/**
+ * @interface UserInfoCardProps
+ * @description Props for the UserInfoCard component.
+ * @property {FirebaseUser} user - The Firebase user object.
+ * @property {boolean} isEditingDisplayName - Flag indicating if the user is currently editing their display name.
+ * @property {(isEditing: boolean) => void} setIsEditingDisplayName - Function to set the editing state for the display name.
+ * @property {(data: DisplayNameFormValues) => Promise<void>} onSubmitDisplayName - Async function to handle the submission of the new display name.
+ * @property {boolean} isSubmittingDisplayName - Flag indicating if the display name update is in progress.
+ * @property {() => Promise<void>} handleLogout - Async function to handle user logout.
+ * @property {(name: string | null | undefined) => string} getInitials - Function to generate initials from a user's display name for the avatar fallback.
+ */
 interface UserInfoCardProps {
   user: FirebaseUser;
   isEditingDisplayName: boolean;
@@ -27,6 +38,12 @@ interface UserInfoCardProps {
   getInitials: (name: string | null | undefined) => string;
 }
 
+/**
+ * @function UserInfoCard
+ * @description A component that displays key user information, allows for editing the display name, and provides a logout button.
+ * @param {UserInfoCardProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered user info card.
+ */
 const UserInfoCard: React.FC<UserInfoCardProps> = ({
   user,
   isEditingDisplayName,

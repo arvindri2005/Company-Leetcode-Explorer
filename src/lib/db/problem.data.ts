@@ -53,6 +53,19 @@ async function fetchAllProblemsForCompanyFromFirestore(
     });
 }
 
+/**
+ * @function getProblemsByCompanyFromDb
+ * @description Fetches a paginated, filtered, and sorted list of problems for a specific company.
+ * @param {string} companyId - The ID of the company to fetch problems for.
+ * @param {object} [params={}] - The parameters for filtering, sorting, and pagination.
+ * @param {string} [params.cursor] - The cursor for the next page of results.
+ * @param {number} [params.pageSize=10] - The number of problems to return per page.
+ * @param {DifficultyFilter} [params.difficultyFilter='all'] - The difficulty level to filter by.
+ * @param {LastAskedFilter} [params.lastAskedFilter='all'] - The recency period to filter by.
+ * @param {string} [params.searchTerm=''] - A search term to filter problems by title or tags.
+ * @param {SortKey} [params.sortKey='title'] - The key to sort the problems by.
+ * @returns {Promise<PaginatedProblemsResponse>} A promise that resolves to the paginated list of problems.
+ */
 export const getProblemsByCompanyFromDb = async (
     companyId: string,
     params: {
@@ -198,6 +211,12 @@ async function fetchAllProblemsFromFirestore(): Promise<LeetCodeProblem[]> {
     return problemsWithCompanyInfo.filter(Boolean) as LeetCodeProblem[];
 }
 
+/**
+ * @function getAllProblems
+ * @description Fetches all problems from all companies in the database.
+ * Note: This can be a very expensive operation and should be used sparingly.
+ * @returns {Promise<LeetCodeProblem[]>} A promise that resolves to an array of all problems.
+ */
 export const getAllProblems = async (): Promise<LeetCodeProblem[]> => {
     try {
         return await fetchAllProblemsFromFirestore();
@@ -239,6 +258,13 @@ async function fetchProblemDetailsFromFirestore(
     return undefined;
 }
 
+/**
+ * @function getProblemDetailsFromDb
+ * @description Fetches the detailed information for a single problem.
+ * @param {string} companyId - The ID of the company the problem belongs to.
+ * @param {string} problemId - The ID of the problem to fetch.
+ * @returns {Promise<LeetCodeProblem | undefined>} A promise that resolves to the problem details or undefined if not found.
+ */
 export const getProblemDetailsFromDb = async (
     companyId: string,
     problemId: string
@@ -298,6 +324,14 @@ async function fetchProblemByCompanySlugAndProblemSlug(
     return { company, problem: undefined };
 }
 
+/**
+ * @function getProblemByCompanySlugAndProblemSlug
+ * @description Fetches a problem and its associated company data using their respective slugs.
+ * This is useful for retrieving problem data from a URL.
+ * @param {string} companySlug - The slug of the company.
+ * @param {string} problemSlug - The slug of the problem.
+ * @returns {Promise<{ company: Company | undefined; problem: LeetCodeProblem | undefined; }>} A promise that resolves to an object containing the company and problem data, or undefined if not found.
+ */
 export const getProblemByCompanySlugAndProblemSlug = async (
     companySlug: string,
     problemSlug: string
@@ -328,6 +362,11 @@ async function fetchAllProblemCompanyAndProblemSlugsFromFirestore(): Promise<
         .filter((s) => s.companySlug && s.problemSlug);
 }
 
+/**
+ * @function getAllProblemCompanyAndProblemSlugs
+ * @description Fetches all company and problem slug pairs. This is useful for generating all static problem page paths.
+ * @returns {Promise<Array<{ companySlug: string; problemSlug: string }>>} A promise that resolves to an array of slug pairs.
+ */
 export const getAllProblemCompanyAndProblemSlugs = async (): Promise<
     Array<{ companySlug: string; problemSlug: string }>
 > => {
@@ -342,6 +381,13 @@ export const getAllProblemCompanyAndProblemSlugs = async (): Promise<
     }
 };
 
+/**
+ * @function addProblemToDb
+ * @description Adds a new problem to a company's subcollection in Firestore. If a problem with the same normalized title already exists, it updates the existing problem's data.
+ * @param {string} companyId - The ID of the company to add the problem to.
+ * @param {Omit<LeetCodeProblem, 'id' | 'companyId' | 'companySlug' | 'slug'> & { normalizedTitle: string }} problemData - The data for the problem to be added.
+ * @returns {Promise<{ id: string | null; updated: boolean; error?: string }>} A promise that resolves to an object containing the problem's ID, whether it was updated, and an optional error message.
+ */
 export const addProblemToDb = async (
     companyId: string,
     problemData: Omit<

@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Defines the client-side component for the contact page.
+ *
+ * This file contains the main component for the `/contact` route, which includes
+ * an interactive form for users to send messages. It utilizes React hooks like
+ * `useFormState` and `useFormStatus` to handle form submission, validation feedback,
+ * and loading states, interacting with a server action.
+ */
 "use client";
 
 import Footer from "@/components/landing/footer";
@@ -5,8 +13,16 @@ import { useFormState, useFormStatus } from "react-dom";
 import { sendContactMessage } from "@/app/contact/actions";
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import type { Metadata } from "next";
 
+/**
+ * A client component that renders a form submission button with a pending state.
+ *
+ * This button automatically disables itself and displays a "Sending..." message
+ * while the form submission is in progress, using the `useFormStatus` hook to
+ * track the form's pending state.
+ *
+ * @returns {JSX.Element} The rendered submit button.
+ */
 function SubmitButton() {
     const { pending } = useFormStatus();
 
@@ -21,8 +37,16 @@ function SubmitButton() {
     );
 }
 
-
-
+/**
+ * Renders the interactive contact page with a form for user submissions.
+ *
+ * This component uses the `useFormState` hook to manage the state of the form
+ * submission, including handling success messages and validation errors returned
+ * from the `sendContactMessage` server action. It displays a toast notification
+ * upon successful submission.
+ *
+ * @returns {JSX.Element} The rendered contact page with the submission form.
+ */
 export default function ContactPage() {
     const [state, formAction] = useFormState(sendContactMessage, null);
     const { toast } = useToast();

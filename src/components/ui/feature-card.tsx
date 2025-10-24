@@ -1,5 +1,11 @@
 import { FeatureCardProps } from '@/types';
 
+/**
+ * @function FeatureCard
+ * @description A card component designed to showcase a specific feature, with an icon, title, and description.
+ * @param {FeatureCardProps} props - The props for the component, containing icon, title, and description.
+ * @returns {JSX.Element} The rendered feature card.
+ */
 export function FeatureCard({ icon, title, description }: FeatureCardProps) {
   const Icon = icon;
   return (

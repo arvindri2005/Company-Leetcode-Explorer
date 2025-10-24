@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Defines the root layout for the entire application.
+ *
+ * This component wraps every page, providing a consistent structure that includes
+ * the header, theme provider, authentication context, and other global providers.
+ * It also sets up global fonts, metadata, and analytics scripts. This is the
+ * top-level layout as per the Next.js App Router conventions.
+ */
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -135,6 +143,20 @@ export const viewport: Viewport = {
     initialScale: 1,
 };
 
+/**
+ * The root layout component for the application.
+ *
+ * This component sets up the basic HTML structure, including `<html>` and `<body>` tags,
+ * and applies global fonts. It wraps the page content (`children`) with essential providers:
+ * - `ThemeProvider` for light/dark mode management.
+ * - `AuthProvider` for handling user authentication state.
+ * - `CooldownStateProvider` for managing AI feature usage cooldowns.
+ * It also includes the site `Header`, the `Toaster` for notifications, and analytics components.
+ *
+ * @param {Readonly<{ children: React.ReactNode }>} props - The props for the component.
+ * @param {React.ReactNode} props.children - The child components to be rendered within the layout, typically the current page.
+ * @returns {JSX.Element} The complete HTML structure for the application.
+ */
 export default function RootLayout({
     children,
 }: Readonly<{
