@@ -8,7 +8,7 @@
 'use client';
 
 import { FaRocket, FaPlay } from 'react-icons/fa';
-import { FloatingShapes } from '@/components/ui/floatingShapes';
+import { FloatingShapes } from '@/components/ui/floating-shapes';
 import { useRouter } from 'next/navigation';
 
 /**

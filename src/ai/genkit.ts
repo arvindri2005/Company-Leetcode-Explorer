@@ -1,6 +1,3 @@
-import {genkit} from 'genkit';
-import {googleAI} from '@genkit-ai/googleai';
-
 /**
  * @fileoverview Initializes and configures the Genkit AI instance.
  *

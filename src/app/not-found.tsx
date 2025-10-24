@@ -15,7 +15,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useDebounce } from "@/hooks/use-debounce";
 import { fetchCompanySuggestionsAction } from "@/app/actions";
-import CompnaySearchBar from "@/components/company/compnay-search-bar";
+import CompnaySearchBar from "@/components/company/company-search-bar";
 import type { Company } from "@/types";
 
 interface Suggestion extends Pick<Company, "id" | "name" | "slug" | "logo"> {}
