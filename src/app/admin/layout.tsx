@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Defines the layout and access control for the admin section.
  *
@@ -7,17 +6,17 @@
  * It displays a loading state during verification, a "denied" message for unauthorized
  * users, and the actual admin content (including a navigation bar) for authorized admins.
  */
-'use client';
+"use client";
 
-import React, { useEffect, useState, type ReactNode } from 'react';
-import { useAuth } from '@/contexts/auth-context';
-import { useRouter } from 'next/navigation';
-import { Loader2, ShieldAlert } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { checkUserAdminStatus } from '@/app/actions/admin.actions';
-import { AdminNav } from '@/components/admin/admin-nav';
+import React, { useEffect, useState, type ReactNode } from "react";
+import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
+import { Loader2, ShieldAlert } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { checkUserAdminStatus } from "@/app/actions/admin.actions";
+import { AdminNav } from "@/components/admin/admin-nav";
 
 /**
  * Provides the layout and enforces authorization for the admin dashboard.
@@ -44,11 +43,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       if (!authLoading) {
         if (!user) {
           toast({
-            title: 'Access Denied',
-            description: 'You must be logged in to access the admin area.',
-            variant: 'destructive',
+            title: "Access Denied",
+            description: "You must be logged in to access the admin area.",
+            variant: "destructive",
           });
-          router.push('/login?redirectUrl=/admin');
+          router.push("/login?redirectUrl=/admin");
           return;
         }
 
@@ -57,11 +56,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
         if (!adminStatus) {
           toast({
-            title: 'Unauthorized Access',
-            description: 'You do not have permission to access this area.',
-            variant: 'destructive',
+            title: "Unauthorized Access",
+            description: "You do not have permission to access this area.",
+            variant: "destructive",
           });
-          router.push('/');
+          router.push("/");
         }
       }
     }
@@ -81,9 +80,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center p-6">
         <ShieldAlert className="h-16 w-16 text-destructive mb-4" />
-        <h1 className="text-2xl font-bold text-destructive mb-2">Access Denied</h1>
+        <h1 className="text-2xl font-bold text-destructive mb-2">
+          Access Denied
+        </h1>
         <p className="text-muted-foreground mb-6">
-          You are not authorized to view this page. If you believe this is an error, please contact support.
+          You are not authorized to view this page. If you believe this is an
+          error, please contact support.
         </p>
         <Button asChild>
           <Link href="/">Go to Homepage</Link>

@@ -5,8 +5,8 @@
  * main features of Byte to Offer. It dynamically creates a grid of `FeatureCard`
  * components based on a constant array of feature data.
  */
-import { FeatureCard } from '@/components/ui/feature-card';
-import { FEATURES } from '@/constants/features';
+import { FeatureCard } from "@/components/ui/feature-card";
+import { FEATURES } from "@/constants/features";
 
 /**
  * Renders the "Features" section of the landing page.
@@ -21,7 +21,9 @@ export default function FeaturesSection() {
   return (
     <section id="features" className="py-20 px-8">
       <div className="max-w-[1200px] mx-auto">
-        <h2 className="text-center text-4xl mb-12 text-[#e4e4e7]">Why Choose Byte to Offer?</h2>
+        <h2 className="text-center text-4xl mb-12 text-[#e4e4e7]">
+          Why Choose Byte to Offer?
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {FEATURES.map((feature, index) => {
             const Icon = feature.icon;

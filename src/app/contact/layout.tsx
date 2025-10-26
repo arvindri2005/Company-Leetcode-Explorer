@@ -17,9 +17,9 @@ import type { Metadata } from "next";
  * @type {Metadata}
  */
 export const metadata: Metadata = {
-    title: "Contact Us | Byte To Offer",
-    description:
-        "Have questions or feedback? Contact the Byte To Offer team. We are here to help you with your technical interview preparation needs.",
+  title: "Contact Us | Byte To Offer",
+  description:
+    "Have questions or feedback? Contact the Byte To Offer team. We are here to help you with your technical interview preparation needs.",
 };
 
 /**
@@ -34,9 +34,9 @@ export const metadata: Metadata = {
  * @returns {React.ReactNode} The children of the layout.
  */
 export default function ContactLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-    return children;
+  return children;
 }

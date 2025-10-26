@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Defines a header component for displaying company information.
  *
@@ -6,9 +5,9 @@
  * its logo, name, website, and description. It's typically used at the top of
  * a company's detail page.
  */
-import type { Company } from '@/types';
-import { Building2 } from 'lucide-react';
-import Image from 'next/image';
+import type { Company } from "@/types";
+import { Building2 } from "lucide-react";
+import Image from "next/image";
 
 /**
  * Props for the CompanyHeader component.

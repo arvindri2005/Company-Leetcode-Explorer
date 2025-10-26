@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { cn } from '@/lib/utils';
-import { FaRocket } from 'react-icons/fa';
+import React from "react";
+import { cn } from "@/lib/utils";
+import { FaRocket } from "react-icons/fa";
 
 /**
  * @interface ShineButtonProps
@@ -11,7 +11,8 @@ import { FaRocket } from 'react-icons/fa';
  * @property {React.ReactNode} children - The content to be displayed inside the button.
  * @property {React.ElementType} [icon] - An optional icon component to be displayed next to the children. Defaults to FaRocket.
  */
-interface ShineButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ShineButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   icon?: React.ElementType;
 }
@@ -33,7 +34,7 @@ const ShineButton = React.forwardRef<HTMLButtonElement, ShineButtonProps>(
           "bg-gradient-to-r from-[#00d4aa] to-[#7c3aed] text-white",
           "hover:transform hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,212,170,0.3)]",
           "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00d4aa]",
-          className
+          className,
         )}
         {...props}
       >
@@ -41,9 +42,9 @@ const ShineButton = React.forwardRef<HTMLButtonElement, ShineButtonProps>(
         {children}
       </button>
     );
-  }
+  },
 );
 
-ShineButton.displayName = 'ShineButton';
+ShineButton.displayName = "ShineButton";
 
 export default ShineButton;

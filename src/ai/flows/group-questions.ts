@@ -1,4 +1,3 @@
-
 // use server'
 
 /**
@@ -13,37 +12,52 @@
  * @exports GroupQuestionsOutput - The Zod inferred type for the output from the flow.
  */
 
-import {ai} from '@/ai/genkit';
-import {z}from 'genkit';
+import { ai } from "@/ai/genkit";
+import { z } from "genkit";
 
 const GroupQuestionsInputSchema = z.object({
-  questions: z.array(
-    z.object({
-      title: z.string(),
-      difficulty: z.enum(['Easy', 'Medium', 'Hard']),
-      link: z.string().url(),
-      tags: z.array(z.string()),
-    })
-  ).describe('An array of coding questions with their details.'),
+  questions: z
+    .array(
+      z.object({
+        title: z.string(),
+        difficulty: z.enum(["Easy", "Medium", "Hard"]),
+        link: z.string().url(),
+        tags: z.array(z.string()),
+      }),
+    )
+    .describe("An array of coding questions with their details."),
 });
 export type GroupQuestionsInput = z.infer<typeof GroupQuestionsInputSchema>;
 
 // New, more explicit output schema
 const GroupedQuestionItemSchema = z.object({
   title: z.string().describe("The title of the coding problem."),
-  difficulty: z.enum(['Easy', 'Medium', 'Hard']).describe("The difficulty of the problem."),
+  difficulty: z
+    .enum(["Easy", "Medium", "Hard"])
+    .describe("The difficulty of the problem."),
   link: z.string().describe("The direct link to the coding problem."), // Removed .url()
-  tags: z.array(z.string()).describe("A list of tags associated with the problem."),
+  tags: z
+    .array(z.string())
+    .describe("A list of tags associated with the problem."),
 });
 
 const QuestionGroupSchema = z.object({
-  groupName: z.string().describe("The name of the category or theme for this group of questions (e.g., 'Arrays', 'Dynamic Programming')."),
-  questions: z.array(GroupedQuestionItemSchema).describe("An array of coding problems belonging to this group."),
+  groupName: z
+    .string()
+    .describe(
+      "The name of the category or theme for this group of questions (e.g., 'Arrays', 'Dynamic Programming').",
+    ),
+  questions: z
+    .array(GroupedQuestionItemSchema)
+    .describe("An array of coding problems belonging to this group."),
 });
 
 const GroupQuestionsOutputSchema = z.object({
-  groups: z.array(QuestionGroupSchema)
-    .describe('An array of question groups. Each group has a name and a list of associated coding problems.'),
+  groups: z
+    .array(QuestionGroupSchema)
+    .describe(
+      "An array of question groups. Each group has a name and a list of associated coding problems.",
+    ),
 });
 export type GroupQuestionsOutput = z.infer<typeof GroupQuestionsOutputSchema>;
 
@@ -52,14 +66,16 @@ export type GroupQuestionsOutput = z.infer<typeof GroupQuestionsOutputSchema>;
  * @param {GroupQuestionsInput} input - An object containing an array of questions to be grouped.
  * @returns {Promise<GroupQuestionsOutput>} A promise that resolves to an object containing an array of question groups.
  */
-export async function groupQuestions(input: GroupQuestionsInput): Promise<GroupQuestionsOutput> {
+export async function groupQuestions(
+  input: GroupQuestionsInput,
+): Promise<GroupQuestionsOutput> {
   return groupQuestionsFlow(input);
 }
 
 const prompt = ai.definePrompt({
-  name: 'groupQuestionsPrompt',
-  input: {schema: GroupQuestionsInputSchema},
-  output: {schema: GroupQuestionsOutputSchema},
+  name: "groupQuestionsPrompt",
+  input: { schema: GroupQuestionsInputSchema },
+  output: { schema: GroupQuestionsOutputSchema },
   prompt: `You are an expert in organizing coding interview questions based on their underlying data structures and algorithms.
 
   Given the following LeetCode questions, group them into related themes, concepts, or categories.
@@ -81,15 +97,15 @@ const prompt = ai.definePrompt({
 
 const groupQuestionsFlow = ai.defineFlow(
   {
-    name: 'groupQuestionsFlow',
+    name: "groupQuestionsFlow",
     inputSchema: GroupQuestionsInputSchema,
     outputSchema: GroupQuestionsOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
+  async (input) => {
+    const { output } = await prompt(input);
     if (!output) {
       throw new Error("AI did not return an output for question grouping.");
     }
     return output;
-  }
+  },
 );

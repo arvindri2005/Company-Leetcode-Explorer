@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Defines the loading skeleton UI for the main companies listing page.
  *
@@ -7,7 +6,7 @@
  * including skeletons for the title, description, and a grid of company cards,
  * providing a better user experience than a blank screen or a simple spinner.
  */
-import CompanyCardSkeleton from '@/components/skeletons/CompanyCardSkeleton';
+import CompanyCardSkeleton from "@/components/skeletons/CompanyCardSkeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 
 /**
@@ -24,7 +23,6 @@ export default function CompaniesLoading() {
     <div className="min-h-screen w-full animated-gradient-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
         <section className="space-y-6 sm:space-y-8 lg:space-y-10">
-
           <div className="text-center sm:text-left space-y-3 sm:space-y-4">
             <Skeleton className="h-12 w-3/4 md:w-1/2 mx-auto sm:mx-0" />
             <Skeleton className="h-6 w-1/2 md:w-1/3 mx-auto sm:mx-0" />
@@ -39,7 +37,6 @@ export default function CompaniesLoading() {
               ))}
             </div>
           </div>
-
         </section>
       </div>
     </div>

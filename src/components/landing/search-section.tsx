@@ -6,16 +6,16 @@
  * autocomplete suggestions as the user types, and handles the navigation logic
  * for both direct searches and suggestion clicks.
  */
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { useDebounce } from '@/hooks/use-debounce';
-import { fetchCompanySuggestionsAction } from '@/app/actions';
-import CompnaySearchBar from '@/components/company/company-search-bar';
-import type { Company } from '@/types';
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useDebounce } from "@/hooks/use-debounce";
+import { fetchCompanySuggestionsAction } from "@/app/actions";
+import CompnaySearchBar from "@/components/company/company-search-bar";
+import type { Company } from "@/types";
 
-interface Suggestion extends Pick<Company, 'id' | 'name' | 'slug' | 'logo'> {}
+interface Suggestion extends Pick<Company, "id" | "name" | "slug" | "logo"> {}
 
 /**
  * Renders a search section with an interactive company search bar.
@@ -29,7 +29,7 @@ interface Suggestion extends Pick<Company, 'id' | 'name' | 'slug' | 'logo'> {}
  * @returns {JSX.Element} The rendered search section component.
  */
 export default function SearchSection() {
-  const [searchTermInput, setSearchTermInput] = useState('');
+  const [searchTermInput, setSearchTermInput] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
@@ -47,13 +47,15 @@ export default function SearchSection() {
 
       setIsLoadingSuggestions(true);
       try {
-        const result = await fetchCompanySuggestionsAction(debouncedSearchTerm.trim());
+        const result = await fetchCompanySuggestionsAction(
+          debouncedSearchTerm.trim(),
+        );
         if (Array.isArray(result)) {
           setSuggestions(result.slice(0, 5));
           setShowSuggestions(true);
         }
       } catch (error) {
-        console.error('Error fetching suggestions:', error);
+        console.error("Error fetching suggestions:", error);
       } finally {
         setIsLoadingSuggestions(false);
       }
@@ -64,13 +66,16 @@ export default function SearchSection() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target as Node)
+      ) {
         setShowSuggestions(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleSuggestionClick = (suggestion: Suggestion) => {
@@ -81,27 +86,31 @@ export default function SearchSection() {
 
   const handleSearch = () => {
     if (searchTermInput.trim()) {
-      router.push(`/companies?search=${encodeURIComponent(searchTermInput.trim())}`);
+      router.push(
+        `/companies?search=${encodeURIComponent(searchTermInput.trim())}`,
+      );
     }
   };
 
   return (
     <section className="py-20 px-8">
       <div className="max-w-[800px] mx-auto text-center">
-          <h2 className="text-4xl mb-4 text-[#e4e4e7]">Start Your Journey</h2>
-          <p className="text-xl mb-8 text-[#a1a1aa]">Search for problems by name, topic, or difficulty level</p>
-          <CompnaySearchBar
-            searchTermInput={searchTermInput}
-            setSearchTermInput={setSearchTermInput}
-            isLoadingSuggestions={isLoadingSuggestions}
-            suggestions={suggestions}
-            showSuggestions={showSuggestions}
-            setShowSuggestions={setShowSuggestions}
-            handleSuggestionClick={handleSuggestionClick}
-            suggestionsRef={suggestionsRef}
-            onSearch={handleSearch}
-          />
-        </div>
+        <h2 className="text-4xl mb-4 text-[#e4e4e7]">Start Your Journey</h2>
+        <p className="text-xl mb-8 text-[#a1a1aa]">
+          Search for problems by name, topic, or difficulty level
+        </p>
+        <CompnaySearchBar
+          searchTermInput={searchTermInput}
+          setSearchTermInput={setSearchTermInput}
+          isLoadingSuggestions={isLoadingSuggestions}
+          suggestions={suggestions}
+          showSuggestions={showSuggestions}
+          setShowSuggestions={setShowSuggestions}
+          handleSuggestionClick={handleSuggestionClick}
+          suggestionsRef={suggestionsRef}
+          onSearch={handleSearch}
+        />
+      </div>
     </section>
   );
 }

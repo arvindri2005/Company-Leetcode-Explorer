@@ -1,6 +1,15 @@
-
-import type { BookmarkedProblemInfo, UserProblemStatusInfo, ProblemStatus, GenerateCompanyStrategyOutput, SavedStrategyTodoList, FocusTopic, StrategyTodoItem, EducationExperience, WorkExperience } from '@/types';
-import { db } from '@/lib/firebase';
+import type {
+  BookmarkedProblemInfo,
+  UserProblemStatusInfo,
+  ProblemStatus,
+  GenerateCompanyStrategyOutput,
+  SavedStrategyTodoList,
+  FocusTopic,
+  StrategyTodoItem,
+  EducationExperience,
+  WorkExperience,
+} from "@/types";
+import { db } from "@/lib/firebase";
 import {
   collection,
   getDocs,
@@ -13,8 +22,8 @@ import {
   setDoc,
   updateDoc,
   addDoc,
-  Timestamp
-} from 'firebase/firestore';
+  Timestamp,
+} from "firebase/firestore";
 
 /**
  * @function dbToggleBookmarkProblem
@@ -25,9 +34,24 @@ import {
  * @param {string} problemSlug - The slug of the problem.
  * @returns {Promise<{ isBookmarked: boolean; error?: string }>} A promise that resolves to an object indicating the new bookmark status and an optional error message.
  */
-export const dbToggleBookmarkProblem = async (userId: string, problemId: string, companySlug: string, problemSlug: string): Promise<{ isBookmarked: boolean; error?: string }> => {
-  if (!userId || !problemId) return { isBookmarked: false, error: 'User ID and Problem ID are required.' };
-  const bookmarkDocRef = doc(db, 'users', userId, 'bookmarkedProblems', problemId);
+export const dbToggleBookmarkProblem = async (
+  userId: string,
+  problemId: string,
+  companySlug: string,
+  problemSlug: string,
+): Promise<{ isBookmarked: boolean; error?: string }> => {
+  if (!userId || !problemId)
+    return {
+      isBookmarked: false,
+      error: "User ID and Problem ID are required.",
+    };
+  const bookmarkDocRef = doc(
+    db,
+    "users",
+    userId,
+    "bookmarkedProblems",
+    problemId,
+  );
   try {
     const docSnap = await getDoc(bookmarkDocRef);
     if (docSnap.exists()) {
@@ -42,8 +66,11 @@ export const dbToggleBookmarkProblem = async (userId: string, problemId: string,
       return { isBookmarked: true };
     }
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'An unknown error occurred while toggling bookmark.';
-    console.error('Error toggling bookmark in Firestore:', error);
+    const message =
+      error instanceof Error
+        ? error.message
+        : "An unknown error occurred while toggling bookmark.";
+    console.error("Error toggling bookmark in Firestore:", error);
     return { isBookmarked: false, error: message };
   }
 };
@@ -54,22 +81,32 @@ export const dbToggleBookmarkProblem = async (userId: string, problemId: string,
  * @param {string} userId - The ID of the user.
  * @returns {Promise<BookmarkedProblemInfo[]>} A promise that resolves to an array of bookmarked problem information.
  */
-export const dbGetUserBookmarkedProblemsInfo = async (userId: string): Promise<BookmarkedProblemInfo[]> => {
+export const dbGetUserBookmarkedProblemsInfo = async (
+  userId: string,
+): Promise<BookmarkedProblemInfo[]> => {
   if (!userId) return [];
   try {
-    const q = query(collection(db, 'users', userId, 'bookmarkedProblems'), orderBy('bookmarkedAt', 'desc'));
+    const q = query(
+      collection(db, "users", userId, "bookmarkedProblems"),
+      orderBy("bookmarkedAt", "desc"),
+    );
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(docSnap => {
-      const data = docSnap.data();
-      return {
-        problemId: docSnap.id,
-        companySlug: data.companySlug,
-        problemSlug: data.problemSlug,
-        bookmarkedAt: data.bookmarkedAt?.toDate()
-      } as BookmarkedProblemInfo;
-    }).filter(info => info.companySlug && info.problemSlug);
+    return querySnapshot.docs
+      .map((docSnap) => {
+        const data = docSnap.data();
+        return {
+          problemId: docSnap.id,
+          companySlug: data.companySlug,
+          problemSlug: data.problemSlug,
+          bookmarkedAt: data.bookmarkedAt?.toDate(),
+        } as BookmarkedProblemInfo;
+      })
+      .filter((info) => info.companySlug && info.problemSlug);
   } catch (error) {
-    console.error(`Error fetching bookmarked problems info for user ${userId}:`, error);
+    console.error(
+      `Error fetching bookmarked problems info for user ${userId}:`,
+      error,
+    );
     return [];
   }
 };
@@ -89,12 +126,13 @@ export const dbSetProblemStatus = async (
   problemId: string,
   status: ProblemStatus,
   companySlug: string,
-  problemSlug: string
+  problemSlug: string,
 ): Promise<{ success: boolean; error?: string }> => {
-  if (!userId || !problemId) return { success: false, error: 'User ID and Problem ID are required.' };
-  const statusDocRef = doc(db, 'users', userId, 'problemProgress', problemId);
+  if (!userId || !problemId)
+    return { success: false, error: "User ID and Problem ID are required." };
+  const statusDocRef = doc(db, "users", userId, "problemProgress", problemId);
   try {
-    if (status === 'none') {
+    if (status === "none") {
       await deleteDoc(statusDocRef);
     } else {
       await setDoc(statusDocRef, {
@@ -106,8 +144,11 @@ export const dbSetProblemStatus = async (
     }
     return { success: true };
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to update problem status.';
-    console.error('Error setting problem status in Firestore:', error);
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to update problem status.";
+    console.error("Error setting problem status in Firestore:", error);
     return { success: false, error: message };
   }
 };
@@ -118,14 +159,16 @@ export const dbSetProblemStatus = async (
  * @param {string} userId - The ID of the user.
  * @returns {Promise<Record<string, UserProblemStatusInfo>>} A promise that resolves to a dictionary mapping problem IDs to their status information.
  */
-export const dbGetAllUserProblemStatuses = async (userId: string): Promise<Record<string, UserProblemStatusInfo>> => {
+export const dbGetAllUserProblemStatuses = async (
+  userId: string,
+): Promise<Record<string, UserProblemStatusInfo>> => {
   if (!userId) return {};
   const statuses: Record<string, UserProblemStatusInfo> = {};
   try {
-    const progressColRef = collection(db, 'users', userId, 'problemProgress');
-    const q = query(progressColRef, orderBy('updatedAt', 'desc'));
+    const progressColRef = collection(db, "users", userId, "problemProgress");
+    const q = query(progressColRef, orderBy("updatedAt", "desc"));
     const querySnapshot = await getDocs(q);
-    querySnapshot.forEach(docSnap => {
+    querySnapshot.forEach((docSnap) => {
       const data = docSnap.data();
       if (data.status && data.companySlug && data.problemSlug) {
         statuses[docSnap.id] = {
@@ -133,13 +176,16 @@ export const dbGetAllUserProblemStatuses = async (userId: string): Promise<Recor
           status: data.status as ProblemStatus,
           companySlug: data.companySlug,
           problemSlug: data.problemSlug,
-          updatedAt: data.updatedAt?.toDate()
+          updatedAt: data.updatedAt?.toDate(),
         };
       }
     });
     return statuses;
   } catch (error) {
-    console.error(`Error fetching all problem statuses for user ${userId}:`, error);
+    console.error(
+      `Error fetching all problem statuses for user ${userId}:`,
+      error,
+    );
     return {};
   }
 };
@@ -153,19 +199,25 @@ export const dbGetAllUserProblemStatuses = async (userId: string): Promise<Recor
  */
 export const dbUpdateUserDisplayName = async (
   userId: string,
-  newDisplayName: string
+  newDisplayName: string,
 ): Promise<{ success: boolean; error?: string }> => {
-  if (!userId) return { success: false, error: 'User ID is required.' };
+  if (!userId) return { success: false, error: "User ID is required." };
   if (!newDisplayName || newDisplayName.trim().length < 2) {
-    return { success: false, error: 'Display name must be at least 2 characters.' };
+    return {
+      success: false,
+      error: "Display name must be at least 2 characters.",
+    };
   }
-  const userDocRef = doc(db, 'users', userId);
+  const userDocRef = doc(db, "users", userId);
   try {
     await updateDoc(userDocRef, { displayName: newDisplayName.trim() });
     return { success: true };
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to update display name in Firestore.';
-    console.error('Error updating user display name in Firestore:', error);
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to update display name in Firestore.";
+    console.error("Error updating user display name in Firestore:", error);
     return { success: false, error: message };
   }
 };
@@ -177,15 +229,24 @@ export const dbUpdateUserDisplayName = async (
  * @param {Omit<EducationExperience, 'id'>} educationData - The education experience data to add.
  * @returns {Promise<{ id: string | null; error?: string }>} A promise that resolves to an object containing the new document's ID or an error.
  */
-export const dbAddUserEducation = async (userId: string, educationData: Omit<EducationExperience, 'id'>): Promise<{ id: string | null; error?: string }> => {
-  if (!userId) return { id: null, error: 'User ID is required.' };
+export const dbAddUserEducation = async (
+  userId: string,
+  educationData: Omit<EducationExperience, "id">,
+): Promise<{ id: string | null; error?: string }> => {
+  if (!userId) return { id: null, error: "User ID is required." };
   try {
-    const educationColRef = collection(db, 'users', userId, 'educationHistory');
-    const docRef = await addDoc(educationColRef, { ...educationData, createdAt: serverTimestamp() });
+    const educationColRef = collection(db, "users", userId, "educationHistory");
+    const docRef = await addDoc(educationColRef, {
+      ...educationData,
+      createdAt: serverTimestamp(),
+    });
     return { id: docRef.id };
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to add education experience.';
-    console.error('Error adding education experience to Firestore:', error);
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to add education experience.";
+    console.error("Error adding education experience to Firestore:", error);
     return { id: null, error: message };
   }
 };
@@ -196,19 +257,27 @@ export const dbAddUserEducation = async (userId: string, educationData: Omit<Edu
  * @param {string} userId - The ID of the user.
  * @returns {Promise<EducationExperience[]>} A promise that resolves to an array of education experiences.
  */
-export const dbGetUserEducation = async (userId: string): Promise<EducationExperience[]> => {
+export const dbGetUserEducation = async (
+  userId: string,
+): Promise<EducationExperience[]> => {
   if (!userId) return [];
   try {
-    const educationColRef = collection(db, 'users', userId, 'educationHistory');
+    const educationColRef = collection(db, "users", userId, "educationHistory");
     // Consider ordering if needed, e.g., by graduationYear
-    const q = query(educationColRef, orderBy('createdAt', 'desc')); 
+    const q = query(educationColRef, orderBy("createdAt", "desc"));
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(docSnap => ({
-      id: docSnap.id,
-      ...docSnap.data()
-    } as EducationExperience));
+    return querySnapshot.docs.map(
+      (docSnap) =>
+        ({
+          id: docSnap.id,
+          ...docSnap.data(),
+        }) as EducationExperience,
+    );
   } catch (error) {
-    console.error(`Error fetching education history for user ${userId}:`, error);
+    console.error(
+      `Error fetching education history for user ${userId}:`,
+      error,
+    );
     return [];
   }
 };
@@ -220,15 +289,22 @@ export const dbGetUserEducation = async (userId: string): Promise<EducationExper
  * @param {Omit<WorkExperience, 'id'>} workData - The work experience data to add.
  * @returns {Promise<{ id: string | null; error?: string }>} A promise that resolves to an object containing the new document's ID or an error.
  */
-export const dbAddUserWorkExperience = async (userId: string, workData: Omit<WorkExperience, 'id'>): Promise<{ id: string | null; error?: string }> => {
-  if (!userId) return { id: null, error: 'User ID is required.' };
+export const dbAddUserWorkExperience = async (
+  userId: string,
+  workData: Omit<WorkExperience, "id">,
+): Promise<{ id: string | null; error?: string }> => {
+  if (!userId) return { id: null, error: "User ID is required." };
   try {
-    const workColRef = collection(db, 'users', userId, 'workExperience');
-    const docRef = await addDoc(workColRef, { ...workData, createdAt: serverTimestamp() });
+    const workColRef = collection(db, "users", userId, "workExperience");
+    const docRef = await addDoc(workColRef, {
+      ...workData,
+      createdAt: serverTimestamp(),
+    });
     return { id: docRef.id };
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to add work experience.';
-    console.error('Error adding work experience to Firestore:', error);
+    const message =
+      error instanceof Error ? error.message : "Failed to add work experience.";
+    console.error("Error adding work experience to Firestore:", error);
     return { id: null, error: message };
   }
 };
@@ -239,17 +315,22 @@ export const dbAddUserWorkExperience = async (userId: string, workData: Omit<Wor
  * @param {string} userId - The ID of the user.
  * @returns {Promise<WorkExperience[]>} A promise that resolves to an array of work experiences.
  */
-export const dbGetUserWorkExperience = async (userId: string): Promise<WorkExperience[]> => {
+export const dbGetUserWorkExperience = async (
+  userId: string,
+): Promise<WorkExperience[]> => {
   if (!userId) return [];
   try {
-    const workColRef = collection(db, 'users', userId, 'workExperience');
+    const workColRef = collection(db, "users", userId, "workExperience");
     // Consider ordering if needed, e.g., by startDate or createdAt
-    const q = query(workColRef, orderBy('createdAt', 'desc')); 
+    const q = query(workColRef, orderBy("createdAt", "desc"));
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(docSnap => ({
-      id: docSnap.id,
-      ...docSnap.data()
-    } as WorkExperience));
+    return querySnapshot.docs.map(
+      (docSnap) =>
+        ({
+          id: docSnap.id,
+          ...docSnap.data(),
+        }) as WorkExperience,
+    );
   } catch (error) {
     console.error(`Error fetching work experience for user ${userId}:`, error);
     return [];
@@ -269,11 +350,21 @@ export const dbSaveStrategyTodoList = async (
   userId: string,
   companyId: string,
   companyName: string,
-  strategyData: Pick<GenerateCompanyStrategyOutput, 'preparationStrategy' | 'focusTopics' | 'todoItems'>
+  strategyData: Pick<
+    GenerateCompanyStrategyOutput,
+    "preparationStrategy" | "focusTopics" | "todoItems"
+  >,
 ): Promise<{ success: boolean; error?: string }> => {
-  if (!userId || !companyId) return { success: false, error: 'User ID and Company ID are required.' };
-  const todoListDocRef = doc(db, 'users', userId, 'strategyTodoLists', companyId);
-  
+  if (!userId || !companyId)
+    return { success: false, error: "User ID and Company ID are required." };
+  const todoListDocRef = doc(
+    db,
+    "users",
+    userId,
+    "strategyTodoLists",
+    companyId,
+  );
+
   const dataToSave: SavedStrategyTodoList = {
     companyId: companyId,
     companyName: companyName,
@@ -287,8 +378,9 @@ export const dbSaveStrategyTodoList = async (
     await setDoc(todoListDocRef, dataToSave, { merge: true });
     return { success: true };
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to save strategy.';
-    console.error('Error saving strategy to Firestore:', error);
+    const message =
+      error instanceof Error ? error.message : "Failed to save strategy.";
+    console.error("Error saving strategy to Firestore:", error);
     return { success: false, error: message };
   }
 };
@@ -299,29 +391,47 @@ export const dbSaveStrategyTodoList = async (
  * @param {string} userId - The ID of the user.
  * @returns {Promise<SavedStrategyTodoList[]>} A promise that resolves to an array of saved strategy to-do lists.
  */
-export const dbGetUserStrategyTodoLists = async (userId: string): Promise<SavedStrategyTodoList[]> => {
+export const dbGetUserStrategyTodoLists = async (
+  userId: string,
+): Promise<SavedStrategyTodoList[]> => {
   if (!userId) return [];
   try {
-    const todoListsColRef = collection(db, 'users', userId, 'strategyTodoLists');
-    const q = query(todoListsColRef, orderBy('companyName', 'asc')); 
+    const todoListsColRef = collection(
+      db,
+      "users",
+      userId,
+      "strategyTodoLists",
+    );
+    const q = query(todoListsColRef, orderBy("companyName", "asc"));
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(docSnap => {
+    return querySnapshot.docs.map((docSnap) => {
       const data = docSnap.data();
-      const items = Array.isArray(data.items) 
-        ? data.items.map((item: any) => ({ ...item, isCompleted: typeof item.isCompleted === 'boolean' ? item.isCompleted : false })) 
+      const items = Array.isArray(data.items)
+        ? data.items.map((item: any) => ({
+            ...item,
+            isCompleted:
+              typeof item.isCompleted === "boolean" ? item.isCompleted : false,
+          }))
         : [];
-      const focusTopics = Array.isArray(data.focusTopics) ? data.focusTopics : [];
+      const focusTopics = Array.isArray(data.focusTopics)
+        ? data.focusTopics
+        : [];
       return {
         companyId: data.companyId || docSnap.id,
-        companyName: data.companyName || 'Unknown Company',
-        savedAt: data.savedAt?.toDate ? data.savedAt.toDate() : new Date(data.savedAt || Date.now()),
-        preparationStrategy: data.preparationStrategy || '',
+        companyName: data.companyName || "Unknown Company",
+        savedAt: data.savedAt?.toDate
+          ? data.savedAt.toDate()
+          : new Date(data.savedAt || Date.now()),
+        preparationStrategy: data.preparationStrategy || "",
         focusTopics: focusTopics as FocusTopic[],
         items: items as StrategyTodoItem[],
       } as SavedStrategyTodoList;
     });
   } catch (error) {
-    console.error(`Error fetching strategy todo lists for user ${userId}:`, error);
+    console.error(
+      `Error fetching strategy todo lists for user ${userId}:`,
+      error,
+    );
     return [];
   }
 };
@@ -333,29 +443,49 @@ export const dbGetUserStrategyTodoLists = async (userId: string): Promise<SavedS
  * @param {string} companyId - The ID of the company.
  * @returns {Promise<SavedStrategyTodoList | null>} A promise that resolves to the saved strategy to-do list, or null if not found.
  */
-export const dbGetStrategyTodoListForCompany = async (userId: string, companyId: string): Promise<SavedStrategyTodoList | null> => {
+export const dbGetStrategyTodoListForCompany = async (
+  userId: string,
+  companyId: string,
+): Promise<SavedStrategyTodoList | null> => {
   if (!userId || !companyId) return null;
-  const todoListDocRef = doc(db, 'users', userId, 'strategyTodoLists', companyId);
+  const todoListDocRef = doc(
+    db,
+    "users",
+    userId,
+    "strategyTodoLists",
+    companyId,
+  );
   try {
     const docSnap = await getDoc(todoListDocRef);
     if (docSnap.exists()) {
       const data = docSnap.data();
-      const items = Array.isArray(data.items) 
-        ? data.items.map((item: any) => ({ ...item, isCompleted: typeof item.isCompleted === 'boolean' ? item.isCompleted : false })) 
+      const items = Array.isArray(data.items)
+        ? data.items.map((item: any) => ({
+            ...item,
+            isCompleted:
+              typeof item.isCompleted === "boolean" ? item.isCompleted : false,
+          }))
         : [];
-      const focusTopics = Array.isArray(data.focusTopics) ? data.focusTopics : [];
+      const focusTopics = Array.isArray(data.focusTopics)
+        ? data.focusTopics
+        : [];
       return {
         companyId: data.companyId || companyId,
-        companyName: data.companyName || 'Unknown Company',
-        savedAt: data.savedAt?.toDate ? data.savedAt.toDate() : new Date(data.savedAt || Date.now()),
-        preparationStrategy: data.preparationStrategy || '',
+        companyName: data.companyName || "Unknown Company",
+        savedAt: data.savedAt?.toDate
+          ? data.savedAt.toDate()
+          : new Date(data.savedAt || Date.now()),
+        preparationStrategy: data.preparationStrategy || "",
         focusTopics: focusTopics as FocusTopic[],
         items: items as StrategyTodoItem[],
       } as SavedStrategyTodoList;
     }
     return null;
   } catch (error) {
-    console.error(`Error fetching strategy for company ${companyId}, user ${userId}:`, error);
+    console.error(
+      `Error fetching strategy for company ${companyId}, user ${userId}:`,
+      error,
+    );
     return null;
   }
 };
@@ -373,31 +503,46 @@ export const dbUpdateStrategyTodoItemStatus = async (
   userId: string,
   companyId: string,
   itemIndex: number,
-  isCompleted: boolean
+  isCompleted: boolean,
 ): Promise<{ success: boolean; error?: string }> => {
   if (!userId || !companyId || itemIndex < 0) {
-    return { success: false, error: 'Invalid parameters for updating todo item.' };
+    return {
+      success: false,
+      error: "Invalid parameters for updating todo item.",
+    };
   }
-  const todoListDocRef = doc(db, 'users', userId, 'strategyTodoLists', companyId);
+  const todoListDocRef = doc(
+    db,
+    "users",
+    userId,
+    "strategyTodoLists",
+    companyId,
+  );
   try {
     const docSnap = await getDoc(todoListDocRef);
     if (!docSnap.exists()) {
-      return { success: false, error: 'Todo list not found.' };
+      return { success: false, error: "Todo list not found." };
     }
     const listData = docSnap.data() as SavedStrategyTodoList;
     if (!listData.items || itemIndex >= listData.items.length) {
-      return { success: false, error: 'Item index out of bounds.' };
+      return { success: false, error: "Item index out of bounds." };
     }
-    
-    const updatedItems = listData.items.map((item, index) => 
-      index === itemIndex ? { ...item, isCompleted: isCompleted } : item
+
+    const updatedItems = listData.items.map((item, index) =>
+      index === itemIndex ? { ...item, isCompleted: isCompleted } : item,
     );
 
-    await updateDoc(todoListDocRef, { items: updatedItems, savedAt: serverTimestamp() });
+    await updateDoc(todoListDocRef, {
+      items: updatedItems,
+      savedAt: serverTimestamp(),
+    });
     return { success: true };
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to update todo item status.';
-    console.error('Error updating todo item status in Firestore:', error);
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to update todo item status.";
+    console.error("Error updating todo item status in Firestore:", error);
     return { success: false, error: message };
   }
 };

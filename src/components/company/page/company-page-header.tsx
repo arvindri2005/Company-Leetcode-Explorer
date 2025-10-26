@@ -4,9 +4,9 @@
  * This component displays navigational elements specific to the company page,
  * including breadcrumb links and a "Back to Companies" button.
  */
-import { Button } from '@/components/ui/button';
-import { ChevronLeft } from 'lucide-react';
-import Link from 'next/link';
+import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react";
+import Link from "next/link";
 
 /**
  * Props for the CompanyPageHeader component.
@@ -26,7 +26,9 @@ interface CompanyPageHeaderProps {
  * @param {CompanyPageHeaderProps} props - The props for the component.
  * @returns {JSX.Element} The rendered page header component.
  */
-export default function CompanyPageHeader({ companyName }: CompanyPageHeaderProps) {
+export default function CompanyPageHeader({
+  companyName,
+}: CompanyPageHeaderProps) {
   return (
     <div className="mb-4">
       <nav className="flex items-center gap-1 text-xs text-muted-foreground mb-3">
@@ -34,11 +36,16 @@ export default function CompanyPageHeader({ companyName }: CompanyPageHeaderProp
           Home
         </Link>
         <span>/</span>
-        <Link href="/companies" className="hover:text-foreground transition-colors">
+        <Link
+          href="/companies"
+          className="hover:text-foreground transition-colors"
+        >
           Companies
         </Link>
         <span>/</span>
-        <span className="text-foreground font-medium truncate">{companyName}</span>
+        <span className="text-foreground font-medium truncate">
+          {companyName}
+        </span>
       </nav>
       <Button asChild variant="ghost" size="sm" className="mb-3 -ml-2">
         <Link href="/companies">

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, {
   useState,
@@ -8,11 +8,11 @@ import React, {
   useContext,
   useMemo,
   type ReactNode,
-} from 'react';
+} from "react";
 
 // --- Constants ---
 const COOLDOWN_DURATION_MS = 0 * 60 * 1000; // 5 minutes
-const LOCAL_STORAGE_KEY = 'aiFeatureCooldownEndTime';
+const LOCAL_STORAGE_KEY = "aiFeatureCooldownEndTime";
 
 // --- Context Type Definition ---
 interface AICooldownContextType {
@@ -26,9 +26,9 @@ interface AICooldownContextType {
 
 // --- Create Context ---
 const CooldownInternalCtx = createContext<AICooldownContextType | undefined>(
-  undefined
+  undefined,
 );
-CooldownInternalCtx.displayName = 'AICooldownStateContext';
+CooldownInternalCtx.displayName = "AICooldownStateContext";
 
 // --- Provider Component ---
 interface CooldownStateProviderProps {
@@ -42,8 +42,8 @@ interface CooldownStateProviderProps {
  * @param {CooldownStateProviderProps} props - The props for the component.
  * @returns {JSX.Element} The provider component wrapping its children.
  */
-export const CooldownStateProvider: React.FC<CooldownStateProviderProps> = ({ 
-  children 
+export const CooldownStateProvider: React.FC<CooldownStateProviderProps> = ({
+  children,
 }) => {
   const [cooldownEndTime, setCooldownEndTime] = useState<number | null>(null);
   const [currentTime, setCurrentTime] = useState<number>(Date.now());
@@ -64,7 +64,10 @@ export const CooldownStateProvider: React.FC<CooldownStateProviderProps> = ({
         }
       }
     } catch (error) {
-      console.warn('AI Cooldown: Failed to access localStorage on mount.', error);
+      console.warn(
+        "AI Cooldown: Failed to access localStorage on mount.",
+        error,
+      );
     }
     setCooldownEndTime(storedEndTime);
     setIsLoadingCooldown(false);
@@ -85,7 +88,10 @@ export const CooldownStateProvider: React.FC<CooldownStateProviderProps> = ({
           try {
             localStorage.removeItem(LOCAL_STORAGE_KEY);
           } catch (error) {
-            console.warn('AI Cooldown: Failed to remove item from localStorage on expiry.', error);
+            console.warn(
+              "AI Cooldown: Failed to remove item from localStorage on expiry.",
+              error,
+            );
           }
           if (intervalId) clearInterval(intervalId);
         }
@@ -95,7 +101,10 @@ export const CooldownStateProvider: React.FC<CooldownStateProviderProps> = ({
       try {
         localStorage.removeItem(LOCAL_STORAGE_KEY);
       } catch (error) {
-        console.warn('AI Cooldown: Failed to remove item from localStorage (cleanup).', error);
+        console.warn(
+          "AI Cooldown: Failed to remove item from localStorage (cleanup).",
+          error,
+        );
       }
     }
 
@@ -111,36 +120,33 @@ export const CooldownStateProvider: React.FC<CooldownStateProviderProps> = ({
     try {
       localStorage.setItem(LOCAL_STORAGE_KEY, newEndTime.toString());
     } catch (error) {
-      console.warn('AI Cooldown: Failed to set item in localStorage.', error);
+      console.warn("AI Cooldown: Failed to set item in localStorage.", error);
     }
     setCooldownEndTime(newEndTime);
     setCurrentTime(Date.now());
   }, []);
 
-  const remainingTimeMs = useMemo(
-    () => {
-      if (isLoadingCooldown) return COOLDOWN_DURATION_MS;
-      if (cooldownEndTime) return Math.max(0, cooldownEndTime - currentTime);
-      return 0;
-    },
-    [isLoadingCooldown, cooldownEndTime, currentTime]
-  );
+  const remainingTimeMs = useMemo(() => {
+    if (isLoadingCooldown) return COOLDOWN_DURATION_MS;
+    if (cooldownEndTime) return Math.max(0, cooldownEndTime - currentTime);
+    return 0;
+  }, [isLoadingCooldown, cooldownEndTime, currentTime]);
 
   const canUseAI = useMemo(
     () => isLoadingCooldown || remainingTimeMs <= 0,
-    [isLoadingCooldown, remainingTimeMs]
+    [isLoadingCooldown, remainingTimeMs],
   );
 
   const formattedRemainingTime = useMemo(() => {
-    if (isLoadingCooldown && !cooldownEndTime) return '...';
-    if (remainingTimeMs <= 0) return 'Ready';
+    if (isLoadingCooldown && !cooldownEndTime) return "...";
+    if (remainingTimeMs <= 0) return "Ready";
 
     const totalSeconds = Math.ceil(remainingTimeMs / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
 
     if (minutes > 0) {
-      return `${minutes}m ${seconds.toString().padStart(2, '0')}s`;
+      return `${minutes}m ${seconds.toString().padStart(2, "0")}s`;
     }
     return `${seconds}s`;
   }, [isLoadingCooldown, remainingTimeMs, cooldownEndTime]);
@@ -157,7 +163,7 @@ export const CooldownStateProvider: React.FC<CooldownStateProviderProps> = ({
   return React.createElement(
     CooldownInternalCtx.Provider,
     { value: providerValue },
-    children
+    children,
   );
 };
 
@@ -172,7 +178,7 @@ export function useAICooldown(): AICooldownContextType {
   const context = useContext(CooldownInternalCtx);
   if (context === undefined) {
     throw new Error(
-      'useAICooldown must be used within a CooldownStateProvider. Make sure CooldownStateProvider is correctly placed in your component tree (e.g., in layout.tsx).'
+      "useAICooldown must be used within a CooldownStateProvider. Make sure CooldownStateProvider is correctly placed in your component tree (e.g., in layout.tsx).",
     );
   }
   return context;

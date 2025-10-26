@@ -1,11 +1,30 @@
-
 // src/components/sections/home-features-grid.tsx
-'use client'; // Keep as client component if FeatureCard or any child needs client-side interactivity
+"use client"; // Keep as client component if FeatureCard or any child needs client-side interactivity
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { ArrowRight, Bot, Brain, CheckSquare, BarChart3, Search, Sparkles, BookOpenCheck, FileSpreadsheet, Palette, Users, PlusSquare } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import {
+  ArrowRight,
+  Bot,
+  Brain,
+  CheckSquare,
+  BarChart3,
+  Search,
+  Sparkles,
+  BookOpenCheck,
+  FileSpreadsheet,
+  Palette,
+  Users,
+  PlusSquare,
+} from "lucide-react";
 
 /**
  * @interface FeatureCardProps
@@ -30,7 +49,13 @@ interface FeatureCardProps {
  * @param {FeatureCardProps} props - The props for the component.
  * @returns {JSX.Element} The rendered feature card.
  */
-const FeatureCard: React.FC<FeatureCardProps> = ({ icon: Icon, title, description, link, linkText }) => (
+const FeatureCard: React.FC<FeatureCardProps> = ({
+  icon: Icon,
+  title,
+  description,
+  link,
+  linkText,
+}) => (
   <Card className="flex flex-col h-full shadow-lg hover:shadow-xl transition-shadow duration-300">
     <CardHeader className="flex flex-row items-start gap-4 pb-4">
       <div className="p-3 rounded-md bg-primary/10 text-primary">
@@ -38,7 +63,9 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon: Icon, title, descriptio
       </div>
       <div>
         <CardTitle className="text-xl mb-1">{title}</CardTitle>
-        <CardDescription className="text-sm leading-relaxed">{description}</CardDescription>
+        <CardDescription className="text-sm leading-relaxed">
+          {description}
+        </CardDescription>
       </div>
     </CardHeader>
     <CardContent className="flex-grow" />
@@ -61,7 +88,9 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon: Icon, title, descriptio
 export const HomeFeaturesGrid = () => {
   return (
     <section className="container mx-auto px-4">
-      <h2 className="text-3xl font-bold text-center mb-10 tracking-tight">Discover Our Powerful Features</h2>
+      <h2 className="text-3xl font-bold text-center mb-10 tracking-tight">
+        Discover Our Powerful Features
+      </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <FeatureCard
           icon={Search}

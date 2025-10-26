@@ -1,11 +1,10 @@
+"use client";
 
-'use client';
-
-import React from 'react';
-import type { LeetCodeProblem, ProblemStatus } from '@/types';
-import ProblemCard from '@/components/problem/problem-card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2 } from 'lucide-react';
+import React from "react";
+import type { LeetCodeProblem, ProblemStatus } from "@/types";
+import ProblemCard from "@/components/problem/problem-card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Loader2 } from "lucide-react";
 
 /**
  * @interface ProblemWithStatusAndBookmark
@@ -33,7 +32,7 @@ interface ProfileProblemListProps {
   title: string;
   problems: ProblemWithStatusAndBookmark[];
   isLoading: boolean;
-  listType: 'bookmarks' | 'status'; // To differentiate handling slightly if needed
+  listType: "bookmarks" | "status"; // To differentiate handling slightly if needed
   onBookmarkChanged?: (problemId: string, newStatus: boolean) => void;
   onProblemStatusChange?: (problemId: string, newStatus: ProblemStatus) => void;
   companySlugForProblemCard?: string; // If all problems belong to one company, for fallback
@@ -51,7 +50,7 @@ const ProfileProblemList: React.FC<ProfileProblemListProps> = ({
   isLoading,
   onBookmarkChanged,
   onProblemStatusChange,
-  companySlugForProblemCard
+  companySlugForProblemCard,
 }) => {
   if (isLoading) {
     return (
@@ -64,19 +63,27 @@ const ProfileProblemList: React.FC<ProfileProblemListProps> = ({
   }
 
   if (problems.length === 0) {
-    return <p className="text-muted-foreground text-center py-6">No problems in this list yet.</p>;
+    return (
+      <p className="text-muted-foreground text-center py-6">
+        No problems in this list yet.
+      </p>
+    );
   }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {problems.map(problem => (
+      {problems.map((problem) => (
         <ProblemCard
           key={problem.id}
           problem={problem}
-          companySlug={problem.companySlug || companySlugForProblemCard || 'unknown-company'}
+          companySlug={
+            problem.companySlug ||
+            companySlugForProblemCard ||
+            "unknown-company"
+          }
           initialIsBookmarked={problem.isBookmarked}
           onBookmarkChanged={onBookmarkChanged}
-          problemStatus={problem.currentStatus || 'none'}
+          problemStatus={problem.currentStatus || "none"}
           onProblemStatusChange={onProblemStatusChange}
         />
       ))}

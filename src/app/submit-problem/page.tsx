@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Defines the page for users to submit a new coding interview problem.
  *
@@ -6,10 +5,10 @@
  * to contribute new coding problems to the platform. It fetches a list of all
  * companies to populate a dropdown in the form and includes metadata for SEO.
  */
-import ProblemSubmissionForm from '@/components/problem/problem-submission-form';
-import { getCompanies } from '@/lib/data';
-import type { Company } from '@/types';
-import { Separator } from '@/components/ui/separator';
+import ProblemSubmissionForm from "@/components/problem/problem-submission-form";
+import { getCompanies } from "@/lib/data";
+import type { Company } from "@/types";
+import { Separator } from "@/components/ui/separator";
 
 /**
  * Metadata for the "Submit Problem" page.
@@ -19,8 +18,9 @@ import { Separator } from '@/components/ui/separator';
  * @type {import('next').Metadata}
  */
 export const metadata = {
-  title: 'Submit New Interview Problem',
-  description: 'Contribute to Byte To Offer by submitting a new interview problem. Share your knowledge with the community and help others prepare for their tech interviews.',
+  title: "Submit New Interview Problem",
+  description:
+    "Contribute to Byte To Offer by submitting a new interview problem. Share your knowledge with the community and help others prepare for their tech interviews.",
 };
 
 /**
@@ -41,13 +41,17 @@ export default async function SubmitProblemPage() {
   return (
     <section className="space-y-8 max-w-2xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Submit a New Interview Problem</h1>
+        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
+          Submit a New Interview Problem
+        </h1>
         <p className="mt-2 text-lg text-muted-foreground">
-          Contribute to the collection by adding a new problem. Please ensure the information is accurate.
+          Contribute to the collection by adding a new problem. Please ensure
+          the information is accurate.
         </p>
-        {companiesData.totalCompanies > 200 && (
+        {companiesData.totalCompanies && companiesData.totalCompanies > 200 && (
           <p className="mt-1 text-sm text-amber-700 dark:text-amber-500">
-            Note: Displaying the first 200 companies. Future enhancements could include a searchable dropdown.
+            Note: Displaying the first 200 companies. Future enhancements could
+            include a searchable dropdown.
           </p>
         )}
       </div>
@@ -56,4 +60,3 @@ export default async function SubmitProblemPage() {
     </section>
   );
 }
-

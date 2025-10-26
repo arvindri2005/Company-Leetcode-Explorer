@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Defines the global error boundary for the application.
  *
@@ -7,13 +6,20 @@
  * for debugging purposes and offers the user options to retry the action or navigate
  * to the homepage. This file is part of Next.js's file-based error handling convention.
  */
-'use client'; // Error components must be Client Components
+"use client"; // Error components must be Client Components
 
-import { useEffect } from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEffect } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, Home, RefreshCw } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 /**
  * Renders a fallback UI when an unhandled error is caught anywhere in the application.
@@ -47,7 +53,9 @@ export default function GlobalError({
           <div className="flex justify-center mb-4">
             <AlertTriangle className="h-16 w-16 text-destructive" />
           </div>
-          <CardTitle className="text-3xl font-bold text-destructive">Oops! Something Went Wrong</CardTitle>
+          <CardTitle className="text-3xl font-bold text-destructive">
+            Oops! Something Went Wrong
+          </CardTitle>
           <CardDescription className="text-lg text-muted-foreground">
             We encountered an unexpected issue. Please try again.
           </CardDescription>
@@ -55,9 +63,10 @@ export default function GlobalError({
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
             Error details (for developers): {error.message}
-            {error.digest && <span className="block text-xs mt-1">Digest: {error.digest}</span>}
+            {error.digest && (
+              <span className="block text-xs mt-1">Digest: {error.digest}</span>
+            )}
           </p>
-          
         </CardContent>
         <CardFooter className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button

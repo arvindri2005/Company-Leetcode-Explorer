@@ -5,12 +5,27 @@
  * triggering data recalculations, and managing cache revalidation for specific parts of the site.
  * These actions are protected and should only be callable by authenticated admin users.
  */
-'use server';
+"use server";
 
-import { doc, getDoc, collection, getDocs, updateDoc, serverTimestamp, writeBatch, query } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import type { Company, LeetCodeProblem, DifficultyFilter, LastAskedPeriod, LastAskedFilter } from '@/types';
-import { getProblemsByCompanyFromDb } from '@/lib/data'; // Assuming this can fetch all problems
+import {
+  doc,
+  getDoc,
+  collection,
+  getDocs,
+  updateDoc,
+  serverTimestamp,
+  writeBatch,
+  query,
+} from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import type {
+  Company,
+  LeetCodeProblem,
+  DifficultyFilter,
+  LastAskedPeriod,
+  LastAskedFilter,
+} from "@/types";
+import { getProblemsByCompanyFromDb } from "@/lib/data"; // Assuming this can fetch all problems
 
 /**
  * Checks if a user is an administrator by looking up their UID in the 'admins' collection.
@@ -22,20 +37,21 @@ export async function checkUserAdminStatus(userId: string): Promise<boolean> {
     return false;
   }
   if (!db) {
-    console.error("Firestore database instance is not available in checkUserAdminStatus.");
+    console.error(
+      "Firestore database instance is not available in checkUserAdminStatus.",
+    );
     return false;
   }
 
   try {
-    const adminDocRef = doc(db, 'admins', userId);
+    const adminDocRef = doc(db, "admins", userId);
     const adminDocSnap = await getDoc(adminDocRef);
     return adminDocSnap.exists() && adminDocSnap.data()?.isAdmin === true;
   } catch (error) {
-    console.error('Error checking admin status:', error);
+    console.error("Error checking admin status:", error);
     return false;
   }
 }
-
 
 /**
  * Recalculates and updates problem statistics for all companies in the database.
@@ -58,29 +74,49 @@ export async function triggerAllCompanyProblemStatsUpdate(): Promise<{
 }> {
   console.log("Starting update of all company problem statistics...");
   if (!db) {
-    return { success: false, message: "Firestore database instance is not available." };
+    return {
+      success: false,
+      message: "Firestore database instance is not available.",
+    };
   }
 
   let updatedCount = 0;
-  const errorList: { companyId: string; companyName: string; error: string }[] = [];
+  const errorList: { companyId: string; companyName: string; error: string }[] =
+    [];
 
   try {
-    const companiesSnapshot = await getDocs(collection(db, 'companies'));
-    const companyIdsAndNames = companiesSnapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name as string}));
+    const companiesSnapshot = await getDocs(collection(db, "companies"));
+    const companyIdsAndNames = companiesSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      name: doc.data().name as string,
+    }));
 
     if (companyIdsAndNames.length === 0) {
-      return { success: true, message: "No companies found to update.", updatedCompaniesCount: 0 };
+      return {
+        success: true,
+        message: "No companies found to update.",
+        updatedCompaniesCount: 0,
+      };
     }
 
-    console.log(`Found ${companyIdsAndNames.length} companies. Processing stats...`);
+    console.log(
+      `Found ${companyIdsAndNames.length} companies. Processing stats...`,
+    );
 
     for (const companyInfo of companyIdsAndNames) {
       try {
-        const problemsResponse = await getProblemsByCompanyFromDb(companyInfo.id, { pageSize: 10000 }); // Fetch all problems
+        const problemsResponse = await getProblemsByCompanyFromDb(
+          companyInfo.id,
+          { pageSize: 10000 },
+        ); // Fetch all problems
         const problems = problemsResponse.problems;
 
-        const newDifficultyCounts: Required<Company['difficultyCounts']> = { Easy: 0, Medium: 0, Hard: 0 };
-        const newRecencyCounts: Required<Company['recencyCounts']> = {
+        const newDifficultyCounts: Required<Company["difficultyCounts"]> = {
+          Easy: 0,
+          Medium: 0,
+          Hard: 0,
+        };
+        const newRecencyCounts: Required<Company["recencyCounts"]> = {
           last_30_days: 0,
           within_3_months: 0,
           within_6_months: 0,
@@ -88,12 +124,12 @@ export async function triggerAllCompanyProblemStatsUpdate(): Promise<{
         };
         const tagFrequency: Record<string, number> = {};
 
-        problems.forEach(problem => {
+        problems.forEach((problem) => {
           newDifficultyCounts[problem.difficulty]++;
           if (problem.lastAskedPeriod) {
             newRecencyCounts[problem.lastAskedPeriod]++;
           }
-          problem.tags.forEach(tag => {
+          problem.tags.forEach((tag) => {
             tagFrequency[tag] = (tagFrequency[tag] || 0) + 1;
           });
         });
@@ -103,7 +139,7 @@ export async function triggerAllCompanyProblemStatsUpdate(): Promise<{
           .slice(0, 7) // Get top 7 common tags
           .map(([tag, count]) => ({ tag, count }));
 
-        const companyDocRef = doc(db, 'companies', companyInfo.id);
+        const companyDocRef = doc(db, "companies", companyInfo.id);
         await updateDoc(companyDocRef, {
           difficultyCounts: newDifficultyCounts,
           recencyCounts: newRecencyCounts,
@@ -112,20 +148,37 @@ export async function triggerAllCompanyProblemStatsUpdate(): Promise<{
           statsLastUpdatedAt: serverTimestamp(),
         });
         updatedCount++;
-        console.log(`Successfully updated stats for company: ${companyInfo.name} (ID: ${companyInfo.id})`);
+        console.log(
+          `Successfully updated stats for company: ${companyInfo.name} (ID: ${companyInfo.id})`,
+        );
       } catch (e: any) {
-        console.error(`Error updating stats for company ${companyInfo.name} (ID: ${companyInfo.id}):`, e);
-        errorList.push({ companyId: companyInfo.id, companyName: companyInfo.name, error: e.message || String(e) });
+        console.error(
+          `Error updating stats for company ${companyInfo.name} (ID: ${companyInfo.id}):`,
+          e,
+        );
+        errorList.push({
+          companyId: companyInfo.id,
+          companyName: companyInfo.name,
+          error: e.message || String(e),
+        });
       }
     }
 
-    const message = `Successfully updated stats for ${updatedCount} companies. ${errorList.length > 0 ? `${errorList.length} companies failed.` : ''}`;
+    const message = `Successfully updated stats for ${updatedCount} companies. ${errorList.length > 0 ? `${errorList.length} companies failed.` : ""}`;
     console.log(message);
-    return { success: true, message, updatedCompaniesCount: updatedCount, errors: errorList.length > 0 ? errorList : undefined };
-
+    return {
+      success: true,
+      message,
+      updatedCompaniesCount: updatedCount,
+      errors: errorList.length > 0 ? errorList : undefined,
+    };
   } catch (error: any) {
-    console.error('Failed to trigger company problem stats update:', error);
-    return { success: false, message: `An error occurred: ${error.message}`, errors: errorList };
+    console.error("Failed to trigger company problem stats update:", error);
+    return {
+      success: false,
+      message: `An error occurred: ${error.message}`,
+      errors: errorList,
+    };
   }
 }
 
@@ -140,32 +193,37 @@ export async function triggerAllCompanyProblemStatsUpdate(): Promise<{
  * @returns {Promise<{success: boolean; error?: string}>} An object indicating whether the
  * revalidation request was successfully initiated.
  */
-export async function triggerRevalidation(path: string): Promise<{ success: boolean; error?: string }> {
+export async function triggerRevalidation(
+  path: string,
+): Promise<{ success: boolean; error?: string }> {
   const revalidationToken = process.env.REVALIDATION_TOKEN;
   if (!revalidationToken) {
-    throw new Error('REVALIDATION_TOKEN is not set');
+    throw new Error("REVALIDATION_TOKEN is not set");
   }
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/revalidate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/revalidate`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token: revalidationToken,
+          path,
+        }),
       },
-      body: JSON.stringify({
-        token: revalidationToken,
-        path
-      })
-    });
+    );
 
     if (!response.ok) {
-      throw new Error('Failed to revalidate');
+      throw new Error("Failed to revalidate");
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Revalidation error:', error);
-    return { success: false, error: 'Failed to revalidate' };
+    console.error("Revalidation error:", error);
+    return { success: false, error: "Failed to revalidate" };
   }
 }
 
@@ -177,6 +235,5 @@ export async function triggerRevalidation(path: string): Promise<{ success: bool
  * @returns {Promise<{success: boolean; error?: string}>} The result of the revalidation request.
  */
 export async function triggerCompaniesRevalidation() {
-  return triggerRevalidation('/companies');
+  return triggerRevalidation("/companies");
 }
-

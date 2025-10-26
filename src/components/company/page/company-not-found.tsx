@@ -5,9 +5,9 @@
  * associated with a given slug could not be located. It provides a clear
  * call-to-action to navigate back to the main companies list.
  */
-import { Button } from '@/components/ui/button';
-import { Building2, ChevronLeft } from 'lucide-react';
-import Link from 'next/link';
+import { Button } from "@/components/ui/button";
+import { Building2, ChevronLeft } from "lucide-react";
+import Link from "next/link";
 
 /**
  * Props for the CompanyNotFound component.
@@ -33,7 +33,8 @@ export default function CompanyNotFound({ companySlug }: CompanyNotFoundProps) {
       <Building2 className="h-12 w-12 text-muted-foreground mb-3" />
       <h1 className="text-xl font-semibold mb-2">Company Not Found</h1>
       <p className="text-muted-foreground text-sm mb-4 max-w-sm">
-        The company you're looking for (slug: {companySlug}) doesn't exist or may have been removed.
+        The company you're looking for (slug: {companySlug}) doesn't exist or
+        may have been removed.
       </p>
       <Button asChild variant="outline" size="sm">
         <Link href="/companies">

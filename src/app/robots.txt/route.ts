@@ -20,9 +20,9 @@
  * content with a `text/plain` content type.
  */
 export async function GET() {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 
-    const robotsTxtContent = `
+  const robotsTxtContent = `
 # robots.txt for ${appUrl}
 # Last updated: ${new Date().toISOString().split("T")[0]}
 # This file tells search engines what to crawl and what to avoid
@@ -38,9 +38,9 @@ Allow: /
 Sitemap: ${appUrl}/sitemap.xml
 `;
 
-    return new Response(robotsTxtContent.trim(), {
-        headers: {
-            "Content-Type": "text/plain",
-        },
-    });
+  return new Response(robotsTxtContent.trim(), {
+    headers: {
+      "Content-Type": "text/plain",
+    },
+  });
 }

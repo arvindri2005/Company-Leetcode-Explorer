@@ -18,9 +18,9 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
  * Ensures that `name`, `email`, and `message` fields are present and correctly formatted.
  */
 const contactSchema = z.object({
-    name: z.string().min(1, "Name is required"),
-    email: z.string().email("Invalid email address"),
-    message: z.string().min(1, "Message is required"),
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email address"),
+  message: z.string().min(1, "Message is required"),
 });
 
 /**
@@ -40,37 +40,38 @@ const contactSchema = z.object({
  * errors or a success/failure message.
  */
 export async function sendContactMessage(prevState: any, formData: FormData) {
-    const validatedFields = contactSchema.safeParse({
-        name: formData.get("name"),
-        email: formData.get("email"),
-        message: formData.get("message"),
+  const validatedFields = contactSchema.safeParse({
+    name: formData.get("name"),
+    email: formData.get("email"),
+    message: formData.get("message"),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  if (!db) {
+    return {
+      message: "Database not available. Please try again later.",
+    };
+  }
+
+  try {
+    await addDoc(collection(db, "contact-messages"), {
+      ...validatedFields.data,
+      createdAt: serverTimestamp(),
     });
 
-    if (!validatedFields.success) {
-        return {
-            errors: validatedFields.error.flatten().fieldErrors,
-        };
-    }
-
-    if (!db) {
-        return {
-            message: "Database not available. Please try again later.",
-        };
-    }
-
-    try {
-        await addDoc(collection(db, "contact-messages"), {
-            ...validatedFields.data,
-            createdAt: serverTimestamp(),
-        });
-
-        return {
-            message: "Your message has been sent successfully!",
-        };
-    } catch (error) {
-        console.error("Error saving contact message:", error);
-        return {
-            message: "An error occurred while sending your message. Please try again later.",
-        };
-    }
+    return {
+      message: "Your message has been sent successfully!",
+    };
+  } catch (error) {
+    console.error("Error saving contact message:", error);
+    return {
+      message:
+        "An error occurred while sending your message. Please try again later.",
+    };
+  }
 }

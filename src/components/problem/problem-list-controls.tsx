@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview A client-side component for filtering and sorting a list of problems.
  *
@@ -7,14 +6,25 @@
  * recency, and status, as well as sort the list. It is a controlled component,
  * with its state managed by a parent.
  */
-'use client';
+"use client";
 
-import type { DifficultyFilter, SortKey, LastAskedFilter, StatusFilter } from '@/types';
-import { lastAskedPeriodOptions, PROBLEM_STATUS_OPTIONS } from '@/types';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Filter, ArrowUpDown, CalendarDays, CheckSquare } from 'lucide-react';
-import React from 'react';
+import type {
+  DifficultyFilter,
+  SortKey,
+  LastAskedFilter,
+  StatusFilter,
+} from "@/types";
+import { lastAskedPeriodOptions, PROBLEM_STATUS_OPTIONS } from "@/types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Filter, ArrowUpDown, CalendarDays, CheckSquare } from "lucide-react";
+import React from "react";
 
 /**
  * Props for the ProblemListControls component.
@@ -59,7 +69,9 @@ const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
   problemCount,
   showStatusFilter = false,
 }) => {
-  const statusOptionsToDisplay = PROBLEM_STATUS_OPTIONS.filter(opt => opt.value !== 'none');
+  const statusOptionsToDisplay = PROBLEM_STATUS_OPTIONS.filter(
+    (opt) => opt.value !== "none",
+  );
 
   return (
     <div className="mb-6 p-4 bg-card rounded-xl shadow space-y-4">
@@ -91,38 +103,56 @@ const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
       <div className="flex flex-col sm:flex-row gap-4 sm:items-end justify-between">
         <div className="flex flex-col sm:flex-row flex-wrap gap-4">
           <div>
-                <Label htmlFor="difficulty-filter" className="mb-1.5 flex items-center text-sm font-medium">
-                  <Filter size={16} className="mr-2 text-muted-foreground" /> Filter by Difficulty
-                </Label>
-                <Select
-                  value={difficultyFilter}
-                  onValueChange={(value) => onDifficultyFilterChange(value as DifficultyFilter)}
-                >
-                  <SelectTrigger id="difficulty-filter" className="w-full sm:w-[180px] rounded-full">
-                  <SelectValue placeholder="Select difficulty" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-lg">
-                  <SelectItem value="all">All Difficulties</SelectItem>
-                  <SelectItem value="Easy">Easy</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="Hard">Hard</SelectItem>
-                  </SelectContent>
-                </Select>
-                </div>
+            <Label
+              htmlFor="difficulty-filter"
+              className="mb-1.5 flex items-center text-sm font-medium"
+            >
+              <Filter size={16} className="mr-2 text-muted-foreground" /> Filter
+              by Difficulty
+            </Label>
+            <Select
+              value={difficultyFilter}
+              onValueChange={(value) =>
+                onDifficultyFilterChange(value as DifficultyFilter)
+              }
+            >
+              <SelectTrigger
+                id="difficulty-filter"
+                className="w-full sm:w-[180px] rounded-full"
+              >
+                <SelectValue placeholder="Select difficulty" />
+              </SelectTrigger>
+              <SelectContent className="rounded-lg">
+                <SelectItem value="all">All Difficulties</SelectItem>
+                <SelectItem value="Easy">Easy</SelectItem>
+                <SelectItem value="Medium">Medium</SelectItem>
+                <SelectItem value="Hard">Hard</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div>
-            <Label htmlFor="last-asked-filter" className="mb-1.5 flex items-center text-sm font-medium">
-              <CalendarDays size={16} className="mr-2 text-muted-foreground" /> Filter by Last Asked
+            <Label
+              htmlFor="last-asked-filter"
+              className="mb-1.5 flex items-center text-sm font-medium"
+            >
+              <CalendarDays size={16} className="mr-2 text-muted-foreground" />{" "}
+              Filter by Last Asked
             </Label>
             <Select
               value={lastAskedFilter}
-              onValueChange={(value) => onLastAskedFilterChange(value as LastAskedFilter)}
+              onValueChange={(value) =>
+                onLastAskedFilterChange(value as LastAskedFilter)
+              }
             >
-              <SelectTrigger id="last-asked-filter" className="w-full sm:w-[200px]">
+              <SelectTrigger
+                id="last-asked-filter"
+                className="w-full sm:w-[200px]"
+              >
                 <SelectValue placeholder="Select period" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Periods</SelectItem>
-                {lastAskedPeriodOptions.map(option => (
+                {lastAskedPeriodOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
                   </SelectItem>
@@ -132,22 +162,31 @@ const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
           </div>
           {showStatusFilter && (
             <div>
-              <Label htmlFor="status-filter" className="mb-1.5 flex items-center text-sm font-medium">
-                <CheckSquare size={16} className="mr-2 text-muted-foreground" /> Filter by Status
+              <Label
+                htmlFor="status-filter"
+                className="mb-1.5 flex items-center text-sm font-medium"
+              >
+                <CheckSquare size={16} className="mr-2 text-muted-foreground" />{" "}
+                Filter by Status
               </Label>
               <Select
                 value={statusFilter}
-                onValueChange={(value) => onStatusFilterChange(value as StatusFilter)}
+                onValueChange={(value) =>
+                  onStatusFilterChange(value as StatusFilter)
+                }
               >
-                <SelectTrigger id="status-filter" className="w-full sm:w-[180px]">
+                <SelectTrigger
+                  id="status-filter"
+                  className="w-full sm:w-[180px]"
+                >
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
-                  {statusOptionsToDisplay.map(option => (
-                     <SelectItem key={option.value} value={option.value}>
-                       {option.label}
-                     </SelectItem>
+                  {statusOptionsToDisplay.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
                   ))}
                   <SelectItem value="none">No Status</SelectItem>
                 </SelectContent>
@@ -155,8 +194,12 @@ const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
             </div>
           )}
           <div>
-            <Label htmlFor="sort-key" className="mb-1.5 flex items-center text-sm font-medium">
-              <ArrowUpDown size={16} className="mr-2 text-muted-foreground" /> Sort by
+            <Label
+              htmlFor="sort-key"
+              className="mb-1.5 flex items-center text-sm font-medium"
+            >
+              <ArrowUpDown size={16} className="mr-2 text-muted-foreground" />{" "}
+              Sort by
             </Label>
             <Select
               value={sortKey}
@@ -167,7 +210,9 @@ const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="title">Title (A-Z)</SelectItem>
-                <SelectItem value="difficulty">Difficulty (Easy-Hard)</SelectItem>
+                <SelectItem value="difficulty">
+                  Difficulty (Easy-Hard)
+                </SelectItem>
                 <SelectItem value="lastAsked">Last Asked (Newest)</SelectItem>
               </SelectContent>
             </Select>

@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Defines a component for switching between light, dark, and system themes.
  *
@@ -7,19 +6,19 @@
  * explicit list of buttons for mobile navigation menus. It uses the `next-themes`
  * library to manage the theme state.
  */
-'use client';
+"use client";
 
-import * as React from 'react';
-import { Moon, Sun, Monitor } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import * as React from "react";
+import { Moon, Sun, Monitor } from "lucide-react";
+import { useTheme } from "next-themes";
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 
 /**
  * Props for the ThemeSwitcher component.
@@ -48,16 +47,18 @@ interface ThemeSwitcherProps {
 export function ThemeSwitcher({ isMobile = false }: ThemeSwitcherProps) {
   const { setTheme, resolvedTheme } = useTheme();
 
-  const ThemeIcon = resolvedTheme === 'dark' ? Moon : Sun;
+  const ThemeIcon = resolvedTheme === "dark" ? Moon : Sun;
 
   if (isMobile) {
     return (
       <div className="space-y-1 pt-2 border-t mt-2">
-        <p className="px-4 text-xs text-muted-foreground uppercase font-semibold">Theme</p>
+        <p className="px-4 text-xs text-muted-foreground uppercase font-semibold">
+          Theme
+        </p>
         <Button
           variant="ghost"
           className="w-full justify-start text-base py-3"
-          onClick={() => setTheme('light')}
+          onClick={() => setTheme("light")}
         >
           <Sun className="mr-2 h-5 w-5" />
           Light
@@ -65,7 +66,7 @@ export function ThemeSwitcher({ isMobile = false }: ThemeSwitcherProps) {
         <Button
           variant="ghost"
           className="w-full justify-start text-base py-3"
-          onClick={() => setTheme('dark')}
+          onClick={() => setTheme("dark")}
         >
           <Moon className="mr-2 h-5 w-5" />
           Dark
@@ -73,7 +74,7 @@ export function ThemeSwitcher({ isMobile = false }: ThemeSwitcherProps) {
         <Button
           variant="ghost"
           className="w-full justify-start text-base py-3"
-          onClick={() => setTheme('system')}
+          onClick={() => setTheme("system")}
         >
           <Monitor className="mr-2 h-5 w-5" />
           System
@@ -92,15 +93,15 @@ export function ThemeSwitcher({ isMobile = false }: ThemeSwitcherProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme('light')}>
+        <DropdownMenuItem onClick={() => setTheme("light")}>
           <Sun className="mr-2 h-4 w-4" />
           Light
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('dark')}>
+        <DropdownMenuItem onClick={() => setTheme("dark")}>
           <Moon className="mr-2 h-4 w-4" />
           Dark
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('system')}>
+        <DropdownMenuItem onClick={() => setTheme("system")}>
           <Monitor className="mr-2 h-4 w-4" />
           System
         </DropdownMenuItem>

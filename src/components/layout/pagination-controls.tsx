@@ -5,13 +5,13 @@
  * page numbers, previous/next buttons, and ellipses for large page ranges.
  * It is designed to work with URL search parameters to construct the correct links.
  */
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
-import React from 'react';
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import React from "react";
 
 /**
  * Props for the PaginationControls component.
@@ -44,7 +44,7 @@ const PaginationControlsComponent: React.FC<PaginationControlsProps> = ({
 
   const createPageURL = (pageNumber: number | string) => {
     const params = new URLSearchParams(searchParams);
-    params.set('page', pageNumber.toString());
+    params.set("page", pageNumber.toString());
     return `${basePath}?${params.toString()}`;
   };
 
@@ -66,11 +66,11 @@ const PaginationControlsComponent: React.FC<PaginationControlsProps> = ({
     if (endPage - startPage + 1 < maxVisiblePages) {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
-    
+
     if (startPage > 1) {
       pageNumbers.push(1);
       if (startPage > 2) {
-        pageNumbers.push('...');
+        pageNumbers.push("...");
       }
     }
 
@@ -80,7 +80,7 @@ const PaginationControlsComponent: React.FC<PaginationControlsProps> = ({
 
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
-        pageNumbers.push('...');
+        pageNumbers.push("...");
       }
       pageNumbers.push(totalPages);
     }
@@ -96,11 +96,11 @@ const PaginationControlsComponent: React.FC<PaginationControlsProps> = ({
       </Button>
 
       {pageNumbers.map((page, index) =>
-        typeof page === 'number' ? (
+        typeof page === "number" ? (
           <Button
             key={`page-${page}`}
             asChild
-            variant={currentPage === page ? 'default' : 'outline'}
+            variant={currentPage === page ? "default" : "outline"}
             size="sm"
           >
             <Link href={createPageURL(page)} scroll={false}>
@@ -111,10 +111,15 @@ const PaginationControlsComponent: React.FC<PaginationControlsProps> = ({
           <span key={`ellipsis-${index}`} className="px-2 py-1 text-sm">
             {page}
           </span>
-        )
+        ),
       )}
 
-      <Button asChild variant="outline" size="sm" disabled={currentPage >= totalPages}>
+      <Button
+        asChild
+        variant="outline"
+        size="sm"
+        disabled={currentPage >= totalPages}
+      >
         <Link href={createPageURL(currentPage + 1)} scroll={false}>
           Next
           <ChevronRight className="ml-1 h-4 w-4" />

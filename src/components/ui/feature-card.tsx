@@ -1,4 +1,4 @@
-import { FeatureCardProps } from '@/types';
+import { FeatureCardProps } from "@/types";
 
 /**
  * @function FeatureCard

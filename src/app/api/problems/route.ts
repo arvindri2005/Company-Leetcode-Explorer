@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview API route for fetching a paginated and filtered list of problems for a company.
  *
@@ -7,9 +6,14 @@
  * pagination, various filters (difficulty, recency, status, search term), and
  * sorting. It uses Zod for robust input validation.
  */
-import { NextResponse } from 'next/server';
-import { getProblemsByCompanyFromDb } from '@/lib/data';
-import { z } from 'zod';
+import { NextResponse } from "next/server";
+import { getProblemsByCompanyFromDb } from "@/lib/data";
+import { z } from "zod";
+import type {
+  DifficultyFilter,
+  LastAskedFilter,
+  SortKey,
+} from "@/types";
 
 /**
  * Zod schema for validating the incoming request body for fetching problems.
@@ -22,14 +26,15 @@ const problemRequestSchema = z.object({
   companyId: z.string(),
   cursor: z.string().optional(),
   pageSize: z.number().min(1).max(50).default(15),
-  filters: z.object({
-    difficultyFilter: z.string().optional(),
-    lastAskedFilter: z.string().optional(),
-    statusFilter: z.string().optional(),
-    searchTerm: z.string().optional(),
-    sortKey: z.string().optional(),
-  }).optional(),
-  userId: z.string().optional(),
+  filters: z
+    .object({
+      difficultyFilter: z.string().optional(),
+      lastAskedFilter: z.string().optional(),
+      statusFilter: z.string().optional(),
+      searchTerm: z.string().optional(),
+      sortKey: z.string().optional(),
+    })
+    .optional(),
 });
 
 /**
@@ -50,22 +55,34 @@ export async function POST(request: Request) {
     const parsedRequest = problemRequestSchema.safeParse(body);
 
     if (!parsedRequest.success) {
-      return NextResponse.json({ error: 'Invalid request body', details: parsedRequest.error.format() }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "Invalid request body",
+          details: parsedRequest.error.format(),
+        },
+        { status: 400 },
+      );
     }
 
-    const { companyId, cursor, pageSize, filters, userId } = parsedRequest.data;
+    const { companyId, cursor, pageSize, filters } = parsedRequest.data;
 
     const result = await getProblemsByCompanyFromDb(companyId, {
       cursor,
       pageSize,
-      filters,
-      userId,
+      difficultyFilter: filters?.difficultyFilter as DifficultyFilter,
+      lastAskedFilter: filters?.lastAskedFilter as LastAskedFilter,
+      searchTerm: filters?.searchTerm,
+      sortKey: filters?.sortKey as SortKey,
     });
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Error in /api/problems:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    return NextResponse.json({ error: 'Failed to fetch problems', details: errorMessage }, { status: 500 });
+    console.error("Error in /api/problems:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "An unknown error occurred";
+    return NextResponse.json(
+      { error: "Failed to fetch problems", details: errorMessage },
+      { status: 500 },
+    );
   }
 }

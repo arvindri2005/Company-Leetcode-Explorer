@@ -25,66 +25,66 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
  * @type {Metadata}
  */
 export const metadata: Metadata = {
-    title: "Byte to offer",
+  title: "Byte to offer",
+  description:
+    "Master coding interviews with AI-driven tools. Explore company-specific interview questions (Google, Amazon, Meta), engage in mock interviews, get personalized strategies, and practice for top tech companies. Your ultimate resource for software engineering interview preparation.",
+  keywords: [
+    "LeetCode Interview Questions",
+    "Company Coding Questions",
+    "Google LeetCode",
+    "Amazon LeetCode",
+    "Meta LeetCode",
+    "AI Interview Prep",
+    "Software Engineer Interview",
+    "Technical Interview Practice",
+    "Data Structures",
+    "Algorithms",
+  ],
+  openGraph: {
+    title: "Byte to Offer",
     description:
-        "Master coding interviews with AI-driven tools. Explore company-specific interview questions (Google, Amazon, Meta), engage in mock interviews, get personalized strategies, and practice for top tech companies. Your ultimate resource for software engineering interview preparation.",
-    keywords: [
-        "LeetCode Interview Questions",
-        "Company Coding Questions",
-        "Google LeetCode",
-        "Amazon LeetCode",
-        "Meta LeetCode",
-        "AI Interview Prep",
-        "Software Engineer Interview",
-        "Technical Interview Practice",
-        "Data Structures",
-        "Algorithms",
+      "Your ultimate hub for targeted coding interview preparation. AI mock interviews, problem insights, company-specific interview questions, and more.",
+    type: "website",
+    url: APP_URL,
+    images: [
+      {
+        url: `${APP_URL}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: "Byte to Offer - AI-Powered Interview Prep",
+      },
     ],
-    openGraph: {
-        title: "Byte to Offer",
-        description:
-            "Your ultimate hub for targeted coding interview preparation. AI mock interviews, problem insights, company-specific interview questions, and more.",
-        type: "website",
-        url: APP_URL,
-        images: [
-            {
-                url: `${APP_URL}/og-image.png`,
-                width: 1200,
-                height: 630,
-                alt: "Byte to Offer - AI-Powered Interview Prep",
-            },
-        ],
-    },
-    alternates: {
-        canonical: APP_URL,
-    },
-    other: {
-        'script[type="application/ld+json"]': JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            url: APP_URL,
-            name: "Byte to Offer",
-            description:
-                "Master coding interviews with AI-driven tools. Explore company-specific interview problems, engage in mock interviews, generate flashcards, and get personalized prep strategies.",
-            potentialAction: {
-                "@type": "SearchAction",
-                target: {
-                    "@type": "EntryPoint",
-                    urlTemplate: `${APP_URL}/companies?search={search_term_string}`,
-                },
-                "query-input": "required name=search_term_string",
-            },
-            publisher: {
-                // Added publisher
-                "@type": "Organization",
-                name: "Byte to Offer", 
-                logo: {
-                    "@type": "ImageObject",
-                    url: `${APP_URL}/icon.png`,
-                },
-            },
-        }),
-    },
+  },
+  alternates: {
+    canonical: APP_URL,
+  },
+  other: {
+    'script[type="application/ld+json"]': JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      url: APP_URL,
+      name: "Byte to Offer",
+      description:
+        "Master coding interviews with AI-driven tools. Explore company-specific interview problems, engage in mock interviews, generate flashcards, and get personalized prep strategies.",
+      potentialAction: {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${APP_URL}/companies?search={search_term_string}`,
+        },
+        "query-input": "required name=search_term_string",
+      },
+      publisher: {
+        // Added publisher
+        "@type": "Organization",
+        name: "Byte to Offer",
+        logo: {
+          "@type": "ImageObject",
+          url: `${APP_URL}/icon.png`,
+        },
+      },
+    }),
+  },
 };
 
 /**
@@ -96,13 +96,13 @@ export const metadata: Metadata = {
  * @returns {JSX.Element} The rendered homepage component.
  */
 export default function ShowcasePage() {
-    return (
-        <div className="bg-background w-full">
-            <HeroSection />
-            <FeaturesSection />
-            <StatsSection />
-            <SearchSection />
-            <Footer />
-        </div>
-    );
+  return (
+    <div className="bg-background w-full">
+      <HeroSection />
+      <FeaturesSection />
+      <StatsSection />
+      <SearchSection />
+      <Footer />
+    </div>
+  );
 }

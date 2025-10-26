@@ -1,5 +1,4 @@
-
-'use server';
+"use server";
 /**
  * @fileOverview Generates study flashcards for a company based on its frequently asked coding problems.
  *
@@ -14,50 +13,78 @@
  * @exports Flashcard - The Zod inferred type for a single flashcard object (re-exported).
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-import type { FlashcardProblemInput, Flashcard } from '@/types';
+import { ai } from "@/ai/genkit";
+import { z } from "genkit";
+import type {
+  FlashcardProblemInput as ImportedFlashcardProblemInput,
+  Flashcard,
+} from "@/types";
+
+export type FlashcardProblemInput = ImportedFlashcardProblemInput;
 
 const FlashcardProblemInputSchema = z.object({
   title: z.string().describe("The title of the coding problem."),
-  difficulty: z.enum(['Easy', 'Medium', 'Hard']).describe("The difficulty of the problem."),
-  tags: z.array(z.string()).describe("A list of tags associated with the problem."),
+  difficulty: z
+    .enum(["Easy", "Medium", "Hard"])
+    .describe("The difficulty of the problem."),
+  tags: z
+    .array(z.string())
+    .describe("A list of tags associated with the problem."),
 });
 
 const GenerateFlashcardsInputSchema = z.object({
-  companyName: z.string().describe("The name of the company for which to generate flashcards."),
-  problems: z.array(FlashcardProblemInputSchema).min(1, "At least one problem is required to generate flashcards.")
+  companyName: z
+    .string()
+    .describe("The name of the company for which to generate flashcards."),
+  problems: z
+    .array(FlashcardProblemInputSchema)
+    .min(1, "At least one problem is required to generate flashcards.")
     .describe("A list of coding problems frequently asked by this company."),
 });
-export type GenerateFlashcardsInput = z.infer<typeof GenerateFlashcardsInputSchema>;
+export type GenerateFlashcardsInput = z.infer<
+  typeof GenerateFlashcardsInputSchema
+>;
 
 const FlashcardSchema = z.object({
-  front: z.string().describe("The question, concept, or problem title on the front of the flashcard. Keep it concise (max 2-3 sentences)."),
-  back: z.string().describe("The answer, explanation, key data structures/algorithms, or relevant problem-solving strategy on the back of the flashcard. Keep it concise and informative (max 3-4 sentences)."),
+  front: z
+    .string()
+    .describe(
+      "The question, concept, or problem title on the front of the flashcard. Keep it concise (max 2-3 sentences).",
+    ),
+  back: z
+    .string()
+    .describe(
+      "The answer, explanation, key data structures/algorithms, or relevant problem-solving strategy on the back of the flashcard. Keep it concise and informative (max 3-4 sentences).",
+    ),
 });
 export type { Flashcard }; // Export the Zod inferred type as Flashcard as well
 
 const GenerateFlashcardsOutputSchema = z.object({
-  flashcards: z.array(FlashcardSchema)
+  flashcards: z
+    .array(FlashcardSchema)
     .min(3, "Generate at least 3 flashcards.")
     .max(10, "Generate at most 10 flashcards.")
-    .describe('An array of 3 to 10 generated flashcards.'),
+    .describe("An array of 3 to 10 generated flashcards."),
 });
-export type GenerateFlashcardsOutput = z.infer<typeof GenerateFlashcardsOutputSchema>;
+export type GenerateFlashcardsOutput = z.infer<
+  typeof GenerateFlashcardsOutputSchema
+>;
 
 /**
  * Initiates the AI flow to generate study flashcards for a company.
  * @param {GenerateFlashcardsInput} input - The company name and a list of its problems.
  * @returns {Promise<GenerateFlashcardsOutput>} A promise that resolves to an object containing an array of generated flashcards.
  */
-export async function generateFlashcardsForCompany(input: GenerateFlashcardsInput): Promise<GenerateFlashcardsOutput> {
+export async function generateFlashcardsForCompany(
+  input: GenerateFlashcardsInput,
+): Promise<GenerateFlashcardsOutput> {
   return generateFlashcardsFlow(input);
 }
 
 const prompt = ai.definePrompt({
-  name: 'generateFlashcardsPrompt',
-  input: {schema: GenerateFlashcardsInputSchema},
-  output: {schema: GenerateFlashcardsOutputSchema},
+  name: "generateFlashcardsPrompt",
+  input: { schema: GenerateFlashcardsInputSchema },
+  output: { schema: GenerateFlashcardsOutputSchema },
   prompt: `You are an expert coding coach creating study flashcards for interview preparation.
 The user is preparing for interviews at {{companyName}}.
 You are given a list of coding problems frequently asked by this company:
@@ -89,16 +116,16 @@ Generate between 3 and 10 flashcards.
 
 const generateFlashcardsFlow = ai.defineFlow(
   {
-    name: 'generateFlashcardsFlow',
+    name: "generateFlashcardsFlow",
     inputSchema: GenerateFlashcardsInputSchema,
     outputSchema: GenerateFlashcardsOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
+  async (input) => {
+    const { output } = await prompt(input);
     if (!output || !output.flashcards || output.flashcards.length === 0) {
       // Fallback to an empty array if AI doesn't produce valid output or no flashcards.
-      return { flashcards: [] }; 
+      return { flashcards: [] };
     }
     return output;
-  }
+  },
 );

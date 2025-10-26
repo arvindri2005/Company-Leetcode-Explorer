@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Provides a theme provider component for managing light/dark mode.
  *
@@ -6,10 +5,10 @@
  * `ThemeProvider`. This allows for easy integration of theme switching functionality
  * throughout the application, handling the provider logic in a single, reusable component.
  */
-'use client';
+"use client";
 
-import type { ThemeProviderProps } from 'next-themes/dist/types';
-import { ThemeProvider as NextThemesProvider } from 'next-themes';
+import type { ThemeProviderProps } from "next-themes/dist/types";
+import { ThemeProvider as NextThemesProvider } from "next-themes";
 
 /**
  * A wrapper around the `next-themes` ThemeProvider.

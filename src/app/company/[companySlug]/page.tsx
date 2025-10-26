@@ -6,17 +6,21 @@
  * retrieves the initial list of associated problems, and renders the main page layout.
  * It also includes `generateStaticParams` to pre-render pages for known companies at build time.
  */
-import { getCompanyBySlug, getProblemsByCompanyFromDb, getAllCompanySlugs } from '@/lib/data';
-import type { Company, LeetCodeProblem, ProblemListFilters } from '@/types';
-import type { Metadata } from 'next';
-import CompanyHeader from '@/components/company/company-header';
-import CompanyNotFound from '@/components/company/page/company-not-found';
-import CompanyPageHeader from '@/components/company/page/company-page-header';
-import ProblemLoadError from '@/components/company/page/problem-load-error';
-import NoProblemsAvailable from '@/components/company/page/no-problems-available';
-import CompanyTabs from '@/components/company/page/company-tabs';
+import {
+  getCompanyBySlug,
+  getProblemsByCompanyFromDb,
+  getAllCompanySlugs,
+} from "@/lib/data";
+import type { Company, LeetCodeProblem, ProblemListFilters } from "@/types";
+import type { Metadata } from "next";
+import CompanyHeader from "@/components/company/company-header";
+import CompanyNotFound from "@/components/company/page/company-not-found";
+import CompanyPageHeader from "@/components/company/page/company-page-header";
+import ProblemLoadError from "@/components/company/page/problem-load-error";
+import NoProblemsAvailable from "@/components/company/page/no-problems-available";
+import CompanyTabs from "@/components/company/page/company-tabs";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://bytetooffer.com';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 const INITIAL_ITEMS_PER_PAGE = 15;
 
 /**
@@ -37,14 +41,16 @@ interface CompanyPageProps {
  * @param {CompanyPageProps} props - The props containing the dynamic route parameters.
  * @returns {Promise<Metadata>} A promise that resolves to the generated metadata object.
  */
-export async function generateMetadata(props: CompanyPageProps): Promise<Metadata> {
+export async function generateMetadata(
+  props: CompanyPageProps,
+): Promise<Metadata> {
   const params = await props.params;
   const company = await getCompanyBySlug(params.companySlug);
 
   if (!company) {
     return {
-      title: 'Company Not Found',
-      description: 'The requested company page does not exist.',
+      title: "Company Not Found",
+      description: "The requested company page does not exist.",
     };
   }
 
@@ -71,58 +77,70 @@ export async function generateMetadata(props: CompanyPageProps): Promise<Metadat
     `${company.name} coding interview questions`,
   ];
 
-  const tagKeywords = company.commonTags?.map(ct => ct.tag) ?? [];
-  const uniqueKeywords = Array.from(new Set([...companyKeywords, ...tagKeywords])).slice(0, 15);
+  const tagKeywords = company.commonTags?.map((ct) => ct.tag) ?? [];
+  const uniqueKeywords = Array.from(
+    new Set([...companyKeywords, ...tagKeywords]),
+  ).slice(0, 15);
 
   const breadcrumbList = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Home", "item": `${APP_URL}/` },
-      { "@type": "ListItem", "position": 2, "name": "Companies", "item": `${APP_URL}/companies` },
-      { "@type": "ListItem", "position": 3, "name": company.name, "item": `${APP_URL}/company/${company.slug}` }
-    ]
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: `${APP_URL}/` },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Companies",
+        item: `${APP_URL}/companies`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: company.name,
+        item: `${APP_URL}/company/${company.slug}`,
+      },
+    ],
   };
 
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "name": company.name,
-    "url": `${APP_URL}/company/${company.slug}`,
-    "logo": company.logo,
-    "description": `Find coding interview questions and preparation material for ${company.name}.`,
-    ...(company.website && { "sameAs": [company.website] }),
+    name: company.name,
+    url: `${APP_URL}/company/${company.slug}`,
+    logo: company.logo,
+    description: `Find coding interview questions and preparation material for ${company.name}.`,
+    ...(company.website && { sameAs: [company.website] }),
   };
 
   return {
+    title,
+    description,
+    keywords: uniqueKeywords,
+    alternates: {
+      canonical: `${APP_URL}/company/${company.slug}`,
+    },
+    openGraph: {
       title,
       description,
-      keywords: uniqueKeywords,
-      alternates: {
-          canonical: `${APP_URL}/company/${company.slug}`,
-      },
-      openGraph: {
-          title,
-          description,
-          url: `${APP_URL}/company/${company.slug}`,
-          siteName: "Byte to Offer",
-          images: company.logo
-              ? [{ url: company.logo, alt: `${company.name} logo` }]
-              : [],
-          type: "article"
-      },
-      twitter: {
-          card: "summary_large_image",
-          title,
-          description,
-          images: company.logo ? [company.logo] : [],
-      },
-      other: {
-          'script[type="application/ld+json"]': JSON.stringify([
-              organizationSchema,
-              breadcrumbList,
-          ]),
-      },
+      url: `${APP_URL}/company/${company.slug}`,
+      siteName: "Byte to Offer",
+      images: company.logo
+        ? [{ url: company.logo, alt: `${company.name} logo` }]
+        : [],
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: company.logo ? [company.logo] : [],
+    },
+    other: {
+      'script[type="application/ld+json"]': JSON.stringify([
+        organizationSchema,
+        breadcrumbList,
+      ]),
+    },
   };
 }
 
@@ -148,25 +166,34 @@ export default async function CompanyPage(props: CompanyPageProps) {
   }
 
   const initialFilters: ProblemListFilters = {
-    difficultyFilter: 'all',
-    lastAskedFilter: 'all',
-    statusFilter: 'all',
-    searchTerm: '',
-    sortKey: 'title',
+    difficultyFilter: "all",
+    lastAskedFilter: "all",
+    statusFilter: "all",
+    searchTerm: "",
+    sortKey: "title",
   };
 
-  const initialPaginatedProblemsData = await getProblemsByCompanyFromDb(company.id, {
-    pageSize: INITIAL_ITEMS_PER_PAGE
-  });
+  const initialPaginatedProblemsData = await getProblemsByCompanyFromDb(
+    company.id,
+    {
+      pageSize: INITIAL_ITEMS_PER_PAGE,
+    },
+  );
 
-  if ('error' in initialPaginatedProblemsData) {
-    console.error("Error fetching initial problems for company page:", initialPaginatedProblemsData.error);
+  if ("error" in initialPaginatedProblemsData) {
+    console.error(
+      "Error fetching initial problems for company page:",
+      initialPaginatedProblemsData.error,
+    );
     return (
-        <div className="container mx-auto px-4 py-4 max-w-6xl">
-            <CompanyPageHeader companyName={company.name} />
-            <CompanyHeader company={company} />
-            <ProblemLoadError companyName={company.name} error={initialPaginatedProblemsData.error as string} />
-        </div>
+      <div className="container mx-auto px-4 py-4 max-w-6xl">
+        <CompanyPageHeader companyName={company.name} />
+        <CompanyHeader company={company} />
+        <ProblemLoadError
+          companyName={company.name}
+          error={initialPaginatedProblemsData.error as string}
+        />
+      </div>
     );
   }
 
@@ -174,7 +201,7 @@ export default async function CompanyPage(props: CompanyPageProps) {
     problems: initialProblems,
     hasMore: initialHasMore,
     nextCursor: initialNextCursor,
-    totalProblems: displayProblemCount
+    totalProblems: displayProblemCount,
   } = initialPaginatedProblemsData;
 
   const hasProblems = displayProblemCount > 0;
@@ -196,7 +223,10 @@ export default async function CompanyPage(props: CompanyPageProps) {
             itemsPerPage={INITIAL_ITEMS_PER_PAGE}
           />
         ) : (
-          <NoProblemsAvailable companyName={company.name} companyId={company.id} />
+          <NoProblemsAvailable
+            companyName={company.name}
+            companyId={company.id}
+          />
         )}
       </div>
     </div>
@@ -224,7 +254,10 @@ export async function generateStaticParams() {
       companySlug: slug,
     }));
   } catch (error) {
-    console.error("[generateStaticParams /company/[companySlug]] Error fetching company slugs:", error);
+    console.error(
+      "[generateStaticParams /company/[companySlug]] Error fetching company slugs:",
+      error,
+    );
     return [];
   }
 }

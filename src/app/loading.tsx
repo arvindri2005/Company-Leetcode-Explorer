@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Defines the default loading UI for the application.
  *
@@ -7,7 +6,7 @@
  * renders a simple, centered spinner and a "Loading..." message. This file is
  * part of the Next.js App Router's file-based UI conventions.
  */
-import { Loader2 } from 'lucide-react';
+import { Loader2 } from "lucide-react";
 
 /**
  * Renders the global loading indicator.

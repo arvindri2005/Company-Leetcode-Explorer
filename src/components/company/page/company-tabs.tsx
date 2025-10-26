@@ -9,33 +9,57 @@
  */
 "use client";
 
-import { Suspense, useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { BookOpen, Brain, Target, Users } from 'lucide-react';
-import ProblemList from '@/components/problem/problem-list';
-import type { Company, LeetCodeProblem, ProblemListFilters } from '@/types';
-import { getProblemsByCompanyFromDb } from '@/lib/data';
+import { Suspense, useState, useEffect } from "react";
+import dynamic from "next/dynamic";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { BookOpen, Brain, Target, Users } from "lucide-react";
+import ProblemList from "@/components/problem/problem-list";
+import type { Company, LeetCodeProblem, ProblemListFilters } from "@/types";
+import { getProblemsByCompanyFromDb } from "@/lib/data";
 
 // Dynamically import AI components to reduce the initial bundle size.
 // A custom loading skeleton is shown while the component is being fetched.
-const AIGroupingSection = dynamic(() => import('@/components/ai/ai-grouping-section'), {
-  loading: () => <div className="animate-pulse h-48 bg-muted rounded-lg p-4 text-center text-sm text-muted-foreground">Loading AI Grouping...</div>,
-});
+const AIGroupingSection = dynamic(
+  () => import("@/components/ai/ai-grouping-section"),
+  {
+    loading: () => (
+      <div className="animate-pulse h-48 bg-muted rounded-lg p-4 text-center text-sm text-muted-foreground">
+        Loading AI Grouping...
+      </div>
+    ),
+  },
+);
 
-const DynamicFlashcardGenerator = dynamic(() => import('@/components/ai/flashcard-generator'), {
-  loading: () => <div className="animate-pulse h-48 bg-muted rounded-lg p-4 text-center text-sm text-muted-foreground">Loading Flashcards...</div>,
-});
+const DynamicFlashcardGenerator = dynamic(
+  () => import("@/components/ai/flashcard-generator"),
+  {
+    loading: () => (
+      <div className="animate-pulse h-48 bg-muted rounded-lg p-4 text-center text-sm text-muted-foreground">
+        Loading Flashcards...
+      </div>
+    ),
+  },
+);
 
-const CompanyStrategyGenerator = dynamic(() => import('@/components/ai/company-strategy-generator'), {
-  loading: () => <div className="animate-pulse h-48 bg-muted rounded-lg p-4 text-center text-sm text-muted-foreground">Loading Strategy Generator...</div>,
-});
+const CompanyStrategyGenerator = dynamic(
+  () => import("@/components/ai/company-strategy-generator"),
+  {
+    loading: () => (
+      <div className="animate-pulse h-48 bg-muted rounded-lg p-4 text-center text-sm text-muted-foreground">
+        Loading Strategy Generator...
+      </div>
+    ),
+  },
+);
 
-const CompanyProblemStats = dynamic(() => import('@/components/company/company-problem-stats'), {
-  loading: () => <div className="animate-pulse h-36 bg-muted rounded-lg" />,
-});
+const CompanyProblemStats = dynamic(
+  () => import("@/components/company/company-problem-stats"),
+  {
+    loading: () => <div className="animate-pulse h-36 bg-muted rounded-lg" />,
+  },
+);
 
 const MAX_PROBLEMS_FOR_AI_FEATURES = 200;
 
@@ -80,7 +104,9 @@ export default function CompanyTabs({
     async function fetchAIProblems() {
       setIsLoadingAI(true);
       try {
-        const { problems } = await getProblemsByCompanyFromDb(company.id, { pageSize: MAX_PROBLEMS_FOR_AI_FEATURES });
+        const { problems } = await getProblemsByCompanyFromDb(company.id, {
+          pageSize: MAX_PROBLEMS_FOR_AI_FEATURES,
+        });
         setAiProblems(problems);
       } catch (error) {
         console.error("Failed to fetch problems for AI features:", error);
@@ -97,7 +123,9 @@ export default function CompanyTabs({
   return (
     <>
       <div className="mb-4">
-        <Suspense fallback={<div className="animate-pulse h-36 bg-muted rounded-lg" />}>
+        <Suspense
+          fallback={<div className="animate-pulse h-36 bg-muted rounded-lg" />}
+        >
           <CompanyProblemStats company={company} />
         </Suspense>
       </div>
@@ -109,11 +137,17 @@ export default function CompanyTabs({
                 <BookOpen className="h-3 w-3 sm:mr-1" />
                 <span className="hidden sm:inline">Problems</span>
               </TabsTrigger>
-              <TabsTrigger value="ai-grouping" className="text-xs px-2 rounded-lg">
+              <TabsTrigger
+                value="ai-grouping"
+                className="text-xs px-2 rounded-lg"
+              >
                 <Brain className="h-3 w-3 sm:mr-1" />
                 <span className="hidden sm:inline">AI Groups</span>
               </TabsTrigger>
-              <TabsTrigger value="flashcards" className="text-xs px-2 rounded-lg">
+              <TabsTrigger
+                value="flashcards"
+                className="text-xs px-2 rounded-lg"
+              >
                 <Target className="h-3 w-3 sm:mr-1" />
                 <span className="hidden sm:inline">Cards</span>
               </TabsTrigger>
@@ -131,12 +165,18 @@ export default function CompanyTabs({
               <CardTitle className="flex items-center gap-2 text-base">
                 <BookOpen className="h-4 w-4" />
                 Coding Interview Problems for {company.name}
-                <Badge variant="outline" className="text-xs">{displayProblemCount}</Badge>
+                <Badge variant="outline" className="text-xs">
+                  {displayProblemCount}
+                </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              <Suspense fallback={<div className="animate-pulse h-48 bg-muted rounded" />}>
-                 <ProblemList
+              <Suspense
+                fallback={
+                  <div className="animate-pulse h-48 bg-muted rounded" />
+                }
+              >
+                <ProblemList
                   key={company.id}
                   companyId={company.id}
                   companySlug={company.slug}
@@ -160,8 +200,16 @@ export default function CompanyTabs({
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              <Suspense fallback={<div className="animate-pulse h-48 bg-muted rounded" />}>
-                <AIGroupingSection problems={aiProblems} companyName={company.name} companySlug={company.slug} />
+              <Suspense
+                fallback={
+                  <div className="animate-pulse h-48 bg-muted rounded" />
+                }
+              >
+                <AIGroupingSection
+                  problems={aiProblems}
+                  companyName={company.name}
+                  companySlug={company.slug}
+                />
               </Suspense>
             </CardContent>
           </Card>
@@ -176,8 +224,16 @@ export default function CompanyTabs({
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              <Suspense fallback={<div className="animate-pulse h-48 bg-muted rounded" />}>
-                <DynamicFlashcardGenerator companyId={company.id} companyName={company.name} companySlug={company.slug} />
+              <Suspense
+                fallback={
+                  <div className="animate-pulse h-48 bg-muted rounded" />
+                }
+              >
+                <DynamicFlashcardGenerator
+                  companyId={company.id}
+                  companyName={company.name}
+                  companySlug={company.slug}
+                />
               </Suspense>
             </CardContent>
           </Card>
@@ -192,8 +248,16 @@ export default function CompanyTabs({
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              <Suspense fallback={<div className="animate-pulse h-48 bg-muted rounded" />}>
-                <CompanyStrategyGenerator companyId={company.id} companyName={company.name} companySlug={company.slug} />
+              <Suspense
+                fallback={
+                  <div className="animate-pulse h-48 bg-muted rounded" />
+                }
+              >
+                <CompanyStrategyGenerator
+                  companyId={company.id}
+                  companyName={company.name}
+                  companySlug={company.slug}
+                />
               </Suspense>
             </CardContent>
           </Card>

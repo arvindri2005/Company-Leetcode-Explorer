@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview A client-side form for submitting a new coding problem.
  *
@@ -6,14 +5,14 @@
  * interview problems. It uses `react-hook-form` for form management, `zod` for
  * validation, and calls a server action to save the data.
  */
-'use client';
+"use client";
 
-import type { Company, LeetCodeProblem, LastAskedPeriod } from '@/types';
-import { lastAskedPeriodOptions } from '@/types';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
+import type { Company, LeetCodeProblem, LastAskedPeriod } from "@/types";
+import { lastAskedPeriodOptions } from "@/types";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -22,14 +21,21 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
-import { addProblem } from '@/app/actions';
-import { useState } from 'react';
-import { Loader2, PlusCircle, CalendarClock } from 'lucide-react';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { addProblem } from "@/app/actions";
+import { useState } from "react";
+import { slugify } from "@/lib/utils";
+import { Loader2, PlusCircle, CalendarClock } from "lucide-react";
 
 /**
  * Props for the ProblemSubmissionForm component.
@@ -43,14 +49,24 @@ interface ProblemSubmissionFormProps {
  * Zod schema for validating the problem submission form fields.
  */
 const problemFormSchema = z.object({
-  title: z.string().min(3, { message: 'Title must be at least 3 characters.' }).max(150),
-  difficulty: z.enum(['Easy', 'Medium', 'Hard'], { required_error: 'Difficulty is required.' }),
-  link: z.string().url({ message: 'Please enter a valid Interview Problem URL.' }),
+  title: z
+    .string()
+    .min(3, { message: "Title must be at least 3 characters." })
+    .max(150),
+  difficulty: z.enum(["Easy", "Medium", "Hard"], {
+    required_error: "Difficulty is required.",
+  }),
+  link: z
+    .string()
+    .url({ message: "Please enter a valid Interview Problem URL." }),
   tags: z.string().optional(),
-  companyId: z.string({ required_error: 'Please select a company.' }),
+  companyId: z.string({ required_error: "Please select a company." }),
   lastAskedPeriod: z.enum(
-    lastAskedPeriodOptions.map(opt => opt.value) as [LastAskedPeriod, ...LastAskedPeriod[]],
-    { required_error: 'Please select how recently this problem was asked.' }
+    lastAskedPeriodOptions.map((opt) => opt.value) as [
+      LastAskedPeriod,
+      ...LastAskedPeriod[],
+    ],
+    { required_error: "Please select how recently this problem was asked." },
   ),
 });
 
@@ -71,17 +87,19 @@ type ProblemFormValues = z.infer<typeof problemFormSchema>;
  * @param {ProblemSubmissionFormProps} props - The props for the component.
  * @returns {JSX.Element} The rendered problem submission form.
  */
-export default function ProblemSubmissionForm({ companies }: ProblemSubmissionFormProps) {
+export default function ProblemSubmissionForm({
+  companies,
+}: ProblemSubmissionFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<ProblemFormValues>({
     resolver: zodResolver(problemFormSchema),
     defaultValues: {
-      title: '',
+      title: "",
       difficulty: undefined,
-      link: '',
-      tags: '', // Default to empty string
+      link: "",
+      tags: "", // Default to empty string
       companyId: undefined,
       lastAskedPeriod: undefined,
     },
@@ -90,16 +108,35 @@ export default function ProblemSubmissionForm({ companies }: ProblemSubmissionFo
   async function onSubmit(data: ProblemFormValues) {
     setIsSubmitting(true);
     toast({
-      title: 'Submitting Problem...',
-      description: 'Please wait while we process your submission.',
+      title: "Submitting Problem...",
+      description: "Please wait while we process your submission.",
     });
 
-    const problemData: Omit<LeetCodeProblem, 'id'> = {
+    const company = companies.find((c) => c.id === data.companyId);
+    if (!company) {
+      toast({
+        title: "Error",
+        description: "Selected company not found.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    const problemData: Omit<LeetCodeProblem, "id"> = {
       title: data.title,
+      slug: slugify(data.title),
+      normalizedTitle: data.title.toLowerCase(),
       difficulty: data.difficulty,
       link: data.link,
-      tags: data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [],
+      tags: data.tags
+        ? data.tags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter((tag) => tag.length > 0)
+        : [],
       companyId: data.companyId,
+      companySlug: company.slug,
       lastAskedPeriod: data.lastAskedPeriod,
     };
 
@@ -107,19 +144,20 @@ export default function ProblemSubmissionForm({ companies }: ProblemSubmissionFo
 
     setIsSubmitting(false);
     if (result.success && result.data) {
-      const message = result.updated 
+      const message = result.updated
         ? `"${result.data.title}" already existed and its 'last asked' time has been updated.`
         : `"${result.data.title}" has been added successfully.`;
       toast({
-        title: result.updated ? 'Problem Updated! ✅' : 'Problem Submitted! 🎉',
+        title: result.updated ? "Problem Updated! ✅" : "Problem Submitted! 🎉",
         description: message,
       });
       form.reset();
     } else {
       toast({
-        title: 'Submission Failed',
-        description: result.error || 'An unknown error occurred. Please try again.',
-        variant: 'destructive',
+        title: "Submission Failed",
+        description:
+          result.error || "An unknown error occurred. Please try again.",
+        variant: "destructive",
       });
     }
   }
@@ -136,7 +174,9 @@ export default function ProblemSubmissionForm({ companies }: ProblemSubmissionFo
               <FormControl>
                 <Input placeholder="e.g., Two Sum" {...field} />
               </FormControl>
-              <FormDescription>The official title of the LeetCode problem.</FormDescription>
+              <FormDescription>
+                The official title of the LeetCode problem.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -149,7 +189,10 @@ export default function ProblemSubmissionForm({ companies }: ProblemSubmissionFo
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Difficulty</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select difficulty" />
@@ -172,17 +215,23 @@ export default function ProblemSubmissionForm({ companies }: ProblemSubmissionFo
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex items-center">
-                  <CalendarClock size={16} className="mr-1.5 text-muted-foreground" />
+                  <CalendarClock
+                    size={16}
+                    className="mr-1.5 text-muted-foreground"
+                  />
                   Last Asked Period
                 </FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select when it was last asked" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {lastAskedPeriodOptions.map(option => (
+                    {lastAskedPeriodOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
                       </SelectItem>
@@ -202,9 +251,14 @@ export default function ProblemSubmissionForm({ companies }: ProblemSubmissionFo
             <FormItem>
               <FormLabel>LeetCode Link</FormLabel>
               <FormControl>
-                <Input placeholder="https://leetcode.com/problems/..." {...field} />
+                <Input
+                  placeholder="https://leetcode.com/problems/..."
+                  {...field}
+                />
               </FormControl>
-              <FormDescription>The direct URL to the problem on LeetCode.</FormDescription>
+              <FormDescription>
+                The direct URL to the problem on LeetCode.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -223,7 +277,9 @@ export default function ProblemSubmissionForm({ companies }: ProblemSubmissionFo
                   {...field}
                 />
               </FormControl>
-              <FormDescription>Comma-separated list of relevant tags. Can be left empty.</FormDescription>
+              <FormDescription>
+                Comma-separated list of relevant tags. Can be left empty.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -243,13 +299,15 @@ export default function ProblemSubmissionForm({ companies }: ProblemSubmissionFo
                 </FormControl>
                 <SelectContent>
                   {companies.length > 0 ? (
-                    companies.map(company => (
+                    companies.map((company) => (
                       <SelectItem key={company.id} value={company.id}>
                         {company.name}
                       </SelectItem>
                     ))
                   ) : (
-                    <div className="p-4 text-sm text-muted-foreground">No companies available. Please add companies first.</div>
+                    <div className="p-4 text-sm text-muted-foreground">
+                      No companies available. Please add companies first.
+                    </div>
                   )}
                 </SelectContent>
               </Select>
@@ -260,8 +318,12 @@ export default function ProblemSubmissionForm({ companies }: ProblemSubmissionFo
             </FormItem>
           )}
         />
-        
-        <Button type="submit" disabled={isSubmitting || companies.length === 0} className="w-full sm:w-auto">
+
+        <Button
+          type="submit"
+          disabled={isSubmitting || companies.length === 0}
+          className="w-full sm:w-auto"
+        >
           {isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -275,9 +337,10 @@ export default function ProblemSubmissionForm({ companies }: ProblemSubmissionFo
           )}
         </Button>
         {companies.length === 0 && (
-            <p className="text-sm text-destructive mt-2">
-                Cannot submit problem: No companies found in the database. Please ensure companies are seeded or added.
-            </p>
+          <p className="text-sm text-destructive mt-2">
+            Cannot submit problem: No companies found in the database. Please
+            ensure companies are seeded or added.
+          </p>
         )}
       </form>
     </Form>

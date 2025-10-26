@@ -1,6 +1,10 @@
-
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardHeader, CardFooter, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardContent,
+} from "@/components/ui/card";
 
 /**
  * @function FeatureCardSkeleton
@@ -32,7 +36,8 @@ const FeatureCardSkeleton = () => (
 export const FeatureGridSkeleton = () => {
   return (
     <section className="container mx-auto px-4 py-8">
-      <Skeleton className="h-8 w-1/2 mx-auto mb-10 rounded-md" /> {/* Title Skeleton */}
+      <Skeleton className="h-8 w-1/2 mx-auto mb-10 rounded-md" />{" "}
+      {/* Title Skeleton */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {[...Array(6)].map((_, i) => (
           <FeatureCardSkeleton key={i} />

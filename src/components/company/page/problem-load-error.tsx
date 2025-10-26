@@ -5,9 +5,9 @@
  * list of problems for a company could not be fetched. It displays the specific
  * error message and provides a button to refresh the page.
  */
-import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { AlertTriangle } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { AlertTriangle } from "lucide-react";
 
 /**
  * Props for the ProblemLoadError component.
@@ -29,7 +29,10 @@ interface ProblemLoadErrorProps {
  * @param {ProblemLoadErrorProps} props - The props for the component.
  * @returns {JSX.Element} The rendered error card component.
  */
-export default function ProblemLoadError({ companyName, error }: ProblemLoadErrorProps) {
+export default function ProblemLoadError({
+  companyName,
+  error,
+}: ProblemLoadErrorProps) {
   return (
     <Card className="my-4 border-destructive bg-destructive/10">
       <CardHeader>
@@ -41,10 +44,18 @@ export default function ProblemLoadError({ companyName, error }: ProblemLoadErro
       <CardContent>
         <p className="text-destructive/90 text-sm">
           We encountered an issue trying to load the problems for {companyName}.
-          This might be a temporary issue with our services or with accessing the data.
+          This might be a temporary issue with our services or with accessing
+          the data.
         </p>
-        <p className="text-xs text-destructive/70 mt-2">Error details: {error}</p>
-        <Button variant="outline" size="sm" className="mt-3" onClick={() => window.location.reload()}>
+        <p className="text-xs text-destructive/70 mt-2">
+          Error details: {error}
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-3"
+          onClick={() => window.location.reload()}
+        >
           Try Refreshing
         </Button>
       </CardContent>

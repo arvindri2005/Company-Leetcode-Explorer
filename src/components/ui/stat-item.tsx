@@ -1,4 +1,4 @@
-import { StatItemProps } from '@/types';
+import { StatItemProps } from "@/types";
 
 /**
  * @function StatItem

@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Defines the API route for generating the `sitemap.xml` file.
  *
@@ -7,9 +6,9 @@
  * engines discover and index the site's pages. This route includes static public
  * pages and dynamically adds all public company detail pages.
  */
-import { getAllCompanySlugs } from '@/lib/data';
+import { getAllCompanySlugs } from "@/lib/data";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:9002";
 
 /**
  * Handles GET requests to generate the `sitemap.xml` file content.
@@ -28,17 +27,17 @@ export async function GET() {
   const today = new Date().toISOString();
 
   const publicStaticPages = [
-    { path: '/', changefreq: 'monthly', priority: '0.5' },
-    { path: '/companies', changefreq: 'daily', priority: '1' },
-    { path: '/login', changefreq: 'weekly', priority: '0.5' },
-    { path: '/signup', changefreq: 'weekly', priority: '0.5' },
+    { path: "/", changefreq: "monthly", priority: "0.5" },
+    { path: "/companies", changefreq: "daily", priority: "1" },
+    { path: "/login", changefreq: "weekly", priority: "0.5" },
+    { path: "/signup", changefreq: "weekly", priority: "0.5" },
   ];
 
   let sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
 
   // Add public static pages
-  publicStaticPages.forEach(page => {
+  publicStaticPages.forEach((page) => {
     sitemapXml += `
   <url>
     <loc>${APP_URL}${page.path}</loc>
@@ -51,7 +50,7 @@ export async function GET() {
   // Add company detail pages (publicly accessible)
   try {
     const companySlugs = await getAllCompanySlugs();
-    companySlugs.forEach(slug => {
+    companySlugs.forEach((slug) => {
       sitemapXml += `
   <url>
     <loc>${APP_URL}/company/${slug}</loc>
@@ -69,7 +68,7 @@ export async function GET() {
 
   return new Response(sitemapXml, {
     headers: {
-      'Content-Type': 'application/xml',
+      "Content-Type": "application/xml",
     },
   });
 }

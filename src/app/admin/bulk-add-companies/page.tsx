@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Defines the admin page for bulk-adding companies from a file.
  *
@@ -7,10 +6,10 @@
  * companies in the database. It includes instructions and renders the
  * `BulkCompanyUploadForm` which handles the file processing and submission logic.
  */
-import BulkCompanyUploadForm from '@/components/company/bulk-company-upload-form';
-import { Separator } from '@/components/ui/separator';
-import { getCompanies } from '@/lib/data';
-import type { Metadata } from 'next';
+import BulkCompanyUploadForm from "@/components/company/bulk-company-upload-form";
+import { Separator } from "@/components/ui/separator";
+import { getCompanies } from "@/lib/data";
+import type { Metadata } from "next";
 
 /**
  * Metadata for the "Bulk Add Companies" admin page.
@@ -21,12 +20,13 @@ import type { Metadata } from 'next';
  * @type {Metadata}
  */
 export const metadata: Metadata = {
-  title: 'Admin: Bulk Add Companies',
-  description: 'Upload an Excel (.xlsx) or CSV (.csv) file to add multiple companies.',
+  title: "Admin: Bulk Add Companies",
+  description:
+    "Upload an Excel (.xlsx) or CSV (.csv) file to add multiple companies.",
   robots: {
     index: false,
     follow: false,
-  }
+  },
 };
 
 /**
@@ -42,20 +42,27 @@ export const metadata: Metadata = {
 export default async function AdminBulkAddCompaniesPage() {
   // Fetch a reasonable number of existing company names for hint display
   const existingCompaniesData = await getCompanies({ pageSize: 50 });
-  const existingCompanyNames = existingCompaniesData.companies.map(c => c.name);
+  const existingCompanyNames = existingCompaniesData.companies.map(
+    (c) => c.name,
+  );
 
   return (
     <section className="space-y-8 max-w-3xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Bulk Add Companies (Admin)</h1>
+        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
+          Bulk Add Companies (Admin)
+        </h1>
         <p className="mt-2 text-lg text-muted-foreground">
-          Upload an Excel (.xlsx) or CSV (.csv) file to add multiple companies at once.
+          Upload an Excel (.xlsx) or CSV (.csv) file to add multiple companies
+          at once.
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Ensure your file's first sheet (for Excel) or data (for CSV) has the following headers: <strong>Name, Logo, Description, Website</strong>.
+          Ensure your file's first sheet (for Excel) or data (for CSV) has the
+          following headers: <strong>Name, Logo, Description, Website</strong>.
         </p>
-         <p className="mt-1 text-sm text-muted-foreground">
-          The 'Name' column is required. 'Logo' and 'Website' should be valid URLs if provided. 'Description' is optional.
+        <p className="mt-1 text-sm text-muted-foreground">
+          The 'Name' column is required. 'Logo' and 'Website' should be valid
+          URLs if provided. 'Description' is optional.
         </p>
       </div>
       <Separator />

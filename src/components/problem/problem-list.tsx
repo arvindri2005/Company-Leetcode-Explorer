@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview A client-side component for displaying an interactive list of coding problems.
  *
@@ -7,20 +6,25 @@
  * scrolling for pagination. It receives an initial set of data from the server
  * and then fetches subsequent data on the client as needed.
  */
-'use client';
+"use client";
 
-import type { LeetCodeProblem, ProblemListFilters, PaginatedProblemsResponse, ProblemStatus } from '@/types';
-import { useState, useEffect, useCallback, useRef } from 'react';
-import ProblemCard from './problem-card';
-import { useAuth } from '@/contexts/auth-context';
-import { Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useDebounce } from '@/hooks/use-debounce';
-import dynamic from 'next/dynamic';
-import { Skeleton } from '@/components/ui/skeleton';
+import type {
+  LeetCodeProblem,
+  ProblemListFilters,
+  PaginatedProblemsResponse,
+  ProblemStatus,
+} from "@/types";
+import { useState, useEffect, useCallback, useRef } from "react";
+import ProblemCard from "./problem-card";
+import { useAuth } from "@/contexts/auth-context";
+import { Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useDebounce } from "@/hooks/use-debounce";
+import dynamic from "next/dynamic";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Dynamically import the controls to show a skeleton while they load.
-const ProblemListControls = dynamic(() => import('./problem-list-controls'), {
+const ProblemListControls = dynamic(() => import("./problem-list-controls"), {
   loading: () => (
     <div className="mb-6 p-4 space-y-4 bg-card rounded-lg shadow">
       <Skeleton className="h-10 w-full rounded-md" />
@@ -77,11 +81,14 @@ const ProblemList: React.FC<ProblemListProps> = ({
   const [searchInput, setSearchInput] = useState(initialFilters.searchTerm);
   const debouncedSearchTerm = useDebounce(searchInput, 500);
 
-  const [displayedProblems, setDisplayedProblems] = useState<LeetCodeProblem[]>(initialProblems);
+  const [displayedProblems, setDisplayedProblems] =
+    useState<LeetCodeProblem[]>(initialProblems);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(initialHasMore);
-  const [nextCursor, setNextCursor] = useState<string | undefined>(initialNextCursor);
+  const [nextCursor, setNextCursor] = useState<string | undefined>(
+    initialNextCursor,
+  );
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
@@ -94,56 +101,68 @@ const ProblemList: React.FC<ProblemListProps> = ({
     setFilters(initialFilters);
   }, [initialProblems, initialHasMore, initialNextCursor, initialFilters]);
 
-  const fetchProblems = useCallback(async (cursor?: string, newFilters?: Partial<ProblemListFilters>) => {
-    const currentFilters = newFilters ? { ...filters, ...newFilters } : filters;
-    if (!cursor) {
-      setIsLoading(true);
-    } else {
-      setIsLoadingMore(true);
-    }
-
-    try {
-      const response = await fetch('/api/problems', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          companyId,
-          cursor,
-          pageSize: itemsPerPage,
-          filters: currentFilters,
-          userId: user?.uid,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result: PaginatedProblemsResponse = await response.json();
-      
-      if (cursor) {
-        setDisplayedProblems(prev => [...prev, ...result.problems]);
+  const fetchProblems = useCallback(
+    async (cursor?: string, newFilters?: Partial<ProblemListFilters>) => {
+      const currentFilters = newFilters
+        ? { ...filters, ...newFilters }
+        : filters;
+      if (!cursor) {
+        setIsLoading(true);
       } else {
-        setDisplayedProblems(result.problems);
+        setIsLoadingMore(true);
       }
-      setHasMore(result.hasMore ?? false);
-      setNextCursor(result.nextCursor);
 
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      toast({ title: 'Error Fetching Problems', description: errorMessage, variant: 'destructive' });
-      setHasMore(false);
-    } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
-    }
-  }, [companyId, itemsPerPage, user?.uid, toast, filters]);
+      try {
+        const response = await fetch("/api/problems", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            companyId,
+            cursor,
+            pageSize: itemsPerPage,
+            filters: currentFilters,
+            userId: user?.uid,
+          }),
+        });
 
-  const handleFilterChange = useCallback((newFiltersApplied: Partial<ProblemListFilters>) => {
-    const updatedFilters = { ...filters, ...newFiltersApplied };
-    setFilters(updatedFilters);
-    fetchProblems(undefined, updatedFilters);
-  }, [filters, fetchProblems]);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result: PaginatedProblemsResponse = await response.json();
+
+        if (cursor) {
+          setDisplayedProblems((prev) => [...prev, ...result.problems]);
+        } else {
+          setDisplayedProblems(result.problems);
+        }
+        setHasMore(result.hasMore ?? false);
+        setNextCursor(result.nextCursor);
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "An unknown error occurred";
+        toast({
+          title: "Error Fetching Problems",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        setHasMore(false);
+      } finally {
+        setIsLoading(false);
+        setIsLoadingMore(false);
+      }
+    },
+    [companyId, itemsPerPage, user?.uid, toast, filters],
+  );
+
+  const handleFilterChange = useCallback(
+    (newFiltersApplied: Partial<ProblemListFilters>) => {
+      const updatedFilters = { ...filters, ...newFiltersApplied };
+      setFilters(updatedFilters);
+      fetchProblems(undefined, updatedFilters);
+    },
+    [filters, fetchProblems],
+  );
 
   const prevUserRef = useRef(user);
   useEffect(() => {
@@ -169,11 +188,16 @@ const ProblemList: React.FC<ProblemListProps> = ({
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoading && !isLoadingMore) {
+        if (
+          entries[0].isIntersecting &&
+          hasMore &&
+          !isLoading &&
+          !isLoadingMore
+        ) {
           loadMoreProblems();
         }
       },
-      { threshold: 1.0 }
+      { threshold: 1.0 },
     );
 
     const currentTriggerRef = loadMoreTriggerRef.current;
@@ -191,20 +215,34 @@ const ProblemList: React.FC<ProblemListProps> = ({
     };
   }, [hasMore, isLoading, isLoadingMore, loadMoreProblems]);
 
-  const handleProblemBookmarkChange = useCallback((problemId: string, newIsBookmarked: boolean) => {
-    setDisplayedProblems(prev =>
-      prev.map(p => p.id === problemId ? { ...p, isBookmarked: newIsBookmarked } : p)
-    );
-  }, []);
+  const handleProblemBookmarkChange = useCallback(
+    (problemId: string, newIsBookmarked: boolean) => {
+      setDisplayedProblems((prev) =>
+        prev.map((p) =>
+          p.id === problemId ? { ...p, isBookmarked: newIsBookmarked } : p,
+        ),
+      );
+    },
+    [],
+  );
 
-  const handleProblemStatusChange = useCallback((problemId: string, newStatus: ProblemStatus) => {
-     setDisplayedProblems(prev =>
-      prev.map(p => p.id === problemId ? { ...p, currentStatus: newStatus } : p)
-    );
-    if (filters.statusFilter !== 'all' && filters.statusFilter !== newStatus && !(filters.statusFilter === 'none' && newStatus !== 'none')) {
+  const handleProblemStatusChange = useCallback(
+    (problemId: string, newStatus: ProblemStatus) => {
+      setDisplayedProblems((prev) =>
+        prev.map((p) =>
+          p.id === problemId ? { ...p, currentStatus: newStatus } : p,
+        ),
+      );
+      if (
+        filters.statusFilter !== "all" &&
+        filters.statusFilter !== newStatus &&
+        !(filters.statusFilter === "none" && newStatus !== "none")
+      ) {
         handleFilterChange({ statusFilter: filters.statusFilter });
-    }
-  }, [filters.statusFilter, handleFilterChange]);
+      }
+    },
+    [filters.statusFilter, handleFilterChange],
+  );
 
   return (
     <div>
@@ -238,9 +276,9 @@ const ProblemList: React.FC<ProblemListProps> = ({
                 companySlug={problem.companySlug || companySlug}
                 initialIsBookmarked={problem.isBookmarked}
                 onBookmarkChanged={handleProblemBookmarkChange}
-                problemStatus={problem.currentStatus || 'none'}
+                problemStatus={problem.currentStatus || "none"}
                 onProblemStatusChange={handleProblemStatusChange}
-              />
+              />,
             );
 
             // Add AMP ad after every 5 problems
@@ -248,7 +286,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
             //   elements.push(
             //     <div key={`ad-${index}`} className="col-span-full w-full my-4">
             //       <amp-ad
-            //         width="100vw" 
+            //         width="100vw"
             //         height="320"
             //         type="adsense"
             //         data-ad-client="ca-pub-6342943619826199"
@@ -263,15 +301,15 @@ const ProblemList: React.FC<ProblemListProps> = ({
               elements.push(
                 <div key={`ad-${index}`} className="col-span-full w-full my-4">
                   <amp-ad
-                    width="100vw" 
+                    width="100vw"
                     height="320"
                     type="adsense"
                     data-ad-client="ca-pub-6342943619826199"
                     data-ad-slot="9953857815"
                     data-auto-format="rspv"
-                    data-full-width="">
-                  </amp-ad>
-                </div>
+                    data-full-width=""
+                  ></amp-ad>
+                </div>,
               );
             }
 
@@ -283,12 +321,17 @@ const ProblemList: React.FC<ProblemListProps> = ({
           No problems match the current filters or search term for this company.
         </p>
       )}
-      <div ref={loadMoreTriggerRef} className="h-10 flex items-center justify-center">
+      <div
+        ref={loadMoreTriggerRef}
+        className="h-10 flex items-center justify-center"
+      >
         {isLoadingMore && (
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
         )}
         {!isLoadingMore && !hasMore && displayedProblems.length > 0 && (
-          <p className="text-muted-foreground text-sm">You've reached the end!</p>
+          <p className="text-muted-foreground text-sm">
+            You've reached the end!
+          </p>
         )}
       </div>
     </div>

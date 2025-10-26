@@ -1,7 +1,7 @@
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
-import { Skeleton } from '@/components/ui/skeleton';
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * @function CompanyCardSkeleton
@@ -10,11 +10,13 @@ import { Skeleton } from '@/components/ui/skeleton';
  */
 const CompanyCardSkeleton = () => {
   return (
-    <Card className={cn(
-      "group relative flex flex-col h-full transition-all duration-300 ease-out overflow-hidden rounded-xl",
-      "bg-white/5 backdrop-blur-lg",
-      "border border-white/10",
-    )}>
+    <Card
+      className={cn(
+        "group relative flex flex-col h-full transition-all duration-300 ease-out overflow-hidden rounded-xl",
+        "bg-white/5 backdrop-blur-lg",
+        "border border-white/10",
+      )}
+    >
       <CardContent className="p-4 flex flex-col h-full">
         <div className="flex items-center gap-3">
           <Skeleton className="h-12 w-12 rounded-full" />

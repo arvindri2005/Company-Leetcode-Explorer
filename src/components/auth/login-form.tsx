@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Defines the user login form component.
  *
@@ -7,12 +6,12 @@
  * validation, and Firebase Authentication for the sign-in process. It also
  * handles loading states, error messages, and redirection upon successful login.
  */
-'use client';
+"use client";
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -20,22 +19,24 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
-import { Loader2, LogInIcon } from 'lucide-react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import { Loader2, LogInIcon } from "lucide-react";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 /**
  * Zod schema for validating the login form fields.
  */
 const loginFormSchema = z.object({
-  email: z.string().email({ message: 'Please enter a valid email address.' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  password: z
+    .string()
+    .min(6, { message: "Password must be at least 6 characters." }),
 });
 
 type LoginFormValues = z.infer<typeof loginFormSchema>;
@@ -62,8 +63,8 @@ export default function LoginForm() {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
     },
   });
 
@@ -72,39 +73,39 @@ export default function LoginForm() {
     try {
       await signInWithEmailAndPassword(auth, data.email, data.password);
       toast({
-        title: 'Login Successful! 🎉',
-        description: 'Welcome back!',
+        title: "Login Successful! 🎉",
+        description: "Welcome back!",
       });
-      const redirectUrl = searchParams.get('redirectUrl');
+      const redirectUrl = searchParams.get("redirectUrl");
       if (redirectUrl) {
         router.push(redirectUrl);
       } else {
-        router.push('/profile');
+        router.push("/profile");
       }
     } catch (error: any) {
-      console.error('Login error:', error);
-      let errorMessage = 'An unknown error occurred. Please try again.';
+      console.error("Login error:", error);
+      let errorMessage = "An unknown error occurred. Please try again.";
       if (error.code) {
         switch (error.code) {
-          case 'auth/user-not-found':
-          case 'auth/wrong-password':
-          case 'auth/invalid-credential':
-            errorMessage = 'Invalid email or password. Please try again.';
+          case "auth/user-not-found":
+          case "auth/wrong-password":
+          case "auth/invalid-credential":
+            errorMessage = "Invalid email or password. Please try again.";
             break;
-          case 'auth/invalid-email':
-            errorMessage = 'The email address is not valid.';
+          case "auth/invalid-email":
+            errorMessage = "The email address is not valid.";
             break;
-          case 'auth/too-many-requests':
-            errorMessage = 'Too many login attempts. Please try again later.';
+          case "auth/too-many-requests":
+            errorMessage = "Too many login attempts. Please try again later.";
             break;
           default:
             errorMessage = error.message || errorMessage;
         }
       }
       toast({
-        title: 'Login Failed',
+        title: "Login Failed",
         description: errorMessage,
-        variant: 'destructive',
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -149,8 +150,11 @@ export default function LoginForm() {
           Login
         </Button>
         <p className="text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{' '}
-          <Link href="/signup" className="font-medium text-primary hover:underline">
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/signup"
+            className="font-medium text-primary hover:underline"
+          >
             Sign up
           </Link>
         </p>

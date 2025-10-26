@@ -5,8 +5,8 @@
  * about the application, such as the number of companies, problems, etc. It
  * dynamically generates these stats from a constant data array.
  */
-import { StatItem } from '@/components/ui/stat-item';
-import { STATS } from '@/constants/features';
+import { StatItem } from "@/components/ui/stat-item";
+import { STATS } from "@/constants/features";
 
 /**
  * Renders the "Stats" section of the landing page.

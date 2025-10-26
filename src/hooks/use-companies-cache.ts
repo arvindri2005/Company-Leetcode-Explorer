@@ -4,15 +4,15 @@ import { fetchCompaniesAction } from "@/app/actions/company.actions";
 
 // Cache structure
 interface CompaniesCache {
-    [key: string]: {
-        data: {
-            companies: Company[];
-            totalPages: number;
-            totalCompanies: number;
-            currentPage: number;
-        };
-        timestamp: number;
+  [key: string]: {
+    data: {
+      companies: Company[];
+      totalPages: number;
+      totalCompanies: number;
+      currentPage: number;
     };
+    timestamp: number;
+  };
 }
 
 // Cache expiry time (30 minutes)
@@ -36,97 +36,97 @@ const CLEANUP_INTERVAL = 10 * 60 * 1000;
  * }} An object containing the cached fetch function and a function to clear the cache.
  */
 export function useCompaniesCache() {
-    const [cache, setCache] = useState<CompaniesCache>({});
+  const [cache, setCache] = useState<CompaniesCache>({});
 
-    // Clear expired cache entries
-    useEffect(() => {
-        const clearExpiredCache = () => {
-            const now = Date.now();
-            setCache(prevCache => {
-                const newCache = { ...prevCache };
-                let hasChanges = false;
+  // Clear expired cache entries
+  useEffect(() => {
+    const clearExpiredCache = () => {
+      const now = Date.now();
+      setCache((prevCache) => {
+        const newCache = { ...prevCache };
+        let hasChanges = false;
 
-                Object.keys(newCache).forEach((key) => {
-                    if (now - newCache[key].timestamp > CACHE_EXPIRY) {
-                        delete newCache[key];
-                        hasChanges = true;
-                    }
-                });
+        Object.keys(newCache).forEach((key) => {
+          if (now - newCache[key].timestamp > CACHE_EXPIRY) {
+            delete newCache[key];
+            hasChanges = true;
+          }
+        });
 
-                return hasChanges ? newCache : prevCache;
-            });
-        };
-
-        // Run cleanup every 10 minutes
-        const interval = setInterval(clearExpiredCache, CLEANUP_INTERVAL);
-        return () => clearInterval(interval);
-    }, []);
-
-    const getCacheKey = (
-        page: number,
-        pageSize: number,
-        searchTerm: string = ""
-    ) => {
-        return `${page}-${pageSize}-${searchTerm}`;
+        return hasChanges ? newCache : prevCache;
+      });
     };
 
-    const getCachedData = (
-        page: number,
-        pageSize: number,
-        searchTerm: string = ""
-    ) => {
-        const key = getCacheKey(page, pageSize, searchTerm);
-        const cacheEntry = cache[key];
+    // Run cleanup every 10 minutes
+    const interval = setInterval(clearExpiredCache, CLEANUP_INTERVAL);
+    return () => clearInterval(interval);
+  }, []);
 
-        if (cacheEntry && Date.now() - cacheEntry.timestamp <= CACHE_EXPIRY) {
-            return cacheEntry.data;
-        }
+  const getCacheKey = (
+    page: number,
+    pageSize: number,
+    searchTerm: string = "",
+  ) => {
+    return `${page}-${pageSize}-${searchTerm}`;
+  };
 
-        return null;
-    };
+  const getCachedData = (
+    page: number,
+    pageSize: number,
+    searchTerm: string = "",
+  ) => {
+    const key = getCacheKey(page, pageSize, searchTerm);
+    const cacheEntry = cache[key];
 
-    const setCachedData = (
-        page: number,
-        pageSize: number,
-        searchTerm: string = "",
-        data: {
-            companies: Company[];
-            totalPages: number;
-            totalCompanies: number;
-            currentPage: number;
-        }
-    ) => {
-        const key = getCacheKey(page, pageSize, searchTerm);
-        setCache((prev) => ({
-            ...prev,
-            [key]: {
-                data,
-                timestamp: Date.now(),
-            },
-        }));
-    };
+    if (cacheEntry && Date.now() - cacheEntry.timestamp <= CACHE_EXPIRY) {
+      return cacheEntry.data;
+    }
 
-    const fetchCompaniesWithCache = async (
-        page: number,
-        pageSize: number,
-        searchTerm: string = ""
-    ) => {
-        // Try to get from cache first
-        const cachedData = getCachedData(page, pageSize, searchTerm);
-        if (cachedData) {
-            return cachedData;
-        }
+    return null;
+  };
 
-        // If not in cache, fetch from API
-        const data = await fetchCompaniesAction(page, pageSize, searchTerm);
-        if (!("error" in data)) {
-            setCachedData(page, pageSize, searchTerm, data);
-        }
-        return data;
-    };
+  const setCachedData = (
+    page: number,
+    pageSize: number,
+    searchTerm: string = "",
+    data: {
+      companies: Company[];
+      totalPages: number;
+      totalCompanies: number;
+      currentPage: number;
+    },
+  ) => {
+    const key = getCacheKey(page, pageSize, searchTerm);
+    setCache((prev) => ({
+      ...prev,
+      [key]: {
+        data,
+        timestamp: Date.now(),
+      },
+    }));
+  };
 
-    return {
-        fetchCompaniesWithCache,
-        clearCache: () => setCache({}),
-    };
+  const fetchCompaniesWithCache = async (
+    page: number,
+    pageSize: number,
+    searchTerm: string = "",
+  ) => {
+    // Try to get from cache first
+    const cachedData = getCachedData(page, pageSize, searchTerm);
+    if (cachedData) {
+      return cachedData;
+    }
+
+    // If not in cache, fetch from API
+    const data = await fetchCompaniesAction(page, pageSize, searchTerm);
+    if (!("error" in data)) {
+      setCachedData(page, pageSize, searchTerm, data);
+    }
+    return data;
+  };
+
+  return {
+    fetchCompaniesWithCache,
+    clearCache: () => setCache({}),
+  };
 }

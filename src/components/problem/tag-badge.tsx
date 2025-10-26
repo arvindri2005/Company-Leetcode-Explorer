@@ -1,13 +1,12 @@
-
 /**
  * @fileoverview A simple component for displaying a tag associated with a problem.
  *
  * This component renders a styled badge, typically used to display keywords or
  * topics related to a coding problem (e.g., "Array", "Hash Table").
  */
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import React from 'react';
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import React from "react";
 
 /**
  * Props for the TagBadge component.
@@ -27,10 +26,7 @@ interface TagBadgeProps {
  */
 const TagBadgeComponent: React.FC<TagBadgeProps> = ({ tag, className }) => {
   return (
-    <Badge
-      variant="secondary"
-      className={cn('px-2 py-0.5 text-xs', className)}
-    >
+    <Badge variant="secondary" className={cn("px-2 py-0.5 text-xs", className)}>
       {tag}
     </Badge>
   );

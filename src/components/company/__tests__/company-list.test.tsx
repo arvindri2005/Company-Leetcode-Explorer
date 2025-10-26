@@ -3,40 +3,46 @@ const mockPush = jest.fn();
 const mockReplace = jest.fn();
 let mockSearchParams = new URLSearchParams();
 
-jest.mock('next/navigation', () => ({
+jest.mock("next/navigation", () => ({
   useRouter: () => ({
     push: mockPush,
     replace: mockReplace,
   }),
-  usePathname: () => '/companies',
+  usePathname: () => "/companies",
   useSearchParams: () => mockSearchParams,
 }));
 
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import CompanyList from '../company-list';
-import { fetchCompanySuggestionsAction } from '@/app/actions';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import CompanyList from "../company-list";
+import { fetchCompanySuggestionsAction } from "@/app/actions";
 
 // Mock actions
-jest.mock('@/app/actions', () => ({
+jest.mock("@/app/actions", () => ({
   fetchCompanySuggestionsAction: jest.fn(),
 }));
 
 // Mock child components
-jest.mock('../company-card', () => {
+jest.mock("../company-card", () => {
   const MockCompanyCard = ({ company }: { company: any }) => (
     <div data-testid="company-card">{company.name}</div>
   );
-  MockCompanyCard.displayName = 'CompanyCard';
+  MockCompanyCard.displayName = "CompanyCard";
   return MockCompanyCard;
 });
 
-jest.mock('lucide-react', () => ({
+jest.mock("lucide-react", () => ({
   Search: () => <svg data-testid="search-icon" />,
   Loader2: () => <svg data-testid="loader-icon" />,
   Building2: () => <svg data-testid="building-icon" />,
 }));
-jest.mock('next/image', () => ({
+jest.mock("next/image", () => ({
   __esModule: true,
   default: (props: any) => {
     // eslint-disable-next-line @next/next/no-img-element
@@ -45,13 +51,31 @@ jest.mock('next/image', () => ({
 }));
 
 const mockCompanies = [
-  { id: '1', name: 'Company A', slug: 'company-a', logo: '/logo-a.png', problemCount: 10 },
-  { id: '2', name: 'Company B', slug: 'company-b', logo: '/logo-b.png', problemCount: 5 },
-  { id: '3', name: 'Company C', slug: 'company-c', logo: '/logo-c.png', problemCount: 12 },
+  {
+    id: "1",
+    name: "Company A",
+    slug: "company-a",
+    logo: "/logo-a.png",
+    problemCount: 10,
+  },
+  {
+    id: "2",
+    name: "Company B",
+    slug: "company-b",
+    logo: "/logo-b.png",
+    problemCount: 5,
+  },
+  {
+    id: "3",
+    name: "Company C",
+    slug: "company-c",
+    logo: "/logo-c.png",
+    problemCount: 12,
+  },
 ];
 
-describe('CompanyList', () => {
-  let mockIntersectionObserverCallback: (entries: IntersectionObserverEntry[]) => void;
+describe("CompanyList", () => {
+  let mockIntersectionObserverCallback: IntersectionObserverCallback;
   const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
 
   beforeAll(() => {
@@ -63,8 +87,9 @@ describe('CompanyList', () => {
         unobserve: jest.fn(),
         disconnect: jest.fn(),
         root: null,
-        rootMargin: '',
+        rootMargin: "",
         thresholds: [0],
+        takeRecords: jest.fn(),
       };
     });
     // Mock history.pushState
@@ -76,13 +101,14 @@ describe('CompanyList', () => {
     jest.clearAllMocks();
     mockSearchParams = new URLSearchParams();
     (fetchCompanySuggestionsAction as jest.Mock).mockResolvedValue([]);
-    
+
     // Mock fetch API for pagination
     global.fetch = jest.fn(() =>
       Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ companies: [], hasMore: false, nextCursor: null }),
-      })
+        json: () =>
+          Promise.resolve({ companies: [], hasMore: false, nextCursor: null }),
+      }),
     ) as jest.Mock;
   });
 
@@ -90,7 +116,7 @@ describe('CompanyList', () => {
     jest.useRealTimers();
   });
 
-  it('renders initial companies correctly', () => {
+  it("renders initial companies correctly", () => {
     render(
       <CompanyList
         initialCompanies={mockCompanies.slice(0, 2)}
@@ -99,11 +125,11 @@ describe('CompanyList', () => {
         itemsPerPage={2}
         currentPage={1}
         totalPages={5}
-      />
+      />,
     );
-    expect(screen.getByText('Company A')).toBeInTheDocument();
-    expect(screen.getByText('Company B')).toBeInTheDocument();
-    expect(screen.queryByText('Company C')).not.toBeInTheDocument();
+    expect(screen.getByText("Company A")).toBeInTheDocument();
+    expect(screen.getByText("Company B")).toBeInTheDocument();
+    expect(screen.queryByText("Company C")).not.toBeInTheDocument();
   });
 
   it('displays "No companies available." when initialCompanies is empty and no search term', () => {
@@ -114,9 +140,9 @@ describe('CompanyList', () => {
         itemsPerPage={9}
         currentPage={1}
         totalPages={1}
-      />
+      />,
     );
-    expect(screen.getByText('No companies available.')).toBeInTheDocument();
+    expect(screen.getByText("No companies available.")).toBeInTheDocument();
   });
 
   it('displays "No companies found matching your search." when initialCompanies is empty with a search term', () => {
@@ -128,12 +154,14 @@ describe('CompanyList', () => {
         itemsPerPage={9}
         currentPage={1}
         totalPages={1}
-      />
+      />,
     );
-    expect(screen.getByText('No companies found matching your search.')).toBeInTheDocument();
+    expect(
+      screen.getByText("No companies found matching your search."),
+    ).toBeInTheDocument();
   });
 
-  it('updates search term input and triggers navigation on search', async () => {
+  it("updates search term input and triggers navigation on search", async () => {
     render(
       <CompanyList
         initialCompanies={[]}
@@ -141,23 +169,30 @@ describe('CompanyList', () => {
         itemsPerPage={9}
         currentPage={1}
         totalPages={1}
-      />
+      />,
     );
-    const searchInput = screen.getByPlaceholderText('Search for companies (e.g., Amazon, Google)');
-    await user.type(searchInput, 'test');
-    expect(searchInput).toHaveValue('test');
+    const searchInput = screen.getByPlaceholderText(
+      "Search for companies (e.g., Amazon, Google)",
+    );
+    await user.type(searchInput, "test");
+    expect(searchInput).toHaveValue("test");
 
-    const searchButton = screen.getByRole('button', { name: /search/i });
+    const searchButton = screen.getByRole("button", { name: /search/i });
     await user.click(searchButton);
 
     await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith('/companies?search=test');
+      expect(mockPush).toHaveBeenCalledWith("/companies?search=test");
     });
   });
 
-  it('fetches and displays suggestions when typing', async () => {
+  it("fetches and displays suggestions when typing", async () => {
     (fetchCompanySuggestionsAction as jest.Mock).mockResolvedValue([
-      { id: 's1', name: 'Suggested Company', slug: 'suggested-company', logo: '/suggested.png' },
+      {
+        id: "s1",
+        name: "Suggested Company",
+        slug: "suggested-company",
+        logo: "/suggested.png",
+      },
     ]);
     render(
       <CompanyList
@@ -166,28 +201,33 @@ describe('CompanyList', () => {
         itemsPerPage={9}
         currentPage={1}
         totalPages={1}
-      />
+      />,
     );
-    const searchInput = screen.getByPlaceholderText('Search for companies (e.g., Amazon, Google)');
+    const searchInput = screen.getByPlaceholderText(
+      "Search for companies (e.g., Amazon, Google)",
+    );
     await act(async () => {
-        await user.type(searchInput, 'Sug');
-        await jest.advanceTimersByTimeAsync(300);
+      await user.type(searchInput, "Sug");
+      await jest.advanceTimersByTimeAsync(300);
     });
 
     await waitFor(() => {
-      expect(fetchCompanySuggestionsAction).toHaveBeenCalledWith('Sug');
-      expect(screen.getByText('Suggested Company')).toBeInTheDocument();
+      expect(fetchCompanySuggestionsAction).toHaveBeenCalledWith("Sug");
+      expect(screen.getByText("Suggested Company")).toBeInTheDocument();
     });
   });
 
-  it('loads more companies on intersection and updates URL', async () => {
+  it("loads more companies on intersection and updates URL", async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve({
-        companies: [{ id: '4', name: 'Company D', slug: 'company-d', problemCount: 8 }],
-        hasMore: false,
-        nextCursor: 'newCursor',
-      }),
+      json: () =>
+        Promise.resolve({
+          companies: [
+            { id: "4", name: "Company D", slug: "company-d", problemCount: 8 },
+          ],
+          hasMore: false,
+          nextCursor: "newCursor",
+        }),
     });
 
     render(
@@ -198,16 +238,21 @@ describe('CompanyList', () => {
         itemsPerPage={1}
         currentPage={1}
         totalPages={2}
-      />
+      />,
     );
 
     await act(async () => {
-      mockIntersectionObserverCallback([{ isIntersecting: true } as IntersectionObserverEntry]);
+      mockIntersectionObserverCallback([
+        { isIntersecting: true } as IntersectionObserverEntry,
+      ]);
     });
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('/api/companies', expect.any(Object));
-      expect(screen.getByText('Company D')).toBeInTheDocument();
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/companies",
+        expect.any(Object),
+      );
+      expect(screen.getByText("Company D")).toBeInTheDocument();
       expect(screen.getByText("You've reached the end!")).toBeInTheDocument();
     });
   });
