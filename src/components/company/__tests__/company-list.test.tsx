@@ -206,15 +206,19 @@ describe("CompanyList", () => {
     const searchInput = screen.getByPlaceholderText(
       "Search for companies (e.g., Amazon, Google)",
     );
-    await act(async () => {
-      await user.type(searchInput, "Sug");
-      await jest.advanceTimersByTimeAsync(300);
+    await user.type(searchInput, "Sug");
+
+    // Advancing timers triggers the debounced search
+    act(() => {
+      jest.advanceTimersByTime(300);
     });
 
+    // Wait for the suggestion to appear in the document
     await waitFor(() => {
       expect(fetchCompanySuggestionsAction).toHaveBeenCalledWith("Sug");
-      expect(screen.getByText("Suggested Company")).toBeInTheDocument();
     });
+
+    expect(await screen.findByText("Suggested Company")).toBeInTheDocument();
   });
 
   it("loads more companies on intersection and updates URL", async () => {

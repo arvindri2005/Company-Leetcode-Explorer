@@ -142,6 +142,21 @@ const Header = React.memo(() => {
               >
                 Profile
               </Link>
+              <Link
+                href="/add-application"
+                className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${
+                  isMobile
+                    ? `block py-4 border-b border-gray-200/10 font-bold ${
+                        pathname === "/add-application" ? "text-teal-400" : ""
+                      }`
+                    : ""
+                }`}
+                onClick={
+                  isMobile ? () => setIsMobileMenuOpen(false) : undefined
+                }
+              >
+                Add Job
+              </Link>
               <button
                 onClick={() => {
                   handleLogout();

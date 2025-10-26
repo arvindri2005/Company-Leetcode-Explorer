@@ -36,9 +36,13 @@ jest.mock("@radix-ui/react-dropdown-menu", () => ({
   ),
   Content: ({
     children,
+    sideOffset,
+    align,
     ...props
   }: {
     children: React.ReactNode;
+    sideOffset?: number;
+    align?: string;
     [key: string]: any;
   }) => (
     <div data-testid="dropdown-content" {...props}>
