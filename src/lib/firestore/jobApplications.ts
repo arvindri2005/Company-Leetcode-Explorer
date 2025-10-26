@@ -8,15 +8,25 @@ import {
   doc,
   query,
   where,
+  arrayUnion,
 } from "firebase/firestore";
 import { JobApplication } from "@/types/job-application";
 
 const jobApplicationsCollection = collection(db, "jobApplications");
 
 export const addJobApplication = async (
-  application: Omit<JobApplication, "id">
+  application: Omit<JobApplication, "id" | "statusHistory">
 ): Promise<string> => {
-  const docRef = await addDoc(jobApplicationsCollection, application);
+  const applicationWithHistory = {
+    ...application,
+    statusHistory: [
+      {
+        status: application.status,
+        date: application.dateApplied,
+      },
+    ],
+  };
+  const docRef = await addDoc(jobApplicationsCollection, applicationWithHistory);
   return docRef.id;
 };
 
@@ -36,7 +46,17 @@ export const updateJobApplication = async (
   updates: Partial<JobApplication>
 ): Promise<void> => {
   const docRef = doc(db, "jobApplications", id);
-  await updateDoc(docRef, updates);
+  if (updates.status) {
+    await updateDoc(docRef, {
+      ...updates,
+      statusHistory: arrayUnion({
+        status: updates.status,
+        date: new Date().toISOString().split("T")[0],
+      }),
+    });
+  } else {
+    await updateDoc(docRef, updates);
+  }
 };
 
 export const deleteJobApplication = async (id: string): Promise<void> => {

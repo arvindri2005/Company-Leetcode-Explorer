@@ -44,7 +44,7 @@ export default function AddApplicationForm() {
         return;
     };
 
-    const newApplication: Omit<JobApplication, "id"> = {
+    const newApplication: Omit<JobApplication, "id" | "statusHistory"> = {
       userId: user.uid,
       companyName,
       position,

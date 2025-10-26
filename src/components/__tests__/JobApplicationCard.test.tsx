@@ -9,11 +9,27 @@ import { JobApplication } from "@/types/job-application";
 
 jest.mock("@/lib/firestore/jobApplications");
 
-jest.mock("@/components/ui/dropdown-menu", () => ({
-    DropdownMenu: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-    DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => <div onClick={() => {}}>{children}</div>,
-    DropdownMenuContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-    DropdownMenuItem: ({ children, onClick }: { children: React.ReactNode, onClick: () => void }) => <div onClick={onClick}>{children}</div>,
+jest.mock("@/components/ui/dropdown-menu", () => {
+    const DropdownMenu = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
+    const DropdownMenuTrigger = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
+    const DropdownMenuContent = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
+    const DropdownMenuItem = ({ children, onSelect, onClick }: { children: React.ReactNode, onSelect?: (event: Event) => void, onClick?: () => void }) => (
+      <div onClick={() => {
+        if (onSelect) onSelect(new Event("select"));
+        if (onClick) onClick();
+      }}>{children}</div>
+    );
+    return { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem };
+  });
+
+jest.mock("../StatusTimelineModal", () => ({
+  __esModule: true,
+  default: ({ children, application }: { children: React.ReactNode, application: any }) => (
+    <div>
+      <div>{children}</div>
+      <h2>Status Timeline for {application.companyName}</h2>
+    </div>
+  ),
 }));
 
 jest.mock("next/image", () => ({
@@ -46,6 +62,7 @@ describe("JobApplicationCard", () => {
     location: "San Francisco, CA",
     jobType: "FULL TIME",
     companyLogoUrl: "https://logo.clearbit.com/google.com",
+    statusHistory: [],
   };
 
   beforeEach(() => {
@@ -83,5 +100,20 @@ describe("JobApplicationCard", () => {
       expect(mockDeleteJobApplication).toHaveBeenCalledWith("app-id");
       expect(onApplicationDeleted).toHaveBeenCalledWith("app-id");
     });
+  });
+
+  it("opens the status timeline modal when 'View Timeline' is clicked", () => {
+    render(
+      <JobApplicationCard
+        application={application}
+        onApplicationDeleted={onApplicationDeleted}
+        onApplicationUpdated={onApplicationUpdated}
+      />
+    );
+
+    fireEvent.click(screen.getByText("View Timeline"));
+
+    // Since the modal is now part of the DOM, we can check for its title
+    expect(screen.getByText(/Status Timeline for/)).toBeInTheDocument();
   });
 });

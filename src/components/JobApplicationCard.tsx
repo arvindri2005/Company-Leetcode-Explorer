@@ -21,6 +21,7 @@ import {
   } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import { MoreHorizontal } from "lucide-react";
+import StatusTimelineModal from "./StatusTimelineModal";
 
 interface JobApplicationCardProps {
   application: JobApplication;
@@ -69,6 +70,9 @@ export default function JobApplicationCard({
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
+                    <StatusTimelineModal application={application}>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>View Timeline</DropdownMenuItem>
+                    </StatusTimelineModal>
                     <DropdownMenuItem onClick={handleDelete}>Delete</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>

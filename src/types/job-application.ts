@@ -8,4 +8,5 @@ export interface JobApplication {
   location?: string;
   jobType?: "REMOTE" | "FULL TIME" | "PART TIME" | "CONTRACT";
   companyLogoUrl?: string;
+  statusHistory: { status: JobApplication["status"]; date: string }[];
 }
