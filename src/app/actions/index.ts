@@ -5,8 +5,8 @@
  * modules. This allows for a single, consistent import path for any action
  * needed throughout the application, simplifying module resolution and management.
  */
-export * from "./actions/ai.actions";
-export * from "./actions/company.actions";
-export * from "./actions/problem.actions";
-export * from "./actions/user.actions";
-export * from "./actions/admin.actions";
+export * from "@/app/actions/ai.actions";
+export * from "@/app/actions/company.actions";
+export * from "@/app/actions/problem.actions";
+export * from "@/app/actions/user.actions";
+export * from "@/app/actions/admin.actions";

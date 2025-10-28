@@ -66,6 +66,8 @@ Here is a high-level overview of the key directories in this project:
     -   `src/app/actions`: Contains Next.js Server Actions for server-side logic.
 -   `src/components`: Reusable React components used throughout the application.
     -   `src/components/ui`: Auto-generated components from ShadCN UI.
+    -   `src/components/shared`: Shared components used across multiple features.
+    -   `src/components/job-application`: Components related to the job application feature.
 -   `src/lib`: Core utility functions, Firebase configuration, and database interaction logic.
 -   `src/ai`: All AI-related logic, including Genkit flow definitions and configurations.
 -   `src/hooks`: Custom React hooks for shared client-side logic.

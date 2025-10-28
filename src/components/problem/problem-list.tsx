@@ -246,20 +246,6 @@ const ProblemList: React.FC<ProblemListProps> = ({
 
   return (
     <div>
-      {/* <ProblemListControls
-        difficultyFilter={filters.difficultyFilter}
-        onDifficultyFilterChange={(value) => handleFilterChange({ difficultyFilter: value })}
-        sortKey={filters.sortKey}
-        onSortKeyChange={(value) => handleFilterChange({ sortKey: value })}
-        lastAskedFilter={filters.lastAskedFilter}
-        onLastAskedFilterChange={(value) => handleFilterChange({ lastAskedFilter: value })}
-        statusFilter={filters.statusFilter}
-        onStatusFilterChange={(value) => handleFilterChange({ statusFilter: value })}
-        searchTerm={searchInput}
-        onSearchTermChange={setSearchInput}
-        problemCount={displayedProblems.length}
-        showStatusFilter={!!user}
-      /> */}
       {isLoading && displayedProblems.length === 0 ? (
         <div className="flex justify-center items-center py-10">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -281,22 +267,6 @@ const ProblemList: React.FC<ProblemListProps> = ({
               />,
             );
 
-            // Add AMP ad after every 5 problems
-            // if ((index + 1) % 6 === 0 && index !== displayedProblems.length - 1) {
-            //   elements.push(
-            //     <div key={`ad-${index}`} className="col-span-full w-full my-4">
-            //       <amp-ad
-            //         width="100vw"
-            //         height="320"
-            //         type="adsense"
-            //         data-ad-client="ca-pub-6342943619826199"
-            //         data-ad-slot="9953857815"
-            //         data-auto-format="rspv"
-            //         data-full-width="">
-            //       </amp-ad>
-            //     </div>
-            //   );
-            // }
             if (index == displayedProblems.length - 1) {
               elements.push(
                 <div key={`ad-${index}`} className="col-span-full w-full my-4">

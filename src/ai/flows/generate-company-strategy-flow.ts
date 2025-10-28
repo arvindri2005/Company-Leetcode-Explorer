@@ -1,4 +1,3 @@
-"use server";
 /**
  * @fileOverview Generates a company-specific interview preparation strategy using AI.
  *

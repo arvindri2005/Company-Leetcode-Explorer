@@ -35,7 +35,7 @@ import React, { useState, useCallback, useMemo } from "react";
  *
  * @returns {JSX.Element} The rendered header component.
  */
-const Header = React.memo(() => {
+const Header = React.memo(function Header() {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
@@ -70,7 +70,8 @@ const Header = React.memo(() => {
 
   const commonNavLinks = useMemo(
     () =>
-      (isMobile = false) => (
+      function CommonNavLinks(isMobile = false) {
+        return (
         <>
           <Link
             href="/companies"
@@ -113,13 +114,13 @@ const Header = React.memo(() => {
             Add Company
           </Link>
         </>
-      ),
+      )},
     [pathname],
   );
 
   const authLinks = useMemo(
     () =>
-      (isMobile = false) => {
+      function AuthLinks(isMobile = false) {
         if (authLoading) {
           return <span className="text-gray-200">Loading...</span>;
         }

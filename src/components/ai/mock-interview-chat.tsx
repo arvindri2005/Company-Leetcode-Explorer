@@ -201,9 +201,9 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({
 
   useEffect(scrollToBottom, [conversation]);
 
-  const formatFeedback = (
+  function formatFeedback(
     feedback: NonNullable<MockInterviewOutput["feedback"]>,
-  ): string => {
+  ): string {
     let markdown = "\n\n---\n\n**Feedback on Your Approach:**\n";
     if (feedback.solutionAssessment)
       markdown += `\n*   **Assessment:** ${feedback.solutionAssessment}\n`;
@@ -225,7 +225,7 @@ const MockInterviewChat: React.FC<MockInterviewChatProps> = ({
     if (feedback.codeQualitySuggestions)
       markdown += `*   **Code Quality:** ${feedback.codeQualitySuggestions}\n`;
     return markdown;
-  };
+  }
 
   const submitUserTurn = async (messageContent: string) => {
     if (!messageContent.trim() || isLoading || !canUseAI) return; // Check global canUseAI

@@ -45,31 +45,23 @@ interface CooldownStateProviderProps {
 export const CooldownStateProvider: React.FC<CooldownStateProviderProps> = ({
   children,
 }) => {
-  const [cooldownEndTime, setCooldownEndTime] = useState<number | null>(null);
-  const [currentTime, setCurrentTime] = useState<number>(Date.now());
+  const [cooldownEndTime, setCooldownEndTime] = useState<number | null>(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
+    const storedEndTimeString = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (storedEndTimeString) {
+      const endTime = parseInt(storedEndTimeString, 10);
+      if (!isNaN(endTime) && endTime > Date.now()) {
+        return endTime;
+      }
+    }
+    return null;
+  });
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
   const [isLoadingCooldown, setIsLoadingCooldown] = useState(true);
 
-  // Effect to load cooldown end time from localStorage on mount
   useEffect(() => {
-    setIsLoadingCooldown(true);
-    let storedEndTime: number | null = null;
-    try {
-      const storedEndTimeString = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (storedEndTimeString) {
-        const endTime = parseInt(storedEndTimeString, 10);
-        if (!isNaN(endTime) && endTime > Date.now()) {
-          storedEndTime = endTime;
-        } else {
-          localStorage.removeItem(LOCAL_STORAGE_KEY);
-        }
-      }
-    } catch (error) {
-      console.warn(
-        "AI Cooldown: Failed to access localStorage on mount.",
-        error,
-      );
-    }
-    setCooldownEndTime(storedEndTime);
     setIsLoadingCooldown(false);
   }, []);
 

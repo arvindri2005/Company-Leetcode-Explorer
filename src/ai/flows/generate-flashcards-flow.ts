@@ -15,10 +15,7 @@
 
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
-import type {
-  FlashcardProblemInput as ImportedFlashcardProblemInput,
-  Flashcard,
-} from "@/types";
+import type { FlashcardProblemInput as ImportedFlashcardProblemInput } from "@/types";
 
 export type FlashcardProblemInput = ImportedFlashcardProblemInput;
 
@@ -57,7 +54,7 @@ const FlashcardSchema = z.object({
       "The answer, explanation, key data structures/algorithms, or relevant problem-solving strategy on the back of the flashcard. Keep it concise and informative (max 3-4 sentences).",
     ),
 });
-export type { Flashcard }; // Export the Zod inferred type as Flashcard as well
+export type Flashcard = z.infer<typeof FlashcardSchema>;
 
 const GenerateFlashcardsOutputSchema = z.object({
   flashcards: z

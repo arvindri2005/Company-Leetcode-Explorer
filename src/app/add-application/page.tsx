@@ -1,5 +1,5 @@
 "use client";
-import AddApplicationForm from "@/components/AddApplicationForm";
+import AddApplicationForm from "@/components/job-application/AddApplicationForm";
 import { useAuth } from "@/contexts/auth-context";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";

@@ -65,44 +65,39 @@ export default function MockInterviewPage({ params }: MockInterviewPageProps) {
   const [isLoadingData, setIsLoadingData] = useState(true);
 
   useEffect(() => {
-    // This effect runs after `params` is resolved due to React.use() potentially suspending.
-    async function fetchData() {
+    const fetchData = async () => {
       if (!params.companySlug || !params.problemSlug) {
-        // This case should ideally not happen if params are correctly resolved from route
-        setIsLoadingData(false);
         setCompany(null);
         setProblem(null);
+        setIsLoadingData(false);
         return;
       }
 
       setIsLoadingData(true);
-      const companyData = await getCompanyBySlug(params.companySlug);
-      setCompany(companyData);
+      try {
+        const companyData = await getCompanyBySlug(params.companySlug);
+        setCompany(companyData);
 
-      if (companyData) {
-        const problemDetails = await getProblemByCompanySlugAndProblemSlug(
-          params.companySlug,
-          params.problemSlug,
-        );
-        setProblem(problemDetails.problem);
-      } else {
-        setProblem(null); // No company, so no problem
+        if (companyData) {
+          const problemDetails = await getProblemByCompanySlugAndProblemSlug(
+            params.companySlug,
+            params.problemSlug,
+          );
+          setProblem(problemDetails.problem);
+        } else {
+          setProblem(null);
+        }
+      } catch (error) {
+        console.error("Failed to fetch mock interview data:", error);
+        setCompany(null);
+        setProblem(null);
+      } finally {
+        setIsLoadingData(false);
       }
-      setIsLoadingData(false);
-    }
+    };
 
-    // Ensure params are available before fetching
-    if (params?.companySlug && params?.problemSlug) {
-      fetchData();
-    } else {
-      // Handle case where resolved params might still be missing required fields, though unlikely for route params
-      setIsLoadingData(false);
-      console.warn(
-        "Resolved params are missing companySlug or problemSlug",
-        params,
-      );
-    }
-  }, [params?.companySlug, params?.problemSlug]); // Depend on the resolved params' properties
+    fetchData();
+  }, [params]);
 
   if (authLoading || isLoadingData) {
     return (

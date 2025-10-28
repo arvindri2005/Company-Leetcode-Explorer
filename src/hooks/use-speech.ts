@@ -16,17 +16,16 @@ export function useSpeech(onTranscriptUpdate: (transcript: string) => void) {
   const [micPermission, setMicPermission] = useState<
     "prompt" | "granted" | "denied"
   >("prompt");
-  const [isBrowserUnsupported, setIsBrowserUnsupported] = useState(false);
+  const [isBrowserUnsupported, setIsBrowserUnsupported] = useState(() => {
+    if (typeof window === "undefined") {
+      return true;
+    }
+    return !window.SpeechRecognition && !window.webkitSpeechRecognition;
+  });
   const [isTTSEnabled, setIsTTSEnabled] = useState(false);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-
-  useEffect(() => {
-    if (!SpeechRecognition || !speechSynthesis) {
-      setIsBrowserUnsupported(true);
-    }
-  }, []);
 
   const speakText = useCallback(
     (text: string) => {

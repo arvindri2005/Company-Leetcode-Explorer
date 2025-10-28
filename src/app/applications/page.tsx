@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/auth-context";
 import Link from "next/link";
 import { JobApplication } from "@/types/job-application";
 import { getJobApplications } from "@/lib/firestore/jobApplications";
-import JobApplicationColumn from "@/components/JobApplicationColumn";
+import JobApplicationColumn from "@/components/job-application/JobApplicationColumn";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -40,19 +40,21 @@ export default function ApplicationsPage() {
   const [jobTypeFilter, setJobTypeFilter] = useState<string>("All");
 
   useEffect(() => {
-    if (!authLoading && user) {
-      getJobApplications(user.uid)
-        .then((apps) => {
+    const loadApplications = async () => {
+      if (!authLoading && user) {
+        try {
+          const apps = await getJobApplications(user.uid);
           setApplications(apps);
-          setLoading(false);
-        })
-        .catch((error) => {
+        } catch (error) {
           console.error("Error fetching job applications:", error);
+        } finally {
           setLoading(false);
-        });
-    } else if (!authLoading) {
-      setLoading(false);
-    }
+        }
+      } else if (!authLoading) {
+        setLoading(false);
+      }
+    };
+    loadApplications();
   }, [user, authLoading]);
 
   const handleApplicationDeleted = (id: string) => {
