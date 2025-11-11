@@ -10,8 +10,9 @@ import { Suspense, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Brain, Target, Users } from "lucide-react";
-import ProblemListV2 from "@/components/problem/problem-list-v2";
+import ProblemList from "@/components/problem/problem-list";
 import type { Company, LeetCodeProblem, ProblemListFilters } from "@/types";
+import { getAIProblems } from "@/actions/problem.actions";
 
 const AIGroupingSection = dynamic(
   () => import("@/components/ai/ai-grouping-section"),
@@ -46,8 +47,8 @@ const CompanyStrategyGenerator = dynamic(
   },
 );
 
-const CompanyProblemStatsV2 = dynamic(
-  () => import("@/components/company/company-problem-stats-v2"),
+const CompanyProblemStats = dynamic(
+  () => import("@/components/company/company-problem-stats"),
   {
     loading: () => <div className="animate-pulse h-36 bg-muted rounded-lg" />,
   },
@@ -55,7 +56,7 @@ const CompanyProblemStatsV2 = dynamic(
 
 const MAX_PROBLEMS_FOR_AI_FEATURES = 200;
 
-interface CompanyTabsV3Props {
+interface CompanyTabsProps {
   company: Company;
   displayProblemCount: number;
   initialProblems: LeetCodeProblem[];
@@ -65,7 +66,7 @@ interface CompanyTabsV3Props {
   itemsPerPage: number;
 }
 
-export default function CompanyTabsV3({
+export default function CompanyTabs({
   company,
   displayProblemCount,
   initialProblems,
@@ -73,11 +74,9 @@ export default function CompanyTabsV3({
   initialNextCursor,
   initialFilters,
   itemsPerPage,
-}: CompanyTabsV3Props) {
+}: CompanyTabsProps) {
   const [aiProblems, setAiProblems] = useState<LeetCodeProblem[]>([]);
   const [isLoadingAI, setIsLoadingAI] = useState(true);
-
-import { getAIProblems } from "@/actions/problem.actions";
 
   useEffect(() => {
     async function fetchAIProblems() {
@@ -125,13 +124,13 @@ import { getAIProblems } from "@/actions/problem.actions";
         </div>
         <div className="md:col-span-3">
           <TabsContent value="problems" className="mt-0">
-            <ProblemListV2
+            <ProblemList
               key={company.id}
               companyId={company.id}
               companySlug={company.slug}
               initialProblems={initialProblems}
               initialHasMore={initialHasMore ?? false}
-              initialNextCursor={initialNextCursor}
+              initialNextCursor={initialNextCursor ?? undefined}
               itemsPerPage={itemsPerPage}
               initialFilters={initialFilters}
             />
@@ -140,7 +139,7 @@ import { getAIProblems } from "@/actions/problem.actions";
             <Suspense
               fallback={<div className="animate-pulse h-36 bg-muted rounded-lg" />}
             >
-              <CompanyProblemStatsV2 company={company} />
+              <CompanyProblemStats company={company} />
             </Suspense>
           </TabsContent>
           <TabsContent value="ai-grouping" className="mt-0">

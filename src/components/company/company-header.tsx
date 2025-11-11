@@ -10,9 +10,9 @@ import { Building2, ExternalLink } from "lucide-react";
 import Image from "next/image";
 
 /**
- * Props for the CompanyHeaderV3 component.
+ * Props for the CompanyHeader component.
  */
-interface CompanyHeaderV3Props {
+interface CompanyHeaderProps {
   company: Company;
 }
 
@@ -23,10 +23,10 @@ interface CompanyHeaderV3Props {
  * bold typography, and subtle animations. It aims to create a professional
  * and engaging introduction to the company's page.
  *
- * @param {CompanyHeaderV3Props} props - The props for the component.
+ * @param {CompanyHeaderProps} props - The props for the component.
  * @returns {JSX.Element} The rendered company header section.
  */
-export default function CompanyHeaderV3({ company }: CompanyHeaderV3Props) {
+export default function CompanyHeader({ company }: CompanyHeaderProps) {
   return (
     <section className="relative bg-gradient-to-r from-gray-900 to-gray-800 border border-border rounded-xl p-8 mb-8 overflow-hidden shadow-2xl">
       <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>

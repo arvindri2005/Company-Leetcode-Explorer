@@ -12,7 +12,7 @@ import {
 } from "@/lib/data";
 import type { Metadata } from "next";
 import CompanyNotFound from "@/components/company/page/company-not-found";
-import CompanyPageV2 from "@/components/company/page/company-page-v2";
+import CompanyPage from "@/components/company/page/company-page";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 
@@ -142,12 +142,12 @@ export async function generateMetadata(
  *
  * This server component fetches the company's details based on the slug from the URL.
  * If the company is not found, it renders a `CompanyNotFound` component. Otherwise, it
- * renders the `CompanyPageV2` component with the fetched company data.
+ * renders the `CompanyPage` component with the fetched company data.
  *
  * @param {CompanyPageProps} props - The props containing the dynamic route parameters.
  * @returns {Promise<JSX.Element>} The rendered company page or a not-found component.
  */
-export default async function CompanyPage(props: CompanyPageProps) {
+export default async function CompanyPageWrapper(props: CompanyPageProps) {
   const params = await props.params;
   const company = await getCompanyBySlug(params.companySlug);
 
@@ -155,7 +155,7 @@ export default async function CompanyPage(props: CompanyPageProps) {
     return <CompanyNotFound companySlug={params.companySlug} />;
   }
 
-  return <CompanyPageV2 company={company} />;
+  return <CompanyPage company={company} />;
 }
 
 /**

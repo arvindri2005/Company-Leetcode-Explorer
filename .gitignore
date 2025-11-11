@@ -4,3 +4,5 @@ package-lock.json
 /.next/
 .genkit
 coverage
+dev_server.log
+tsconfig.tsbuildinfo

@@ -22,9 +22,9 @@ import { ListChecks, CalendarClock, TagsIcon } from "lucide-react";
 import TagBadge from "@/components/problem/tag-badge";
 
 /**
- * Props for the CompanyProblemStatsV2 component.
+ * Props for the CompanyProblemStats component.
  */
-interface CompanyProblemStatsV2Props {
+interface CompanyProblemStatsProps {
   company: Company;
 }
 
@@ -48,10 +48,10 @@ const recencyColors: Record<LastAskedPeriod, string> = {
  * difficulties and recency. It also lists the most common tags in a clean,
  * modern layout. The component only renders if the necessary stats are available.
  *
- * @param {CompanyProblemStatsV2Props} props - The props for the component.
+ * @param {CompanyProblemStatsProps} props - The props for the component.
  * @returns {JSX.Element | null} The rendered statistics card, or null if stats are unavailable.
  */
-const CompanyProblemStatsV2: React.FC<CompanyProblemStatsV2Props> = ({
+const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({
   company,
 }) => {
   const {
@@ -195,4 +195,4 @@ const CompanyProblemStatsV2: React.FC<CompanyProblemStatsV2Props> = ({
   );
 };
 
-export default CompanyProblemStatsV2;
+export default CompanyProblemStats;

@@ -17,7 +17,7 @@ import type {
   StatusFilter,
 } from "@/types";
 import { useState, useEffect, useCallback, useRef } from "react";
-import ProblemCardV2 from "./problem-card-v2";
+import ProblemCard from "./problem-card";
 import { useAuth } from "@/contexts/auth-context";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -38,7 +38,7 @@ const ProblemListControls = dynamic(() => import("./problem-list-controls"), {
   ),
 });
 
-interface ProblemListV2Props {
+interface ProblemListProps {
   companyId: string;
   companySlug: string;
   initialProblems: LeetCodeProblem[];
@@ -48,7 +48,7 @@ interface ProblemListV2Props {
   initialFilters: ProblemListFilters;
 }
 
-const ProblemListV2: React.FC<ProblemListV2Props> = ({
+const ProblemList: React.FC<ProblemListProps> = ({
   companyId,
   companySlug,
   initialProblems,
@@ -259,7 +259,7 @@ const ProblemListV2: React.FC<ProblemListV2Props> = ({
       ) : displayedProblems.length > 0 ? (
         <div className="space-y-4">
           {displayedProblems.map((problem) => (
-            <ProblemCardV2
+            problem && <ProblemCard
               key={problem.id}
               problem={problem}
               companySlug={problem.companySlug || companySlug}
@@ -292,4 +292,4 @@ const ProblemListV2: React.FC<ProblemListV2Props> = ({
   );
 };
 
-export default ProblemListV2;
+export default ProblemList;

@@ -11,8 +11,8 @@ import {
 } from "@/lib/data";
 import type { Company, ProblemListFilters } from "@/types";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
-import CompanyHeaderV3 from "@/components/company/company-header-v3";
-import CompanyTabsV3 from "@/components/company/page/company-tabs-v3";
+import CompanyHeader from "@/components/company/company-header";
+import CompanyTabs from "@/components/company/page/company-tabs";
 import CompanyNotFound from "@/components/company/page/company-not-found";
 import ProblemLoadError from "@/components/company/page/problem-load-error";
 import NoProblemsAvailable from "@/components/company/page/no-problems-available";
@@ -21,9 +21,9 @@ import CompanyPageHeader from "./company-page-header";
 const INITIAL_ITEMS_PER_PAGE = 15;
 
 /**
- * Defines the props structure for the CompanyPageV2, including the dynamic route parameters.
+ * Defines the props structure for the CompanyPage, including the dynamic route parameters.
  */
-interface CompanyPageV2Props {
+interface CompanyPageProps {
   company: Company;
 }
 
@@ -33,14 +33,14 @@ interface CompanyPageV2Props {
  * This server component fetches the company's details based on the slug from the URL.
  * If the company is not found, it renders a `CompanyNotFound` component. Otherwise, it
  * fetches the first page of problems for that company. It then passes this initial data
- * to the `CompanyTabsV3` client component, which handles the interactive display of
+ * to the `CompanyTabs` client component, which handles the interactive display of
  * problems, AI tools, and other company-specific information. It also handles
  * error states for problem fetching.
  *
- * @param {CompanyPageV2Props} props - The props containing the dynamic route parameters.
+ * @param {CompanyPageProps} props - The props containing the dynamic route parameters.
  * @returns {Promise<JSX.Element>} The rendered company page or a not-found component.
  */
-export default async function CompanyPageV2({ company }: CompanyPageV2Props) {
+export default async function CompanyPage({ company }: CompanyPageProps) {
   const initialFilters: ProblemListFilters = {
     difficultyFilter: "all",
     lastAskedFilter: "all",
@@ -64,7 +64,7 @@ export default async function CompanyPageV2({ company }: CompanyPageV2Props) {
     return (
       <div className="container mx-auto px-4 py-4 max-w-7xl">
         <CompanyPageHeader companyName={company.name} />
-        <CompanyHeaderV3 company={company} />
+        <CompanyHeader company={company} />
         <ProblemLoadError
           companyName={company.name}
           error={initialPaginatedProblemsData.error as string}
@@ -88,9 +88,9 @@ export default async function CompanyPageV2({ company }: CompanyPageV2Props) {
         <CompanyPageHeader companyName={company.name} />
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-4">
           <main className="lg:col-span-3">
-            <CompanyHeaderV3 company={company} />
+            <CompanyHeader company={company} />
             {hasProblems ? (
-              <CompanyTabsV3
+              <CompanyTabs
                 company={company}
                 displayProblemCount={displayProblemCount}
                 initialProblems={initialProblems}

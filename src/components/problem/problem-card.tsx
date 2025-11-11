@@ -54,7 +54,7 @@ const ProblemInsightsDialog = dynamic(
   },
 );
 
-interface ProblemCardV2Props {
+interface ProblemCardProps {
   problem: LeetCodeProblem;
   companySlug: string;
   initialIsBookmarked?: boolean;
@@ -78,7 +78,7 @@ const statusIcons: Record<ProblemStatus, React.ElementType> = {
   none: Circle,
 };
 
-const ProblemCardV2: React.FC<ProblemCardV2Props> = ({
+const ProblemCard: React.FC<ProblemCardProps> = ({
   problem,
   companySlug,
   initialIsBookmarked = false,
@@ -325,4 +325,4 @@ const ProblemCardV2: React.FC<ProblemCardV2Props> = ({
   );
 };
 
-export default ProblemCardV2;
+export default ProblemCard;
