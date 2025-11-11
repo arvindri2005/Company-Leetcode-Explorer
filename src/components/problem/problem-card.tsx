@@ -1,87 +1,46 @@
 /**
- * @fileoverview Defines a highly interactive card component for displaying a single coding problem.
+ * @fileoverview A redesigned, modern component for displaying a single coding problem.
  *
- * This client-side component renders all details for a coding problem and includes
- * numerous interactive elements for user engagement. This includes bookmarking,
- * setting problem status, and triggering various AI-powered features like finding
- * similar problems and generating hints.
+ * This component presents problem details in a clean, table-row-like format,
+ * with clear visual indicators for difficulty, status, and bookmarked state.
+ * It also includes buttons for AI-powered features and other user actions.
  */
 "use client";
 
-import type {
-  LeetCodeProblem,
-  ProblemStatus,
-  SimilarProblemDetail,
-  GenerateProblemInsightsOutput,
-} from "@/types";
-import {
-  lastAskedPeriodDisplayMap,
-  PROBLEM_STATUS_OPTIONS,
-  PROBLEM_STATUS_DISPLAY,
-} from "@/types";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
-import DifficultyBadge from "./difficulty-badge";
-import TagBadge from "./tag-badge";
+import type { LeetCodeProblem, ProblemStatus } from "@/types";
+import { useState, Suspense } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import Link from "next/link";
 import {
+  Bookmark,
+  CheckCircle,
+  XCircle,
+  Circle,
   ExternalLink,
-  Tag,
-  Sparkles,
-  Loader2,
   Bot,
-  Star,
-  CheckCircle2,
-  Pencil,
-  ListTodo,
-  MoreVertical,
+  Sparkles,
   Lightbulb,
   Clock,
   TrendingUp,
   Zap,
-  AlertCircle,
+  Loader2,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import React, { useState, useEffect, Suspense, useCallback } from "react";
+import TagBadge from "./tag-badge";
+import { lastAskedPeriodDisplayMap } from "@/types";
+import { useProblemInteractions } from "@/hooks/use-problem-interactions";
+import { useAIFeatures } from "@/hooks/use-ai-features";
+import { useAuth } from "@/contexts/auth-context";
 import dynamic from "next/dynamic";
 import { useToast } from "@/hooks/use-toast";
-import {
-  performSimilarQuestionSearch,
-  toggleBookmarkProblemAction,
-  setProblemStatusAction,
-  generateProblemInsightsAction,
-} from "@/app/actions";
-import { useAuth } from "@/contexts/auth-context";
-import { useAICooldown } from "@/hooks/use-ai-cooldown";
-import { useAIFeatures } from "@/hooks/use-ai-features";
-import { useProblemInteractions } from "@/hooks/use-problem-interactions";
-import { cn } from "@/lib/utils";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useRouter, usePathname } from "next/navigation";
-import type { User as FirebaseUser } from "firebase/auth";
-import { ProblemStatusIcon } from "./problem-status-icon";
-import { AITooltipContent } from "./ai-tooltip-content";
 
-// Dynamically import dialogs to avoid including them in the initial bundle.
 const SimilarProblemsDialog = dynamic(
   () => import("@/components/ai/similar-problems-dialog"),
   {
@@ -95,39 +54,31 @@ const ProblemInsightsDialog = dynamic(
   },
 );
 
-/**
- * Props for the ProblemCard component.
- */
-interface ProblemCardProps {
+interface ProblemCardV2Props {
   problem: LeetCodeProblem;
   companySlug: string;
   initialIsBookmarked?: boolean;
-  onBookmarkChanged?: (problemId: string, newStatus: boolean) => void;
+  onBookmarkChanged?: (problemId: string, isBookmarked: boolean) => void;
   problemStatus?: ProblemStatus;
-  onProblemStatusChange?: (problemId: string, newStatus: ProblemStatus) => void;
+  onProblemStatusChange?: (problemId: string, status: ProblemStatus) => void;
 }
 
-/**
- * Renders an icon representing the user's progress status for a problem.
+const difficultyStyles: Record<
+  LeetCodeProblem["difficulty"],
+  { text: string; bg: string }
+> = {
+  Easy: { text: "text-green-500", bg: "bg-green-500/10" },
+  Medium: { text: "text-yellow-500", bg: "bg-yellow-500/10" },
+  Hard: { text: "text-red-500", bg: "bg-red-500/10" },
+};
 
+const statusIcons: Record<ProblemStatus, React.ElementType> = {
+  solved: CheckCircle,
+  attempted: XCircle,
+  none: Circle,
+};
 
-/**
- * Renders a detailed and highly interactive card for a single coding problem.
- *
- * This component is a central piece of the UI, displaying problem details like
- * title, difficulty, and tags. It provides numerous user actions:
- * - Link to solve the problem externally.
- * - Button to start a mock interview (feature in development).
- * - AI-powered tools to find similar problems and generate hints/insights.
- * - User-specific actions like bookmarking and setting a progress status (e.g., Solved, To-Do).
- *
- * It manages its own state for these interactions and communicates changes
- * back to parent components via callbacks.
- *
- * @param {ProblemCardProps} props - The props for the component.
- * @returns {JSX.Element} The rendered problem card.
- */
-const ProblemCardComponent: React.FC<ProblemCardProps> = ({
+const ProblemCardV2: React.FC<ProblemCardV2Props> = ({
   problem,
   companySlug,
   initialIsBookmarked = false,
@@ -135,12 +86,8 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
   problemStatus = "none",
   onProblemStatusChange,
 }) => {
-  const { toast } = useToast();
   const { user } = useAuth();
-  const { canUseAI, startCooldown, formattedRemainingTime, isLoadingCooldown } =
-    useAICooldown();
-  const router = useRouter();
-  const pathname = usePathname();
+  const { toast } = useToast();
 
   const {
     isBookmarked,
@@ -172,235 +119,188 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
     handleGenerateInsights,
   } = useAIFeatures(problem, companySlug);
 
-  const isUserActionDisabled = !user;
-  const isAIActionDisabled =
-    isUserActionDisabled || isLoadingCooldown || !canUseAI;
-  const cooldownToastMessage = `AI features are on cooldown. Please wait ${formattedRemainingTime} before using another AI feature.`;
-
+  const StatusIcon = statusIcons[currentStatus];
   const problemTags = problem.tags || [];
 
   return (
     <>
-      <Card
-        className={cn(
-          "flex flex-col h-full",
-          "bg-card border border-border/50 rounded-2xl shadow-sm",
-          "transition-all duration-300 ease-in-out",
-          "hover:shadow-md hover:border-primary/30",
-        )}
-      >
-        <CardHeader className="p-4">
-          <div className="flex justify-between items-start gap-4">
-            <div className="flex items-start gap-3 flex-1 min-w-0">
-              {user && <ProblemStatusIcon status={currentStatus} />}
-              <div className="flex-1 min-w-0">
-                <CardTitle className="text-lg font-semibold text-card-foreground leading-snug">
-                  {problem.title}
-                </CardTitle>
-                {problem.lastAskedPeriod && (
-                  <div className="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground">
-                    <Clock className="h-3.5 w-3.5" />
-                    <span>
-                      {lastAskedPeriodDisplayMap[problem.lastAskedPeriod]}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-col items-end gap-2 flex-shrink-0">
-              <DifficultyBadge difficulty={problem.difficulty} />
-              {user && (
-                <TooltipProvider delayDuration={300}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={handleToggleBookmark}
-                        disabled={isTogglingBookmark || isUserActionDisabled}
-                        className="h-8 w-8 rounded-full"
-                        aria-label={
-                          isBookmarked
-                            ? `Remove bookmark for ${problem.title}`
-                            : `Add bookmark for ${problem.title}`
-                        }
-                      >
-                        {isTogglingBookmark ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Star
-                            className={cn(
-                              "h-5 w-5 transition-all duration-200",
-                              isBookmarked
-                                ? "fill-yellow-400 text-yellow-500"
-                                : "text-muted-foreground hover:text-yellow-400",
-                            )}
-                          />
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>
-                        {isBookmarked
-                          ? "Remove Bookmark"
-                          : isUserActionDisabled
-                            ? "Login to bookmark"
-                            : "Add Bookmark"}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+      <div className="problem-card-v2 flex flex-col p-4 bg-card border rounded-lg hover:bg-muted/50 transition-colors">
+        <div className="flex flex-col sm:flex-row items-start justify-between">
+          <div className="flex items-start gap-4 flex-1">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="flex-shrink-0">
+                  <StatusIcon
+                    className={cn("h-5 w-5", {
+                      "text-green-500": currentStatus === "solved",
+                      "text-red-500": currentStatus === "attempted",
+                      "text-gray-500": currentStatus === "none",
+                    })}
+                  />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => handleStatusUpdate("solved")}>
+                  <CheckCircle className="h-4 w-4 mr-2 text-green-500" /> Solved
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleStatusUpdate("attempted")}
+                >
+                  <XCircle className="h-4 w-4 mr-2 text-red-500" /> Attempted
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleStatusUpdate("none")}>
+                  <Circle className="h-4 w-4 mr-2 text-gray-500" /> None
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <div className="flex-1">
+              <Link
+                href={`/company/${companySlug}/problem/${problem.slug}`}
+                className="font-semibold text-lg hover:text-primary transition-colors"
+              >
+                {problem.title}
+              </Link>
+              {problem.lastAskedPeriod && (
+                <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span>
+                    {lastAskedPeriodDisplayMap[problem.lastAskedPeriod]}
+                  </span>
+                </div>
               )}
             </div>
           </div>
-        </CardHeader>
+          <div className="flex items-center gap-2 mt-2 sm:mt-0">
+            <Badge
+              className={cn(
+                "text-sm font-semibold",
+                difficultyStyles[problem.difficulty].bg,
+                difficultyStyles[problem.difficulty].text,
+              )}
+            >
+              {problem.difficulty}
+            </Badge>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleToggleBookmark}
+              disabled={isTogglingBookmark || !user}
+              className="flex-shrink-0"
+            >
+              {isTogglingBookmark ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Bookmark
+                  className={cn(
+                    "h-5 w-5 text-gray-400",
+                    isBookmarked && "fill-current text-primary",
+                  )}
+                />
+              )}
+            </Button>
+          </div>
+        </div>
 
-        <CardContent className="p-4 flex-grow">
-          {problemTags.length > 0 && (
-            <div className="mb-4">
-              <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                Topics
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {problemTags.slice(0, 4).map((tag) => (
-                  <TagBadge key={tag} tag={tag} />
-                ))}
-                {problemTags.length > 4 && (
-                  <Badge variant="outline" className="text-xs font-normal">
-                    +{problemTags.length - 4} more
-                  </Badge>
-                )}
-              </div>
+        <div className="flex flex-wrap gap-2 mt-4">
+          {problemTags.slice(0, 4).map((tag) => (
+            <TagBadge key={tag} tag={tag} />
+          ))}
+          {problemTags.length > 4 && (
+            <Badge variant="outline" className="text-xs font-normal">
+              +{problemTags.length - 4} more
+            </Badge>
+          )}
+        </div>
+
+        <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <TrendingUp className="h-4 w-4" />
+            <span>Trending</span>
+          </div>
+          {problem.lastAskedPeriod && (
+            <div className="flex items-center gap-1.5">
+              <Zap className="h-4 w-4" />
+              <span>Recent</span>
             </div>
           )}
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1.5">
-              <TrendingUp className="h-4 w-4" />
-              <span>Trending</span>
-            </div>
-            {problem.lastAskedPeriod && (
-              <div className="flex items-center gap-1.5">
-                <Zap className="h-4 w-4" />
-                <span>Recent</span>
-              </div>
-            )}
-          </div>
-        </CardContent>
+        </div>
 
-        <CardFooter className="p-4 pt-0 flex flex-col items-stretch gap-2">
-          <div className="flex gap-2 w-full">
-            <Button
-              size="sm"
-              className="flex-1 rounded-full"
-              disabled={!problem.link}
-              onClick={() => {
-                if (problem.link) {
-                  window.open(problem.link, "_blank", "noopener,noreferrer");
-                }
-              }}
-            >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Solve
-            </Button>
-            <Button
-              asChild
-              variant="secondary"
-              size="sm"
-              className="flex-1 rounded-full"
-            >
-              <Link
-                href={"#"}
-                aria-disabled={isUserActionDisabled}
-                onClick={(e) => {
-                  e.preventDefault();
-                  toast({
-                    title: "Coming Soon",
-                    description: "Mock interview feature is in development.",
-                    variant: "default",
-                  });
-                }}
-              >
-                <Bot className="h-4 w-4 mr-2" />
-                Mock
-              </Link>
-            </Button>
-          </div>
-          <div className="flex gap-2 w-full">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 text-xs rounded-full"
-              onClick={() => {
-                if (!user) {
-                  redirectToLogin();
-                  return;
-                }
-                handleFindSimilar();
-              }}
-              disabled={isLoadingSimilar}
-            >
-              {isLoadingSimilar ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Sparkles className="h-4 w-4 mr-2" />
-              )}
-              Similar
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 text-xs rounded-full"
-              onClick={() => {
-                if (!user) {
-                  redirectToLogin();
-                  return;
-                }
-                handleGenerateInsights();
-              }}
-              disabled={isLoadingInsights}
-            >
-              {isLoadingInsights ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Lightbulb className="h-4 w-4 mr-2" />
-              )}
-              Hints
-            </Button>
-            {user && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="w-10 rounded-full"
-                    disabled={isUpdatingStatus || isUserActionDisabled}
-                  >
-                    {isUpdatingStatus ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <MoreVertical className="h-4 w-4" />
-                    )}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuLabel>Progress Status</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {PROBLEM_STATUS_OPTIONS.map((opt) => (
-                    <DropdownMenuItem
-                      key={opt.value}
-                      onSelect={() => handleStatusUpdate(opt.value)}
-                      disabled={currentStatus === opt.value || isUpdatingStatus}
-                    >
-                      {opt.label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+        <div className="flex flex-wrap gap-2 mt-4">
+          <Button
+            size="sm"
+            className="flex-1"
+            disabled={!problem.link}
+            onClick={() => {
+              if (problem.link) {
+                window.open(problem.link, "_blank", "noopener,noreferrer");
+              }
+            }}
+          >
+            <ExternalLink className="h-4 w-4 mr-2" />
+            Solve
+          </Button>
+          <Button
+            asChild
+            variant="secondary"
+            size="sm"
+            className="flex-1"
+            onClick={(e) => {
+              e.preventDefault();
+              toast({
+                title: "Coming Soon",
+                description: "Mock interview feature is in development.",
+                variant: "default",
+              });
+            }}
+          >
+            <Link href={"#"}>
+              <Bot className="h-4 w-4 mr-2" />
+              Mock
+            </Link>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 text-xs"
+            onClick={() => {
+              if (!user) {
+                redirectToLogin();
+                return;
+              }
+              handleFindSimilar();
+            }}
+            disabled={isLoadingSimilar}
+          >
+            {isLoadingSimilar ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <Sparkles className="h-4 w-4 mr-2" />
             )}
-          </div>
-        </CardFooter>
-      </Card>
-
+            Similar
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 text-xs"
+            onClick={() => {
+              if (!user) {
+                redirectToLogin();
+                return;
+              }
+              handleGenerateInsights();
+            }}
+            disabled={isLoadingInsights}
+          >
+            {isLoadingInsights ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <Lightbulb className="h-4 w-4 mr-2" />
+            )}
+            Hints
+          </Button>
+        </div>
+      </div>
       <Suspense fallback={<div>Loading Dialog...</div>}>
         {isSimilarDialogSharedOpen && (
           <SimilarProblemsDialog
@@ -425,5 +325,4 @@ const ProblemCardComponent: React.FC<ProblemCardProps> = ({
   );
 };
 
-const ProblemCard = React.memo(ProblemCardComponent);
-export default ProblemCard;
+export default ProblemCardV2;

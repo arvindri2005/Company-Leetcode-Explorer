@@ -8,20 +8,13 @@
  */
 import {
   getCompanyBySlug,
-  getProblemsByCompanyFromDb,
   getAllCompanySlugs,
 } from "@/lib/data";
-import type { Company, LeetCodeProblem, ProblemListFilters } from "@/types";
 import type { Metadata } from "next";
-import CompanyHeader from "@/components/company/company-header";
 import CompanyNotFound from "@/components/company/page/company-not-found";
-import CompanyPageHeader from "@/components/company/page/company-page-header";
-import ProblemLoadError from "@/components/company/page/problem-load-error";
-import NoProblemsAvailable from "@/components/company/page/no-problems-available";
-import CompanyTabs from "@/components/company/page/company-tabs";
+import CompanyPageV2 from "@/components/company/page/company-page-v2";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
-const INITIAL_ITEMS_PER_PAGE = 15;
 
 /**
  * Defines the props structure for the CompanyPage, including the dynamic route parameters.
@@ -149,10 +142,7 @@ export async function generateMetadata(
  *
  * This server component fetches the company's details based on the slug from the URL.
  * If the company is not found, it renders a `CompanyNotFound` component. Otherwise, it
- * fetches the first page of problems for that company. It then passes this initial data
- * to the `CompanyTabs` client component, which handles the interactive display of
- * problems, AI tools, and other company-specific information. It also handles
- * error states for problem fetching.
+ * renders the `CompanyPageV2` component with the fetched company data.
  *
  * @param {CompanyPageProps} props - The props containing the dynamic route parameters.
  * @returns {Promise<JSX.Element>} The rendered company page or a not-found component.
@@ -165,72 +155,7 @@ export default async function CompanyPage(props: CompanyPageProps) {
     return <CompanyNotFound companySlug={params.companySlug} />;
   }
 
-  const initialFilters: ProblemListFilters = {
-    difficultyFilter: "all",
-    lastAskedFilter: "all",
-    statusFilter: "all",
-    searchTerm: "",
-    sortKey: "title",
-  };
-
-  const initialPaginatedProblemsData = await getProblemsByCompanyFromDb(
-    company.id,
-    {
-      pageSize: INITIAL_ITEMS_PER_PAGE,
-    },
-  );
-
-  if ("error" in initialPaginatedProblemsData) {
-    console.error(
-      "Error fetching initial problems for company page:",
-      initialPaginatedProblemsData.error,
-    );
-    return (
-      <div className="container mx-auto px-4 py-4 max-w-6xl">
-        <CompanyPageHeader companyName={company.name} />
-        <CompanyHeader company={company} />
-        <ProblemLoadError
-          companyName={company.name}
-          error={initialPaginatedProblemsData.error as string}
-        />
-      </div>
-    );
-  }
-
-  const {
-    problems: initialProblems,
-    hasMore: initialHasMore,
-    nextCursor: initialNextCursor,
-    totalProblems: displayProblemCount,
-  } = initialPaginatedProblemsData;
-
-  const hasProblems = displayProblemCount > 0;
-
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-4 max-w-6xl">
-        <CompanyPageHeader companyName={company.name} />
-        <CompanyHeader company={company} />
-
-        {hasProblems ? (
-          <CompanyTabs
-            company={company}
-            displayProblemCount={displayProblemCount}
-            initialProblems={initialProblems}
-            initialHasMore={initialHasMore ?? false}
-            initialNextCursor={initialNextCursor}
-            initialFilters={initialFilters}
-            itemsPerPage={INITIAL_ITEMS_PER_PAGE}
-          />
-        ) : (
-          <NoProblemsAvailable
-            companyName={company.name}
-            companyId={company.id}
-          />
-        )}
-      </div>
-    </div>
-  );
+  return <CompanyPageV2 company={company} />;
 }
 
 /**

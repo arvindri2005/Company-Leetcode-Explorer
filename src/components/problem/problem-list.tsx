@@ -1,10 +1,8 @@
 /**
- * @fileoverview A client-side component for displaying an interactive list of coding problems.
+ * @fileoverview A redesigned, modern client-side component for displaying an interactive list of coding problems.
  *
- * This component is responsible for rendering a list of problems for a specific
- * company. It handles client-side filtering, sorting, searching, and infinite
- * scrolling for pagination. It receives an initial set of data from the server
- * and then fetches subsequent data on the client as needed.
+ * This component features a clean, table-based layout with enhanced user
+ * interaction, sorting, filtering, and infinite scrolling.
  */
 "use client";
 
@@ -13,9 +11,13 @@ import type {
   ProblemListFilters,
   PaginatedProblemsResponse,
   ProblemStatus,
+  DifficultyFilter,
+  SortKey,
+  LastAskedFilter,
+  StatusFilter,
 } from "@/types";
 import { useState, useEffect, useCallback, useRef } from "react";
-import ProblemCard from "./problem-card";
+import ProblemCardV2 from "./problem-card-v2";
 import { useAuth } from "@/contexts/auth-context";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -23,7 +25,6 @@ import { useDebounce } from "@/hooks/use-debounce";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Dynamically import the controls to show a skeleton while they load.
 const ProblemListControls = dynamic(() => import("./problem-list-controls"), {
   loading: () => (
     <div className="mb-6 p-4 space-y-4 bg-card rounded-lg shadow">
@@ -37,10 +38,7 @@ const ProblemListControls = dynamic(() => import("./problem-list-controls"), {
   ),
 });
 
-/**
- * Props for the ProblemList component.
- */
-interface ProblemListProps {
+interface ProblemListV2Props {
   companyId: string;
   companySlug: string;
   initialProblems: LeetCodeProblem[];
@@ -50,22 +48,7 @@ interface ProblemListProps {
   initialFilters: ProblemListFilters;
 }
 
-/**
- * Renders an interactive, filterable, and paginated list of coding problems.
- *
- * This component manages the state and logic for:
- * - Displaying an initial list of problems.
- * - Handling user interactions with `ProblemListControls` to filter and sort the data.
- * - Debouncing search input to trigger API calls efficiently.
- * - Implementing infinite scroll using `IntersectionObserver` to load more problems.
- * - Fetching data from the `/api/problems` endpoint based on the current state.
- * - Updating the local state of individual problem cards (e.g., bookmark status)
- *   in response to user actions, providing an optimistic UI update.
- *
- * @param {ProblemListProps} props - The props for the component.
- * @returns {JSX.Element} The rendered problem list and its controls.
- */
-const ProblemList: React.FC<ProblemListProps> = ({
+const ProblemListV2: React.FC<ProblemListV2Props> = ({
   companyId,
   companySlug,
   initialProblems,
@@ -246,45 +229,46 @@ const ProblemList: React.FC<ProblemListProps> = ({
 
   return (
     <div>
+      <ProblemListControls
+        difficultyFilter={filters.difficultyFilter}
+        onDifficultyFilterChange={(value) =>
+          handleFilterChange({ difficultyFilter: value as DifficultyFilter })
+        }
+        sortKey={filters.sortKey}
+        onSortKeyChange={(value) =>
+          handleFilterChange({ sortKey: value as SortKey })
+        }
+        lastAskedFilter={filters.lastAskedFilter}
+        onLastAskedFilterChange={(value) =>
+          handleFilterChange({ lastAskedFilter: value as LastAskedFilter })
+        }
+        statusFilter={filters.statusFilter}
+        onStatusFilterChange={(value) =>
+          handleFilterChange({ statusFilter: value as StatusFilter })
+        }
+        searchTerm={searchInput}
+        onSearchTermChange={setSearchInput}
+        problemCount={displayedProblems.length}
+        showStatusFilter={!!user}
+      />
       {isLoading && displayedProblems.length === 0 ? (
         <div className="flex justify-center items-center py-10">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="ml-2 text-muted-foreground">Loading problems...</p>
         </div>
       ) : displayedProblems.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {displayedProblems.map((problem, index) => {
-            const elements = [];
-            elements.push(
-              <ProblemCard
-                key={problem.id}
-                problem={problem}
-                companySlug={problem.companySlug || companySlug}
-                initialIsBookmarked={problem.isBookmarked}
-                onBookmarkChanged={handleProblemBookmarkChange}
-                problemStatus={problem.currentStatus || "none"}
-                onProblemStatusChange={handleProblemStatusChange}
-              />,
-            );
-
-            if (index == displayedProblems.length - 1) {
-              elements.push(
-                <div key={`ad-${index}`} className="col-span-full w-full my-4">
-                  <amp-ad
-                    width="100vw"
-                    height="320"
-                    type="adsense"
-                    data-ad-client="ca-pub-6342943619826199"
-                    data-ad-slot="9953857815"
-                    data-auto-format="rspv"
-                    data-full-width=""
-                  ></amp-ad>
-                </div>,
-              );
-            }
-
-            return elements;
-          })}
+        <div className="space-y-4">
+          {displayedProblems.map((problem) => (
+            <ProblemCardV2
+              key={problem.id}
+              problem={problem}
+              companySlug={problem.companySlug || companySlug}
+              initialIsBookmarked={problem.isBookmarked}
+              onBookmarkChanged={handleProblemBookmarkChange}
+              problemStatus={problem.currentStatus || "none"}
+              onProblemStatusChange={handleProblemStatusChange}
+            />
+          ))}
         </div>
       ) : (
         <p className="text-center text-muted-foreground py-10">
@@ -300,7 +284,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
         )}
         {!isLoadingMore && !hasMore && displayedProblems.length > 0 && (
           <p className="text-muted-foreground text-sm">
-            You've reached the end!
+            You&apos;ve reached the end!
           </p>
         )}
       </div>
@@ -308,4 +292,4 @@ const ProblemList: React.FC<ProblemListProps> = ({
   );
 };
 
-export default ProblemList;
+export default ProblemListV2;

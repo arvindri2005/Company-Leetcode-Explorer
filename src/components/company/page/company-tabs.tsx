@@ -1,26 +1,18 @@
 /**
- * @fileoverview A client-side component that organizes company details into interactive tabs.
+ * @fileoverview A redesigned client-side component that organizes company details into interactive tabs.
  *
- * This component serves as the main content area for a company page. It uses a
- * tab-based layout to separate the list of problems from various AI-powered
- * features like question grouping, flashcard generation, and strategy creation.
- * It uses dynamic imports to lazy-load the AI feature components, improving
- * initial page load performance.
+ * This component features a modern, minimalist design with vertical tabs,
+ * and completely restyled content sections for a cohesive user experience.
  */
 "use client";
 
 import { Suspense, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { BookOpen, Brain, Target, Users } from "lucide-react";
-import ProblemList from "@/components/problem/problem-list";
+import ProblemListV2 from "@/components/problem/problem-list-v2";
 import type { Company, LeetCodeProblem, ProblemListFilters } from "@/types";
-import { getProblemsByCompanyFromDb } from "@/lib/data";
 
-// Dynamically import AI components to reduce the initial bundle size.
-// A custom loading skeleton is shown while the component is being fetched.
 const AIGroupingSection = dynamic(
   () => import("@/components/ai/ai-grouping-section"),
   {
@@ -54,8 +46,8 @@ const CompanyStrategyGenerator = dynamic(
   },
 );
 
-const CompanyProblemStats = dynamic(
-  () => import("@/components/company/company-problem-stats"),
+const CompanyProblemStatsV2 = dynamic(
+  () => import("@/components/company/company-problem-stats-v2"),
   {
     loading: () => <div className="animate-pulse h-36 bg-muted rounded-lg" />,
   },
@@ -63,10 +55,7 @@ const CompanyProblemStats = dynamic(
 
 const MAX_PROBLEMS_FOR_AI_FEATURES = 200;
 
-/**
- * Props for the CompanyTabs component.
- */
-interface CompanyTabsProps {
+interface CompanyTabsV3Props {
   company: Company;
   displayProblemCount: number;
   initialProblems: LeetCodeProblem[];
@@ -76,18 +65,7 @@ interface CompanyTabsProps {
   itemsPerPage: number;
 }
 
-/**
- * Renders a tabbed interface for a company's problems and AI-powered tools.
- *
- * This component sets up the main content area of a company page, organizing
- * different features into selectable tabs. It fetches a separate, potentially larger,
- * list of problems specifically for the AI features to ensure they have enough
- * context to provide meaningful results, without slowing down the initial problem list display.
- *
- * @param {CompanyTabsProps} props - The props for the component.
- * @returns {JSX.Element} The rendered tabbed component.
- */
-export default function CompanyTabs({
+export default function CompanyTabsV3({
   company,
   displayProblemCount,
   initialProblems,
@@ -95,18 +73,19 @@ export default function CompanyTabs({
   initialNextCursor,
   initialFilters,
   itemsPerPage,
-}: CompanyTabsProps) {
+}: CompanyTabsV3Props) {
   const [aiProblems, setAiProblems] = useState<LeetCodeProblem[]>([]);
-  // isLoadingAI state is kept for potential use with other AI components
   const [isLoadingAI, setIsLoadingAI] = useState(true);
+
+import { getAIProblems } from "@/actions/problem.actions";
 
   useEffect(() => {
     async function fetchAIProblems() {
+      if (!company.id) return;
+
       setIsLoadingAI(true);
       try {
-        const { problems } = await getProblemsByCompanyFromDb(company.id, {
-          pageSize: MAX_PROBLEMS_FOR_AI_FEATURES,
-        });
+        const problems = await getAIProblems(company.id);
         setAiProblems(problems);
       } catch (error) {
         console.error("Failed to fetch problems for AI features:", error);
@@ -114,155 +93,79 @@ export default function CompanyTabs({
         setIsLoadingAI(false);
       }
     }
-
-    if (company.id) {
-      fetchAIProblems();
-    }
+    fetchAIProblems();
   }, [company.id]);
 
   return (
-    <>
-      <div className="mb-4">
-        <Suspense
-          fallback={<div className="animate-pulse h-36 bg-muted rounded-lg" />}
-        >
-          <CompanyProblemStats company={company} />
-        </Suspense>
-      </div>
-      <Tabs defaultValue="problems" className="w-full">
-        <div className="mb-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <TabsList className="bg-card border border-border rounded-xl shadow-sm grid grid-cols-4 h-10 w-full overflow-hidden">
-              <TabsTrigger value="problems" className="text-xs px-2 rounded-lg">
-                <BookOpen className="h-3 w-3 sm:mr-1" />
-                <span className="hidden sm:inline">Problems</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="ai-grouping"
-                className="text-xs px-2 rounded-lg"
-              >
-                <Brain className="h-3 w-3 sm:mr-1" />
-                <span className="hidden sm:inline">AI Groups</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="flashcards"
-                className="text-xs px-2 rounded-lg"
-              >
-                <Target className="h-3 w-3 sm:mr-1" />
-                <span className="hidden sm:inline">Cards</span>
-              </TabsTrigger>
-              <TabsTrigger value="strategy" className="text-xs px-2 rounded-lg">
-                <Users className="h-3 w-3 sm:mr-1" />
-                <span className="hidden sm:inline">Strategy</span>
-              </TabsTrigger>
-            </TabsList>
-          </div>
+    <Tabs defaultValue="problems" orientation="vertical" className="w-full">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="md:col-span-1">
+          <TabsList className="flex flex-col h-full bg-card border rounded-lg p-2 space-y-2">
+            <TabsTrigger value="problems" className="w-full justify-start p-4 text-lg">
+              <BookOpen className="h-5 w-5 mr-3" />
+              Problems
+            </TabsTrigger>
+            <TabsTrigger value="stats" className="w-full justify-start p-4 text-lg">
+              <Brain className="h-5 w-5 mr-3" />
+              Statistics
+            </TabsTrigger>
+            <TabsTrigger value="ai-grouping" className="w-full justify-start p-4 text-lg">
+              <Brain className="h-5 w-5 mr-3" />
+              AI Groups
+            </TabsTrigger>
+            <TabsTrigger value="flashcards" className="w-full justify-start p-4 text-lg">
+              <Target className="h-5 w-5 mr-3" />
+              Flashcards
+            </TabsTrigger>
+            <TabsTrigger value="strategy" className="w-full justify-start p-4 text-lg">
+              <Users className="h-5 w-5 mr-3" />
+              Strategy
+            </TabsTrigger>
+          </TabsList>
         </div>
-
-        <TabsContent value="problems" className="mt-0">
-          <Card className="bg-card border border-border rounded-xl  mb-8 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <BookOpen className="h-4 w-4" />
-                Coding Interview Problems for {company.name}
-                <Badge variant="outline" className="text-xs">
-                  {displayProblemCount}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <Suspense
-                fallback={
-                  <div className="animate-pulse h-48 bg-muted rounded" />
-                }
-              >
-                <ProblemList
-                  key={company.id}
-                  companyId={company.id}
-                  companySlug={company.slug}
-                  initialProblems={initialProblems}
-                  initialHasMore={initialHasMore ?? false}
-                  initialNextCursor={initialNextCursor}
-                  itemsPerPage={itemsPerPage}
-                  initialFilters={initialFilters}
-                />
-              </Suspense>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="ai-grouping" className="mt-0">
-          <Card className="bg-card border border-border rounded-xl  mb-8 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Brain className="h-4 w-4" />
-                AI-Powered Problem Grouping for {company.name}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <Suspense
-                fallback={
-                  <div className="animate-pulse h-48 bg-muted rounded" />
-                }
-              >
-                <AIGroupingSection
-                  problems={aiProblems}
-                  companyName={company.name}
-                  companySlug={company.slug}
-                />
-              </Suspense>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="flashcards" className="mt-0">
-          <Card className="bg-card border border-border rounded-xl  mb-8 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Target className="h-4 w-4" />
-                Study Flashcards for {company.name}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <Suspense
-                fallback={
-                  <div className="animate-pulse h-48 bg-muted rounded" />
-                }
-              >
-                <DynamicFlashcardGenerator
-                  companyId={company.id}
-                  companyName={company.name}
-                  companySlug={company.slug}
-                />
-              </Suspense>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="strategy" className="mt-0">
-          <Card className="bg-card border border-border rounded-xl  mb-8 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Users className="h-4 w-4" />
-                Interview Strategy for {company.name}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <Suspense
-                fallback={
-                  <div className="animate-pulse h-48 bg-muted rounded" />
-                }
-              >
-                <CompanyStrategyGenerator
-                  companyId={company.id}
-                  companyName={company.name}
-                  companySlug={company.slug}
-                />
-              </Suspense>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </>
+        <div className="md:col-span-3">
+          <TabsContent value="problems" className="mt-0">
+            <ProblemListV2
+              key={company.id}
+              companyId={company.id}
+              companySlug={company.slug}
+              initialProblems={initialProblems}
+              initialHasMore={initialHasMore ?? false}
+              initialNextCursor={initialNextCursor}
+              itemsPerPage={itemsPerPage}
+              initialFilters={initialFilters}
+            />
+          </TabsContent>
+          <TabsContent value="stats" className="mt-0">
+            <Suspense
+              fallback={<div className="animate-pulse h-36 bg-muted rounded-lg" />}
+            >
+              <CompanyProblemStatsV2 company={company} />
+            </Suspense>
+          </TabsContent>
+          <TabsContent value="ai-grouping" className="mt-0">
+            <AIGroupingSection
+              problems={aiProblems}
+              companyName={company.name}
+              companySlug={company.slug}
+            />
+          </TabsContent>
+          <TabsContent value="flashcards" className="mt-0">
+            <DynamicFlashcardGenerator
+              companyId={company.id}
+              companyName={company.name}
+              companySlug={company.slug}
+            />
+          </TabsContent>
+          <TabsContent value="strategy" className="mt-0">
+            <CompanyStrategyGenerator
+              companyId={company.id}
+              companyName={company.name}
+              companySlug={company.slug}
+            />
+          </TabsContent>
+        </div>
+      </div>
+    </Tabs>
   );
 }

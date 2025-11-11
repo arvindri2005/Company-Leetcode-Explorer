@@ -1,120 +1,57 @@
 /**
- * @fileoverview A client-side component to display aggregated statistics about a company's problems.
+ * @fileoverview A client-side component to display redesigned, graphical statistics about a company's problems.
  *
  * This component visualizes pre-calculated statistics for a company's coding
- * problems, including the distribution of difficulty levels and how recently
- * problems were asked. It also lists the most common tags associated with the
- * company's problems.
+ * problems, including difficulty levels, recency, and common tags, using a
+ * modern and engaging graphical format.
  */
 "use client";
 
-import type { LeetCodeProblem, LastAskedPeriod, Company } from "@/types";
-import { lastAskedPeriodOptions } from "@/types";
+import type { Company, LeetCodeProblem, LastAskedPeriod } from "@/types";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ListChecks, CalendarClock, TagsIcon } from "lucide-react";
 import TagBadge from "@/components/problem/tag-badge";
-import { ListChecks, CalendarClock, TagsIcon, Percent } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 /**
- * Props for the CompanyProblemStats component.
+ * Props for the CompanyProblemStatsV2 component.
  */
-interface CompanyProblemStatsProps {
+interface CompanyProblemStatsV2Props {
   company: Company;
 }
 
 const difficultyColors: Record<LeetCodeProblem["difficulty"], string> = {
-  Easy: "bg-green-500",
-  Medium: "bg-yellow-500",
-  Hard: "bg-red-500",
+  Easy: "#22c55e",
+  Medium: "#f59e0b",
+  Hard: "#ef4444",
 };
 
-const difficultyTextColors: Record<LeetCodeProblem["difficulty"], string> = {
-  Easy: "text-white",
-  Medium: "text-black",
-  Hard: "text-white",
-};
-
-const lastAskedPeriodColors: Record<LastAskedPeriod, string> = {
-  last_30_days: "bg-sky-500",
-  within_3_months: "bg-blue-500",
-  within_6_months: "bg-indigo-500",
-  older_than_6_months: "bg-purple-500",
-};
-const lastAskedPeriodTextColors: Record<LastAskedPeriod, string> = {
-  last_30_days: "text-white",
-  within_3_months: "text-white",
-  within_6_months: "text-white",
-  older_than_6_months: "text-white",
+const recencyColors: Record<LastAskedPeriod, string> = {
+  last_30_days: "#38bdf8",
+  within_3_months: "#6366f1",
+  within_6_months: "#8b5cf6",
+  older_than_6_months: "#a855f7",
 };
 
 /**
- * Props for the BarSegment component.
- */
-interface BarSegmentProps {
-  label: string;
-  value: number;
-  total: number;
-  bgColor: string;
-  textColor: string;
-}
-
-/**
- * Renders a single colored segment within a composite progress bar.
- * The width of the segment is proportional to its value relative to the total.
+ * Renders a redesigned card displaying graphical statistics about a company's problems.
  *
- * @param {BarSegmentProps} props - The props for the component.
- * @returns {JSX.Element | null} The rendered bar segment, or null if its value is zero.
- */
-const BarSegment: React.FC<BarSegmentProps> = ({
-  label,
-  value,
-  total,
-  bgColor,
-  textColor,
-}) => {
-  if (value === 0 || total === 0) return null;
-  const percentage = (value / total) * 100;
-  const displayPercentage = percentage.toFixed(1);
-
-  return (
-    <div
-      className={cn(
-        "h-full flex items-center justify-center overflow-hidden transition-all duration-300 ease-out",
-        bgColor,
-        textColor,
-      )}
-      style={{ width: `${percentage}%` }}
-      title={`${label}: ${value} (${displayPercentage}%)`}
-    >
-      {percentage > 15 ? (
-        <div className="truncate px-1.5 text-xs font-medium">
-          <span className="hidden sm:inline">{label} </span>({value})
-        </div>
-      ) : percentage > 8 ? (
-        <div className="truncate px-1 text-xs font-medium">({value})</div>
-      ) : null}
-    </div>
-  );
-};
-
-/**
- * Renders a card displaying various statistics about a company's interview problems.
+ * This component uses bar charts to visualize the distribution of problem
+ * difficulties and recency. It also lists the most common tags in a clean,
+ * modern layout. The component only renders if the necessary stats are available.
  *
- * This component visualizes the breakdown of problems by difficulty and recency
- * using composite bar charts. It also lists the most frequently occurring tags.
- * The component will only render if the necessary pre-calculated statistics are
- * available in the `company` prop.
- *
- * @param {CompanyProblemStatsProps} props - The props for the component.
+ * @param {CompanyProblemStatsV2Props} props - The props for the component.
  * @returns {JSX.Element | null} The rendered statistics card, or null if stats are unavailable.
  */
-const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({
+const CompanyProblemStatsV2: React.FC<CompanyProblemStatsV2Props> = ({
   company,
 }) => {
   const {
@@ -125,7 +62,6 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({
     problemCount,
   } = company;
 
-  // If pre-calculated stats are not available, don't render the component.
   if (
     !statsLastUpdatedAt ||
     !difficultyCounts ||
@@ -135,102 +71,120 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({
     return null;
   }
 
-  const displayTotalProblems = problemCount ?? 0;
-  const problemsWithRecencyData = Object.values(recencyCounts).reduce(
-    (sum, count) => sum + count,
-    0,
-  );
-
-  const difficultyOrder: LeetCodeProblem["difficulty"][] = [
-    "Easy",
-    "Medium",
-    "Hard",
+  const difficultyData = [
+    { name: "Easy", count: difficultyCounts.Easy },
+    { name: "Medium", count: difficultyCounts.Medium },
+    { name: "Hard", count: difficultyCounts.Hard },
   ];
-  const lastAskedOrder: LastAskedPeriod[] = [
-    "last_30_days",
-    "within_3_months",
-    "within_6_months",
-    "older_than_6_months",
+
+  const recencyData = [
+    { name: "1 month", count: recencyCounts.last_30_days },
+    { name: "3 months", count: recencyCounts.within_3_months },
+    { name: "6 months", count: recencyCounts.within_6_months },
+    { name: ">6 months", count: recencyCounts.older_than_6_months },
   ];
 
   return (
     <Card className="bg-card border border-border rounded-xl p-6 mb-8 shadow-sm">
       <CardHeader className="py-2 px-3">
-        <CardTitle className="flex items-center text-base">
-          <ListChecks className="mr-1.5 h-4 w-4 text-primary" />
+        <CardTitle className="flex items-center text-lg">
+          <ListChecks className="mr-2 h-5 w-5 text-primary" />
           Problem Statistics
         </CardTitle>
-        <CardDescription className="text-xs">
-          Breakdown of {displayTotalProblems} problem
-          {displayTotalProblems === 1 ? "" : "s"}.
-        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3 px-3 pb-3 pt-1.5">
+      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8 px-3 pt-4">
         <div>
-          <h3 className="text-xs font-semibold mb-1 flex items-center">
-            <Percent size={14} className="mr-1 text-muted-foreground" />
+          <h3 className="text-md font-semibold mb-4 text-center">
             Difficulty Distribution
           </h3>
-          {displayTotalProblems > 0 ? (
-            <div className="w-full h-5 flex rounded-md overflow-hidden border border-border bg-muted">
-              {difficultyOrder.map((level) => (
-                <BarSegment
-                  key={level}
-                  label={level}
-                  value={difficultyCounts[level]}
-                  total={displayTotalProblems}
-                  bgColor={difficultyColors[level]}
-                  textColor={difficultyTextColors[level]}
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs text-muted-foreground">
-              No problems to analyze for difficulty.
-            </p>
-          )}
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={difficultyData} layout="vertical">
+              <XAxis type="number" hide />
+              <YAxis
+                type="category"
+                dataKey="name"
+                stroke="#888888"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+              />
+              <Tooltip
+                cursor={{ fill: "rgba(128, 128, 128, 0.1)" }}
+                contentStyle={{
+                  background: "#1f2937",
+                  border: "1px solid #374151",
+                  borderRadius: "0.5rem",
+                }}
+              />
+              <Bar dataKey="count" barSize={20} radius={[0, 4, 4, 0]}>
+                {difficultyData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={
+                      difficultyColors[
+                        entry.name as LeetCodeProblem["difficulty"]
+                      ]
+                    }
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
         <div>
-          <h3 className="text-xs font-semibold mb-1 flex items-center">
-            <CalendarClock size={14} className="mr-1 text-muted-foreground" />
+          <h3 className="text-md font-semibold mb-4 text-center">
             Recency Distribution
           </h3>
-          {problemsWithRecencyData > 0 ? (
-            <div className="w-full h-5 flex rounded-md overflow-hidden border border-border bg-muted">
-              {lastAskedOrder.map((period) => (
-                <BarSegment
-                  key={period}
-                  label={
-                    lastAskedPeriodOptions.find((opt) => opt.value === period)
-                      ?.label || period
-                  }
-                  value={recencyCounts[period]}
-                  total={problemsWithRecencyData}
-                  bgColor={lastAskedPeriodColors[period]}
-                  textColor={lastAskedPeriodTextColors[period]}
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs text-muted-foreground">
-              No "Last Asked Period" data available.
-            </p>
-          )}
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={recencyData} layout="vertical">
+              <XAxis type="number" hide />
+              <YAxis
+                type="category"
+                dataKey="name"
+                stroke="#888888"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+              />
+              <Tooltip
+                cursor={{ fill: "rgba(128, 128, 128, 0.1)" }}
+                contentStyle={{
+                  background: "#1f2937",
+                  border: "1px solid #374151",
+                  borderRadius: "0.5rem",
+                }}
+              />
+              <Bar dataKey="count" barSize={20} radius={[0, 4, 4, 0]}>
+                {recencyData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={
+                      recencyColors[
+                        Object.keys(recencyColors)[
+                          index
+                        ] as LastAskedPeriod
+                      ]
+                    }
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
         {commonTags.length > 0 && (
-          <div>
-            <h3 className="text-xs font-semibold mb-1 flex items-center">
-              <TagsIcon size={14} className="mr-1 text-muted-foreground" />
-              Most Common Tags (Top {Math.min(commonTags.length, 8)})
+          <div className="md:col-span-2">
+            <h3 className="text-md font-semibold mb-3 flex items-center">
+              <TagsIcon size={18} className="mr-2 text-muted-foreground" />
+              Most Common Tags
             </h3>
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-2">
               {commonTags.map(({ tag, count }) => (
                 <TagBadge
                   key={tag}
                   tag={`${tag} (${count})`}
-                  className="text-xs px-1.5 py-0.5"
+                  className="text-sm px-2 py-1"
                 />
               ))}
             </div>
@@ -241,4 +195,4 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({
   );
 };
 
-export default CompanyProblemStats;
+export default CompanyProblemStatsV2;
