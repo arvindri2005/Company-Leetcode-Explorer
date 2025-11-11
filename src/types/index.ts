@@ -463,7 +463,7 @@ export interface SavedStrategyTodoList {
 /**
  * @description Represents the difficulty filter options for a problem list.
  */
-export type DifficultyFilter = "all" | LeetCodeProblem["difficulty"];
+export type DifficultyFilter = LeetCodeProblem["difficulty"];
 /**
  * @description Represents the sorting options for a problem list.
  */
@@ -471,19 +471,19 @@ export type SortKey = "title" | "difficulty" | "lastAsked";
 /**
  * @description Represents the last asked filter options for a problem list.
  */
-export type LastAskedFilter = "all" | LastAskedPeriod;
+export type LastAskedFilter = LastAskedPeriod;
 /**
  * @description Represents the status filter options for a problem list.
  */
-export type StatusFilter = ProblemStatus | "all";
+export type StatusFilter = ProblemStatus;
 
 /**
  * @description Represents the combined filter and sort state for a problem list.
  */
 export interface ProblemListFilters {
-  difficultyFilter: DifficultyFilter;
-  lastAskedFilter: LastAskedFilter;
-  statusFilter: StatusFilter;
+  difficultyFilter: DifficultyFilter[];
+  lastAskedFilter: LastAskedFilter[];
+  statusFilter: StatusFilter[];
   searchTerm: string;
   sortKey: SortKey;
 }

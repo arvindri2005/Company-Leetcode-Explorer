@@ -60,7 +60,12 @@ const ProblemList: React.FC<ProblemListProps> = ({
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const [filters, setFilters] = useState<ProblemListFilters>(initialFilters);
+  const [filters, setFilters] = useState<ProblemListFilters>({
+    ...initialFilters,
+    difficultyFilter: [],
+    lastAskedFilter: [],
+    statusFilter: [],
+  });
   const [searchInput, setSearchInput] = useState(initialFilters.searchTerm);
   const debouncedSearchTerm = useDebounce(searchInput, 500);
 
@@ -232,7 +237,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
       <ProblemListControls
         difficultyFilter={filters.difficultyFilter}
         onDifficultyFilterChange={(value) =>
-          handleFilterChange({ difficultyFilter: value as DifficultyFilter })
+          handleFilterChange({ difficultyFilter: value })
         }
         sortKey={filters.sortKey}
         onSortKeyChange={(value) =>
@@ -240,11 +245,11 @@ const ProblemList: React.FC<ProblemListProps> = ({
         }
         lastAskedFilter={filters.lastAskedFilter}
         onLastAskedFilterChange={(value) =>
-          handleFilterChange({ lastAskedFilter: value as LastAskedFilter })
+          handleFilterChange({ lastAskedFilter: value })
         }
         statusFilter={filters.statusFilter}
         onStatusFilterChange={(value) =>
-          handleFilterChange({ statusFilter: value as StatusFilter })
+          handleFilterChange({ statusFilter: value })
         }
         searchTerm={searchInput}
         onSearchTermChange={setSearchInput}

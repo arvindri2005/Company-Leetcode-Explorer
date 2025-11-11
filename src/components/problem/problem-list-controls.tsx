@@ -25,19 +25,20 @@ import {
 import { Label } from "@/components/ui/label";
 import { Filter, ArrowUpDown, CalendarDays, CheckSquare } from "lucide-react";
 import React from "react";
+import { ChipGroup } from "../ui/chip-group";
 
 /**
  * Props for the ProblemListControls component.
  */
 interface ProblemListControlsProps {
-  difficultyFilter: DifficultyFilter;
-  onDifficultyFilterChange: (filter: DifficultyFilter) => void;
+  difficultyFilter: DifficultyFilter[];
+  onDifficultyFilterChange: (filter: DifficultyFilter[]) => void;
   sortKey: SortKey;
   onSortKeyChange: (key: SortKey) => void;
-  lastAskedFilter: LastAskedFilter;
-  onLastAskedFilterChange: (filter: LastAskedFilter) => void;
-  statusFilter: StatusFilter;
-  onStatusFilterChange: (filter: StatusFilter) => void;
+  lastAskedFilter: LastAskedFilter[];
+  onLastAskedFilterChange: (filter: LastAskedFilter[]) => void;
+  statusFilter: StatusFilter[];
+  onStatusFilterChange: (filter: StatusFilter[]) => void;
   searchTerm: string;
   onSearchTermChange: (term: string) => void;
   problemCount: number;
@@ -73,151 +74,46 @@ const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
     (opt) => opt.value !== "none",
   );
 
+  const difficultyOptions = [
+    { value: "Easy", label: "Easy" },
+    { value: "Medium", label: "Medium" },
+    { value: "Hard", label: "Hard" },
+  ];
+
+  const statusOptions = [
+    ...statusOptionsToDisplay,
+    { value: "none", label: "No Status" },
+  ];
+
   return (
     <div className="mb-6 p-4 bg-card rounded-xl shadow space-y-4">
-      {/* <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/70" />
-        <Input
-          type="text"
-          placeholder="Search problems by title or tag..."
-          value={searchTerm}
-          onChange={(e) => onSearchTermChange(e.target.value)}
-          className="
-            pl-12 
-            text-base 
-            py-4 
-            rounded-full 
-            w-full 
-            bg-background/80 
-            border-muted 
-            shadow-sm 
-            hover:bg-background/90 
-            focus-visible:ring-2 
-            focus-visible:ring-primary/30 
-            focus-visible:border-primary 
-            transition-colors
-            duration-200
-          "
-        />
-      </div> */}
-      <div className="flex flex-col sm:flex-row gap-4 sm:items-end justify-between">
-        <div className="flex flex-col sm:flex-row flex-wrap gap-4">
-          <div>
-            <Label
-              htmlFor="difficulty-filter"
-              className="mb-1.5 flex items-center text-sm font-medium"
-            >
-              <Filter size={16} className="mr-2 text-muted-foreground" /> Filter
-              by Difficulty
-            </Label>
-            <Select
-              value={difficultyFilter}
-              onValueChange={(value) =>
-                onDifficultyFilterChange(value as DifficultyFilter)
-              }
-            >
-              <SelectTrigger
-                id="difficulty-filter"
-                className="w-full sm:w-[180px] rounded-full"
-              >
-                <SelectValue placeholder="Select difficulty" />
-              </SelectTrigger>
-              <SelectContent className="rounded-lg">
-                <SelectItem value="all">All Difficulties</SelectItem>
-                <SelectItem value="Easy">Easy</SelectItem>
-                <SelectItem value="Medium">Medium</SelectItem>
-                <SelectItem value="Hard">Hard</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label
-              htmlFor="last-asked-filter"
-              className="mb-1.5 flex items-center text-sm font-medium"
-            >
-              <CalendarDays size={16} className="mr-2 text-muted-foreground" />{" "}
-              Filter by Last Asked
-            </Label>
-            <Select
-              value={lastAskedFilter}
-              onValueChange={(value) =>
-                onLastAskedFilterChange(value as LastAskedFilter)
-              }
-            >
-              <SelectTrigger
-                id="last-asked-filter"
-                className="w-full sm:w-[200px]"
-              >
-                <SelectValue placeholder="Select period" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Periods</SelectItem>
-                {lastAskedPeriodOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {showStatusFilter && (
-            <div>
-              <Label
-                htmlFor="status-filter"
-                className="mb-1.5 flex items-center text-sm font-medium"
-              >
-                <CheckSquare size={16} className="mr-2 text-muted-foreground" />{" "}
-                Filter by Status
-              </Label>
-              <Select
-                value={statusFilter}
-                onValueChange={(value) =>
-                  onStatusFilterChange(value as StatusFilter)
-                }
-              >
-                <SelectTrigger
-                  id="status-filter"
-                  className="w-full sm:w-[180px]"
-                >
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  {statusOptionsToDisplay.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="none">No Status</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          <div>
-            <Label
-              htmlFor="sort-key"
-              className="mb-1.5 flex items-center text-sm font-medium"
-            >
-              <ArrowUpDown size={16} className="mr-2 text-muted-foreground" />{" "}
-              Sort by
-            </Label>
-            <Select
-              value={sortKey}
-              onValueChange={(value) => onSortKeyChange(value as SortKey)}
-            >
-              <SelectTrigger id="sort-key" className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="title">Title (A-Z)</SelectItem>
-                <SelectItem value="difficulty">
-                  Difficulty (Easy-Hard)
-                </SelectItem>
-                <SelectItem value="lastAsked">Last Asked (Newest)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      <div className="flex flex-col gap-4">
+        <div>
+          <ChipGroup
+            options={difficultyOptions}
+            value={difficultyFilter}
+            onChange={onDifficultyFilterChange}
+            multiple
+          />
         </div>
+        <div>
+          <ChipGroup
+            options={lastAskedPeriodOptions}
+            value={lastAskedFilter}
+            onChange={onLastAskedFilterChange}
+            multiple
+          />
+        </div>
+        {showStatusFilter && (
+          <div>
+            <ChipGroup
+              options={statusOptions}
+              value={statusFilter}
+              onChange={onStatusFilterChange}
+              multiple
+            />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -28,9 +28,9 @@ const problemRequestSchema = z.object({
   pageSize: z.number().min(1).max(50).default(15),
   filters: z
     .object({
-      difficultyFilter: z.string().optional(),
-      lastAskedFilter: z.string().optional(),
-      statusFilter: z.string().optional(),
+      difficultyFilter: z.array(z.string()).optional(),
+      lastAskedFilter: z.array(z.string()).optional(),
+      statusFilter: z.array(z.string()).optional(),
       searchTerm: z.string().optional(),
       sortKey: z.string().optional(),
     })

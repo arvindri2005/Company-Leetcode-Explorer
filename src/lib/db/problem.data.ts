@@ -70,8 +70,8 @@ export const getProblemsByCompanyFromDb = async (
   params: {
     cursor?: string;
     pageSize?: number;
-    difficultyFilter?: DifficultyFilter;
-    lastAskedFilter?: LastAskedFilter;
+    difficultyFilter?: DifficultyFilter[];
+    lastAskedFilter?: LastAskedFilter[];
     searchTerm?: string;
     sortKey?: SortKey;
   } = {},
@@ -79,8 +79,8 @@ export const getProblemsByCompanyFromDb = async (
   const {
     cursor,
     pageSize = 10,
-    difficultyFilter = "all",
-    lastAskedFilter = "all",
+    difficultyFilter = [],
+    lastAskedFilter = [],
     searchTerm = "",
     sortKey = "title",
   } = params;
@@ -90,14 +90,14 @@ export const getProblemsByCompanyFromDb = async (
       await fetchAllProblemsForCompanyFromFirestore(companyId);
     let processedProblems = [...allProblemsForCompany];
 
-    if (difficultyFilter !== "all") {
-      processedProblems = processedProblems.filter(
-        (p) => p.difficulty === difficultyFilter,
+    if (difficultyFilter.length > 0) {
+      processedProblems = processedProblems.filter((p) =>
+        difficultyFilter.includes(p.difficulty),
       );
     }
-    if (lastAskedFilter !== "all") {
+    if (lastAskedFilter.length > 0) {
       processedProblems = processedProblems.filter(
-        (p) => p.lastAskedPeriod === lastAskedFilter,
+        (p) => p.lastAskedPeriod && lastAskedFilter.includes(p.lastAskedPeriod),
       );
     }
     if (searchTerm.trim() !== "") {

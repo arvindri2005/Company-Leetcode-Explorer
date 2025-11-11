@@ -42,9 +42,9 @@ interface CompanyPageProps {
  */
 export default async function CompanyPage({ company }: CompanyPageProps) {
   const initialFilters: ProblemListFilters = {
-    difficultyFilter: "all",
-    lastAskedFilter: "all",
-    statusFilter: "all",
+    difficultyFilter: [],
+    lastAskedFilter: [],
+    statusFilter: [],
     searchTerm: "",
     sortKey: "title",
   };
