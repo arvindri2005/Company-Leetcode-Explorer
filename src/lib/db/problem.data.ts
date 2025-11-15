@@ -23,6 +23,7 @@ import {
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
 import { getCompanyById, getCompanyBySlug } from "./company.data";
+import { dbGetUserBookmarkedProblemsInfo } from "./user.data";
 
 async function fetchAllProblemsForCompanyFromFirestore(
   compId?: string,
@@ -74,6 +75,7 @@ export const getProblemsByCompanyFromDb = async (
     lastAskedFilter?: LastAskedFilter[];
     searchTerm?: string;
     sortKey?: SortKey;
+    userId?: string;
   } = {},
 ): Promise<PaginatedProblemsResponse> => {
   const {
@@ -83,12 +85,24 @@ export const getProblemsByCompanyFromDb = async (
     lastAskedFilter = [],
     searchTerm = "",
     sortKey = "title",
+    userId,
   } = params;
 
   try {
     const allProblemsForCompany =
       await fetchAllProblemsForCompanyFromFirestore(companyId);
-    let processedProblems = [...allProblemsForCompany];
+
+    const bookmarkedProblemsInfo = userId
+      ? await dbGetUserBookmarkedProblemsInfo(userId)
+      : [];
+    const bookmarkedProblemIds = new Set(
+      bookmarkedProblemsInfo.map((bp) => bp.problemId),
+    );
+
+    let processedProblems = allProblemsForCompany.map((p) => ({
+      ...p,
+      isBookmarked: bookmarkedProblemIds.has(p.id),
+    }));
 
     if (difficultyFilter.length > 0) {
       processedProblems = processedProblems.filter((p) =>
