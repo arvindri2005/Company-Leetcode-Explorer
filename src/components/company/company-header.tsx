@@ -13,7 +13,7 @@ import Image from "next/image";
  * Props for the CompanyHeader component.
  */
 interface CompanyHeaderProps {
-  company: Company;
+    company: Company;
 }
 
 /**
@@ -27,46 +27,46 @@ interface CompanyHeaderProps {
  * @returns {JSX.Element} The rendered company header section.
  */
 export default function CompanyHeader({ company }: CompanyHeaderProps) {
-  return (
-    <section className="relative bg-gradient-to-r from-gray-900 to-gray-800 border border-border rounded-xl p-6 md:p-8 mb-6 md:mb-8 overflow-hidden shadow-2xl transition-all duration-300 ease-in-out">
-      <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
-      <div className="relative z-10 flex flex-col md:flex-row items-center gap-4 md:gap-8 transition-all duration-300 ease-in-out">
-        <div className="relative h-20 w-20 md:h-24 md:w-24 flex-shrink-0 border-4 border-white/10 rounded-full shadow-lg transition-all duration-300 ease-in-out">
-          {company.logo ? (
-            <Image
-              src={company.logo}
-              alt={`${company.name} Logo`}
-              fill
-              className="rounded-full object-contain bg-white p-2"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gray-700 rounded-full">
-              <Building2 className="h-12 w-12 text-gray-400" />
+    return (
+        <section className="relative bg-gradient-to-r from-gray-900 to-gray-800 border border-border rounded-xl p-4 md:p-8 mb-4 md:mb-8 overflow-hidden shadow-lg transition-all duration-300 ease-in-out">
+            <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
+            <div className="relative z-10 flex flex-row md:flex-row items-center gap-3 md:gap-8 transition-all duration-300 ease-in-out">
+                <div className="relative h-16 w-16 md:h-24 md:w-24 flex-shrink-0 border-2 md:border-4 border-white/10 rounded-full shadow transition-all duration-300 ease-in-out">
+                    {company.logo ? (
+                        <Image
+                            src={company.logo}
+                            alt={`${company.name} Logo`}
+                            fill
+                            className="rounded-full object-contain bg-white p-2"
+                        />
+                    ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-gray-700 rounded-full">
+                            <Building2 className="h-12 w-12 text-gray-400" />
+                        </div>
+                    )}
+                </div>
+                <div className="text-left transition-all duration-300 ease-in-out w-full flex flex-col justify-center">
+                    <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight transition-all duration-300 ease-in-out break-words">
+                        {company.name}
+                    </h1>
+                    {company.website && (
+                        <a
+                            href={company.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center text-xs md:text-sm text-sky-400 hover:text-sky-300 transition-colors mt-1"
+                        >
+                            {company.website}
+                            <ExternalLink className="h-4 w-4 ml-1.5" />
+                        </a>
+                    )}
+                    {company.description && (
+                        <p className="hidden md:block mt-4 text-gray-300 max-w-2xl text-sm md:text-base transition-all duration-300 ease-in-out mx-auto md:mx-0">
+                            {company.description}
+                        </p>
+                    )}
+                </div>
             </div>
-          )}
-        </div>
-        <div className="text-center md:text-left transition-all duration-300 ease-in-out w-full">
-          <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight transition-all duration-300 ease-in-out break-words">
-            {company.name}
-          </h1>
-          {company.website && (
-            <a
-              href={company.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center text-sm text-sky-400 hover:text-sky-300 transition-colors mt-2"
-            >
-              {company.website}
-              <ExternalLink className="h-4 w-4 ml-1.5" />
-            </a>
-          )}
-          {company.description && (
-            <p className="mt-4 text-gray-300 max-w-2xl text-sm md:text-base transition-all duration-300 ease-in-out mx-auto md:mx-0">
-              {company.description}
-            </p>
-          )}
-        </div>
-      </div>
-    </section>
-  );
+        </section>
+    );
 }

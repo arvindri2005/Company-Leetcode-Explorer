@@ -62,7 +62,6 @@ export default async function CompanyPage({ company }: CompanyPageProps) {
     );
     return (
       <div className="container mx-auto px-4 py-4 max-w-7xl">
-        <CompanyPageHeader companyName={company.name} />
         <CompanyHeader company={company} />
         <ProblemLoadError
           companyName={company.name}
@@ -82,51 +81,55 @@ export default async function CompanyPage({ company }: CompanyPageProps) {
   const hasProblems = displayProblemCount > 0;
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-4 max-w-7xl transition-all duration-300 ease-in-out">
-        <CompanyPageHeader companyName={company.name} />
-        
-        {/* Company Header Section */}
-        <CompanyHeader company={company} />
+      <div className="min-h-screen bg-background">
+          <div className="container mx-auto px-4 py-4 max-w-7xl transition-all duration-300 ease-in-out">
+              {/* Company Header Section */}
+              <CompanyHeader company={company} />
 
-        {/* Mobile Ad (Top) */}
-        <div className="lg:hidden mt-6">
-          <AdPlaceholder className="h-24" title="Sponsored" />
-        </div>
+              {/* Mobile Ad (Top) */}
+              <div className="lg:hidden mt-6">
+                  <AdPlaceholder
+                      className="h-24"
+                      title="Sponsored"
+                  />
+              </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-4 pb-20 lg:pb-0 transition-all duration-300 ease-in-out">
-          {/* Main Content: Tabs & Problem List */}
-          <main className="lg:col-span-3 transition-all duration-300 ease-in-out">
-            {hasProblems ? (
-              <CompanyTabs
-                company={company}
-                displayProblemCount={displayProblemCount}
-                initialProblems={initialProblems}
-                initialHasMore={initialHasMore ?? false}
-                initialNextCursor={initialNextCursor}
-                initialFilters={initialFilters}
-                itemsPerPage={INITIAL_ITEMS_PER_PAGE}
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-4 pb-20 lg:pb-0 transition-all duration-300 ease-in-out">
+                  {/* Main Content: Tabs & Problem List */}
+                  <main className="lg:col-span-3 transition-all duration-300 ease-in-out">
+                      {hasProblems ? (
+                          <CompanyTabs
+                              company={company}
+                              displayProblemCount={displayProblemCount}
+                              initialProblems={initialProblems}
+                              initialHasMore={initialHasMore ?? false}
+                              initialNextCursor={initialNextCursor}
+                              initialFilters={initialFilters}
+                              itemsPerPage={INITIAL_ITEMS_PER_PAGE}
+                          />
+                      ) : (
+                          <NoProblemsAvailable
+                              companyName={company.name}
+                              companyId={company.id}
+                          />
+                      )}
+                  </main>
+
+                  {/* Right Sidebar: Ads */}
+                  <aside className="lg:col-span-1 space-y-8 hidden lg:block transition-all duration-300 ease-in-out">
+                      <AdPlaceholder />
+                      <AdPlaceholder />
+                  </aside>
+              </div>
+          </div>
+
+          {/* Mobile Sticky Bottom Ad */}
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background border-t p-2 z-50 transition-all duration-300 ease-in-out border-white/10">
+              <AdPlaceholder
+                  className="h-16"
+                  title="Sponsored"
               />
-            ) : (
-              <NoProblemsAvailable
-                companyName={company.name}
-                companyId={company.id}
-              />
-            )}
-          </main>
-
-          {/* Right Sidebar: Ads */}
-          <aside className="lg:col-span-1 space-y-8 hidden lg:block transition-all duration-300 ease-in-out">
-            <AdPlaceholder />
-            <AdPlaceholder />
-          </aside>
-        </div>
+          </div>
       </div>
-
-      {/* Mobile Sticky Bottom Ad */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background border-t p-2 z-50 transition-all duration-300 ease-in-out">
-        <AdPlaceholder className="h-16" title="Sponsored" />
-      </div>
-    </div>
   );
 }
