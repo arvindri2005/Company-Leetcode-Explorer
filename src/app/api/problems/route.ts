@@ -26,6 +26,7 @@ const problemRequestSchema = z.object({
   companyId: z.string(),
   cursor: z.string().optional(),
   pageSize: z.number().min(1).max(50).default(15),
+  userId: z.string().optional(),
   filters: z
     .object({
       difficultyFilter: z.array(z.string()).optional(),
@@ -64,7 +65,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { companyId, cursor, pageSize, filters } = parsedRequest.data;
+    const { companyId, cursor, pageSize, filters, userId } = parsedRequest.data;
 
     const result = await getProblemsByCompanyFromDb(companyId, {
       cursor,
@@ -73,6 +74,7 @@ export async function POST(request: Request) {
       lastAskedFilter: filters?.lastAskedFilter as LastAskedFilter,
       searchTerm: filters?.searchTerm,
       sortKey: filters?.sortKey as SortKey,
+      userId,
     });
 
     return NextResponse.json(result);

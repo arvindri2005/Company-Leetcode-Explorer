@@ -23,6 +23,10 @@ import {
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
 import { getCompanyById, getCompanyBySlug } from "./company.data";
+import {
+  dbGetUserBookmarkedProblemsInfo,
+  dbGetAllUserProblemStatuses,
+} from "./user.data";
 
 async function fetchAllProblemsForCompanyFromFirestore(
   compId?: string,
@@ -63,6 +67,7 @@ async function fetchAllProblemsForCompanyFromFirestore(
  * @param {LastAskedFilter} [params.lastAskedFilter='all'] - The recency period to filter by.
  * @param {string} [params.searchTerm=''] - A search term to filter problems by title or tags.
  * @param {SortKey} [params.sortKey='title'] - The key to sort the problems by.
+ * @param {string} [params.userId] - The ID of the user to fetch bookmarks and status for.
  * @returns {Promise<PaginatedProblemsResponse>} A promise that resolves to the paginated list of problems.
  */
 export const getProblemsByCompanyFromDb = async (
@@ -74,6 +79,7 @@ export const getProblemsByCompanyFromDb = async (
     lastAskedFilter?: LastAskedFilter[];
     searchTerm?: string;
     sortKey?: SortKey;
+    userId?: string;
   } = {},
 ): Promise<PaginatedProblemsResponse> => {
   const {
@@ -83,12 +89,34 @@ export const getProblemsByCompanyFromDb = async (
     lastAskedFilter = [],
     searchTerm = "",
     sortKey = "title",
+    userId,
   } = params;
 
   try {
     const allProblemsForCompany =
       await fetchAllProblemsForCompanyFromFirestore(companyId);
     let processedProblems = [...allProblemsForCompany];
+
+    // If a userId is provided, fetch and merge user-specific data (bookmarks, statuses)
+    if (userId) {
+      const [userBookmarks, userStatuses] = await Promise.all([
+        dbGetUserBookmarkedProblemsInfo(userId),
+        dbGetAllUserProblemStatuses(userId),
+      ]);
+
+      const bookmarkedProblemIds = new Set(
+        userBookmarks.map((b) => b.problemId),
+      );
+
+      processedProblems = processedProblems.map((problem) => {
+        const statusInfo = userStatuses[problem.id];
+        return {
+          ...problem,
+          isBookmarked: bookmarkedProblemIds.has(problem.id),
+          currentStatus: statusInfo ? statusInfo.status : undefined,
+        };
+      });
+    }
 
     if (difficultyFilter.length > 0) {
       processedProblems = processedProblems.filter((p) =>

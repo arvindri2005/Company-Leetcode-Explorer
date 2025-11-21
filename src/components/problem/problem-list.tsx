@@ -81,13 +81,31 @@ const ProblemList: React.FC<ProblemListProps> = ({
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
 
+  // Use a ref to track the previous companyId to determine if we should reset the list.
+  // We only want to reset the list if the company context changes.
+  // Revalidations (e.g. from toggling a bookmark) will cause `initialProblems` to update
+  // with data that might be missing user context (bookmarks/status) or reset pagination.
+  // By checking companyId, we assume that if we are on the same company page,
+  // the client-side state (which includes optimistic updates and pagination) is more accurate
+  // or desirable than the reset server state.
+  const prevCompanyIdRef = useRef(companyId);
+
   useEffect(() => {
-    setDisplayedProblems(initialProblems);
-    setHasMore(initialHasMore);
-    setNextCursor(initialNextCursor);
-    setSearchInput(initialFilters.searchTerm);
-    setFilters(initialFilters);
-  }, [initialProblems, initialHasMore, initialNextCursor, initialFilters]);
+    if (companyId !== prevCompanyIdRef.current) {
+      setDisplayedProblems(initialProblems);
+      setHasMore(initialHasMore);
+      setNextCursor(initialNextCursor);
+      setSearchInput(initialFilters.searchTerm);
+      setFilters(initialFilters);
+      prevCompanyIdRef.current = companyId;
+    }
+  }, [
+    companyId,
+    initialProblems,
+    initialHasMore,
+    initialNextCursor,
+    initialFilters,
+  ]);
 
   const fetchProblems = useCallback(
     async (cursor?: string, newFilters?: Partial<ProblemListFilters>) => {
