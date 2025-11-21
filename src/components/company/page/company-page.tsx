@@ -13,7 +13,6 @@ import type { Company, ProblemListFilters } from "@/types";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import CompanyHeader from "@/components/company/company-header";
 import CompanyTabs from "@/components/company/page/company-tabs";
-import CompanyNotFound from "@/components/company/page/company-not-found";
 import ProblemLoadError from "@/components/company/page/problem-load-error";
 import NoProblemsAvailable from "@/components/company/page/no-problems-available";
 import CompanyPageHeader from "./company-page-header";
@@ -86,9 +85,13 @@ export default async function CompanyPage({ company }: CompanyPageProps) {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-4 max-w-7xl">
         <CompanyPageHeader companyName={company.name} />
+        
+        {/* Company Header Section */}
+        <CompanyHeader company={company} />
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-4">
+          {/* Main Content: Tabs & Problem List */}
           <main className="lg:col-span-3">
-            <CompanyHeader company={company} />
             {hasProblems ? (
               <CompanyTabs
                 company={company}
@@ -106,7 +109,9 @@ export default async function CompanyPage({ company }: CompanyPageProps) {
               />
             )}
           </main>
-          <aside className="lg:col-span-1 space-y-8">
+
+          {/* Right Sidebar: Ads */}
+          <aside className="lg:col-span-1 space-y-8 hidden lg:block">
             <AdPlaceholder />
             <AdPlaceholder />
           </aside>
