@@ -25,6 +25,8 @@ import {
   TrendingUp,
   Zap,
   Loader2,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -88,6 +90,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const {
     isBookmarked,
@@ -125,8 +128,10 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
   return (
     <>
       <div className="problem-card-v2 flex flex-col p-4 bg-card border rounded-lg hover:bg-muted/50 transition-colors">
-        <div className="flex flex-col sm:flex-row items-start justify-between">
-          <div className="flex items-start gap-4 flex-1">
+        {/* Header Row */}
+        <div className="flex items-center justify-between gap-4">
+          {/* Left Side: Status Icon & Title */}
+          <div className="flex items-center gap-4 min-w-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="flex-shrink-0">
@@ -154,24 +159,24 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <div className="flex-1">
-              <Link
-                href={`/company/${companySlug}/problem/${problem.slug}`}
-                className="font-semibold text-lg hover:text-primary transition-colors"
-              >
-                {problem.title}
-              </Link>
-              {problem.lastAskedPeriod && (
-                <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
-                  <Clock className="h-3.5 w-3.5" />
-                  <span>
-                    {lastAskedPeriodDisplayMap[problem.lastAskedPeriod]}
-                  </span>
-                </div>
-              )}
-            </div>
+            <Link
+              href={`/company/${companySlug}/problem/${problem.slug}`}
+              className="font-semibold text-lg hover:text-primary transition-colors truncate"
+            >
+              {problem.title}
+            </Link>
+            {problem.lastAskedPeriod && (
+              <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap">
+                <Clock className="h-3.5 w-3.5" />
+                <span>
+                  {lastAskedPeriodDisplayMap[problem.lastAskedPeriod]}
+                </span>
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-2 mt-2 sm:mt-0">
+
+          {/* Right Side: Bookmark, Difficulty, Last Asked, Expand */}
+          <div className="flex items-center gap-2 flex-shrink-0">
             <Badge
               className={cn(
                 "text-sm font-semibold",
@@ -181,6 +186,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
             >
               {problem.difficulty}
             </Badge>
+
             <Button
               variant="ghost"
               size="icon"
@@ -199,107 +205,125 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                 />
               )}
             </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="flex-shrink-0"
+            >
+              {isExpanded ? (
+                <ChevronUp className="h-5 w-5" />
+              ) : (
+                <ChevronDown className="h-5 w-5" />
+              )}
+            </Button>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 mt-4">
-          {problemTags.slice(0, 4).map((tag) => (
-            <TagBadge key={tag} tag={tag} />
-          ))}
-          {problemTags.length > 4 && (
-            <Badge variant="outline" className="text-xs font-normal">
-              +{problemTags.length - 4} more
-            </Badge>
-          )}
-        </div>
-
-        <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1.5">
-            <TrendingUp className="h-4 w-4" />
-            <span>Trending</span>
-          </div>
-          {problem.lastAskedPeriod && (
-            <div className="flex items-center gap-1.5">
-              <Zap className="h-4 w-4" />
-              <span>Recent</span>
+        {/* Collapsible Content */}
+        {isExpanded && (
+          <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="flex flex-wrap gap-2">
+              {problemTags.slice(0, 4).map((tag) => (
+                <TagBadge key={tag} tag={tag} />
+              ))}
+              {problemTags.length > 4 && (
+                <Badge variant="outline" className="text-xs font-normal">
+                  +{problemTags.length - 4} more
+                </Badge>
+              )}
             </div>
-          )}
-        </div>
 
-        <div className="flex flex-wrap gap-2 mt-4">
-          <Button
-            size="sm"
-            className="flex-1"
-            disabled={!problem.link}
-            onClick={() => {
-              if (problem.link) {
-                window.open(problem.link, "_blank", "noopener,noreferrer");
-              }
-            }}
-          >
-            <ExternalLink className="h-4 w-4 mr-2" />
-            Solve
-          </Button>
-          <Button
-            asChild
-            variant="secondary"
-            size="sm"
-            className="flex-1"
-            onClick={(e) => {
-              e.preventDefault();
-              toast({
-                title: "Coming Soon",
-                description: "Mock interview feature is in development.",
-                variant: "default",
-              });
-            }}
-          >
-            <Link href={"#"}>
-              <Bot className="h-4 w-4 mr-2" />
-              Mock
-            </Link>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1 text-xs"
-            onClick={() => {
-              if (!user) {
-                redirectToLogin();
-                return;
-              }
-              handleFindSimilar();
-            }}
-            disabled={isLoadingSimilar}
-          >
-            {isLoadingSimilar ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            ) : (
-              <Sparkles className="h-4 w-4 mr-2" />
-            )}
-            Similar
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1 text-xs"
-            onClick={() => {
-              if (!user) {
-                redirectToLogin();
-                return;
-              }
-              handleGenerateInsights();
-            }}
-            disabled={isLoadingInsights}
-          >
-            {isLoadingInsights ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            ) : (
-              <Lightbulb className="h-4 w-4 mr-2" />
-            )}
-            Hints
-          </Button>
-        </div>
+            <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <TrendingUp className="h-4 w-4" />
+                <span>Trending</span>
+              </div>
+              {problem.lastAskedPeriod && (
+                <div className="flex items-center gap-1.5">
+                  <Zap className="h-4 w-4" />
+                  <span>Recent</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-2 mt-4">
+              <Button
+                size="sm"
+                className="flex-1"
+                disabled={!problem.link}
+                onClick={() => {
+                  if (problem.link) {
+                    window.open(problem.link, "_blank", "noopener,noreferrer");
+                  }
+                }}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Solve
+              </Button>
+              <Button
+                asChild
+                variant="secondary"
+                size="sm"
+                className="flex-1"
+                onClick={(e) => {
+                  e.preventDefault();
+                  toast({
+                    title: "Coming Soon",
+                    description: "Mock interview feature is in development.",
+                    variant: "default",
+                  });
+                }}
+              >
+                <Link href={"#"}>
+                  <Bot className="h-4 w-4 mr-2" />
+                  Mock
+                </Link>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-xs"
+                onClick={() => {
+                  if (!user) {
+                    redirectToLogin();
+                    return;
+                  }
+                  handleFindSimilar();
+                }}
+                disabled={isLoadingSimilar}
+              >
+                {isLoadingSimilar ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Sparkles className="h-4 w-4 mr-2" />
+                )}
+                Similar
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-xs"
+                onClick={() => {
+                  if (!user) {
+                    redirectToLogin();
+                    return;
+                  }
+                  handleGenerateInsights();
+                }}
+                disabled={isLoadingInsights}
+              >
+                {isLoadingInsights ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Lightbulb className="h-4 w-4 mr-2" />
+                )}
+                Hints
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
       <Suspense fallback={<div>Loading Dialog...</div>}>
         {isSimilarDialogSharedOpen && (
