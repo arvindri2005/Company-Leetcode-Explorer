@@ -1,7 +1,7 @@
 /**
  * @fileoverview A redesigned client-side component that organizes company details into interactive tabs.
  *
- * This component features a modern, minimalist design with horizontal tabs,
+ * This component features a modern, minimalist design with vertical tabs,
  * and completely restyled content sections for a cohesive user experience.
  */
 "use client";
@@ -96,73 +96,74 @@ export default function CompanyTabs({
   }, [company.id]);
 
   return (
-    <Tabs defaultValue="problems" orientation="horizontal" className="w-full">
-      <div className="w-full overflow-x-auto pb-2">
-        <TabsList className="inline-flex w-auto justify-start h-auto p-1 bg-muted/50 rounded-lg">
-          <TabsTrigger value="problems" className="px-4 py-2">
-            <BookOpen className="h-4 w-4 mr-2" />
-            Problems
-          </TabsTrigger>
-          <TabsTrigger value="stats" className="px-4 py-2">
-            <Brain className="h-4 w-4 mr-2" />
-            Statistics
-          </TabsTrigger>
-          <TabsTrigger value="ai-grouping" className="px-4 py-2">
-            <Brain className="h-4 w-4 mr-2" />
-            AI Groups
-          </TabsTrigger>
-          <TabsTrigger value="flashcards" className="px-4 py-2">
-            <Target className="h-4 w-4 mr-2" />
-            Flashcards
-          </TabsTrigger>
-          <TabsTrigger value="strategy" className="px-4 py-2">
-            <Users className="h-4 w-4 mr-2" />
-            Strategy
-          </TabsTrigger>
-        </TabsList>
-      </div>
-
-      <div className="mt-6">
-        <TabsContent value="problems" className="mt-0">
-          <ProblemList
-            key={company.id}
-            companyId={company.id}
-            companySlug={company.slug}
-            initialProblems={initialProblems}
-            initialHasMore={initialHasMore ?? false}
-            initialNextCursor={initialNextCursor ?? undefined}
-            itemsPerPage={itemsPerPage}
-            initialFilters={initialFilters}
-          />
-        </TabsContent>
-        <TabsContent value="stats" className="mt-0">
-          <Suspense
-            fallback={<div className="animate-pulse h-36 bg-muted rounded-lg" />}
-          >
-            <CompanyProblemStats company={company} />
-          </Suspense>
-        </TabsContent>
-        <TabsContent value="ai-grouping" className="mt-0">
-          <AIGroupingSection
-            problems={aiProblems}
-            companyName={company.name}
-            companySlug={company.slug}
-          />
-        </TabsContent>
-        <TabsContent value="flashcards" className="mt-0">
-          <DynamicFlashcardGenerator
-            companyId={company.id}
-            companyName={company.name}
-            companySlug={company.slug}
-          />
-        </TabsContent>
-        <TabsContent value="strategy" className="mt-0">
-          <CompanyStrategyGenerator
-            companyId={company.id}
-            companyName={company.name}
-            companySlug={company.slug}
-          />
-        </TabsContent>
+    <Tabs defaultValue="problems" orientation="vertical" className="w-full">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="md:col-span-1">
+          <TabsList className="flex flex-col h-full bg-card border rounded-lg p-2 space-y-2">
+            <TabsTrigger value="problems" className="w-full justify-start p-4 text-lg">
+              <BookOpen className="h-5 w-5 mr-3" />
+              Problems
+            </TabsTrigger>
+            <TabsTrigger value="stats" className="w-full justify-start p-4 text-lg">
+              <Brain className="h-5 w-5 mr-3" />
+              Statistics
+            </TabsTrigger>
+            <TabsTrigger value="ai-grouping" className="w-full justify-start p-4 text-lg">
+              <Brain className="h-5 w-5 mr-3" />
+              AI Groups
+            </TabsTrigger>
+            <TabsTrigger value="flashcards" className="w-full justify-start p-4 text-lg">
+              <Target className="h-5 w-5 mr-3" />
+              Flashcards
+            </TabsTrigger>
+            <TabsTrigger value="strategy" className="w-full justify-start p-4 text-lg">
+              <Users className="h-5 w-5 mr-3" />
+              Strategy
+            </TabsTrigger>
+          </TabsList>
+        </div>
+        <div className="md:col-span-3">
+          <TabsContent value="problems" className="mt-0">
+            <ProblemList
+              key={company.id}
+              companyId={company.id}
+              companySlug={company.slug}
+              initialProblems={initialProblems}
+              initialHasMore={initialHasMore ?? false}
+              initialNextCursor={initialNextCursor ?? undefined}
+              itemsPerPage={itemsPerPage}
+              initialFilters={initialFilters}
+            />
+          </TabsContent>
+          <TabsContent value="stats" className="mt-0">
+            <Suspense
+              fallback={<div className="animate-pulse h-36 bg-muted rounded-lg" />}
+            >
+              <CompanyProblemStats company={company} />
+            </Suspense>
+          </TabsContent>
+          <TabsContent value="ai-grouping" className="mt-0">
+            <AIGroupingSection
+              problems={aiProblems}
+              companyName={company.name}
+              companySlug={company.slug}
+            />
+          </TabsContent>
+          <TabsContent value="flashcards" className="mt-0">
+            <DynamicFlashcardGenerator
+              companyId={company.id}
+              companyName={company.name}
+              companySlug={company.slug}
+            />
+          </TabsContent>
+          <TabsContent value="strategy" className="mt-0">
+            <CompanyStrategyGenerator
+              companyId={company.id}
+              companyName={company.name}
+              companySlug={company.slug}
+            />
+          </TabsContent>
+        </div>
       </div>
     </Tabs>
   );
