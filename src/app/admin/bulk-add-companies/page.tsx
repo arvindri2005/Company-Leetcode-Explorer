@@ -58,11 +58,16 @@ export default async function AdminBulkAddCompaniesPage() {
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
           Ensure your file's first sheet (for Excel) or data (for CSV) has the
-          following headers: <strong>Name, Logo, Description, Website</strong>.
+          following headers:{" "}
+          <strong>Name, Logo, Description, Website, Related</strong>.
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
           The 'Name' column is required. 'Logo' and 'Website' should be valid
-          URLs if provided. 'Description' is optional.
+          URLs if provided. 'Description' and 'Related' are optional.
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          The 'Related' column can contain multiple company names separated by
+          semicolons (e.g., "lime; intel; linkedin").
         </p>
       </div>
       <Separator />

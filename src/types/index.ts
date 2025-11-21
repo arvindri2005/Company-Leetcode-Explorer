@@ -74,6 +74,7 @@ export interface Company {
     older_than_6_months: number;
   };
   commonTags?: Array<{ tag: string; count: number }>;
+  relatedCompanies?: string[]; // List of related company names
   statsLastUpdatedAt?: Date; // Timestamp of when these stats were last updated
 }
 

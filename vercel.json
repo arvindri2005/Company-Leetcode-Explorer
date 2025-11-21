@@ -1,0 +1,9 @@
+{
+    "git": {
+        "deploymentEnabled": false,
+        "pullRequestPreviewEnabled": false,
+        "previewBranches": [
+            "feature-production-readiness-refactor"
+        ]
+    }
+}

@@ -120,6 +120,7 @@ interface RawExcelCompanyData {
   logo?: string;
   description?: string;
   website?: string;
+  relatedCompanies?: string[];
 }
 interface BulkAddCompanyDetailedResult {
   rowIndex: number;
@@ -233,6 +234,7 @@ export async function bulkAddCompanies(
     let logo = String(raw.logo || "").trim();
     let website = String(raw.website || "").trim();
     const description = String(raw.description || "").trim();
+    const relatedCompanies = raw.relatedCompanies || [];
 
     if (website && !website.startsWith("http")) website = `https://${website}`;
     if (logo && !logo.startsWith("http")) logo = `https://${logo}`;
@@ -270,12 +272,10 @@ export async function bulkAddCompanies(
     const currentSlug = slugify(name);
 
     if (existingCompany) {
-      const payload: Partial<Company> & {
-        normalizedName?: string;
+      const payload: Omit<Partial<Company>, "logo" | "description" | "website"> & {
         logo?: string | ReturnType<typeof deleteField>;
         description?: string | ReturnType<typeof deleteField>;
         website?: string | ReturnType<typeof deleteField>;
-        slug?: string;
       } = {};
       let needsUpdate = false;
 
@@ -311,6 +311,20 @@ export async function bulkAddCompanies(
       } else if (website && website !== existingCompany.website) {
         payload.website = website;
         needsUpdate = true;
+      }
+
+      if (relatedCompanies.length > 0) {
+        // Overwrite if new related companies are provided
+        // Check if different
+        const existingRelated = existingCompany.relatedCompanies || [];
+        const areDifferent =
+          relatedCompanies.length !== existingRelated.length ||
+          relatedCompanies.some((val, index) => val !== existingRelated[index]);
+
+        if (areDifferent) {
+          payload.relatedCompanies = relatedCompanies;
+          needsUpdate = true;
+        }
       }
 
       if (needsUpdate && Object.keys(payload).length > 0) {
@@ -356,6 +370,7 @@ export async function bulkAddCompanies(
         logo: logo || undefined,
         description: description || undefined,
         website: website || undefined,
+        relatedCompanies,
       });
       if (result.id) {
         added++;

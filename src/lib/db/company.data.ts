@@ -75,6 +75,7 @@ function mapFirestoreDocToCompany(
       older_than_6_months: 0,
     },
     commonTags: data.commonTags || [],
+    relatedCompanies: data.relatedCompanies || [],
     statsLastUpdatedAt:
       data.statsLastUpdatedAt instanceof Timestamp
         ? data.statsLastUpdatedAt.toDate()
@@ -569,6 +570,7 @@ export const addCompanyToDb = async (
         older_than_6_months: 0,
       },
       commonTags: [],
+      relatedCompanies: companyData.relatedCompanies || [],
       statsLastUpdatedAt: undefined,
     };
 

@@ -42,6 +42,7 @@ interface RawExcelCompanyDataForClient {
   Logo?: string;
   Description?: string;
   Website?: string;
+  Related?: string;
   [key: string]: any;
 }
 
@@ -181,6 +182,7 @@ export default function BulkCompanyUploadForm({
         logo: string;
         description: string;
         website: string;
+        relatedCompanies: string[];
       }[] = [];
 
       for (const file of files) {
@@ -191,6 +193,9 @@ export default function BulkCompanyUploadForm({
                 logo: String(row.Logo || "").trim(),
                 description: String(row.Description || "").trim(),
                 website: String(row.Website || "").trim(),
+                relatedCompanies: row.Related
+                  ? String(row.Related).split(";").map(s => s.trim()).filter(s => s.length > 0)
+                  : [],
             })).filter(c => c.name.length > 0); // Filter out empty names immediately
             allCompanies = [...allCompanies, ...mappedData];
         } catch (e) {
@@ -293,7 +298,7 @@ export default function BulkCompanyUploadForm({
         <CardDescription>
           Select one or more .xlsx or .csv files. Required header:{" "}
           <strong>Name</strong>. Optional headers:{" "}
-          <strong>Logo, Description, Website</strong>.
+          <strong>Logo, Description, Website, Related</strong>.
           <br />
           Data from all files will be merged and processed in batches.
         </CardDescription>
