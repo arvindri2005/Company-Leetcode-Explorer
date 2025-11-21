@@ -127,14 +127,14 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
 
   return (
     <>
-      <div className="problem-card-v2 flex flex-col p-4 bg-card border rounded-lg hover:bg-muted/50 transition-colors">
+      <div className="problem-card-v2 flex flex-col p-3 md:p-4 bg-card border rounded-lg hover:bg-muted/50 transition-colors">
         {/* Header Row */}
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-start justify-between gap-2 md:gap-4">
           {/* Left Side: Status Icon & Title */}
-          <div className="flex items-center gap-4 min-w-0">
+          <div className="flex items-start gap-2 md:gap-4 min-w-0 flex-1">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="flex-shrink-0">
+                <Button variant="ghost" size="icon" className="flex-shrink-0 h-8 w-8 -ml-1 mt-0.5 md:mt-0">
                   <StatusIcon
                     className={cn("h-5 w-5", {
                       "text-green-500": currentStatus === "solved",
@@ -159,27 +159,29 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Link
-              href={`/company/${companySlug}/problem/${problem.slug}`}
-              className="font-semibold text-lg hover:text-primary transition-colors truncate"
-            >
-              {problem.title}
-            </Link>
-            {problem.lastAskedPeriod && (
-              <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap">
-                <Clock className="h-3.5 w-3.5" />
-                <span>
-                  {lastAskedPeriodDisplayMap[problem.lastAskedPeriod]}
-                </span>
-              </div>
-            )}
+            <div className="flex flex-col min-w-0">
+              <Link
+                href={`/company/${companySlug}/problem/${problem.slug}`}
+                className="font-semibold text-base md:text-lg hover:text-primary transition-colors break-words line-clamp-2 leading-tight"
+              >
+                {problem.title}
+              </Link>
+              {problem.lastAskedPeriod && (
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap mt-1">
+                  <Clock className="h-3 w-3" />
+                  <span>
+                    {lastAskedPeriodDisplayMap[problem.lastAskedPeriod]}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Right Side: Bookmark, Difficulty, Last Asked, Expand */}
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-1 md:gap-2 flex-shrink-0 self-start">
             <Badge
               className={cn(
-                "text-sm font-semibold",
+                "text-xs md:text-sm font-semibold px-1.5 py-0.5 md:px-2.5 md:py-0.5 h-6 md:h-auto",
                 difficultyStyles[problem.difficulty].bg,
                 difficultyStyles[problem.difficulty].text,
               )}
@@ -192,14 +194,14 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
               size="icon"
               onClick={handleToggleBookmark}
               disabled={isTogglingBookmark || !user}
-              className="flex-shrink-0"
+              className="flex-shrink-0 h-8 w-8 md:h-10 md:w-10"
             >
               {isTogglingBookmark ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Bookmark
                   className={cn(
-                    "h-5 w-5 text-gray-400",
+                    "h-4 w-4 md:h-5 md:w-5 text-gray-400",
                     isBookmarked && "fill-current text-primary",
                   )}
                 />
@@ -210,12 +212,12 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
               variant="ghost"
               size="icon"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="flex-shrink-0"
+              className="flex-shrink-0 h-8 w-8 md:h-10 md:w-10"
             >
               {isExpanded ? (
-                <ChevronUp className="h-5 w-5" />
+                <ChevronUp className="h-4 w-4 md:h-5 md:w-5" />
               ) : (
-                <ChevronDown className="h-5 w-5" />
+                <ChevronDown className="h-4 w-4 md:h-5 md:w-5" />
               )}
             </Button>
           </div>

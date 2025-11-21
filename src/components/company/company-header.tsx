@@ -28,10 +28,10 @@ interface CompanyHeaderProps {
  */
 export default function CompanyHeader({ company }: CompanyHeaderProps) {
   return (
-    <section className="relative bg-gradient-to-r from-gray-900 to-gray-800 border border-border rounded-xl p-8 mb-8 overflow-hidden shadow-2xl">
+    <section className="relative bg-gradient-to-r from-gray-900 to-gray-800 border border-border rounded-xl p-6 md:p-8 mb-6 md:mb-8 overflow-hidden shadow-2xl transition-all duration-300 ease-in-out">
       <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
-      <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-        <div className="relative h-24 w-24 flex-shrink-0 border-4 border-white/10 rounded-full shadow-lg">
+      <div className="relative z-10 flex flex-col md:flex-row items-center gap-4 md:gap-8 transition-all duration-300 ease-in-out">
+        <div className="relative h-20 w-20 md:h-24 md:w-24 flex-shrink-0 border-4 border-white/10 rounded-full shadow-lg transition-all duration-300 ease-in-out">
           {company.logo ? (
             <Image
               src={company.logo}
@@ -45,8 +45,8 @@ export default function CompanyHeader({ company }: CompanyHeaderProps) {
             </div>
           )}
         </div>
-        <div className="text-center md:text-left">
-          <h1 className="text-5xl font-bold text-white tracking-tight">
+        <div className="text-center md:text-left transition-all duration-300 ease-in-out w-full">
+          <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight transition-all duration-300 ease-in-out break-words">
             {company.name}
           </h1>
           {company.website && (
@@ -61,7 +61,7 @@ export default function CompanyHeader({ company }: CompanyHeaderProps) {
             </a>
           )}
           {company.description && (
-            <p className="mt-4 text-gray-300 max-w-2xl">
+            <p className="mt-4 text-gray-300 max-w-2xl text-sm md:text-base transition-all duration-300 ease-in-out mx-auto md:mx-0">
               {company.description}
             </p>
           )}

@@ -83,7 +83,7 @@ export default async function CompanyPage({ company }: CompanyPageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-4 max-w-7xl">
+      <div className="container mx-auto px-4 py-4 max-w-7xl transition-all duration-300 ease-in-out">
         <CompanyPageHeader companyName={company.name} />
         
         {/* Company Header Section */}
@@ -94,9 +94,9 @@ export default async function CompanyPage({ company }: CompanyPageProps) {
           <AdPlaceholder className="h-24" title="Sponsored" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-4 pb-20 lg:pb-0">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-4 pb-20 lg:pb-0 transition-all duration-300 ease-in-out">
           {/* Main Content: Tabs & Problem List */}
-          <main className="lg:col-span-3">
+          <main className="lg:col-span-3 transition-all duration-300 ease-in-out">
             {hasProblems ? (
               <CompanyTabs
                 company={company}
@@ -116,7 +116,7 @@ export default async function CompanyPage({ company }: CompanyPageProps) {
           </main>
 
           {/* Right Sidebar: Ads */}
-          <aside className="lg:col-span-1 space-y-8 hidden lg:block">
+          <aside className="lg:col-span-1 space-y-8 hidden lg:block transition-all duration-300 ease-in-out">
             <AdPlaceholder />
             <AdPlaceholder />
           </aside>
@@ -124,7 +124,7 @@ export default async function CompanyPage({ company }: CompanyPageProps) {
       </div>
 
       {/* Mobile Sticky Bottom Ad */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background border-t p-2 z-50">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background border-t p-2 z-50 transition-all duration-300 ease-in-out">
         <AdPlaceholder className="h-16" title="Sponsored" />
       </div>
     </div>

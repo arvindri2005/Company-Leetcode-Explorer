@@ -97,33 +97,33 @@ export default function CompanyTabs({
 
   return (
     <Tabs defaultValue="problems" orientation="horizontal" className="w-full">
-      <div className="w-full overflow-x-auto pb-2">
-        <TabsList className="inline-flex w-auto justify-start h-auto p-1 bg-muted/50 rounded-lg">
-          <TabsTrigger value="problems" className="px-4 py-2">
+      <div className="w-full overflow-x-auto pb-2 scrollbar-hide transition-all duration-300 ease-in-out">
+        <TabsList className="inline-flex w-auto justify-start h-auto p-1 bg-muted/50 rounded-lg transition-all duration-300 ease-in-out">
+          <TabsTrigger value="problems" className="px-3 py-2 md:px-4 md:py-2 text-sm md:text-base whitespace-nowrap transition-all duration-300 ease-in-out">
             <BookOpen className="h-4 w-4 mr-2" />
             Problems
           </TabsTrigger>
-          <TabsTrigger value="stats" className="px-4 py-2">
+          <TabsTrigger value="stats" className="px-3 py-2 md:px-4 md:py-2 text-sm md:text-base whitespace-nowrap transition-all duration-300 ease-in-out">
             <Brain className="h-4 w-4 mr-2" />
             Statistics
           </TabsTrigger>
-          <TabsTrigger value="ai-grouping" className="px-4 py-2">
+          <TabsTrigger value="ai-grouping" className="px-3 py-2 md:px-4 md:py-2 text-sm md:text-base whitespace-nowrap transition-all duration-300 ease-in-out">
             <Brain className="h-4 w-4 mr-2" />
             AI Groups
           </TabsTrigger>
-          <TabsTrigger value="flashcards" className="px-4 py-2">
+          <TabsTrigger value="flashcards" className="px-3 py-2 md:px-4 md:py-2 text-sm md:text-base whitespace-nowrap transition-all duration-300 ease-in-out">
             <Target className="h-4 w-4 mr-2" />
             Flashcards
           </TabsTrigger>
-          <TabsTrigger value="strategy" className="px-4 py-2">
+          <TabsTrigger value="strategy" className="px-3 py-2 md:px-4 md:py-2 text-sm md:text-base whitespace-nowrap transition-all duration-300 ease-in-out">
             <Users className="h-4 w-4 mr-2" />
             Strategy
           </TabsTrigger>
         </TabsList>
       </div>
 
-      <div className="mt-6">
-        <TabsContent value="problems" className="mt-0">
+      <div className="mt-4 md:mt-6 transition-all duration-300 ease-in-out">
+        <TabsContent value="problems" className="mt-0 transition-all duration-300 ease-in-out">
           <ProblemList
             key={company.id}
             companyId={company.id}
@@ -135,28 +135,28 @@ export default function CompanyTabs({
             initialFilters={initialFilters}
           />
         </TabsContent>
-        <TabsContent value="stats" className="mt-0">
+        <TabsContent value="stats" className="mt-0 transition-all duration-300 ease-in-out">
           <Suspense
             fallback={<div className="animate-pulse h-36 bg-muted rounded-lg" />}
           >
             <CompanyProblemStats company={company} />
           </Suspense>
         </TabsContent>
-        <TabsContent value="ai-grouping" className="mt-0">
+        <TabsContent value="ai-grouping" className="mt-0 transition-all duration-300 ease-in-out">
           <AIGroupingSection
             problems={aiProblems}
             companyName={company.name}
             companySlug={company.slug}
           />
         </TabsContent>
-        <TabsContent value="flashcards" className="mt-0">
+        <TabsContent value="flashcards" className="mt-0 transition-all duration-300 ease-in-out">
           <DynamicFlashcardGenerator
             companyId={company.id}
             companyName={company.name}
             companySlug={company.slug}
           />
         </TabsContent>
-        <TabsContent value="strategy" className="mt-0">
+        <TabsContent value="strategy" className="mt-0 transition-all duration-300 ease-in-out">
           <CompanyStrategyGenerator
             companyId={company.id}
             companyName={company.name}
