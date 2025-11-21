@@ -89,7 +89,12 @@ export default async function CompanyPage({ company }: CompanyPageProps) {
         {/* Company Header Section */}
         <CompanyHeader company={company} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-4">
+        {/* Mobile Ad (Top) */}
+        <div className="lg:hidden mt-6">
+          <AdPlaceholder className="h-24" title="Sponsored" />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-4 pb-20 lg:pb-0">
           {/* Main Content: Tabs & Problem List */}
           <main className="lg:col-span-3">
             {hasProblems ? (
@@ -116,6 +121,11 @@ export default async function CompanyPage({ company }: CompanyPageProps) {
             <AdPlaceholder />
           </aside>
         </div>
+      </div>
+
+      {/* Mobile Sticky Bottom Ad */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background border-t p-2 z-50">
+        <AdPlaceholder className="h-16" title="Sponsored" />
       </div>
     </div>
   );

@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useDebounce } from "@/hooks/use-debounce";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
+import AdPlaceholder from "@/components/ads/ad-placeholder";
 
 const ProblemListControls = dynamic(() => import("./problem-list-controls"), {
   loading: () => (
@@ -281,16 +282,23 @@ const ProblemList: React.FC<ProblemListProps> = ({
         </div>
       ) : displayedProblems.length > 0 ? (
         <div className="space-y-4">
-          {displayedProblems.map((problem) => (
-            problem && <ProblemCard
-              key={problem.id}
-              problem={problem}
-              companySlug={problem.companySlug || companySlug}
-              initialIsBookmarked={problem.isBookmarked}
-              onBookmarkChanged={handleProblemBookmarkChange}
-              problemStatus={problem.currentStatus || "none"}
-              onProblemStatusChange={handleProblemStatusChange}
-            />
+          {displayedProblems.map((problem, index) => (
+            <div key={problem.id}>
+              <ProblemCard
+                problem={problem}
+                companySlug={problem.companySlug || companySlug}
+                initialIsBookmarked={problem.isBookmarked}
+                onBookmarkChanged={handleProblemBookmarkChange}
+                problemStatus={problem.currentStatus || "none"}
+                onProblemStatusChange={handleProblemStatusChange}
+              />
+              {(index + 1) % 5 === 0 && (
+                <AdPlaceholder
+                  className="my-4 h-32"
+                  title="Sponsored"
+                />
+              )}
+            </div>
           ))}
         </div>
       ) : (
