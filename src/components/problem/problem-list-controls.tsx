@@ -25,7 +25,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Filter, ArrowUpDown, CalendarDays, CheckSquare } from "lucide-react";
 import React from "react";
-import { ChipGroup } from "../ui/chip-group";
+import { Chip } from "@/components/ui/chip";
 
 /**
  * Props for the ProblemListControls component.
@@ -85,35 +85,78 @@ const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
     { value: "none", label: "No Status" },
   ];
 
+  // Helper to handle array toggling
+  const toggleFilter = <T extends string>(
+    currentValues: T[],
+    valueToToggle: T,
+    onChange: (newValues: T[]) => void,
+  ) => {
+    const newValues = [...currentValues];
+    const index = newValues.indexOf(valueToToggle);
+    if (index > -1) {
+      newValues.splice(index, 1);
+    } else {
+      newValues.push(valueToToggle);
+    }
+    onChange(newValues);
+  };
+
+  const chipClassName = "px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm";
+
   return (
-    <div className="mb-6 p-4 bg-card rounded-xl shadow space-y-4">
-      <div className="flex flex-col gap-4">
-        <div>
-          <ChipGroup
-            options={difficultyOptions}
-            value={difficultyFilter}
-            onChange={onDifficultyFilterChange}
-            multiple
-          />
-        </div>
-        <div>
-          <ChipGroup
-            options={lastAskedPeriodOptions}
-            value={lastAskedFilter}
-            onChange={onLastAskedFilterChange}
-            multiple
-          />
-        </div>
-        {showStatusFilter && (
-          <div>
-            <ChipGroup
-              options={statusOptions}
-              value={statusFilter}
-              onChange={onStatusFilterChange}
-              multiple
-            />
-          </div>
-        )}
+    <div className="mb-4 md:mb-6 p-3 md:p-4 bg-card rounded-xl shadow">
+      <div className="flex flex-wrap gap-2">
+        {difficultyOptions.map((option) => (
+          <Chip
+            key={`difficulty-${option.value}`}
+            selected={difficultyFilter.includes(option.value as DifficultyFilter)}
+            onClick={() =>
+              toggleFilter(
+                difficultyFilter,
+                option.value as DifficultyFilter,
+                onDifficultyFilterChange,
+              )
+            }
+            className={chipClassName}
+          >
+            {option.label}
+          </Chip>
+        ))}
+
+        {lastAskedPeriodOptions.map((option) => (
+          <Chip
+            key={`recency-${option.value}`}
+            selected={lastAskedFilter.includes(option.value as LastAskedFilter)}
+            onClick={() =>
+              toggleFilter(
+                lastAskedFilter,
+                option.value as LastAskedFilter,
+                onLastAskedFilterChange,
+              )
+            }
+            className={chipClassName}
+          >
+            {option.label}
+          </Chip>
+        ))}
+
+        {showStatusFilter &&
+          statusOptions.map((option) => (
+            <Chip
+              key={`status-${option.value}`}
+              selected={statusFilter.includes(option.value as StatusFilter)}
+              onClick={() =>
+                toggleFilter(
+                  statusFilter,
+                  option.value as StatusFilter,
+                  onStatusFilterChange,
+                )
+              }
+              className={chipClassName}
+            >
+              {option.label}
+            </Chip>
+          ))}
       </div>
     </div>
   );
