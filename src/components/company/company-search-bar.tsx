@@ -9,6 +9,7 @@ import React from "react";
 import { Loader2, Building2 } from "lucide-react";
 import Image from "next/image";
 import { FaSearch } from "react-icons/fa";
+import { getLogoUrl } from "@/lib/utils";
 
 /**
  * Represents the structure of a single search suggestion item.
@@ -146,7 +147,7 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
               >
                 {suggestion.logo ? (
                   <Image
-                    src={suggestion.logo}
+                    src={getLogoUrl(suggestion.logo) as string}
                     alt={suggestion.name}
                     width={32}
                     height={32}

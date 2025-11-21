@@ -8,6 +8,7 @@
 import type { Company } from "@/types";
 import { Building2, ExternalLink } from "lucide-react";
 import Image from "next/image";
+import { getLogoUrl } from "@/lib/utils";
 
 /**
  * Props for the CompanyHeader component.
@@ -34,7 +35,7 @@ export default function CompanyHeader({ company }: CompanyHeaderProps) {
                 <div className="relative h-16 w-16 md:h-24 md:w-24 flex-shrink-0 border-2 md:border-4 border-white/10 rounded-full shadow transition-all duration-300 ease-in-out">
                     {company.logo ? (
                         <Image
-                            src={company.logo}
+                            src={getLogoUrl(company.logo) as string}
                             alt={`${company.name} Logo`}
                             fill
                             className="rounded-full object-contain bg-white p-2"

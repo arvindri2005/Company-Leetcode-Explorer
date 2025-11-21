@@ -22,6 +22,7 @@ import {
 import Image from "next/image";
 import { MoreHorizontal } from "lucide-react";
 import StatusTimelineModal from "./StatusTimelineModal";
+import { getLogoUrl } from "@/lib/utils";
 
 interface JobApplicationCardProps {
   application: JobApplication;
@@ -51,7 +52,7 @@ export default function JobApplicationCard({
             <div className="flex items-center gap-4">
                 {application.companyLogoUrl && (
                     <Image
-                        src={application.companyLogoUrl}
+                        src={getLogoUrl(application.companyLogoUrl) as string}
                         alt={`${application.companyName} logo`}
                         width={40}
                         height={40}

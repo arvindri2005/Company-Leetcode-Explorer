@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
     eslint: {
         ignoreDuringBuilds: true,
     },
+    env: {
+        LOGO_API: process.env.LOGO_API,
+    },
     images: {
         remotePatterns: [
             {

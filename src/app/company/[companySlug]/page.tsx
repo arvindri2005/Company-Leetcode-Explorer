@@ -13,6 +13,7 @@ import {
 import type { Metadata } from "next";
 import CompanyNotFound from "@/components/company/page/company-not-found";
 import CompanyPage from "@/components/company/page/company-page";
+import { getLogoUrl } from "@/lib/utils";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 
@@ -100,10 +101,12 @@ export async function generateMetadata(
     "@type": "Organization",
     name: company.name,
     url: `${APP_URL}/company/${company.slug}`,
-    logo: company.logo,
+    logo: getLogoUrl(company.logo),
     description: `Find coding interview questions and preparation material for ${company.name}.`,
     ...(company.website && { sameAs: [company.website] }),
   };
+
+  const logoUrl = getLogoUrl(company.logo);
 
   return {
     title,
@@ -117,8 +120,8 @@ export async function generateMetadata(
       description,
       url: `${APP_URL}/company/${company.slug}`,
       siteName: "Byte to Offer",
-      images: company.logo
-        ? [{ url: company.logo, alt: `${company.name} logo` }]
+      images: logoUrl
+        ? [{ url: logoUrl, alt: `${company.name} logo` }]
         : [],
       type: "article",
     },
@@ -126,7 +129,7 @@ export async function generateMetadata(
       card: "summary_large_image",
       title,
       description,
-      images: company.logo ? [company.logo] : [],
+      images: logoUrl ? [logoUrl] : [],
     },
     other: {
       'script[type="application/ld+json"]': JSON.stringify([

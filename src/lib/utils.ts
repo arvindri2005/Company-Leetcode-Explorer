@@ -31,3 +31,17 @@ export function slugify(text: string): string {
     .replace(/^-+/, "") // Trim - from start of text
     .replace(/-+$/, ""); // Trim - from end of text
 }
+
+/**
+ * @function getLogoUrl
+ * @description Appends a token query parameter to the logo URL if the LOGO_API environment variable is set.
+ * @param {string | undefined} url - The original logo URL.
+ * @returns {string | undefined} The URL with the token appended, or the original URL.
+ */
+export function getLogoUrl(url: string | undefined): string | undefined {
+  if (!url) return url;
+  if (!process.env.LOGO_API) return url;
+
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}token=${process.env.LOGO_API}`;
+}

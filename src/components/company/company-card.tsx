@@ -9,6 +9,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Company } from "@/types";
+import { getLogoUrl } from "@/lib/utils";
 
 /**
  * Props for the CompanyCard component.
@@ -30,7 +31,9 @@ interface CompanyCardProps {
  * @returns {JSX.Element} The rendered company card.
  */
 const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
-  const [imgSrc, setImgSrc] = useState(company.logo || "/icon.png");
+  const [imgSrc, setImgSrc] = useState(
+    getLogoUrl(company.logo) || "/icon.png"
+  );
 
   return (
     <article className="group relative flex flex-col h-full transition-all duration-300 ease-out overflow-hidden rounded-xl bg-white/5 backdrop-blur-lg border border-white/10 shadow-lg shadow-black/10 hover:border-white/20 hover:shadow-xl hover:-translate-y-1">
