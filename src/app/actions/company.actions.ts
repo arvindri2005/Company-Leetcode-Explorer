@@ -161,11 +161,56 @@ export async function bulkAddCompanies(
   const companiesToRevalidateSlugs = new Set<string>();
   const companiesToRevalidateIds = new Set<string>();
 
-  const existingData = await getAllCompaniesFromDbInternal({
-    pageSize: 100000,
-  });
+  // Optimization: Instead of fetching all companies, fetch only the ones involved in this batch.
+  // Firestore 'in' queries are limited to 30 items, so we batch the reads.
+  const normalizedNames = Array.from(
+    new Set(
+      companiesFromExcel
+        .map((c) => c.name?.trim().toLowerCase())
+        .filter((n): n is string => !!n),
+    ),
+  );
+
+  const existingCompanies: Company[] = [];
+  const BATCH_SIZE = 30;
+
+  for (let i = 0; i < normalizedNames.length; i += BATCH_SIZE) {
+    const batch = normalizedNames.slice(i, i + BATCH_SIZE);
+    if (batch.length === 0) continue;
+
+    const q = query(
+      collection(db, "companies"),
+      where("normalizedName", "in", batch),
+    );
+
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      // Map to a minimal Company object required for comparison logic
+      existingCompanies.push({
+        id: docSnap.id,
+        name: data.name,
+        normalizedName: data.normalizedName,
+        slug: data.slug,
+        logo: data.logo,
+        description: data.description,
+        website: data.website,
+        // Dummy values for fields not needed for update logic
+        problemCount: 0,
+        difficultyCounts: { Easy: 0, Medium: 0, Hard: 0 },
+        recencyCounts: {
+          last_30_days: 0,
+          within_3_months: 0,
+          within_6_months: 0,
+          older_than_6_months: 0,
+        },
+        commonTags: [],
+      });
+    });
+  }
+
   const companyMap = new Map(
-    existingData.companies.map((c) => [
+    existingCompanies.map((c) => [
       c.normalizedName || c.name.toLowerCase(),
       c,
     ]),

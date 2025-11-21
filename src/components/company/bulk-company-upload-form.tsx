@@ -4,7 +4,7 @@
  * This component provides a user interface for administrators to upload an Excel or
  * CSV file containing company data. It handles file parsing, validation of headers,
  * submission to a server action for processing, and the display of detailed
-- * results and a summary of the operation.
+ * results and a summary of the operation.
  */
 "use client";
 
@@ -17,7 +17,6 @@ import { bulkAddCompanies as bulkAddCompaniesAction } from "@/app/actions";
 import {
   Loader2,
   UploadCloud,
-  FileSpreadsheet,
   AlertCircle,
   CheckCircle,
   Info,
@@ -69,10 +68,10 @@ interface BulkCompanyUploadFormProps {
  *
  * This component manages the file selection, parsing, and submission process.
  * Key functionalities include:
- * - Allowing the user to select an `.xlsx` or `.csv` file.
+ * - Allowing the user to select multiple `.xlsx` or `.csv` files.
  * - Parsing the file content using the `xlsx` library on the client side.
  * - Validating the presence of required column headers (`Name`).
- * - Calling a server action (`bulkAddCompaniesAction`) with the parsed data.
+ * - Calling a server action (`bulkAddCompaniesAction`) with the parsed data in chunks.
  * - Displaying a loading state during processing.
  * - Rendering a detailed, color-coded summary of the results (added, updated, skipped, error)
  *   in a scrollable area.
@@ -83,8 +82,9 @@ interface BulkCompanyUploadFormProps {
 export default function BulkCompanyUploadForm({
   existingCompanyNames,
 }: BulkCompanyUploadFormProps) {
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingStatus, setProcessingStatus] = useState<string>("");
   const [results, setResults] = useState<BulkAddCompanyResult[] | null>(null);
   const [summary, setSummary] = useState<{
     added: number;
@@ -95,19 +95,71 @@ export default function BulkCompanyUploadForm({
   const { toast } = useToast();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      setFile(event.target.files[0]);
+    if (event.target.files && event.target.files.length > 0) {
+      setFiles(Array.from(event.target.files));
       setResults(null);
       setSummary(null);
     }
   };
 
+  const readFile = (file: File): Promise<RawExcelCompanyDataForClient[]> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const arrayBuffer = event.target?.result;
+          if (!arrayBuffer) {
+            reject(new Error(`Could not read file data from ${file.name}.`));
+            return;
+          }
+          const workbook = XLSX.read(arrayBuffer, { type: "array" });
+          const firstSheetName = workbook.SheetNames[0];
+          if (!firstSheetName) {
+            reject(new Error(`The file ${file.name} does not contain any sheets.`));
+            return;
+          }
+          const worksheet = workbook.Sheets[firstSheetName];
+          if (!worksheet) {
+            reject(new Error(`Could not read the first sheet from ${file.name}.`));
+            return;
+          }
+          
+          // Validate headers
+          const headerRowJson = XLSX.utils.sheet_to_json(worksheet, {
+            header: 1,
+            defval: "",
+          });
+          if (!headerRowJson || headerRowJson.length === 0) {
+             reject(new Error(`Could not read headers from ${file.name}.`));
+             return;
+          }
+          const headerRow = headerRowJson[0] as string[];
+          const actualHeaders = headerRow.map((h) => String(h).trim());
+          if (!actualHeaders.includes("Name")) {
+            reject(new Error(`File ${file.name} is missing required header 'Name'.`));
+            return;
+          }
+
+          const jsonData = XLSX.utils.sheet_to_json<RawExcelCompanyDataForClient>(
+            worksheet,
+            { defval: "" },
+          );
+          resolve(jsonData);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      reader.onerror = () => reject(new Error(`File read error for ${file.name}`));
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
   const handleSubmit = async () => {
-    if (!file) {
+    if (files.length === 0) {
       toast({
         title: "No file selected",
         description:
-          "Please select an Excel (.xlsx) or CSV (.csv) file to upload.",
+          "Please select at least one Excel (.xlsx) or CSV (.csv) file to upload.",
         variant: "destructive",
       });
       return;
@@ -116,146 +168,118 @@ export default function BulkCompanyUploadForm({
     setIsProcessing(true);
     setResults(null);
     setSummary(null);
+    setProcessingStatus("Reading files...");
     toast({
-      title: "Processing File...",
-      description: "Reading and processing your file for companies.",
+      title: "Starting Process",
+      description: `Reading ${files.length} file(s)...`,
     });
 
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const arrayBuffer = event.target?.result;
-        if (!arrayBuffer) {
-          throw new Error(
-            "Could not read file data. The file might be empty or corrupted.",
-          );
+    try {
+      // 1. Read and merge all files
+      let allCompanies: {
+        name: string;
+        logo: string;
+        description: string;
+        website: string;
+      }[] = [];
+
+      for (const file of files) {
+        try {
+            const data = await readFile(file);
+            const mappedData = data.map(row => ({
+                name: String(row.Name || "").trim(),
+                logo: String(row.Logo || "").trim(),
+                description: String(row.Description || "").trim(),
+                website: String(row.Website || "").trim(),
+            })).filter(c => c.name.length > 0); // Filter out empty names immediately
+            allCompanies = [...allCompanies, ...mappedData];
+        } catch (e) {
+            const msg = e instanceof Error ? e.message : "Unknown parsing error";
+            toast({
+                title: "File Error",
+                description: msg,
+                variant: "destructive"
+            });
+            setIsProcessing(false);
+            return; // Stop if any file fails to read
         }
-        // XLSX.read can handle both arrayBuffer (for xlsx) and string (for csv, but arrayBuffer often works too)
-        const workbook = XLSX.read(arrayBuffer, { type: "array" });
-        const firstSheetName = workbook.SheetNames[0];
-        if (!firstSheetName) {
-          throw new Error(
-            "The file does not contain any sheets or could not be parsed correctly.",
-          );
-        }
-        const worksheet = workbook.Sheets[firstSheetName];
-        if (!worksheet) {
-          throw new Error(
-            `Could not read the first sheet ('${firstSheetName}') from the file.`,
-          );
-        }
-
-        const jsonData = XLSX.utils.sheet_to_json<RawExcelCompanyDataForClient>(
-          worksheet,
-          { defval: "" },
-        );
-
-        if (jsonData.length === 0) {
-          toast({
-            title: "Empty Data",
-            description:
-              "The first sheet of the file is empty or contains no data rows.",
-            variant: "destructive",
-          });
-          setIsProcessing(false);
-          return;
-        }
-
-        // For CSV, headers are typically the first row. For XLSX, sheet_to_json with header:1 gets headers.
-        // This approach should work for both if SheetJS parses CSV into a sheet structure.
-        const headerRowJson = XLSX.utils.sheet_to_json(worksheet, {
-          header: 1,
-          defval: "",
-        });
-        if (!headerRowJson || headerRowJson.length === 0) {
-          throw new Error("Could not read the header row from the sheet.");
-        }
-        const headerRow = headerRowJson[0] as string[];
-
-        const requiredHeaders = ["Name"];
-        const optionalHeaders = ["Logo", "Description", "Website"];
-        const actualHeaders = headerRow.map((h) => String(h).trim());
-
-        const missingRequiredHeaders = requiredHeaders.filter(
-          (h) => !actualHeaders.includes(h),
-        );
-
-        if (missingRequiredHeaders.length > 0) {
-          toast({
-            title: "Missing Required Headers",
-            description: `The file's first sheet is missing the following required column header(s): ${missingRequiredHeaders.join(", ")}. Please ensure the file contains at least 'Name'. Optional: ${optionalHeaders.join(", ")}. Found headers: ${actualHeaders.join(", ")}`,
-            variant: "destructive",
-            duration: 15000,
-          });
-          setIsProcessing(false);
-          return;
-        }
-
-        const companiesToSubmit = jsonData.map((row) => ({
-          name: String(row.Name || "").trim(),
-          logo: String(row.Logo || "").trim(),
-          description: String(row.Description || "").trim(),
-          website: String(row.Website || "").trim(),
-        }));
-
-        const response = await bulkAddCompaniesAction(companiesToSubmit);
-        setResults(response.detailedResults);
-        setSummary({
-          added: response.addedCount,
-          updated: response.updatedCount,
-          skipped: response.skippedCount,
-          errors: response.errorCount,
-        });
-
-        toast({
-          title: "Bulk Company Processing Complete",
-          description: `${response.addedCount} added, ${response.updatedCount} updated, ${response.skippedCount} skipped, ${response.errorCount} failed.`,
-        });
-      } catch (error) {
-        console.error("Error processing file for companies:", error);
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : "An unknown error occurred during file processing.";
-        toast({
-          title: "File Processing Error",
-          description: errorMessage,
-          variant: "destructive",
-          duration: 10000,
-        });
-        setResults([
-          {
-            rowIndex: 0,
-            name: "File Processing Error",
-            status: "error",
-            message: `Error processing file: ${errorMessage}`,
-          },
-        ]);
-      } finally {
-        setIsProcessing(false);
       }
-    };
 
-    reader.onerror = (error) => {
-      console.error("FileReader error:", error);
+      if (allCompanies.length === 0) {
+        toast({
+            title: "No Data Found",
+            description: "The selected files contain no valid company data.",
+            variant: "destructive"
+        });
+        setIsProcessing(false);
+        return;
+      }
+
+      // 2. Chunk processing
+      const CHUNK_SIZE = 50;
+      const chunks = [];
+      for (let i = 0; i < allCompanies.length; i += CHUNK_SIZE) {
+        chunks.push(allCompanies.slice(i, i + CHUNK_SIZE));
+      }
+
+      let totalAdded = 0;
+      let totalUpdated = 0;
+      let totalSkipped = 0;
+      let totalErrors = 0;
+      let aggregatedResults: BulkAddCompanyResult[] = [];
+
+      for (let i = 0; i < chunks.length; i++) {
+        setProcessingStatus(`Processing chunk ${i + 1} of ${chunks.length}...`);
+        const chunk = chunks[i];
+        
+        try {
+            const response = await bulkAddCompaniesAction(chunk);
+            totalAdded += response.addedCount;
+            totalUpdated += response.updatedCount;
+            totalSkipped += response.skippedCount;
+            totalErrors += response.errorCount;
+            
+            // Adjust row indices to be global relative to the merged dataset
+            const chunkResults = response.detailedResults.map(r => ({
+                ...r,
+                rowIndex: r.rowIndex + (i * CHUNK_SIZE) // Offset by previous chunks
+            }));
+            aggregatedResults = [...aggregatedResults, ...chunkResults];
+        } catch (e) {
+            console.error("Chunk processing error:", e);
+            totalErrors += chunk.length;
+            aggregatedResults.push({
+                rowIndex: i * CHUNK_SIZE,
+                name: "Chunk Error",
+                status: "error",
+                message: "Server error processing this batch."
+            });
+        }
+      }
+
+      setResults(aggregatedResults);
+      setSummary({
+        added: totalAdded,
+        updated: totalUpdated,
+        skipped: totalSkipped,
+        errors: totalErrors,
+      });
+
       toast({
-        title: "File Read Error",
-        description:
-          "Could not read the selected file. It might be corrupted or in an unexpected format.",
+        title: "Bulk Processing Complete",
+        description: `Processed ${allCompanies.length} records. Added: ${totalAdded}, Updated: ${totalUpdated}, Skipped: ${totalSkipped}, Failed: ${totalErrors}.`,
+      });
+
+    } catch (error) {
+      console.error("Global processing error:", error);
+      toast({
+        title: "Processing Error",
+        description: "An unexpected error occurred during the bulk upload process.",
         variant: "destructive",
       });
+    } finally {
       setIsProcessing(false);
-    };
-
-    if (file) {
-      reader.readAsArrayBuffer(file); // Read as ArrayBuffer, SheetJS can handle it for both types
-    } else {
-      toast({
-        title: "No file found",
-        description: "File became unavailable before reading.",
-        variant: "destructive",
-      });
-      setIsProcessing(false);
+      setProcessingStatus("");
     }
   };
 
@@ -267,12 +291,11 @@ export default function BulkCompanyUploadForm({
           Bulk Upload Companies
         </CardTitle>
         <CardDescription>
-          Select an .xlsx or .csv file with company data. Required header:{" "}
+          Select one or more .xlsx or .csv files. Required header:{" "}
           <strong>Name</strong>. Optional headers:{" "}
           <strong>Logo, Description, Website</strong>.
           <br />
-          Existing company names (case-insensitive) will be updated with new
-          information. If no new information, they'll be skipped.
+          Data from all files will be merged and processed in batches.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -280,28 +303,34 @@ export default function BulkCompanyUploadForm({
           <Input
             type="file"
             accept=".xlsx,.csv"
+            multiple
             onChange={handleFileChange}
             className="flex-grow file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
             disabled={isProcessing}
           />
           <Button
             onClick={handleSubmit}
-            disabled={!file || isProcessing}
+            disabled={files.length === 0 || isProcessing}
             className="w-full sm:w-auto"
           >
             {isProcessing ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
+                {processingStatus || "Processing..."}
               </>
             ) : (
               <>
                 <UploadCloud className="mr-2 h-4 w-4" />
-                Process File
+                Process Files
               </>
             )}
           </Button>
         </div>
+        {files.length > 0 && (
+            <p className="text-sm text-muted-foreground">
+                Selected {files.length} file(s): {files.map(f => f.name).join(", ")}
+            </p>
+        )}
       </CardContent>
       {summary && (
         <CardFooter className="flex-col items-start gap-2 pt-4 border-t">
@@ -343,7 +372,7 @@ export default function BulkCompanyUploadForm({
                   }`}
                 >
                   <p className="font-medium text-sm">
-                    Row {result.rowIndex + 2}:{" "}
+                    Row {result.rowIndex + 1}:{" "}
                     {result.name || "(No Name Provided)"} -{" "}
                     <span
                       className={`font-semibold ${
