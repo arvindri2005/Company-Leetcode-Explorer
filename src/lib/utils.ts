@@ -37,6 +37,7 @@ export function slugify(text: string): string {
  * @description Appends a token query parameter to the logo URL if the LOGO_API environment variable is set.
  * @param {string | undefined} url - The original logo URL.
  * @returns {string | undefined} The URL with the token appended, or the original URL.
+ * @returns {string | undefined} The URL with the token appended, or the original URL.
  */
 export function getLogoUrl(url: string | undefined): string | undefined {
   if (!url) return url;
@@ -44,4 +45,15 @@ export function getLogoUrl(url: string | undefined): string | undefined {
 
   const separator = url.includes("?") ? "&" : "?";
   return `${url}${separator}token=${process.env.LOGO_API}`;
+}
+
+/**
+ * @function capitalizeWords
+ * @description Capitalizes the first letter of each word in a string.
+ * @param {string} str - The string to be capitalized.
+ * @returns {string} The capitalized string.
+ */
+export function capitalizeWords(str: string): string {
+  if (!str) return str;
+  return str.replace(/\b\w/g, (char) => char.toUpperCase());
 }

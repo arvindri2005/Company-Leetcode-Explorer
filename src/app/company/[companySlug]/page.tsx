@@ -13,7 +13,7 @@ import {
 import type { Metadata } from "next";
 import CompanyNotFound from "@/components/company/page/company-not-found";
 import CompanyPage from "@/components/company/page/company-page";
-import { getLogoUrl } from "@/lib/utils";
+import { getLogoUrl, capitalizeWords } from "@/lib/utils";
 
 import StructuredData from "@/components/seo/structured-data";
 
@@ -85,7 +85,7 @@ export async function generateMetadata(
   }
 
   const problemCount = company.problemCount ?? 0;
-  const title = `${company.name} Interview Problems`;
+  const title = `${capitalizeWords(company.name)} Interview Questions`;
   const description = `Explore ${problemCount} coding interview questions from ${company.name}. Practice problems, understand common patterns, and prepare for your technical interviews.`;
 
   const companyKeywords = [
