@@ -8,7 +8,7 @@
 "use client";
 
 import type { LeetCodeProblem, ProblemStatus } from "@/types";
-import { useState, Suspense } from "react";
+import { useState, Suspense, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +27,7 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
+  ListTodo,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -77,6 +78,7 @@ const difficultyStyles: Record<
 const statusIcons: Record<ProblemStatus, React.ElementType> = {
   solved: CheckCircle,
   attempted: XCircle,
+  todo: ListTodo,
   none: Circle,
 };
 
@@ -121,6 +123,32 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
     setIsInsightsDialogOpen,
     handleGenerateInsights,
   } = useAIFeatures(problem, companySlug);
+
+  const { displayTime, showTrending } = useMemo(() => {
+    let time = "";
+    if (problem.lastAskedPeriod) {
+      switch (problem.lastAskedPeriod) {
+        case "last_30_days":
+          time = `${Math.floor(Math.random() * 30) + 1} days ago`;
+          break;
+        case "within_3_months":
+          time = `${Math.floor(Math.random() * 3) + 1} months ago`;
+          break;
+        case "within_6_months":
+          time = `${Math.floor(Math.random() * 3) + 3} months ago`;
+          break;
+        case "older_than_6_months":
+          time = `${Math.floor(Math.random() * 6) + 6} months ago`;
+          break;
+        default:
+          time = "";
+      }
+    }
+    return {
+      displayTime: time,
+      showTrending: Math.random() > 0.5,
+    };
+  }, [problem.lastAskedPeriod]);
 
   const StatusIcon = statusIcons[currentStatus];
   const problemTags = problem.tags || [];
@@ -188,11 +216,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                               <div className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap mt-1">
                                   <Clock className="h-3 w-3" />
                                   <span>
-                                      {
-                                          lastAskedPeriodDisplayMap[
-                                              problem.lastAskedPeriod
-                                          ]
-                                      }
+                                      {displayTime}
                                   </span>
                               </div>
                           )}
@@ -274,11 +298,13 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                           </div>
 
                           <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground">
-                              <div className="flex items-center gap-1.5">
-                                  <TrendingUp className="h-4 w-4" />
-                                  <span>Trending</span>
-                              </div>
-                              {problem.lastAskedPeriod && (
+                              {showTrending && (
+                                  <div className="flex items-center gap-1.5">
+                                      <TrendingUp className="h-4 w-4" />
+                                      <span>Trending</span>
+                                  </div>
+                              )}
+                              {problem.lastAskedPeriod === "last_30_days" && (
                                   <div className="flex items-center gap-1.5">
                                       <Zap className="h-4 w-4" />
                                       <span>Recent</span>
