@@ -20,7 +20,6 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
-import { triggerCompaniesRevalidation } from "@/app/actions/admin.actions";
 
 // Helper function to ensure db is not null
 function getFirestore(): Firestore {
@@ -510,7 +509,8 @@ export const invalidateCompaniesCache = () => {
  */
 async function revalidateCompaniesPage() {
   try {
-    await triggerCompaniesRevalidation();
+    // We no longer trigger the admin API revalidation here as it's being removed.
+    // The server action calling this data layer should handle Next.js cache revalidation (revalidatePath/revalidateTag).
     invalidateCompaniesCache();
   } catch (error) {
     console.error("Failed to revalidate companies page:", error);

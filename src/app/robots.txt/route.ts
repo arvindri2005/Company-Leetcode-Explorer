@@ -28,7 +28,6 @@ export async function GET() {
 # This file tells search engines what to crawl and what to avoid
 
 User-agent: *
-Disallow: /admin/
 Disallow: /api/
 Disallow: /_next/
 Disallow: /submit-problem?*
