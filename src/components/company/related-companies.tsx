@@ -15,10 +15,10 @@ export default function RelatedCompanies({ companies }: RelatedCompaniesProps) {
   return (
     <Card className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
       <CardHeader className="pb-3 bg-muted/30 border-b">
-        <CardTitle className="flex items-center text-lg font-semibold">
+        <h2 className="font-semibold leading-none tracking-tight flex items-center text-lg">
           <Building2 className="mr-2 h-5 w-5 text-primary" />
           Related Companies
-        </CardTitle>
+        </h2>
       </CardHeader>
       <CardContent className="p-0">
         <div className="flex flex-col divide-y divide-border">

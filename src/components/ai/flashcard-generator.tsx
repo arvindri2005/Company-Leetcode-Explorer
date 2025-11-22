@@ -198,9 +198,9 @@ const FlashcardGenerator: React.FC<FlashcardGeneratorProps> = ({
         {flashcards && flashcards.length > 0 && (
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle className="text-xl">
+              <h3 className="text-xl font-semibold leading-none tracking-tight">
                 Generated Flashcards for {companyName}
-              </CardTitle>
+              </h3>
               <CardDescription>
                 Click on a question to reveal the answer.
               </CardDescription>

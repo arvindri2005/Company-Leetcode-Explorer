@@ -86,7 +86,7 @@ export async function generateMetadata(
 
   const problemCount = company.problemCount ?? 0;
   const title = `${capitalizeWords(company.name)} Interview Questions`;
-  const description = `Explore ${problemCount} coding interview questions from ${company.name}. Practice problems, understand common patterns, and prepare for your technical interviews.`;
+  const description = `Explore ${problemCount} ${capitalizeWords(company.name)} coding interview questions. Practice problems, understand common patterns, and prepare for your technical interviews.`;
 
   const companyKeywords = [
     company.name,

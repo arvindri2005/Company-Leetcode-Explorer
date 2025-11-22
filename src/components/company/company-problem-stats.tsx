@@ -89,10 +89,10 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({
   return (
     <Card className="bg-card border border-border rounded-xl p-6 mb-8 shadow-sm">
       <CardHeader className="py-2 px-3">
-        <CardTitle className="flex items-center text-lg">
+        <h2 className="font-semibold leading-none tracking-tight flex items-center text-lg">
           <ListChecks className="mr-2 h-5 w-5 text-primary" />
           Problem Statistics
-        </CardTitle>
+        </h2>
       </CardHeader>
       <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8 px-3 pt-4">
         <div>

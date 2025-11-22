@@ -201,9 +201,9 @@ const AIGroupingSection: React.FC<AIGroupingSectionProps> = ({
         {groupedData && groupedData.groups && groupedData.groups.length > 0 && (
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle className="text-xl">
+              <h3 className="text-xl font-semibold leading-none tracking-tight">
                 Grouped Problem Insights for {companyName}
-              </CardTitle>
+              </h3>
             </CardHeader>
             <CardContent>
               <Accordion type="single" collapsible className="w-full">

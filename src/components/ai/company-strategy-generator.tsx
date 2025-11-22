@@ -367,12 +367,12 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
             <CardHeader>
               <div className="flex justify-between items-center">
                 <div>
-                  <CardTitle className="text-xl">
+                  <h3 className="text-xl font-semibold leading-none tracking-tight">
                     {hasSavedStrategy
                       ? "Your Saved Strategy for "
                       : "AI-Generated Strategy for "}{" "}
                     {companyName}
-                  </CardTitle>
+                  </h3>
                   <CardDescription>
                     {hasSavedStrategy &&
                       `Last saved: ${new Date(strategyData.todoItems[0]?.isCompleted !== undefined && "savedAt" in strategyData ? (strategyData as any).savedAt : Date.now()).toLocaleDateString()}. `}
@@ -411,10 +411,10 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-2 flex items-center">
+                <h4 className="text-lg font-semibold mb-2 flex items-center">
                   <ListChecks size={20} className="mr-2 text-primary" />
                   Overall Preparation Strategy
-                </h3>
+                </h4>
                 <div className="prose prose-sm sm:prose dark:prose-invert max-w-none p-4 bg-muted/30 rounded-md">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {strategyData.preparationStrategy}
@@ -425,10 +425,10 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
               {strategyData.focusTopics &&
                 strategyData.focusTopics.length > 0 && (
                   <div>
-                    <h3 className="text-lg font-semibold mb-3 flex items-center">
+                    <h4 className="text-lg font-semibold mb-3 flex items-center">
                       <Target size={20} className="mr-2 text-primary" />
                       Key Focus Topics
-                    </h3>
+                    </h4>
                     <Accordion
                       type="single"
                       collapsible
@@ -471,10 +471,10 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
               {strategyData.todoItems && strategyData.todoItems.length > 0 && (
                 <div>
                   <div className="flex justify-between items-center mb-3">
-                    <h3 className="text-lg font-semibold flex items-center">
+                    <h4 className="text-lg font-semibold flex items-center">
                       <CheckSquare size={20} className="mr-2 text-primary" />
                       Actionable Todo List
-                    </h3>
+                    </h4>
                   </div>
                   <ul className="list-disc space-y-2 pl-5 bg-muted/30 p-4 rounded-md">
                     {strategyData.todoItems.map((item, index) => (

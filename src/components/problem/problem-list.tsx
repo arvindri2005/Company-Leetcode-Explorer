@@ -253,6 +253,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
 
   return (
     <div>
+      <h2 className="sr-only">Problems</h2>
       <ProblemListControls
         difficultyFilter={filters.difficultyFilter}
         onDifficultyFilterChange={(value) =>
