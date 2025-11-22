@@ -111,7 +111,7 @@ export const metadata: Metadata = {
       {
         rel: "mask-icon",
         url: "/safari-pinned-tab.svg",
-        color: "#F7BC2D",
+        color: COLORS.brand.yellow,
       },
     ],
   },
@@ -133,9 +133,11 @@ export const metadata: Metadata = {
   },
 };
 
+import { COLORS } from "@/constants/colors";
+
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F7BC2D" }, // primary color
+    { media: "(prefers-color-scheme: light)", color: COLORS.brand.yellow }, // primary color
     { media: "(prefers-color-scheme: dark)", color: "#201A13" }, // dark mode background
   ],
   colorScheme: "light dark",

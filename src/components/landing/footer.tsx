@@ -12,30 +12,30 @@ export default function Footer() {
         <div className="flex justify-center gap-8 mb-8 flex-wrap">
           <a
             href="/privacy-policy"
-            className="text-[#a1a1aa] no-underline transition-colors duration-300 hover:text-[#00d4aa]"
+            className="text-gray-custom-400 no-underline transition-colors duration-300 hover:text-brand-teal"
           >
             Privacy Policy
           </a>
           <a
             href="/terms-of-service"
-            className="text-[#a1a1aa] no-underline transition-colors duration-300 hover:text-[#00d4aa]"
+            className="text-gray-custom-400 no-underline transition-colors duration-300 hover:text-brand-teal"
           >
             Terms of Service
           </a>
           <a
             href="/contact"
-            className="text-[#a1a1aa] no-underline transition-colors duration-300 hover:text-[#00d4aa]"
+            className="text-gray-custom-400 no-underline transition-colors duration-300 hover:text-brand-teal"
           >
             Contact
           </a>
           <a
             href="/blog"
-            className="text-[#a1a1aa] no-underline transition-colors duration-300 hover:text-[#00d4aa]"
+            className="text-gray-custom-400 no-underline transition-colors duration-300 hover:text-brand-teal"
           >
             Blog
           </a>
         </div>
-        <p className="text-[#6b7280] mt-8">
+        <p className="text-gray-custom-500 mt-8">
           © 2025 Byte to Offer. All rights reserved.
         </p>
       </div>

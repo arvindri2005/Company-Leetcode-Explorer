@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import { COLORS } from "./src/constants/colors";
 
 export default {
     darkMode: ["class"],
@@ -62,6 +63,10 @@ export default {
                     border: "hsl(var(--sidebar-border))",
                     ring: "hsl(var(--sidebar-ring))",
                 },
+                brand: COLORS.brand,
+                difficulty: COLORS.difficulty,
+                stat: COLORS.stat,
+                "gray-custom": COLORS.grayCustom,
             },
             borderRadius: {
                 lg: "var(--radius)",

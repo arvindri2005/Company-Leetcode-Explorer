@@ -28,17 +28,19 @@ interface CompanyProblemStatsProps {
   company: Company;
 }
 
+import { COLORS } from "@/constants/colors";
+
 const difficultyColors: Record<LeetCodeProblem["difficulty"], string> = {
-  Easy: "#22c55e",
-  Medium: "#f59e0b",
-  Hard: "#ef4444",
+  Easy: COLORS.difficulty.easy,
+  Medium: COLORS.difficulty.medium,
+  Hard: COLORS.difficulty.hard,
 };
 
 const recencyColors: Record<LastAskedPeriod, string> = {
-  last_30_days: "#38bdf8",
-  within_3_months: "#6366f1",
-  within_6_months: "#8b5cf6",
-  older_than_6_months: "#a855f7",
+  last_30_days: COLORS.stat.blue,
+  within_3_months: COLORS.stat.indigo,
+  within_6_months: COLORS.stat.violet,
+  older_than_6_months: COLORS.stat.purple,
 };
 
 /**
@@ -103,7 +105,7 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({
               <YAxis
                 type="category"
                 dataKey="name"
-                stroke="#888888"
+                stroke={COLORS.grayCustom.stroke}
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
@@ -111,8 +113,8 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({
               <Tooltip
                 cursor={{ fill: "rgba(128, 128, 128, 0.1)" }}
                 contentStyle={{
-                  background: "#1f2937",
-                  border: "1px solid #374151",
+                  background: COLORS.grayCustom[800],
+                  border: `1px solid ${COLORS.grayCustom[700]}`,
                   borderRadius: "0.5rem",
                 }}
               />
@@ -142,7 +144,7 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({
               <YAxis
                 type="category"
                 dataKey="name"
-                stroke="#888888"
+                stroke={COLORS.grayCustom.stroke}
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
@@ -150,8 +152,8 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({
               <Tooltip
                 cursor={{ fill: "rgba(128, 128, 128, 0.1)" }}
                 contentStyle={{
-                  background: "#1f2937",
-                  border: "1px solid #374151",
+                  background: COLORS.grayCustom[800],
+                  border: `1px solid ${COLORS.grayCustom[700]}`,
                   borderRadius: "0.5rem",
                 }}
               />

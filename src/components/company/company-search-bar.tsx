@@ -102,7 +102,7 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
           <button
             type="submit"
             aria-label="Submit company search"
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-[#00d4aa] to-[#7c3aed] border-none rounded-full w-12 h-12 text-white cursor-pointer transition-all duration-300 hover:scale-110 flex items-center justify-center"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-brand-teal to-brand-purple border-none rounded-full w-12 h-12 text-white cursor-pointer transition-all duration-300 hover:scale-110 flex items-center justify-center"
           >
             <FaSearch />
           </button>
@@ -124,7 +124,7 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
           aria-label="Company suggestions"
         >
           {isLoadingSuggestions && suggestions.length === 0 ? (
-            <p className="p-4 text-base text-[#6b7280]">
+            <p className="p-4 text-base text-gray-custom-500">
               Loading suggestions...
             </p>
           ) : suggestions.length > 0 ? (
@@ -138,8 +138,8 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
                 role="option"
                 aria-selected="false"
                 className={
-                  `flex items-center gap-3 px-5 py-4 cursor-pointer transition-all duration-200 text-[#e4e4e7] ` +
-                  `hover:bg-gradient-to-r hover:from-[#00d4aa]/30 hover:to-[#7c3aed]/30 hover:text-white ` +
+                  `flex items-center gap-3 px-5 py-4 cursor-pointer transition-all duration-200 text-gray-custom-200 ` +
+                  `hover:bg-gradient-to-r hover:from-brand-teal/30 hover:to-brand-purple/30 hover:text-white ` +
                   (idx !== suggestions.length - 1
                     ? "border-b border-white/10"
                     : "")
@@ -154,14 +154,14 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
                     className="rounded-full bg-white/20"
                   />
                 ) : (
-                  <Building2 className="h-8 w-8 text-[#6b7280] bg-white/10 rounded-full p-1" />
+                  <Building2 className="h-8 w-8 text-gray-custom-500 bg-white/10 rounded-full p-1" />
                 )}
                 <span className="font-medium text-lg">{suggestion.name}</span>
               </div>
             ))
           ) : (
             !isLoadingSuggestions && (
-              <p className="p-4 text-base text-[#6b7280]">
+              <p className="p-4 text-base text-gray-custom-500">
                 No companies found matching "{searchTermInput}".
               </p>
             )
