@@ -41,10 +41,6 @@ const organizationStructuredData = {
   description:
     "Master coding interviews with AI-driven tools. Explore company-specific problems, generate flashcards, and get personalized prep strategies. Your ultimate hub for targeted coding interview preparation.",
   sameAs: [
-    // Add social media or other relevant profiles if available
-    // "https://www.facebook.com/YourPage",
-    // "https://www.twitter.com/YourHandle",
-    // "https://www.linkedin.com/company/YourCompany"
   ],
 };
 
@@ -95,8 +91,6 @@ export const metadata: Metadata = {
     description:
       "Master coding interviews with AI-driven tools for targeted preparation. Explore interview questions for top tech companies.",
     images: [`${APP_URL}/og-image.png`], // Ensure this image exists
-    // site: '@YourTwitterHandle', // Add if you have a Twitter handle for the app
-    // creator: '@YourTwitterHandle', // Add if you have a Twitter handle for the creator
   },
   icons: {
     icon: [
