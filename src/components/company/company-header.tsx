@@ -47,7 +47,7 @@ export default function CompanyHeader({ company }: CompanyHeaderProps) {
                     )}
                 </div>
                 <div className="text-left transition-all duration-300 ease-in-out w-full flex flex-col justify-center">
-                    <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight transition-all duration-300 ease-in-out break-words">
+                    <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight transition-all duration-300 ease-in-out break-words capitalize">
                         {company.name}
                     </h1>
                     {company.website && (

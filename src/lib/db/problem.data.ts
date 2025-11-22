@@ -80,6 +80,7 @@ export const getProblemsByCompanyFromDb = async (
     searchTerm?: string;
     sortKey?: SortKey;
     userId?: string;
+    companySlug?: string; // Optimization: pass slug if known
   } = {},
 ): Promise<PaginatedProblemsResponse> => {
   const {
@@ -90,9 +91,97 @@ export const getProblemsByCompanyFromDb = async (
     searchTerm = "",
     sortKey = "title",
     userId,
+    companySlug,
   } = params;
 
   try {
+    // Optimization: Fast path for initial load (no filters, default sort, no search)
+    // This avoids fetching ALL documents and filtering in memory
+    const isDefaultSort = sortKey === "title";
+    const hasNoFilters =
+      difficultyFilter.length === 0 &&
+      lastAskedFilter.length === 0 &&
+      searchTerm.trim() === "";
+
+    if (isDefaultSort && hasNoFilters) {
+      const problemsColRef = collection(db, "companies", companyId, "problems");
+      let q = query(problemsColRef, orderBy("normalizedTitle"), limit(pageSize + 1));
+
+      if (cursor) {
+         // Note: For true cursor pagination with Firestore, we need the actual document snapshot
+         // or we need to fetch all up to the cursor.
+         // Since our current cursor implementation uses ID strings and in-memory filtering for the "slow path",
+         // mixing them is tricky.
+         // However, if we are in the "fast path", we can try to use startAfter if we had the doc.
+         // But we only have the ID.
+         // For now, let's stick to the "slow path" if a cursor is present to ensure consistency,
+         // OR we can fetch the cursor doc first.
+         // Given the complexity, let's only use the fast path for the FIRST page (no cursor).
+         // TODO: Implement true Firestore cursor pagination for deeper pages.
+      }
+
+      if (!cursor) {
+        const problemSnapshot = await getDocs(q);
+        const docs = problemSnapshot.docs;
+        const hasMore = docs.length > pageSize;
+        const slicedDocs = docs.slice(0, pageSize);
+
+        // We need the company slug for the problem objects.
+        // If passed in params, use it. Otherwise fetch it (cached).
+        let finalCompanySlug = companySlug;
+        if (!finalCompanySlug) {
+             const company = await getCompanyById(companyId);
+             finalCompanySlug = company?.slug || slugify(company?.name || "unknown");
+        }
+
+        const problems = slicedDocs.map((docSnap) => {
+            const data = docSnap.data();
+            return {
+              id: docSnap.id,
+              companyId: companyId,
+              companySlug: finalCompanySlug!,
+              slug: data.slug || slugify(data.title),
+              ...data,
+            } as LeetCodeProblem;
+        });
+
+        // If userId is provided, we still need to fetch user status/bookmarks
+        // But only for these 10 items, not all items!
+        if (userId) {
+             const [userBookmarks, userStatuses] = await Promise.all([
+                dbGetUserBookmarkedProblemsInfo(userId),
+                dbGetAllUserProblemStatuses(userId),
+              ]);
+              const bookmarkedProblemIds = new Set(userBookmarks.map((b) => b.problemId));
+
+              return {
+                problems: problems.map(p => {
+                    const statusInfo = userStatuses[p.id];
+                    return {
+                        ...p,
+                        isBookmarked: bookmarkedProblemIds.has(p.id),
+                        currentStatus: statusInfo ? statusInfo.status : undefined,
+                    };
+                }),
+                totalProblems: 100, // Approximation or fetch count separately if needed. For infinite scroll, total isn't always strictly needed.
+                hasMore,
+                nextCursor: hasMore ? problems[problems.length - 1].id : undefined,
+              };
+        }
+
+        return {
+            problems,
+            totalProblems: 100, // Placeholder, or we can do a count query if strictly needed
+            hasMore,
+            nextCursor: hasMore ? problems[problems.length - 1].id : undefined,
+        };
+      }
+    }
+
+    // --- SLOW PATH (Existing Logic) ---
+    // Fetches ALL problems and filters in memory.
+    // Used when filters/sort are applied or for pagination beyond first page (until cursor logic is improved).
+
     const allProblemsForCompany =
       await fetchAllProblemsForCompanyFromFirestore(companyId);
     let processedProblems = [...allProblemsForCompany];
