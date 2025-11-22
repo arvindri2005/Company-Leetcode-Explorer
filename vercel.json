@@ -3,7 +3,8 @@
         "deploymentEnabled": false,
         "pullRequestPreviewEnabled": false,
         "previewBranches": [
-            "feature-production-readiness-refactor"
+            "feature-production-readiness-refactor",
+            "v2"
         ]
     }
 }

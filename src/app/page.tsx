@@ -27,7 +27,7 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 export const metadata: Metadata = {
   title: "Byte to offer",
   description:
-    "Master coding interviews with AI-driven tools. Explore company-specific interview questions (Google, Amazon, Meta), engage in mock interviews, get personalized strategies, and practice for top tech companies. Your ultimate resource for software engineering interview preparation.",
+    "Master coding interviews with AI-driven tools. Explore company-specific interview questions (Google, Amazon, Meta), get personalized strategies, and practice for top tech companies. Your ultimate resource for software engineering interview preparation.",
   keywords: [
     "LeetCode Interview Questions",
     "Company Coding Questions",
@@ -65,7 +65,7 @@ export const metadata: Metadata = {
       url: APP_URL,
       name: "Byte to Offer",
       description:
-        "Master coding interviews with AI-driven tools. Explore company-specific interview problems, engage in mock interviews, generate flashcards, and get personalized prep strategies.",
+        "Master coding interviews with AI-driven tools. Explore company-specific interview problems, generate flashcards, and get personalized prep strategies.",
       potentialAction: {
         "@type": "SearchAction",
         target: {

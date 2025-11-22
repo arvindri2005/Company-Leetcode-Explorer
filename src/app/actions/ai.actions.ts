@@ -40,11 +40,7 @@ import type {
   GenerateProblemInsightsOutput,
 } from "@/ai/flows/generate-problem-insights-flow";
 import { generateProblemInsights as generateProblemInsightsFlow } from "@/ai/flows/generate-problem-insights-flow";
-import type { AIProblemInput, LeetCodeProblem, ChatMessage } from "@/types";
-import {
-  conductInterviewTurn as conductInterviewTurnFlow,
-  type MockInterviewOutput,
-} from "@/ai/flows/mock-interview-flow";
+import type { AIProblemInput, LeetCodeProblem } from "@/types";
 import {
   getCompanyById,
   getProblemByCompanySlugAndProblemSlug,
@@ -56,6 +52,8 @@ import {
 } from "./user.actions"; // Import new actions
 import { revalidateTag } from "next/cache";
 import { auth } from "@/lib/firebase"; // For current user ID
+
+
 
 /**
  * Performs AI-powered grouping of coding problems into logical categories.
@@ -138,86 +136,6 @@ export async function performSimilarQuestionSearch(
     return {
       error: "Failed to find similar questions due to an unknown error.",
     };
-  }
-}
-
-/**
- * Manages a single conversational turn in an AI-powered mock coding interview.
- *
- * This action orchestrates one round of interaction between the user and the AI interviewer.
- * It fetches problem details, retrieves the user's optional education and work history for context,
- * and then calls the `conductInterviewTurnFlow` to generate the AI's next response based on
- * the conversation history and the user's latest message.
- *
- * @param {string} companySlug - The slug of the company associated with the interview problem.
- * @param {string} problemSlug - The slug of the coding problem being discussed.
- * @param {ChatMessage[]} conversationHistory - An array of previous messages in the interview,
- * maintaining the conversational context.
- * @param {string} currentUserMessage - The user's latest message, question, or code snippet.
- * @returns {Promise<MockInterviewOutput | { error: string }>} A promise that resolves to the AI
- * interviewer's response, which may include conversational text, structured feedback, and
- * suggested follow-up questions, or an error object if the turn fails.
- */
-export async function handleInterviewTurn(
-  companySlug: string,
-  problemSlug: string,
-  conversationHistory: ChatMessage[],
-  currentUserMessage: string,
-): Promise<MockInterviewOutput | { error: string }> {
-  try {
-    if (!companySlug || !problemSlug)
-      return {
-        error: "Company and Problem slugs are required for the interview.",
-      };
-
-    if (!currentUserMessage && conversationHistory.length === 0) {
-      currentUserMessage = "Let's start.";
-    } else if (!currentUserMessage) {
-      return { error: "User message cannot be empty." };
-    }
-
-    const { company, problem } = await getProblemByCompanySlugAndProblemSlug(
-      companySlug,
-      problemSlug,
-    );
-    if (!company)
-      return { error: `Company with slug ${companySlug} not found.` };
-    if (!problem)
-      return {
-        error: `Problem with slug ${problemSlug} not found for company ${company.name}.`,
-      };
-
-    const problemDescriptionForAI = `Title: "${problem.title}" (Difficulty: ${problem.difficulty}). Tags: ${problem.tags.join(", ")}. Problem Link (for context, not for user to click): ${problem.link}`;
-
-    let educationHistory: EducationExperience[] | undefined = undefined;
-    let workHistory: WorkExperience[] | undefined = undefined;
-    const firebaseUser = auth.currentUser; // This might be null if called from non-auth context, handle gracefully
-
-    if (firebaseUser?.uid) {
-      const eduResult = await getUserEducationAction(firebaseUser.uid);
-      if (Array.isArray(eduResult)) educationHistory = eduResult;
-
-      const workResult = await getUserWorkExperienceAction(firebaseUser.uid);
-      if (Array.isArray(workResult)) workHistory = workResult;
-    }
-
-    const input = {
-      problemTitle: problem.title,
-      problemDifficulty: problem.difficulty,
-      problemDescription: problemDescriptionForAI,
-      problemTags: problem.tags,
-      conversationHistory,
-      currentUserMessage,
-      educationHistory, // Pass to flow
-      workHistory, // Pass to flow
-    };
-    const result: MockInterviewOutput = await conductInterviewTurnFlow(input);
-    return result;
-  } catch (error) {
-    console.error("Error in AI interview turn:", error);
-    if (error instanceof Error)
-      return { error: `AI interview turn failed: ${error.message}` };
-    return { error: "An unknown error occurred during the interview turn." };
   }
 }
 

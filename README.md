@@ -1,6 +1,6 @@
 # Company LeetCode Explorer (AI-Powered)
 
-Welcome to the Company LeetCode Explorer! This Next.js application is designed to help software engineers prepare for technical interviews by providing a platform to explore LeetCode problems frequently asked by specific companies. It's supercharged with AI features to offer mock interviews, problem insights, personalized strategies, and more.
+Welcome to the Company LeetCode Explorer! This Next.js application is designed to help software engineers prepare for technical interviews by providing a platform to explore LeetCode problems frequently asked by specific companies. It's supercharged with AI features to offer problem insights, personalized strategies, and more.
 
 ## 🚀 Try it Now!
 
@@ -32,7 +32,7 @@ Don't wait - start practicing with our cutting-edge platform today!
     -   **Problem Bookmarking**: Save problems for later review.
     -   **Progress Tracking**: Mark problems as "Solved," "Attempted," or "To-Do."
 -   **AI-Powered Interview Preparation Tools (via Genkit & Google Gemini)**:
-    -   **Mock Interviews**: Engage in an interactive mock coding interview with an AI interviewer that provides guidance, feedback on your approach, and suggests follow-up questions. Supports text and voice input/output.
+
     -   **Similar Problem Suggestions**: For any given problem, get AI suggestions for conceptually similar LeetCode problems.
     -   **Problem Insights Generation**: AI provides key concepts, common data structures/algorithms, and a high-level hint for a selected problem.
     -   **Company-Specific Flashcard Generation**: AI creates study flashcards based on concepts found in problems frequently asked by a specific company.

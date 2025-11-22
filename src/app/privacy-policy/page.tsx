@@ -73,8 +73,7 @@ export default function PrivacyPolicyPage() {
             </li>
             <li>
               <strong>User Content:</strong> Any information you provide while
-              using our AI-powered features, such as mock interview responses or
-              problem-solving notes.
+              using our AI-powered features, such as problem-solving notes.
             </li>
             <li>
               <strong>Usage Data:</strong> Information about how you use the

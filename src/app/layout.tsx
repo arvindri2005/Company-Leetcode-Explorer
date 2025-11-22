@@ -39,7 +39,7 @@ const organizationStructuredData = {
   url: APP_URL,
   logo: `${APP_URL}/icon.png`,
   description:
-    "Master coding interviews with AI-driven tools. Explore company-specific problems, engage in mock interviews, generate flashcards, and get personalized prep strategies. Your ultimate hub for targeted coding interview preparation.",
+    "Master coding interviews with AI-driven tools. Explore company-specific problems, generate flashcards, and get personalized prep strategies. Your ultimate hub for targeted coding interview preparation.",
   sameAs: [
     // Add social media or other relevant profiles if available
     // "https://www.facebook.com/YourPage",
@@ -55,13 +55,12 @@ export const metadata: Metadata = {
     template: "%s",
   },
   description:
-    "Master coding interviews with AI-driven tools. Explore company-specific interview problems (Google, Amazon, Meta, etc.), engage in mock interviews, generate flashcards, and get personalized prep strategies for software engineering roles.",
+    "Master coding interviews with AI-driven tools. Explore company-specific interview problems (Google, Amazon, Meta, etc.), generate flashcards, and get personalized prep strategies for software engineering roles.",
   applicationName: "Byte to Offer",
   keywords: [
     "LeetCode",
     "Coding Interview Questions",
     "Interview Prep",
-    "AI Interviewer",
     "Google Interview Questions",
     "Amazon Interview Questions",
     "Meta Interview Questions",
@@ -76,7 +75,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Byte to Offer",
     description:
-      "Your ultimate hub for targeted coding interview preparation. AI mock interviews, problem insights, company-specific interview questions, and more.",
+      "Your ultimate hub for targeted coding interview preparation. Problem insights, company-specific interview questions, and more.",
     url: APP_URL,
     siteName: "Byte to Offer",
     images: [
