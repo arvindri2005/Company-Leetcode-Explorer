@@ -15,6 +15,8 @@ import CompanyNotFound from "@/components/company/page/company-not-found";
 import CompanyPage from "@/components/company/page/company-page";
 import { getLogoUrl } from "@/lib/utils";
 
+import StructuredData from "@/components/seo/structured-data";
+
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 
 /**
@@ -22,6 +24,40 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
  */
 interface CompanyPageProps {
   params: Promise<{ companySlug: string }>;
+}
+
+function getStructuredData(company: any) {
+  const breadcrumbList = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: `${APP_URL}/` },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Companies",
+        item: `${APP_URL}/companies`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: company.name,
+        item: `${APP_URL}/company/${company.slug}`,
+      },
+    ],
+  };
+
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: company.name,
+    url: `${APP_URL}/company/${company.slug}`,
+    logo: getLogoUrl(company.logo),
+    description: `Find coding interview questions and preparation material for ${company.name}.`,
+    ...(company.website && { sameAs: [company.website] }),
+  };
+
+  return [organizationSchema, breadcrumbList];
 }
 
 /**
@@ -76,36 +112,6 @@ export async function generateMetadata(
     new Set([...companyKeywords, ...tagKeywords]),
   ).slice(0, 15);
 
-  const breadcrumbList = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: `${APP_URL}/` },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "Companies",
-        item: `${APP_URL}/companies`,
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: company.name,
-        item: `${APP_URL}/company/${company.slug}`,
-      },
-    ],
-  };
-
-  const organizationSchema = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: company.name,
-    url: `${APP_URL}/company/${company.slug}`,
-    logo: getLogoUrl(company.logo),
-    description: `Find coding interview questions and preparation material for ${company.name}.`,
-    ...(company.website && { sameAs: [company.website] }),
-  };
-
   const logoUrl = getLogoUrl(company.logo);
 
   return {
@@ -131,12 +137,6 @@ export async function generateMetadata(
       description,
       images: logoUrl ? [logoUrl] : [],
     },
-    other: {
-      'script[type="application/ld+json"]': JSON.stringify([
-        organizationSchema,
-        breadcrumbList,
-      ]),
-    },
   };
 }
 
@@ -158,7 +158,14 @@ export default async function CompanyPageWrapper(props: CompanyPageProps) {
     return <CompanyNotFound companySlug={params.companySlug} />;
   }
 
-  return <CompanyPage company={company} />;
+  const structuredData = getStructuredData(company);
+
+  return (
+    <>
+      <StructuredData data={structuredData} />
+      <CompanyPage company={company} />
+    </>
+  );
 }
 
 /**
