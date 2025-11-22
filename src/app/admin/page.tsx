@@ -204,6 +204,26 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
 
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <LibraryBig className="h-6 w-6 text-primary" />
+              Manage Companies
+            </CardTitle>
+            <CardDescription>
+              View, search, edit, and delete existing companies. Update details
+              like logo, description, and website.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild>
+              <Link href="/admin/manage-companies">
+                Go to Company Management
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
         <UpdateStatsButton />
       </div>
     </section>

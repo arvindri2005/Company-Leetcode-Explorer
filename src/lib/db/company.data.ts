@@ -9,6 +9,7 @@ import {
   where,
   limit,
   addDoc,
+  updateDoc,
   orderBy,
   Timestamp,
   FieldValue,
@@ -16,6 +17,7 @@ import {
   QueryDocumentSnapshot,
   Firestore,
   getCountFromServer,
+  writeBatch,
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
 import { triggerCompaniesRevalidation } from "@/app/actions/admin.actions";
@@ -596,5 +598,141 @@ export const addCompanyToDb = async (
         : "An unknown error occurred while adding company.";
     console.error("Error in addCompanyToDb:", message, error);
     return { id: null, error: message };
+  }
+};
+
+/**
+ * @function updateCompanyInDb
+ * @description Updates an existing company in the Firestore database.
+ * @param {string} companyId - The ID of the company to update.
+ * @param {Partial<Company>} companyData - The company data to update.
+ * @returns {Promise<{ success: boolean; error?: string }>} A promise that resolves to an object indicating success or failure.
+ */
+export const updateCompanyInDb = async (
+  companyId: string,
+  companyData: Partial<Company>,
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    if (!companyId) {
+      return { success: false, error: "Company ID is required" };
+    }
+
+    const updates: Record<string, any> = { ...companyData };
+    
+    // Ensure normalizedName is updated if name is changed
+    if (updates.name) {
+      updates.normalizedName = updates.name.toLowerCase().trim();
+      // We explicitly DO NOT update the slug to avoid breaking URLs
+    }
+
+    // Remove undefined values and dangerous fields
+    delete updates.id;
+    delete updates.slug; // Prevent slug updates
+    delete updates.problemCount; // Managed by background stats
+    delete updates.difficultyCounts; // Managed by background stats
+    delete updates.recencyCounts; // Managed by background stats
+    delete updates.commonTags; // Managed by background stats
+    delete updates.statsLastUpdatedAt;
+
+    Object.keys(updates).forEach((key) => {
+      if (updates[key] === undefined) {
+        delete updates[key];
+      }
+    });
+
+    const companyDocRef = doc(getFirestore(), "companies", companyId);
+    await updateDoc(companyDocRef, updates);
+
+    await revalidateCompaniesPage();
+
+    return { success: true };
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "An unknown error occurred while updating company.";
+    console.error(`Error in updateCompanyInDb for ${companyId}:`, message, error);
+    return { success: false, error: message };
+  }
+};
+
+/**
+ * @function bulkDeleteCompaniesFromDb
+ * @description Hard deletes multiple companies from the Firestore database using a batch operation.
+ * @param {string[]} companyIds - The IDs of the companies to delete.
+ * @returns {Promise<{ success: boolean; error?: string; deletedCount?: number }>} A promise that resolves to an object indicating success or failure.
+ */
+export const bulkDeleteCompaniesFromDb = async (
+  companyIds: string[],
+): Promise<{ success: boolean; error?: string; deletedCount?: number }> => {
+  try {
+    if (!companyIds || companyIds.length === 0) {
+      return { success: true, deletedCount: 0 }; // Nothing to delete
+    }
+
+    const db = getFirestore();
+    const batch = writeBatch(db);
+    
+    // Firestore batches are limited to 500 operations. 
+    // Assuming UI prevents selecting > 500, or we slice it.
+    // Ideally we should loop and commit batches of 500.
+    const CHUNK_SIZE = 500;
+    
+    for (let i = 0; i < companyIds.length; i += CHUNK_SIZE) {
+      const chunk = companyIds.slice(i, i + CHUNK_SIZE);
+      const currentBatch = writeBatch(db); // Create a new batch for each chunk
+      
+      chunk.forEach((id) => {
+        const docRef = doc(db, "companies", id);
+        currentBatch.delete(docRef);
+      });
+      
+      await currentBatch.commit();
+    }
+
+    await revalidateCompaniesPage();
+
+    return { success: true, deletedCount: companyIds.length };
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "An unknown error occurred while bulk deleting companies.";
+    console.error(`Error in bulkDeleteCompaniesFromDb:`, message, error);
+    return { success: false, error: message };
+  }
+};
+
+/**
+ * @function deleteCompanyFromDb
+ * @description Hard deletes a company from the Firestore database.
+ * @param {string} companyId - The ID of the company to delete.
+ * @returns {Promise<{ success: boolean; error?: string }>} A promise that resolves to an object indicating success or failure.
+ */
+export const deleteCompanyFromDb = async (
+  companyId: string,
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    if (!companyId) {
+      return { success: false, error: "Company ID is required" };
+    }
+
+    const companyDocRef = doc(getFirestore(), "companies", companyId);
+    
+    // Optional: Check if it exists first? Not strictly necessary for delete, but good for reporting.
+    // Firestore delete succeeds even if doc doesn't exist.
+    
+    await import("firebase/firestore").then(mod => mod.deleteDoc(companyDocRef));
+
+    await revalidateCompaniesPage();
+
+    return { success: true };
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "An unknown error occurred while deleting company.";
+    console.error(`Error in deleteCompanyFromDb for ${companyId}:`, message, error);
+    return { success: false, error: message };
   }
 };
