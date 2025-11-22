@@ -16,6 +16,7 @@ import CompanyTabs from "@/components/company/page/company-tabs";
 import ProblemLoadError from "@/components/company/page/problem-load-error";
 import NoProblemsAvailable from "@/components/company/page/no-problems-available";
 import CompanyPageHeader from "./company-page-header";
+import RelatedCompanies from "@/components/company/related-companies";
 
 const INITIAL_ITEMS_PER_PAGE = 15;
 
@@ -113,12 +114,17 @@ export default async function CompanyPage({ company }: CompanyPageProps) {
                               companyId={company.id}
                           />
                       )}
+                      {/* Mobile Related Companies */}
+                      <div className="lg:hidden mt-8">
+                          <RelatedCompanies companies={company.relatedCompanies || []} />
+                      </div>
                   </main>
 
-                  {/* Right Sidebar: Ads */}
+                  {/* Right Sidebar: Ads & Related Companies */}
                   <aside className="lg:col-span-1 space-y-8 hidden lg:block transition-all duration-300 ease-in-out">
                       <AdPlaceholder />
                       <AdPlaceholder />
+                      <RelatedCompanies companies={company.relatedCompanies || []} />
                   </aside>
               </div>
           </div>
