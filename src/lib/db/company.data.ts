@@ -225,6 +225,15 @@ export async function getCompaniesWithTotalCount({
   "cursor"
 > = {}): Promise<PaginatedCompaniesResponse> {
   try {
+    const cacheKey = `list_${page}_${pageSize}_${searchTerm || ""}`;
+    
+    if (companiesListCache.has(cacheKey)) {
+      const cached = companiesListCache.get(cacheKey)!;
+      if (Date.now() - cached.timestamp < CACHE_DURATION) {
+        return cached.response;
+      }
+    }
+
     const companiesCol = collection(getFirestore(), "companies");
     let baseQuery = query(companiesCol, orderBy("normalizedName"));
 
@@ -275,7 +284,7 @@ export async function getCompaniesWithTotalCount({
       paginationCursors.set(nextCursor, lastDoc);
     }
 
-    return {
+    const response = {
       companies,
       totalCompanies,
       totalPages,
@@ -283,6 +292,13 @@ export async function getCompaniesWithTotalCount({
       hasMore,
       nextCursor,
     };
+
+    companiesListCache.set(cacheKey, {
+      response,
+      timestamp: Date.now(),
+    });
+
+    return response;
   } catch (error) {
     console.error("Error in getCompaniesWithTotalCount:", error);
     return {
@@ -496,10 +512,22 @@ export const getAllCompanySlugs = async (
  * @description Clears all in-memory caches related to company data, including single company cache, slug cache, and pagination cursors.
  * This should be called after any write operation (add, update, delete) to ensure data consistency.
  */
+// Cached companies list fetching
+const companiesListCache = new Map<
+  string,
+  { response: PaginatedCompaniesResponse; timestamp: number }
+>();
+
+/**
+ * @function invalidateCompaniesCache
+ * @description Clears all in-memory caches related to company data, including single company cache, slug cache, pagination cursors, and list cache.
+ * This should be called after any write operation (add, update, delete) to ensure data consistency.
+ */
 export const invalidateCompaniesCache = () => {
   singleCompanyCache.clear();
   cachedSlugs = null;
   paginationCursors.clear();
+  companiesListCache.clear();
 };
 
 /**
