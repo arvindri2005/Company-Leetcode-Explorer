@@ -124,8 +124,8 @@ export default async function CompanyPage({ company }: CompanyPageProps) {
                   {/* Right Sidebar: Ads & Related Companies */}
                   <aside className="lg:col-span-1 space-y-8 hidden lg:block transition-all duration-300 ease-in-out">
                       <AdPlaceholder />
-                      <AdPlaceholder />
                       <RelatedCompanies companies={company.relatedCompanies || []} />
+                      <AdPlaceholder />
                   </aside>
               </div>
           </div>
