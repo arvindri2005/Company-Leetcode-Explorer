@@ -100,19 +100,6 @@ const Header = React.memo(function Header() {
           >
             Submit Problem
           </Link>
-          <Link
-            href="/add-company"
-            className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${
-              isMobile
-                ? `block py-4 border-b border-gray-200/10 font-bold ${
-                    pathname === "/add-company" ? "text-teal-400" : ""
-                  }`
-                : ""
-            }`}
-            onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
-          >
-            Add Company
-          </Link>
         </>
       )},
     [pathname],

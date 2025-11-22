@@ -292,7 +292,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
                 problemStatus={problem.currentStatus || "none"}
                 onProblemStatusChange={handleProblemStatusChange}
               />
-              {(index + 1) % 5 === 0 && (
+              {(index + 1) % 8 === 0 && (
                 <AdPlaceholder
                   className="my-4 h-32"
                   title="Sponsored"

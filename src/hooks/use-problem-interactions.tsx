@@ -10,6 +10,7 @@ import {
 import type { LeetCodeProblem, ProblemStatus } from "@/types";
 import { PROBLEM_STATUS_OPTIONS } from "@/types";
 import { useRouter, usePathname } from "next/navigation";
+import { ToastAction } from "@/components/ui/toast";
 
 export function useProblemInteractions(
   problem: LeetCodeProblem,
@@ -39,13 +40,28 @@ export function useProblemInteractions(
     setCurrentStatus(problemStatus);
   }, [problemStatus]);
 
-  const redirectToLogin = useCallback(() => {
-    router.push(`/login?redirectUrl=${encodeURIComponent(pathname)}`);
-  }, [router, pathname]);
+  const promptLogin = useCallback(() => {
+    toast({
+      title: "Authentication Required",
+      description: "Please log in to save your progress.",
+      className: "border-primary shadow-[0_0_25px_rgba(45,212,191,0.6)]", // Stronger teal glow
+      action: (
+        <ToastAction
+          altText="Login"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 border-none"
+          onClick={() =>
+            router.push(`/login?redirectUrl=${encodeURIComponent(pathname)}`)
+          }
+        >
+          Login
+        </ToastAction>
+      ),
+    });
+  }, [router, pathname, toast]);
 
   const handleToggleBookmark = async () => {
     if (!user) {
-      redirectToLogin();
+      promptLogin();
       return;
     }
     if (isTogglingBookmark) return;
@@ -92,7 +108,7 @@ export function useProblemInteractions(
 
   const handleStatusUpdate = async (newStatus: ProblemStatus) => {
     if (!user) {
-      redirectToLogin();
+      promptLogin();
       return;
     }
     if (isUpdatingStatus) return;
@@ -149,6 +165,6 @@ export function useProblemInteractions(
     currentStatus,
     isUpdatingStatus,
     handleStatusUpdate,
-    redirectToLogin,
+    promptLogin,
   };
 }

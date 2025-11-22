@@ -99,7 +99,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
     currentStatus,
     isUpdatingStatus,
     handleStatusUpdate,
-    redirectToLogin,
+    promptLogin,
   } = useProblemInteractions(
     problem,
     companySlug,
@@ -215,7 +215,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                           variant="ghost"
                           size="icon"
                           onClick={handleToggleBookmark}
-                          disabled={isTogglingBookmark || !user}
+                          disabled={isTogglingBookmark}
                           className="flex-shrink-0 h-8 w-8 md:h-10 md:w-10"
                       >
                           {isTogglingBookmark ? (
@@ -330,7 +330,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                                   className="flex-1 text-xs"
                                   onClick={() => {
                                       if (!user) {
-                                          redirectToLogin();
+                                          promptLogin();
                                           return;
                                       }
                                       handleFindSimilar();
@@ -350,7 +350,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                                   className="flex-1 text-xs"
                                   onClick={() => {
                                       if (!user) {
-                                          redirectToLogin();
+                                          promptLogin();
                                           return;
                                       }
                                       handleGenerateInsights();

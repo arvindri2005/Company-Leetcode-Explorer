@@ -129,14 +129,6 @@ export default async function CompanyPage({ company }: CompanyPageProps) {
                   </aside>
               </div>
           </div>
-
-          {/* Mobile Sticky Bottom Ad */}
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background border-t p-2 z-50 transition-all duration-300 ease-in-out border-white/10">
-              <AdPlaceholder
-                  className="h-16"
-                  title="Sponsored"
-              />
-          </div>
       </div>
   );
 }
