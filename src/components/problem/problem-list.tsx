@@ -204,7 +204,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
           loadMoreProblems();
         }
       },
-      { threshold: 1.0 },
+      { threshold: 1.0, rootMargin: "500px" },
     );
 
     const currentTriggerRef = loadMoreTriggerRef.current;
@@ -241,9 +241,8 @@ const ProblemList: React.FC<ProblemListProps> = ({
         ),
       );
       if (
-        filters.statusFilter !== "all" &&
-        filters.statusFilter !== newStatus &&
-        !(filters.statusFilter === "none" && newStatus !== "none")
+        filters.statusFilter.length > 0 &&
+        !filters.statusFilter.includes(newStatus)
       ) {
         handleFilterChange({ statusFilter: filters.statusFilter });
       }

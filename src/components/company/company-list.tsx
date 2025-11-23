@@ -195,7 +195,7 @@ const CompanyList: React.FC<CompanyListProps> = ({
       (entries) => {
         if (entries[0]?.isIntersecting) loadMoreCompanies();
       },
-      { threshold: 0.1 },
+      { threshold: 0.1, rootMargin: "500px" },
     );
     if (loadMoreTriggerRef.current)
       observer.observe(loadMoreTriggerRef.current);
@@ -271,7 +271,7 @@ const CompanyList: React.FC<CompanyListProps> = ({
           )}
           {!isLoadingMore && !hasMore && displayedCompanies.length > 0 && (
             <p className="text-muted-foreground text-sm sm:text-base lg:text-lg">
-              You've reached the end!
+              You&apos;ve reached the end!
             </p>
           )}
         </div>
