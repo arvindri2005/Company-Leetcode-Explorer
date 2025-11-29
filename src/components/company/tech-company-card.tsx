@@ -24,7 +24,7 @@ export function TechCompanyCard({ company }: TechCompanyCardProps) {
       </div>
       <div className="flex-1 min-w-0 space-y-2">
         <div>
-          <h3 className="text-xl font-bold text-white group-hover:text-teal-400 transition-colors">
+          <h3 className="text-xl font-bold text-white group-hover:text-teal-400 transition-colors capitalize">
             {company.name}
           </h3>
           <p className="text-sm text-gray-400 line-clamp-2">

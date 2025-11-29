@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import type { Company, LastAskedPeriod, LeetCodeProblem } from "@/types";
 import { db } from "@/lib/firebase";
 import {
@@ -216,100 +217,94 @@ export async function getCompanies({
  * @param {Omit<GetCompaniesParams, "cursor">} [params={}] - The parameters for fetching companies, including page and page size.
  * @returns {Promise<PaginatedCompaniesResponse>} A promise that resolves to a paginated list of companies with full pagination details.
  */
-export async function getCompaniesWithTotalCount({
-  page = 1,
-  pageSize = 9,
-  searchTerm,
-}: Omit<
-  GetCompaniesParams,
-  "cursor"
-> = {}): Promise<PaginatedCompaniesResponse> {
-  try {
-    const cacheKey = `list_${page}_${pageSize}_${searchTerm || ""}`;
-    
-    if (companiesListCache.has(cacheKey)) {
-      const cached = companiesListCache.get(cacheKey)!;
-      if (Date.now() - cached.timestamp < CACHE_DURATION) {
-        return cached.response;
+export const getCompaniesWithTotalCount = async (
+  params: Omit<GetCompaniesParams, "cursor"> = {},
+): Promise<PaginatedCompaniesResponse> => {
+  const { page = 1, pageSize = 9, searchTerm } = params;
+  const cacheKey = `companies-list-${page}-${pageSize}-${searchTerm || "all"}`;
+
+  const getCachedData = unstable_cache(
+    async () => {
+      try {
+        const companiesCol = collection(getFirestore(), "companies");
+        let baseQuery = query(companiesCol, orderBy("normalizedName"));
+
+        const normalizedSearchTerm = searchTerm?.trim();
+        if (normalizedSearchTerm) {
+          const lowercasedSearchTerm = normalizedSearchTerm.toLowerCase();
+          baseQuery = query(
+            companiesCol,
+            orderBy("normalizedName"),
+            where("normalizedName", ">=", lowercasedSearchTerm),
+            where("normalizedName", "<=", lowercasedSearchTerm + "\uf8ff"),
+          );
+        }
+
+        // Get total count (this is expensive!)
+        const countSnapshot = await getCountFromServer(baseQuery);
+        const totalCompanies = countSnapshot.data().count;
+        const totalPages = Math.ceil(totalCompanies / pageSize) || 1;
+        const currentPage = Math.min(Math.max(1, page), totalPages);
+
+        // Calculate offset for traditional pagination
+        const offset = (currentPage - 1) * pageSize;
+
+        // Get the actual data with limit
+        let finalQuery = query(baseQuery, limit(pageSize));
+
+        if (offset > 0) {
+          const skipQuery = query(baseQuery, limit(offset));
+          const skipSnapshot = await getDocs(skipQuery);
+          if (skipSnapshot.docs.length > 0) {
+            const lastSkippedDoc =
+              skipSnapshot.docs[skipSnapshot.docs.length - 1];
+            finalQuery = query(
+              baseQuery,
+              startAfter(lastSkippedDoc),
+              limit(pageSize),
+            );
+          }
+        }
+
+        const querySnapshot = await getDocs(finalQuery);
+        const companies = querySnapshot.docs.map(mapFirestoreDocToCompany);
+        const hasMore = currentPage < totalPages;
+
+        let nextCursor: string | undefined;
+        if (hasMore && querySnapshot.docs.length > 0) {
+          const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
+          nextCursor = generateCursorKey(searchTerm, "next");
+          paginationCursors.set(nextCursor, lastDoc);
+        }
+
+        return {
+          companies,
+          totalCompanies,
+          totalPages,
+          currentPage,
+          hasMore,
+          nextCursor,
+        };
+      } catch (error) {
+        console.error("Error in getCompaniesWithTotalCount:", error);
+        return {
+          companies: [],
+          totalCompanies: 0,
+          totalPages: 1,
+          currentPage: 1,
+          hasMore: false,
+        };
       }
-    }
+    },
+    [cacheKey],
+    {
+      revalidate: 3600, // Cache for 1 hour
+      tags: ["companies-list"],
+    },
+  );
 
-    const companiesCol = collection(getFirestore(), "companies");
-    let baseQuery = query(companiesCol, orderBy("normalizedName"));
-
-    const normalizedSearchTerm = searchTerm?.trim();
-    if (normalizedSearchTerm) {
-      const lowercasedSearchTerm = normalizedSearchTerm.toLowerCase();
-      baseQuery = query(
-        companiesCol,
-        orderBy("normalizedName"),
-        where("normalizedName", ">=", lowercasedSearchTerm),
-        where("normalizedName", "<=", lowercasedSearchTerm + "\uf8ff"),
-      );
-    }
-
-    // Get total count (this is expensive!)
-    const countSnapshot = await getCountFromServer(baseQuery);
-    const totalCompanies = countSnapshot.data().count;
-    const totalPages = Math.ceil(totalCompanies / pageSize) || 1;
-    const currentPage = Math.min(Math.max(1, page), totalPages);
-
-    // Calculate offset for traditional pagination
-    const offset = (currentPage - 1) * pageSize;
-
-    // Get the actual data with limit
-    let finalQuery = query(baseQuery, limit(pageSize));
-
-    if (offset > 0) {
-      const skipQuery = query(baseQuery, limit(offset));
-      const skipSnapshot = await getDocs(skipQuery);
-      if (skipSnapshot.docs.length > 0) {
-        const lastSkippedDoc = skipSnapshot.docs[skipSnapshot.docs.length - 1];
-        finalQuery = query(
-          baseQuery,
-          startAfter(lastSkippedDoc),
-          limit(pageSize),
-        );
-      }
-    }
-
-    const querySnapshot = await getDocs(finalQuery);
-    const companies = querySnapshot.docs.map(mapFirestoreDocToCompany);
-    const hasMore = currentPage < totalPages;
-
-    let nextCursor: string | undefined;
-    if (hasMore && querySnapshot.docs.length > 0) {
-      const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
-      nextCursor = generateCursorKey(searchTerm, "next");
-      paginationCursors.set(nextCursor, lastDoc);
-    }
-
-    const response = {
-      companies,
-      totalCompanies,
-      totalPages,
-      currentPage,
-      hasMore,
-      nextCursor,
-    };
-
-    companiesListCache.set(cacheKey, {
-      response,
-      timestamp: Date.now(),
-    });
-
-    return response;
-  } catch (error) {
-    console.error("Error in getCompaniesWithTotalCount:", error);
-    return {
-      companies: [],
-      totalCompanies: 0,
-      totalPages: 1,
-      currentPage: 1,
-      hasMore: false,
-    };
-  }
-}
+  return getCachedData();
+};
 
 /**
  * @function loadMoreCompanies

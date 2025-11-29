@@ -56,7 +56,7 @@ function CompanyRow({ company }: { company: Company }) {
               className="object-contain"
             />
           </div>
-          <span className="font-medium text-white group-hover:text-teal-400 transition-colors">
+          <span className="font-medium text-white group-hover:text-teal-400 transition-colors capitalize">
             {company.name}
           </span>
         </div>

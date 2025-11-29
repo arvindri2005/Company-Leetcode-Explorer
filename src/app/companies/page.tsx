@@ -9,7 +9,7 @@ type CompaniesPageProps = {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
-export const dynamic = "force-dynamic";
+
 export const preferredRegion = "auto";
 
 const ITEMS_PER_PAGE = 30;
