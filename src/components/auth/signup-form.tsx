@@ -24,7 +24,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { Loader2, UserPlusIcon } from "lucide-react";
+import { Loader2, UserPlusIcon, Eye, EyeOff } from "lucide-react";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
@@ -67,7 +67,8 @@ export default function SignupForm() {
   const { toast } = useToast();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { syncUserProfileIfNeeded } = useAuth(); // Get sync function
+  const [showPassword, setShowPassword] = useState(false);
+  const { syncUserProfileIfNeeded } = useAuth();
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupFormSchema),
@@ -87,19 +88,10 @@ export default function SignupForm() {
         data.password,
       );
 
-      // Update Firebase Auth profile display name
       if (userCredential.user) {
         await updateProfile(userCredential.user, {
           displayName: data.displayName,
         });
-      }
-
-      // Sync profile to Firestore (this now happens in AuthContext on auth state change)
-      // but we can trigger it explicitly here too if desired, or rely on the context's effect.
-      // For robustness, call it explicitly after user creation and profile update.
-      if (userCredential.user) {
-        // It's important that userCredential.user reflects the updated displayName
-        // or pass the data.displayName explicitly to syncUserProfileIfNeeded if needed.
         await syncUserProfileIfNeeded(userCredential.user);
       }
 
@@ -107,12 +99,14 @@ export default function SignupForm() {
         title: "Account Created! 🎉",
         description: "Welcome! You have been successfully signed up.",
       });
-      router.push("/profile"); // Redirect to profile or dashboard
-    } catch (error: any) {
+      router.push("/profile");
+    } catch (error) {
       console.error("Signup error:", error);
       let errorMessage = "An unknown error occurred. Please try again.";
-      if (error.code) {
-        switch (error.code) {
+      
+      if (error instanceof Error && 'code' in error) {
+        const firebaseError = error as { code: string; message: string };
+        switch (firebaseError.code) {
           case "auth/email-already-in-use":
             errorMessage = "This email address is already in use.";
             break;
@@ -123,9 +117,10 @@ export default function SignupForm() {
             errorMessage = "The password is too weak.";
             break;
           default:
-            errorMessage = error.message || errorMessage;
+            errorMessage = firebaseError.message || errorMessage;
         }
       }
+      
       toast({
         title: "Signup Failed",
         description: errorMessage,
@@ -138,7 +133,7 @@ export default function SignupForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <FormField
           control={form.control}
           name="displayName"
@@ -146,7 +141,7 @@ export default function SignupForm() {
             <FormItem>
               <FormLabel>Display Name</FormLabel>
               <FormControl>
-                <Input placeholder="Your Name" {...field} />
+                <Input placeholder="Your Name" {...field} className="transition-all duration-200 focus:ring-2 focus:ring-primary/50" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -159,7 +154,7 @@ export default function SignupForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="you@example.com" {...field} />
+                <Input type="email" placeholder="you@example.com" {...field} className="transition-all duration-200 focus:ring-2 focus:ring-primary/50" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -172,13 +167,36 @@ export default function SignupForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
+                <div className="relative">
+                  <Input 
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="••••••••" 
+                    {...field} 
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary/50 pr-10" 
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <span className="sr-only">
+                      {showPassword ? "Hide password" : "Show password"}
+                    </span>
+                  </Button>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isSubmitting} className="w-full">
+        <Button type="submit" disabled={isSubmitting} className="w-full transition-all duration-200 hover:scale-[1.02]">
           {isSubmitting ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
@@ -201,7 +219,7 @@ export default function SignupForm() {
           Already have an account?{" "}
           <Link
             href="/login"
-            className="font-medium text-primary hover:underline"
+            className="font-medium text-primary hover:underline transition-colors"
           >
             Log in
           </Link>
