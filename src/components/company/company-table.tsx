@@ -17,8 +17,8 @@ export function CompanyTable({ companies }: CompanyTableProps) {
           <thead>
             <tr className="border-b border-white/5 text-gray-400">
               <th className="p-4 font-medium">Company</th>
-              <th className="p-4 font-medium">Top Tags</th>
-              <th className="p-4 font-medium">Problems</th>
+              <th className="p-4 font-medium hidden md:table-cell">Top Tags</th>
+              <th className="p-4 font-medium hidden sm:table-cell">Problems</th>
               <th className="p-4 font-medium text-right">Action</th>
             </tr>
           </thead>
@@ -61,10 +61,10 @@ function CompanyRow({ company }: { company: Company }) {
           </span>
         </div>
       </td>
-      <td className="p-4 text-gray-400">
+      <td className="p-4 text-gray-400 hidden md:table-cell">
         {topTags}
       </td>
-      <td className="p-4 text-gray-400">
+      <td className="p-4 text-gray-400 hidden sm:table-cell">
         {company.problemCount}+
       </td>
       <td className="p-4 text-right">
