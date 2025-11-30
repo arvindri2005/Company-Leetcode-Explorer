@@ -1,7 +1,7 @@
 import { DashboardHeader } from "@/components/company/dashboard-header";
 import { TechCompanyCard } from "@/components/company/tech-company-card";
 import { CompanyListTable } from "@/components/company/company-list-table";
-import { getCompaniesWithTotalCount, getCompanyBySlug } from "@/lib/data";
+import { getCompanies, getCompanyBySlug } from "@/lib/data";
 import { Separator } from "@/components/ui/separator";
 import type { Metadata } from "next";
 
@@ -48,12 +48,8 @@ export default async function CompaniesPage(props: CompaniesPageProps) {
     : 1;
   const searchTerm = (searchParams?.search as string) || "";
 
-  // Fetch all companies for the list
-  const {
-    companies: initialCompanies,
-    hasMore,
-    nextCursor,
-  } = await getCompaniesWithTotalCount({
+  // Parallelize data fetching
+  const companiesPromise = getCompanies({
     page: currentPage,
     pageSize: ITEMS_PER_PAGE,
     searchTerm,
@@ -61,17 +57,37 @@ export default async function CompaniesPage(props: CompaniesPageProps) {
 
   // Fetch trending companies (Google, Amazon, Microsoft)
   // Only fetch if no search term is present, to keep the UI clean during search
-  let trendingCompanies = [];
+  let trendingPromise: Promise<any[]> = Promise.resolve([]);
   if (!searchTerm) {
     const trendingSlugs = ["google", "amazon", "microsoft"];
-    const trendingPromises = trendingSlugs.map((slug) => getCompanyBySlug(slug));
-    const trendingResults = await Promise.all(trendingPromises);
-    trendingCompanies = trendingResults.filter((c) => c !== undefined) as any[];
-    
-    // Fallback if specific companies aren't found (e.g. in dev env)
-    if (trendingCompanies.length === 0 && initialCompanies.length > 0) {
-      trendingCompanies = initialCompanies.slice(0, 3);
-    }
+    const trendingPromises = trendingSlugs.map((slug) =>
+      getCompanyBySlug(slug),
+    );
+    trendingPromise = Promise.all(trendingPromises).then((results) =>
+      results.filter((c) => c !== undefined),
+    );
+  }
+
+  const [companiesResult, trendingCompaniesResult] = await Promise.all([
+    companiesPromise,
+    trendingPromise,
+  ]);
+
+  const {
+    companies: initialCompanies,
+    hasMore,
+    nextCursor,
+  } = companiesResult;
+
+  let trendingCompanies = trendingCompaniesResult;
+
+  // Fallback if specific companies aren't found (e.g. in dev env)
+  if (
+    !searchTerm &&
+    trendingCompanies.length === 0 &&
+    initialCompanies.length > 0
+  ) {
+    trendingCompanies = initialCompanies.slice(0, 3);
   }
 
   return (
