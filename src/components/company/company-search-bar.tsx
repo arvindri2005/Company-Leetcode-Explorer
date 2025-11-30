@@ -33,7 +33,7 @@ interface SearchBarProps {
   showSuggestions: boolean;
   setShowSuggestions: (value: boolean) => void;
   handleSuggestionClick: (suggestion: Suggestion) => void;
-  suggestionsRef: React.RefObject<HTMLDivElement>;
+  suggestionsRef: React.RefObject<HTMLDivElement | null>;
   onSearch?: () => void;
 }
 

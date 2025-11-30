@@ -1,12 +1,22 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono);
+}
+
+
 
 body {
-  font-family: var(--font-geist-sans), sans-serif;
+  font-family: ui-sans-serif, system-ui, sans-serif !important;
   overflow-y: scroll;
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: ui-sans-serif, system-ui, sans-serif !important;
 }
 
 @layer base {

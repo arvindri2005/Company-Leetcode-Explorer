@@ -15,23 +15,64 @@ import { ai } from "@/ai/genkit";
 import { z } from "genkit";
 import {
   type CompanyStrategyProblemInput as ImportedCompanyStrategyProblemInput,
-  FocusTopicSchema,
-  type FocusTopic,
   type TargetRoleLevel as ImportedTargetRoleLevel,
-  StrategyTodoItemSchema,
-  type StrategyTodoItem,
-  EducationExperienceSchema as ImportedEducationExperienceSchema,
-  type EducationExperience as ImportedEducationExperience,
-  WorkExperienceSchema as ImportedWorkExperienceSchema,
-  type WorkExperience as ImportedWorkExperience,
 } from "@/types";
 
-export const EducationExperienceSchema = ImportedEducationExperienceSchema;
-export type EducationExperience = ImportedEducationExperience;
-export const WorkExperienceSchema = ImportedWorkExperienceSchema;
-export type WorkExperience = ImportedWorkExperience;
 export type CompanyStrategyProblemInput = ImportedCompanyStrategyProblemInput;
 export type TargetRoleLevel = ImportedTargetRoleLevel;
+
+const EducationExperienceSchema = z.object({
+  id: z.string().optional(),
+  degree: z.string().min(2, "Degree is required."),
+  major: z.string().min(2, "Major is required."),
+  school: z.string().min(2, "School name is required."),
+  graduationYear: z
+    .string()
+    .regex(/^\d{4}$/, "Invalid year format (YYYY).")
+    .optional()
+    .or(z.literal("")),
+  gpa: z.string().optional().or(z.literal("")),
+});
+export type EducationExperience = z.infer<typeof EducationExperienceSchema>;
+
+const WorkExperienceSchema = z.object({
+  id: z.string().optional(),
+  jobTitle: z.string().min(2, "Job title is required."),
+  companyName: z.string().min(2, "Company name is required."),
+  startDate: z
+    .string()
+    .min(4, "Start date is required (e.g., YYYY or MM/YYYY)."),
+  endDate: z.string().optional().or(z.literal("")),
+  responsibilities: z
+    .string()
+    .min(10, "Please describe some responsibilities.")
+    .optional()
+    .or(z.literal("")),
+});
+export type WorkExperience = z.infer<typeof WorkExperienceSchema>;
+
+const FocusTopicSchema = z.object({
+  topic: z
+    .string()
+    .describe(
+      "A key topic or concept to focus on (e.g., 'Dynamic Programming', 'Graph Traversal', 'System Design Fundamentals for Scalability').",
+    ),
+  reason: z
+    .string()
+    .describe(
+      "A brief explanation (1-2 sentences) of why this topic is particularly relevant for interviews at this company, based on the provided problem data and target role level if specified.",
+    ),
+});
+
+const StrategyTodoItemSchema = z.object({
+  text: z
+    .string()
+    .describe("A single, concise, actionable task for the user to complete."),
+  isCompleted: z
+    .boolean()
+    .default(false)
+    .describe("Whether the task is completed. Defaults to false."),
+});
 
 const CompanyStrategyProblemInputSchema = z.object({
   title: z.string().describe("The title of the coding problem."),

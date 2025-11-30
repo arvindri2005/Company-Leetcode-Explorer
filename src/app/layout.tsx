@@ -8,7 +8,7 @@
  */
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import Header from "@/components/layout/header";
@@ -19,16 +19,10 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 import { CooldownStateProvider } from "@/hooks/use-ai-cooldown";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-  display: "swap", // Explicitly set swap
-});
-
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-  display: "swap", // Explicitly set swap
+  display: "swap",
 });
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
@@ -159,7 +153,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={`${geistMono.variable}`}>
       <head>
         <script
           async
@@ -174,7 +168,7 @@ export default function RootLayout({
         ></script>
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
+        className="font-sans antialiased"
         suppressHydrationWarning
       >
         <ThemeProvider

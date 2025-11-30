@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const SpeechRecognition =
   typeof window !== "undefined"
-    ? window.SpeechRecognition || window.webkitSpeechRecognition
+    ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     : null;
 const speechSynthesis =
   typeof window !== "undefined" ? window.speechSynthesis : null;
@@ -24,7 +24,7 @@ export function useSpeech(onTranscriptUpdate: (transcript: string) => void) {
   });
   const [isTTSEnabled, setIsTTSEnabled] = useState(false);
 
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   const speakText = useCallback(

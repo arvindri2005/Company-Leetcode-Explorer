@@ -149,8 +149,8 @@ export async function toggleBookmarkProblemAction(
     );
     if (result.error) return { success: false, error: result.error };
 
-    revalidateTag(`user-bookmarks-${userId}`);
-    revalidateTag(`user-profile-${userId}`);
+    revalidateTag(`user-bookmarks-${userId}`, 'max');
+    revalidateTag(`user-profile-${userId}`, 'max');
     return { success: true, isBookmarked: result.isBookmarked };
   } catch (error) {
     console.error("Error in toggleBookmarkProblemAction:", error);
@@ -231,8 +231,8 @@ export async function setProblemStatusAction(
       problemSlug,
     );
     if (result.success) {
-      revalidateTag(`user-problem-statuses-${userId}`);
-      revalidateTag(`user-profile-${userId}`);
+      revalidateTag(`user-problem-statuses-${userId}`, 'max');
+      revalidateTag(`user-profile-${userId}`, 'max');
     }
     return result;
   } catch (error) {
@@ -304,7 +304,7 @@ export async function updateUserDisplayNameInFirestore(
   try {
     const result = await dbUpdateUserDisplayName(userId, newDisplayName.trim());
     if (result.success) {
-      revalidateTag(`user-profile-${userId}`);
+      revalidateTag(`user-profile-${userId}`, 'max');
     }
     return result;
   } catch (error) {
@@ -330,8 +330,8 @@ export async function addUserEducationAction(
   if (!userId) return { id: null, error: "User not authenticated." };
   const result = await dbAddUserEducation(userId, educationData);
   if (result.id) {
-    revalidateTag(`user-profile-${userId}`);
-    revalidateTag(`user-education-${userId}`);
+    revalidateTag(`user-profile-${userId}`, 'max');
+    revalidateTag(`user-education-${userId}`, 'max');
   }
   return result;
 }
@@ -369,8 +369,8 @@ export async function addUserWorkExperienceAction(
   if (!userId) return { id: null, error: "User not authenticated." };
   const result = await dbAddUserWorkExperience(userId, workData);
   if (result.id) {
-    revalidateTag(`user-profile-${userId}`);
-    revalidateTag(`user-work-experience-${userId}`);
+    revalidateTag(`user-profile-${userId}`, 'max');
+    revalidateTag(`user-work-experience-${userId}`, 'max');
   }
   return result;
 }
@@ -445,9 +445,9 @@ export async function saveStrategyTodoListAction(
       strategy,
     );
     if (result.success) {
-      revalidateTag(`user-profile-${userId}`);
-      revalidateTag(`user-strategy-todo-lists-${userId}`);
-      revalidateTag(`user-strategy-for-company-${companyId}-${userId}`);
+      revalidateTag(`user-profile-${userId}`, 'max');
+      revalidateTag(`user-strategy-todo-lists-${userId}`, 'max');
+      revalidateTag(`user-strategy-for-company-${companyId}-${userId}`, 'max');
     }
     return result;
   } catch (error) {
@@ -546,9 +546,9 @@ export async function updateStrategyTodoItemStatusAction(
       isCompleted,
     );
     if (result.success) {
-      revalidateTag(`user-profile-${userId}`);
-      revalidateTag(`user-strategy-todo-lists-${userId}`);
-      revalidateTag(`user-strategy-for-company-${companyId}-${userId}`);
+      revalidateTag(`user-profile-${userId}`, 'max');
+      revalidateTag(`user-strategy-todo-lists-${userId}`, 'max');
+      revalidateTag(`user-strategy-for-company-${companyId}-${userId}`, 'max');
     }
     return result;
   } catch (error) {

@@ -172,15 +172,15 @@ export async function generateFlashcardsAction(
         title: p.title,
         difficulty: p.difficulty,
         tags: p.tags,
-        lastAskedPeriod: p.lastAskedPeriod,
+        lastAskedPeriod: p.lastAskedPeriod as any,
       }));
 
     const result = await generateFlashcardsFlow({
       companyName: company.name,
       problems: problemInputs,
     });
-    revalidateTag(`company-slug-${company.slug}`);
-    revalidateTag(`company-detail-${company.id}`);
+    revalidateTag(`company-slug-${company.slug}`, 'max');
+    revalidateTag(`company-detail-${company.id}`, 'max');
     return result;
   } catch (error) {
     console.error("Error in AI flashcard generation:", error);
@@ -239,7 +239,7 @@ export async function generateCompanyStrategyAction(
         title: p.title,
         difficulty: p.difficulty,
         tags: p.tags,
-        lastAskedPeriod: p.lastAskedPeriod,
+        lastAskedPeriod: p.lastAskedPeriod as any,
       }));
 
     let educationHistory: EducationExperience[] | undefined = undefined;
@@ -261,8 +261,8 @@ export async function generateCompanyStrategyAction(
       educationHistory,
       workHistory,
     });
-    revalidateTag(`company-slug-${company.slug}`);
-    revalidateTag(`company-detail-${company.id}`);
+    revalidateTag(`company-slug-${company.slug}`, 'max');
+    revalidateTag(`company-detail-${company.id}`, 'max');
     return result;
   } catch (error) {
     console.error("Error in AI company strategy generation:", error);
@@ -307,10 +307,10 @@ export async function generateProblemInsightsAction(
       problemDescription: problemDescriptionForAI,
     };
     const result = await generateProblemInsightsFlow(input);
-    revalidateTag(`problem-slug-${problem.slug}`);
-    revalidateTag(`company-slug-${problem.companySlug}`);
-    revalidateTag(`problem-detail-${problem.id}`);
-    revalidateTag(`company-detail-${problem.companyId}`);
+    revalidateTag(`problem-slug-${problem.slug}`, 'max');
+    revalidateTag(`company-slug-${problem.companySlug}`, 'max');
+    revalidateTag(`problem-detail-${problem.id}`, 'max');
+    revalidateTag(`company-detail-${problem.companyId}`, 'max');
     return result;
   } catch (error) {
     console.error("Error in AI problem insights generation:", error);

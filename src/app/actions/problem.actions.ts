@@ -99,10 +99,10 @@ export async function addProblem(
       };
     }
 
-    revalidateTag("problems-collection-broad");
-    revalidateTag(`problems-for-company-${problemData.companyId}`);
-    revalidateTag(`company-detail-${problemData.companyId}`);
-    revalidateTag(`company-slug-${company.slug}`);
+    revalidateTag("problems-collection-broad", 'max');
+    revalidateTag(`problems-for-company-${problemData.companyId}`, 'max');
+    revalidateTag(`company-detail-${problemData.companyId}`, 'max');
+    revalidateTag(`company-slug-${company.slug}`, 'max');
     revalidatePath(`/company/${company.slug}`);
     ["/", "/submit-problem"].forEach((p) => revalidatePath(p));
 

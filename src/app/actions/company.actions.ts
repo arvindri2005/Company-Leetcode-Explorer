@@ -90,7 +90,7 @@ export async function addCompany(
         error: dbError || "Failed to save company to the database.",
       };
     }
-    revalidateTag("companies-collection-broad");
+    revalidateTag("companies-collection-broad", 'max');
     revalidatePath("/");
     revalidatePath("/add-company");
     return {

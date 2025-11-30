@@ -53,20 +53,19 @@ const problemFormSchema = z.object({
     .string()
     .min(3, { message: "Title must be at least 3 characters." })
     .max(150),
-  difficulty: z.enum(["Easy", "Medium", "Hard"], {
-    required_error: "Difficulty is required.",
-  }),
+  difficulty: z.enum(["Easy", "Medium", "Hard"]),
   link: z
     .string()
     .url({ message: "Please enter a valid Interview Problem URL." }),
   tags: z.string().optional(),
-  companyId: z.string({ required_error: "Please select a company." }),
+  companyId: z.string(),
   lastAskedPeriod: z.enum(
-    lastAskedPeriodOptions.map((opt) => opt.value) as [
-      LastAskedPeriod,
-      ...LastAskedPeriod[],
-    ],
-    { required_error: "Please select how recently this problem was asked." },
+    [
+      "last_30_days",
+      "within_3_months",
+      "within_6_months",
+      "older_than_6_months",
+    ] as const,
   ),
 });
 

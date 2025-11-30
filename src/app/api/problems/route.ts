@@ -70,8 +70,8 @@ export async function POST(request: Request) {
     const result = await getProblemsByCompanyFromDb(companyId, {
       cursor,
       pageSize,
-      difficultyFilter: filters?.difficultyFilter as DifficultyFilter,
-      lastAskedFilter: filters?.lastAskedFilter as LastAskedFilter,
+      difficultyFilter: filters?.difficultyFilter as DifficultyFilter[],
+      lastAskedFilter: filters?.lastAskedFilter as LastAskedFilter[],
       searchTerm: filters?.searchTerm,
       sortKey: filters?.sortKey as SortKey,
       userId,
