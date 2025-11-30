@@ -5,6 +5,8 @@
 body {
   font-family: var(--font-geist-sans), sans-serif;
   overflow-y: scroll;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
 
 @layer base {

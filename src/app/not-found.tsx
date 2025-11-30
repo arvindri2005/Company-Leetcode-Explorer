@@ -94,7 +94,7 @@ export default function NotFound() {
     }
   };
   return (
-    <div className="bg-background flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center p-6">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center p-6">
       <AlertTriangle className="h-20 w-20 text-primary mb-6" />
       <h1 className="text-4xl font-bold mb-3">Oops! Page Not Found</h1>
       <p className="text-xl text-muted-foreground mb-8 max-w-md">

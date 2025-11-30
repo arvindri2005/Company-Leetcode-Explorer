@@ -47,7 +47,7 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center p-6 bg-background">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center p-6">
       <Card className="w-full max-w-lg shadow-xl border-destructive">
         <CardHeader className="bg-destructive/10">
           <div className="flex justify-center mb-4">

@@ -40,10 +40,8 @@ export const metadata = {
  */
 export default function LoginPage() {
   return (
-    <section className="flex min-h-[calc(100vh-4rem)] justify-center items-center py-12 bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="absolute inset-0 bg-grid-white/10 bg-[size:20px_20px] [mask-image:radial-gradient(white,transparent_85%)] pointer-events-none" />
-      <Card className="w-full max-w-md border-border/50 bg-background/60 backdrop-blur-xl rounded-3xl mb-8 shadow-2xl relative z-10 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-50 pointer-events-none" />
+    <section className="flex min-h-[calc(100vh-4rem)] justify-center items-center py-12">
+      <Card className="w-full max-w-md border-border/50 bg-card/60 backdrop-blur-xl rounded-3xl mb-8 shadow-2xl relative z-10 overflow-hidden">
         <CardHeader className="text-center space-y-2 pb-2">
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-2">
             <svg

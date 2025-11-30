@@ -61,7 +61,7 @@ export default function ContactPage() {
   }, [state, toast]);
 
   return (
-    <div className="bg-background w-full">
+    <div className="w-full">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-foreground">
         <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
           Contact Us

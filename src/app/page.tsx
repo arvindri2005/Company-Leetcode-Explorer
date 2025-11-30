@@ -96,7 +96,7 @@ export const metadata: Metadata = {
  */
 export default function ShowcasePage() {
   return (
-    <div className="bg-background w-full">
+    <div className="w-full">
       <HeroSection />
       <FeaturesSection />
       <StatsSection />

@@ -24,7 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
  */
 export default function CompaniesLoading() {
   return (
-    <main className="min-h-screen w-full bg-[#0A0A0A] text-white">
+    <main className="min-h-screen w-full text-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         <DashboardHeaderSkeleton />
 

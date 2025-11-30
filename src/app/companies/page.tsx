@@ -222,7 +222,7 @@ export default async function CompaniesPage(props: CompaniesPageProps) {
   };
 
   return (
-    <main className="min-h-screen w-full bg-[#0A0A0A] text-white">
+    <main className="min-h-screen w-full text-white">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
