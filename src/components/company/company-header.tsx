@@ -29,7 +29,7 @@ interface CompanyHeaderProps {
  */
 export default function CompanyHeader({ company }: CompanyHeaderProps) {
     return (
-        <section className="relative bg-gradient-to-r from-gray-900 to-gray-800 border border-border rounded-xl p-4 md:p-8 mb-4 md:mb-8 overflow-hidden shadow-lg transition-all duration-300 ease-in-out">
+        <section className="relative bg-gradient-to-r from-gray-900 to-gray-800 border border-white/10 rounded-xl p-4 md:p-8 mb-4 md:mb-8 overflow-hidden shadow-lg transition-all duration-300 ease-in-out">
             <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
             <div className="relative z-10 flex flex-row md:flex-row items-center gap-3 md:gap-8 transition-all duration-300 ease-in-out">
                 <div className="relative h-16 w-16 md:h-24 md:w-24 flex-shrink-0 border-2 md:border-4 border-white/10 rounded-full shadow transition-all duration-300 ease-in-out">

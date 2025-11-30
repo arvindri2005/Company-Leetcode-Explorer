@@ -17,6 +17,7 @@ import ProblemLoadError from "@/components/company/page/problem-load-error";
 import NoProblemsAvailable from "@/components/company/page/no-problems-available";
 import CompanyPageHeader from "./company-page-header";
 import RelatedCompanies from "@/components/company/related-companies";
+import CompanyPreparationGuide from "@/components/company/company-preparation-guide";
 
 const INITIAL_ITEMS_PER_PAGE = 15;
 
@@ -115,6 +116,9 @@ export default async function CompanyPage({ company }: CompanyPageProps) {
                               companyId={company.id}
                           />
                       )}
+                      
+                      <CompanyPreparationGuide company={company} />
+
                       {/* Mobile Related Companies */}
                       <div className="lg:hidden mt-8">
                           <RelatedCompanies companies={company.relatedCompanies || []} />
