@@ -57,7 +57,47 @@ function getStructuredData(company: any) {
     ...(company.website && { sameAs: [company.website] }),
   };
 
-  return [organizationSchema, breadcrumbList];
+  const companyName = capitalizeWords(company.name);
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "What programming languages can I use?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: `Most companies, including ${companyName}, allow you to use any mainstream programming language you are comfortable with, such as Python, Java, C++, or JavaScript. It's best to stick to the language you know best.`,
+        },
+      },
+      {
+        "@type": "Question",
+        name: "How hard are the interview questions?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Questions typically range from Medium to Hard difficulty on platforms like LeetCode. It's important to be comfortable with optimizing your solutions for time and space complexity.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: `Does ${companyName} ask behavioral questions?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes, behavioral questions are a key part of the interview. Be prepared to discuss your past experiences, challenges you've faced, and how you work in a team. Using the STAR method (Situation, Task, Action, Result) is highly recommended.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "How long does the process take?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "The entire process from application to offer can take anywhere from a few weeks to a couple of months, depending on the role and the company's current hiring volume.",
+        },
+      },
+    ],
+  };
+
+  return [organizationSchema, breadcrumbList, faqSchema];
 }
 
 /**
@@ -81,12 +121,17 @@ export async function generateMetadata(
     return {
       title: "Company Not Found",
       description: "The requested company page does not exist.",
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 
   const problemCount = company.problemCount ?? 0;
-  const title = `${capitalizeWords(company.name)} Interview Questions`;
-  const description = `Explore ${problemCount} ${capitalizeWords(company.name)} coding interview questions. Practice problems, understand common patterns, and prepare for your technical interviews.`;
+  const companyName = capitalizeWords(company.name);
+  const title = `${companyName} Interview Questions & Preparation Guide`;
+  const description = `Prepare for your ${companyName} interview with ${problemCount}+ real coding questions. Get insights into the interview process, common patterns, and expert tips to land your dream job at ${companyName}.`;
 
   const companyKeywords = [
     company.name,
@@ -105,12 +150,14 @@ export async function generateMetadata(
     `${company.name} algorithms`,
     `${company.name} tech interview questions`,
     `${company.name} coding interview questions`,
+    `how to get into ${company.name}`,
+    `${company.name} hiring process`,
   ];
 
   const tagKeywords = company.commonTags?.map((ct) => ct.tag) ?? [];
   const uniqueKeywords = Array.from(
     new Set([...companyKeywords, ...tagKeywords]),
-  ).slice(0, 15);
+  ).slice(0, 20);
 
   const logoUrl = getLogoUrl(company.logo);
 
@@ -121,13 +168,17 @@ export async function generateMetadata(
     alternates: {
       canonical: `${APP_URL}/company/${company.slug}`,
     },
+    robots: {
+      index: true,
+      follow: true,
+    },
     openGraph: {
       title,
       description,
       url: `${APP_URL}/company/${company.slug}`,
       siteName: "Byte to Offer",
       images: logoUrl
-        ? [{ url: logoUrl, alt: `${company.name} logo` }]
+        ? [{ url: logoUrl, alt: `${companyName} logo` }]
         : [],
       type: "article",
     },
