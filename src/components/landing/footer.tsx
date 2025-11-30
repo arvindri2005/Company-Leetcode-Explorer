@@ -34,6 +34,12 @@ export default function Footer() {
           >
             Blog
           </a>
+          <a
+            href="/sitemap.xml"
+            className="text-gray-custom-400 no-underline transition-colors duration-300 hover:text-brand-teal"
+          >
+            Sitemap
+          </a>
         </div>
         <p className="text-gray-custom-500 mt-8">
           © 2025 Byte to Offer. All rights reserved.

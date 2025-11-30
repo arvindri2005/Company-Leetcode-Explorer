@@ -12,6 +12,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import Header from "@/components/layout/header";
+import Footer from "@/components/landing/footer";
 import { AuthProvider } from "@/contexts/auth-context";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -191,6 +192,7 @@ export default function RootLayout({
                   <SpeedInsights />
                   <Analytics />
                 </main>
+                <Footer />
                 <Toaster />
               </div>
             </CooldownStateProvider>

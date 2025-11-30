@@ -11,7 +11,6 @@ import HeroSection from "@/components/landing/hero-section";
 import FeaturesSection from "@/components/landing/feature-section";
 import StatsSection from "@/components/landing/stats-section";
 import SearchSection from "@/components/landing/search-section";
-import Footer from "@/components/landing/footer";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 
@@ -102,7 +101,6 @@ export default function ShowcasePage() {
       <FeaturesSection />
       <StatsSection />
       <SearchSection />
-      <Footer />
     </div>
   );
 }
