@@ -6,10 +6,24 @@ import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
 
+import { useTypingPlaceholder } from "@/hooks/use-typing-placeholder";
+
 export function DashboardHeader() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get("search") || "";
+
+  const companies = [
+    "Google",
+    "Amazon",
+    "Microsoft",
+    "Meta",
+    "Netflix",
+    "Apple",
+    "Uber",
+    "Airbnb",
+  ];
+  const placeholder = useTypingPlaceholder(companies);
 
   const handleSearch = useDebouncedCallback((term: string) => {
     const params = new URLSearchParams(searchParams);
@@ -18,7 +32,7 @@ export function DashboardHeader() {
     } else {
       params.delete("search");
     }
-    params.set("page", "1"); // Reset to page 1 on search
+    params.delete("page"); // Reset to page 1 on search (default behavior)
     router.replace(`/companies?${params.toString()}`);
   }, 300);
 
@@ -39,7 +53,7 @@ export function DashboardHeader() {
           <div className="relative flex items-center bg-[#1A1A1A] rounded-full border border-white/10 shadow-xl">
             <Input
               type="text"
-              placeholder="Search for companies (e.g., Amazon, Google)"
+              placeholder={`Search for ${placeholder}|`}
               className="w-full bg-transparent border-none text-white placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0 py-6 pl-6 pr-14 rounded-full text-lg"
               defaultValue={initialSearch}
               onChange={(e) => handleSearch(e.target.value)}

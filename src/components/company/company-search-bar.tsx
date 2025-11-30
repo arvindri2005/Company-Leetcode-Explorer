@@ -10,6 +10,7 @@ import { Loader2, Building2 } from "lucide-react";
 import Image from "next/image";
 import { FaSearch } from "react-icons/fa";
 import { getLogoUrl } from "@/lib/utils";
+import { useTypingPlaceholder } from "@/hooks/use-typing-placeholder";
 
 /**
  * Represents the structure of a single search suggestion item.
@@ -64,6 +65,18 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
     }
   };
 
+  const companies = [
+    "Google",
+    "Amazon",
+    "Microsoft",
+    "Meta",
+    "Netflix",
+    "Apple",
+    "Uber",
+    "Airbnb",
+  ];
+  const placeholder = useTypingPlaceholder(companies);
+
   return (
     <section
       className="relative w-full max-w-[800px] mx-auto"
@@ -90,7 +103,7 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
             autoComplete="off"
             data-testid="search-input"
             className="w-full p-5 text-lg border border-white/10 rounded-full bg-white/5 text-white backdrop-blur-lg transition-all duration-300 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/30 placeholder:text-white/50"
-            placeholder="Search for companies (e.g., Amazon, Google)"
+            placeholder={`Search for ${placeholder}|`}
             value={searchTermInput}
             onChange={(e) => setSearchTermInput(e.target.value)}
             onFocus={() => {
