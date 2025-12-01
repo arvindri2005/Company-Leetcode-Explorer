@@ -55,7 +55,7 @@ export default function CompanyHeader({ company }: CompanyHeaderProps) {
                         <a
                             href={company.website}
                             target="_blank"
-                            rel="noopener noreferrer"
+                            rel="noopener noreferrer nofollow"
                             className="inline-flex items-center text-xs md:text-sm text-sky-400 hover:text-sky-300 transition-colors mt-1"
                         >
                             {company.website}

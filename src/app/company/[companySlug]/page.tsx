@@ -130,8 +130,8 @@ export async function generateMetadata(
 
   const problemCount = company.problemCount ?? 0;
   const companyName = capitalizeWords(company.name);
-  const title = `${companyName} Interview Questions & Preparation Guide`;
-  const description = `Prepare for your ${companyName} interview with ${problemCount}+ real coding questions. Get insights into the interview process, common patterns, and expert tips to land your dream job at ${companyName}.`;
+  const title = `${companyName} Interview Questions`;
+  const description = `Prepare for your ${companyName} interview with ${problemCount} real coding questions. Master common patterns and get expert tips to land your dream job at ${companyName}.`;
 
   const companyKeywords = [
     company.name,
