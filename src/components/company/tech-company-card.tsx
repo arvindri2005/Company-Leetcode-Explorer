@@ -20,6 +20,7 @@ export function TechCompanyCard({ company }: TechCompanyCardProps) {
           width={48}
           height={48}
           className="object-contain"
+          unoptimized
         />
       </div>
       <div className="flex-1 min-w-0 space-y-2">

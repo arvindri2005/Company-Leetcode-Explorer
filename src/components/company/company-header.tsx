@@ -39,6 +39,7 @@ export default function CompanyHeader({ company }: CompanyHeaderProps) {
                             alt={`${company.name} Logo`}
                             fill
                             className="rounded-full object-contain bg-white p-2"
+                            unoptimized
                         />
                     ) : (
                         <div className="flex h-full w-full items-center justify-center bg-gray-700 rounded-full">
