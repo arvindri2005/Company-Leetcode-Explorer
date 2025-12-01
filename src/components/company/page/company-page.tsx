@@ -15,7 +15,6 @@ import CompanyHeader from "@/components/company/company-header";
 import CompanyTabs from "@/components/company/page/company-tabs";
 import ProblemLoadError from "@/components/company/page/problem-load-error";
 import NoProblemsAvailable from "@/components/company/page/no-problems-available";
-import CompanyPageHeader from "./company-page-header";
 import RelatedCompanies from "@/components/company/related-companies";
 import CompanyPreparationGuide from "@/components/company/company-preparation-guide";
 

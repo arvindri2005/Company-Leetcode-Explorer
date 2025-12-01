@@ -57,3 +57,13 @@ export function capitalizeWords(str: string): string {
   if (!str) return str;
   return str.replace(/\b\w/g, (char) => char.toUpperCase());
 }
+
+/**
+ * @function reloadPage
+ * @description Reloads the current page.
+ */
+export function reloadPage() {
+  if (typeof window !== "undefined") {
+    window.location.reload();
+  }
+}

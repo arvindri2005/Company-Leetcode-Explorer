@@ -8,6 +8,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { AlertTriangle } from "lucide-react";
+import { reloadPage } from "@/lib/utils";
 
 /**
  * Props for the ProblemLoadError component.
@@ -54,7 +55,7 @@ export default function ProblemLoadError({
           variant="outline"
           size="sm"
           className="mt-3"
-          onClick={() => window.location.reload()}
+          onClick={() => reloadPage()}
         >
           Try Refreshing
         </Button>
