@@ -1,6 +1,6 @@
 
 import { getProblemsByCompanyFromDb } from "@/lib/db/problem.data";
-import { dbGetUserBookmarkedProblemsInfo, dbGetAllUserProblemStatuses } from "@/lib/db/user.data";
+import { dbGetBookmarksForIds, dbGetProblemStatusesForIds } from "@/lib/db/user.data";
 import { getCountFromServer, getDocs } from "firebase/firestore";
 
 // Mock next/cache
@@ -20,6 +20,7 @@ jest.mock("firebase/firestore", () => ({
   getCountFromServer: jest.fn(),
   doc: jest.fn(),
   getDoc: jest.fn(),
+  documentId: jest.fn(),
 }));
 
 jest.mock("@/lib/firebase", () => ({
@@ -28,8 +29,8 @@ jest.mock("@/lib/firebase", () => ({
 
 // Mock user data functions
 jest.mock("@/lib/db/user.data", () => ({
-  dbGetUserBookmarkedProblemsInfo: jest.fn(),
-  dbGetAllUserProblemStatuses: jest.fn(),
+  dbGetBookmarksForIds: jest.fn(),
+  dbGetProblemStatusesForIds: jest.fn(),
 }));
 
 // Mock company data
@@ -68,10 +69,8 @@ describe("getProblemsByCompanyFromDb", () => {
     const userId = "user-1";
     const companyId = "1";
 
-    (dbGetUserBookmarkedProblemsInfo as jest.Mock).mockResolvedValue([
-      { problemId: "problem-1" },
-    ]);
-    (dbGetAllUserProblemStatuses as jest.Mock).mockResolvedValue({
+    (dbGetBookmarksForIds as jest.Mock).mockResolvedValue(new Set(["problem-1"]));
+    (dbGetProblemStatusesForIds as jest.Mock).mockResolvedValue({
       "problem-1": { status: "solved" },
     });
 

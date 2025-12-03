@@ -393,8 +393,21 @@ export const getCompanyById = async (
   id: string,
   useCache: boolean = true,
 ): Promise<Company | undefined> => {
+  if (!useCache) {
+    return await fetchCompanyByIdFromFirestore(id, false);
+  }
+
+  const getCachedCompany = unstable_cache(
+    async () => fetchCompanyByIdFromFirestore(id, false),
+    [`company-${id}`],
+    {
+      revalidate: 3600, // 1 hour
+      tags: [`company-${id}`],
+    }
+  );
+
   try {
-    return await fetchCompanyByIdFromFirestore(id, useCache);
+    return await getCachedCompany();
   } catch (error) {
     console.error(`Error fetching company by ID ${id}:`, error);
     return undefined;
@@ -449,8 +462,21 @@ export const getCompanyBySlug = async (
   slug: string,
   useCache: boolean = true,
 ): Promise<Company | undefined> => {
+  if (!useCache) {
+    return await fetchCompanyBySlugFromFirestore(slug, false);
+  }
+
+  const getCachedCompany = unstable_cache(
+    async () => fetchCompanyBySlugFromFirestore(slug, false),
+    [`company-slug-${slug}`],
+    {
+      revalidate: 3600, // 1 hour
+      tags: [`company-slug-${slug}`],
+    }
+  );
+
   try {
-    return await fetchCompanyBySlugFromFirestore(slug, useCache);
+    return await getCachedCompany();
   } catch (error) {
     console.error(`Error fetching company by slug ${slug}:`, error);
     return undefined;

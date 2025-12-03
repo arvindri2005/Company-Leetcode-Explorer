@@ -23,6 +23,8 @@ import {
   updateDoc,
   addDoc,
   Timestamp,
+  where,
+  documentId,
 } from "firebase/firestore";
 
 /**
@@ -187,6 +189,85 @@ export const dbGetAllUserProblemStatuses = async (
       error,
     );
     return {};
+  }
+};
+
+/**
+ * @function dbGetProblemStatusesForIds
+ * @description Fetches problem statuses for a specific list of problem IDs for a user.
+ * @param {string} userId - The ID of the user.
+ * @param {string[]} problemIds - The list of problem IDs to fetch statuses for.
+ * @returns {Promise<Record<string, UserProblemStatusInfo>>} A promise that resolves to a dictionary mapping problem IDs to their status information.
+ */
+export const dbGetProblemStatusesForIds = async (
+  userId: string,
+  problemIds: string[],
+): Promise<Record<string, UserProblemStatusInfo>> => {
+  if (!userId || !problemIds || problemIds.length === 0) return {};
+  const statuses: Record<string, UserProblemStatusInfo> = {};
+  try {
+    const progressColRef = collection(db, "users", userId, "problemProgress");
+    
+    // Firestore 'in' query is limited to 30 items. We need to batch if more.
+    // Assuming page size is small (e.g. 15), we might not need batching logic here if called per page.
+    // But for safety, let's just slice if needed or assume caller handles it.
+    // Given the context of pagination (15 items), a single query is fine.
+    
+    const q = query(progressColRef, where(documentId(), "in", problemIds));
+    const querySnapshot = await getDocs(q);
+    
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      if (data.status) {
+        statuses[docSnap.id] = {
+          problemId: docSnap.id,
+          status: data.status as ProblemStatus,
+          companySlug: data.companySlug,
+          problemSlug: data.problemSlug,
+          updatedAt: data.updatedAt?.toDate(),
+        };
+      }
+    });
+    return statuses;
+  } catch (error) {
+    console.error(
+      `Error fetching problem statuses for user ${userId} and problems ${problemIds.length}:`,
+      error,
+    );
+    return {};
+  }
+};
+
+/**
+ * @function dbGetBookmarksForIds
+ * @description Fetches bookmarks for a specific list of problem IDs for a user.
+ * @param {string} userId - The ID of the user.
+ * @param {string[]} problemIds - The list of problem IDs to check for bookmarks.
+ * @returns {Promise<Set<string>>} A promise that resolves to a Set of bookmarked problem IDs.
+ */
+export const dbGetBookmarksForIds = async (
+  userId: string,
+  problemIds: string[],
+): Promise<Set<string>> => {
+  if (!userId || !problemIds || problemIds.length === 0) return new Set();
+  const bookmarkedIds = new Set<string>();
+  try {
+    const bookmarksColRef = collection(db, "users", userId, "bookmarkedProblems");
+    
+    // Using documentId() because the document ID is the problem ID in bookmarkedProblems collection
+    const q = query(bookmarksColRef, where(documentId(), "in", problemIds));
+    const querySnapshot = await getDocs(q);
+    
+    querySnapshot.forEach((docSnap) => {
+      bookmarkedIds.add(docSnap.id);
+    });
+    return bookmarkedIds;
+  } catch (error) {
+    console.error(
+      `Error fetching bookmarks for user ${userId} and problems ${problemIds.length}:`,
+      error,
+    );
+    return new Set();
   }
 };
 

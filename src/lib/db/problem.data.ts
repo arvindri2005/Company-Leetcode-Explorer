@@ -30,6 +30,8 @@ import { getCompanyById, getCompanyBySlug } from "./company.data";
 import {
   dbGetUserBookmarkedProblemsInfo,
   dbGetAllUserProblemStatuses,
+  dbGetProblemStatusesForIds,
+  dbGetBookmarksForIds,
 } from "./user.data";
 
 async function fetchAllProblemsForCompanyFromFirestore(
@@ -393,20 +395,17 @@ export const getProblemsByCompanyFromDb = async (
     const { problems, totalProblems, hasMore, nextCursor } = await getCachedProblems();
 
     if (userId) {
+      const problemIds = problems.map((p) => p.id);
       const [userBookmarks, userStatuses] = await Promise.all([
-        dbGetUserBookmarkedProblemsInfo(userId),
-        dbGetAllUserProblemStatuses(userId),
+        dbGetBookmarksForIds(userId, problemIds),
+        dbGetProblemStatusesForIds(userId, problemIds),
       ]);
-
-      const bookmarkedProblemIds = new Set(
-        userBookmarks.map((b) => b.problemId),
-      );
 
       const finalProblems = problems.map((problem) => {
         const statusInfo = userStatuses[problem.id];
         return {
           ...problem,
-          isBookmarked: bookmarkedProblemIds.has(problem.id),
+          isBookmarked: userBookmarks.has(problem.id),
           currentStatus: statusInfo ? statusInfo.status : undefined,
         };
       });
@@ -700,20 +699,17 @@ export const getAllProblemsPaginated = async (
 
     // Fetch User Data if needed
     if (userId) {
+      const problemIds = problems.map((p) => p.id);
       const [userBookmarks, userStatuses] = await Promise.all([
-        dbGetUserBookmarkedProblemsInfo(userId),
-        dbGetAllUserProblemStatuses(userId),
+        dbGetBookmarksForIds(userId, problemIds),
+        dbGetProblemStatusesForIds(userId, problemIds),
       ]);
-
-      const bookmarkedProblemIds = new Set(
-        userBookmarks.map((b) => b.problemId),
-      );
 
       const finalProblems = problems.map((problem) => {
         const statusInfo = userStatuses[problem.id];
         return {
           ...problem,
-          isBookmarked: bookmarkedProblemIds.has(problem.id),
+          isBookmarked: userBookmarks.has(problem.id),
           currentStatus: statusInfo ? statusInfo.status : undefined,
         };
       });
