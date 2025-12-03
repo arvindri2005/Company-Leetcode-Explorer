@@ -37,10 +37,7 @@ mockIntersectionObserver.mockReturnValue({
 window.IntersectionObserver = mockIntersectionObserver;
 
 // Mock fetch
-global.fetch = jest.fn();
-
-describe('ProblemList', () => {
-  const mockProblems: LeetCodeProblem[] = [
+const mockProblems: LeetCodeProblem[] = [
     {
       id: '1',
       title: 'Problem 1',
@@ -50,10 +47,19 @@ describe('ProblemList', () => {
       companyId: '1',
       companySlug: 'test-company',
       normalizedTitle: 'problem 1',
-
       tags: [],
     },
   ];
+
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({ problems: mockProblems, hasMore: false }),
+  })
+) as jest.Mock;
+
+describe('ProblemList', () => {
+  // mockProblems is defined globally above.
 
   const defaultProps = {
     companyId: '1',
@@ -83,9 +89,20 @@ describe('ProblemList', () => {
     expect(screen.getByText('Problem 1')).toBeInTheDocument();
   });
 
-  it('should render empty state when no problems', () => {
+  it('should render empty state when no problems', async () => {
+    (global.fetch as jest.Mock).mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ problems: [], hasMore: false }),
+      })
+    );
+
     render(<ProblemList {...defaultProps} initialProblems={[]} />);
 
-    expect(screen.getByText(/No problems match the current filters/i)).toBeInTheDocument();
+    // Wait for potential effects to settle, though initial render should show empty state
+    // If the effect triggers a fetch that returns empty, it stays empty.
+    await waitFor(() => {
+        expect(screen.getByText(/No problems match the current filters/i)).toBeInTheDocument();
+    });
   });
 });

@@ -66,6 +66,7 @@ export async function POST(request: Request) {
     }
 
     const { companyId, cursor, pageSize, filters, userId } = parsedRequest.data;
+    console.log("[API] /api/problems called with userId:", userId);
 
     let result;
     if (companyId) {
