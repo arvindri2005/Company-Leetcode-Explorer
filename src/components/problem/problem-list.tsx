@@ -167,7 +167,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
     [filters, fetchProblems],
   );
 
-  const prevUserRef = useRef(user);
+  const prevUserRef = useRef(null);
 
   useEffect(() => {
     const userJustLoggedIn = user && !prevUserRef.current;
