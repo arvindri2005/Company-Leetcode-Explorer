@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { getAllProblemsPaginated } from "@/lib/data";
 import AllProblemsList from "@/components/problem/all-problems-list";
+import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -28,19 +29,38 @@ export default async function AllProblemsPage() {
         </p>
       </div>
 
-      <Suspense fallback={<div>Loading problems...</div>}>
-        <AllProblemsList
-          initialProblems={problems}
-          initialHasMore={hasMore}
-          initialNextCursor={nextCursor}
-          itemsPerPage={15}
-          initialFilters={{
-            difficultyFilter: [],
-            lastAskedFilter: [],
-            statusFilter: [],
-          }}
-        />
-      </Suspense>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Main Content */}
+        <div className="lg:col-span-3">
+          <Suspense fallback={<div>Loading problems...</div>}>
+            <AllProblemsList
+              initialProblems={problems}
+              initialHasMore={hasMore ?? false}
+              initialNextCursor={nextCursor}
+              itemsPerPage={15}
+              initialFilters={{
+                difficultyFilter: [],
+                lastAskedFilter: [],
+                statusFilter: [],
+                searchTerm: "",
+                sortKey: "title",
+              }}
+            />
+          </Suspense>
+        </div>
+
+        {/* Sidebar */}
+        <aside className="hidden lg:block lg:col-span-1">
+          <div className="sticky top-24 h-[calc(100vh-8rem)] flex flex-col gap-4">
+            <div className="flex-1">
+               <AdPlaceholder title="Sponsored" className="h-full" />
+            </div>
+            <div className="flex-1">
+               <AdPlaceholder title="Advertisement" className="h-full" />
+            </div>
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }

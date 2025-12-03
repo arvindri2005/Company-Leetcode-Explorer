@@ -105,7 +105,7 @@ export default function AdPlaceholder({
           </span>
         </div>
       )}
-      <div className="w-full flex justify-center bg-muted/10 min-h-[100px] rounded-md">
+      <div className="w-full flex-1 flex justify-center bg-muted/10 min-h-[100px] rounded-md">
         <ins
           ref={adRef}
           className="adsbygoogle"

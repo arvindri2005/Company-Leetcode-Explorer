@@ -15,7 +15,7 @@ import type {
   SortKey,
 } from "@/types";
 import { useState, useEffect, useCallback, useRef } from "react";
-import ProblemCard from "./problem-card";
+import ProblemInfoCard from "./problem-info-card";
 import { useAuth } from "@/contexts/auth-context";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -242,19 +242,20 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
         <div className="space-y-4">
           {displayedProblems.map((problem, index) => (
             <div key={problem.id}>
-              <ProblemCard
+              <ProblemInfoCard
                 problem={problem}
-                companySlug={problem.companySlug || "unknown"} // Fallback
                 initialIsBookmarked={problem.isBookmarked}
                 onBookmarkChanged={handleProblemBookmarkChange}
                 problemStatus={problem.currentStatus || "none"}
                 onProblemStatusChange={handleProblemStatusChange}
               />
               {(index + 1) % 8 === 0 && (
-                <AdPlaceholder
-                  className="my-4 h-32"
-                  title="Sponsored"
-                />
+                <div className="lg:hidden">
+                  <AdPlaceholder
+                    className="my-4 h-32"
+                    title="Sponsored"
+                  />
+                </div>
               )}
             </div>
           ))}
