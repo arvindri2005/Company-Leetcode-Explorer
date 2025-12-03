@@ -18,6 +18,7 @@ import {
   QueryDocumentSnapshot,
   Firestore,
   getCountFromServer,
+  setDoc,
   writeBatch,
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
@@ -434,12 +435,11 @@ async function fetchCompanyBySlugFromFirestore(
     }
   }
 
-  const companiesCol = collection(getFirestore(), "companies");
-  const q = query(companiesCol, where("slug", "==", companySlug), limit(1));
-  const querySnapshot = await getDocs(q);
+  const companyDocRef = doc(getFirestore(), "companies", companySlug);
+  const companySnap = await getDoc(companyDocRef);
 
-  if (!querySnapshot.empty) {
-    const company = mapFirestoreDocToCompany(querySnapshot.docs[0]);
+  if (companySnap.exists()) {
+    const company = mapFirestoreDocToCompany(companySnap);
     if (useCache) {
       singleCompanyCache.set(cacheKey, {
         company,
@@ -635,11 +635,12 @@ export const addCompanyToDb = async (
     });
 
     const companiesCol = collection(getFirestore(), "companies");
-    const docRef = await addDoc(companiesCol, dataForFirestore);
+    const docRef = doc(companiesCol, companySlug);
+    await setDoc(docRef, dataForFirestore);
 
     await revalidateCompaniesPage();
 
-    return { id: docRef.id };
+    return { id: companySlug };
   } catch (error) {
     const message =
       error instanceof Error
