@@ -42,8 +42,10 @@ export interface LeetCodeProblem {
   difficulty: "Easy" | "Medium" | "Hard";
   link: string;
   tags: string[];
-  companyId: string; // ID of the company this problem is primarily associated with in *this* app
-  companySlug: string; // Slug of the company this problem is primarily associated with
+  companyId: string; // ID of the company this problem is primarily associated with in *this* app (Legacy/Primary)
+  companySlug: string; // Slug of the company this problem is primarily associated with (Legacy/Primary)
+  companyIds?: string[]; // List of all company IDs this problem belongs to
+  companies?: Record<string, { lastAskedPeriod?: LastAskedPeriod }>; // Map of company ID to company-specific data
   problemCompanyName?: string; // Denormalized company name
   slug: string; // Problem's own slug
   lastAskedPeriod?: LastAskedPeriod;

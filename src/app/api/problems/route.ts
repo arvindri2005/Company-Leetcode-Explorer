@@ -23,7 +23,7 @@ import type {
  * and within acceptable ranges.
  */
 const problemRequestSchema = z.object({
-  companyId: z.string(),
+  companyId: z.string().optional(),
   cursor: z.string().optional(),
   pageSize: z.number().min(1).max(50).default(15),
   userId: z.string().optional(),
@@ -67,15 +67,30 @@ export async function POST(request: Request) {
 
     const { companyId, cursor, pageSize, filters, userId } = parsedRequest.data;
 
-    const result = await getProblemsByCompanyFromDb(companyId, {
-      cursor,
-      pageSize,
-      difficultyFilter: filters?.difficultyFilter as DifficultyFilter[],
-      lastAskedFilter: filters?.lastAskedFilter as LastAskedFilter[],
-      searchTerm: filters?.searchTerm,
-      sortKey: filters?.sortKey as SortKey,
-      userId,
-    });
+    let result;
+    if (companyId) {
+      result = await getProblemsByCompanyFromDb(companyId, {
+        cursor,
+        pageSize,
+        difficultyFilter: filters?.difficultyFilter as DifficultyFilter[],
+        lastAskedFilter: filters?.lastAskedFilter as LastAskedFilter[],
+        searchTerm: filters?.searchTerm,
+        sortKey: filters?.sortKey as SortKey,
+        userId,
+      });
+    } else {
+      // Fetch all problems if no companyId is provided
+      const { getAllProblemsPaginated } = await import("@/lib/data");
+      result = await getAllProblemsPaginated({
+        cursor,
+        pageSize,
+        difficultyFilter: filters?.difficultyFilter as DifficultyFilter[],
+        lastAskedFilter: filters?.lastAskedFilter as LastAskedFilter[],
+        searchTerm: filters?.searchTerm,
+        sortKey: filters?.sortKey as SortKey,
+        userId,
+      });
+    }
 
     return NextResponse.json(result);
   } catch (error) {

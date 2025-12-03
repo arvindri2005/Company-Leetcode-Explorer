@@ -20,6 +20,7 @@ import {
   updateDoc,
   orderBy,
   collectionGroup,
+  setDoc,
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
 import { getCompanyById, getCompanyBySlug } from "./company.data";
@@ -41,19 +42,29 @@ async function fetchAllProblemsForCompanyFromFirestore(
   const companyDoc = await getCompanyById(compId);
   const companySlugValue = companyDoc?.slug;
 
-  const problemsColRef = collection(db, "companies", compId, "problems");
-  const q = query(problemsColRef, orderBy("normalizedTitle"));
+  const problemsColRef = collection(db, "problems");
+  // Use array-contains to find problems for this company.
+  // We sort in memory to avoid needing a composite index on (companyIds, normalizedTitle).
+  const q = query(problemsColRef, where("companyIds", "array-contains", compId));
   const problemSnapshot = await getDocs(q);
-  return problemSnapshot.docs.map((docSnap) => {
+  
+  const problems = problemSnapshot.docs.map((docSnap) => {
     const data = docSnap.data();
+    // Map the company-specific data from the 'companies' map if available
+    const companySpecificData = data.companies?.[compId] || {};
+    
     return {
-      id: docSnap.id,
-      companyId: compId,
-      companySlug: companySlugValue || slugify(companyDoc?.name || "unknown"),
-      slug: data.slug || slugify(data.title),
+      id: docSnap.id, // This is now the slug
+      companyId: compId, // Legacy/Primary for this view
+      companySlug: companySlugValue || slugify(companyDoc?.name || "unknown"), // Legacy/Primary
+      slug: docSnap.id,
       ...data,
+      ...companySpecificData, // Override with company-specific data (e.g. lastAskedPeriod)
     } as LeetCodeProblem;
   });
+
+  // Sort by normalizedTitle
+  return problems.sort((a, b) => a.normalizedTitle.localeCompare(b.normalizedTitle));
 }
 
 /**
@@ -104,27 +115,25 @@ export const getProblemsByCompanyFromDb = async (
       searchTerm.trim() === "";
 
     if (isDefaultSort && hasNoFilters) {
-      const problemsColRef = collection(db, "companies", companyId, "problems");
-      let q = query(problemsColRef, orderBy("normalizedTitle"), limit(pageSize + 1));
+      const problemsColRef = collection(db, "problems");
+      // Use array-contains. Sort in memory for now to avoid index.
+      // For pagination with limit, we really should use an index, but let's try to fetch all and slice for now
+      // since we don't want to force user to create index.
+      // Optimization: If dataset grows, we MUST add index on (companyIds, normalizedTitle).
+      
+      const q = query(problemsColRef, where("companyIds", "array-contains", companyId));
+      const problemSnapshot = await getDocs(q);
+      let docs = problemSnapshot.docs;
+      
+      // Sort in memory
+      docs.sort((a, b) => {
+          const titleA = a.data().normalizedTitle || "";
+          const titleB = b.data().normalizedTitle || "";
+          return titleA.localeCompare(titleB);
+      });
 
-      if (cursor) {
-         // Note: For true cursor pagination with Firestore, we need the actual document snapshot
-         // or we need to fetch all up to the cursor.
-         // Since our current cursor implementation uses ID strings and in-memory filtering for the "slow path",
-         // mixing them is tricky.
-         // However, if we are in the "fast path", we can try to use startAfter if we had the doc.
-         // But we only have the ID.
-         // For now, let's stick to the "slow path" if a cursor is present to ensure consistency,
-         // OR we can fetch the cursor doc first.
-         // Given the complexity, let's only use the fast path for the FIRST page (no cursor).
-         // TODO: Implement true Firestore cursor pagination for deeper pages.
-      }
-
-      if (!cursor) {
-        const problemSnapshot = await getDocs(q);
-        const docs = problemSnapshot.docs;
-        const hasMore = docs.length > pageSize;
-        const slicedDocs = docs.slice(0, pageSize);
+      const hasMore = docs.length > pageSize;
+      const slicedDocs = docs.slice(0, pageSize);
 
         // We need the company slug for the problem objects.
         // If passed in params, use it. Otherwise fetch it (cached).
@@ -136,12 +145,14 @@ export const getProblemsByCompanyFromDb = async (
 
         const problems = slicedDocs.map((docSnap) => {
             const data = docSnap.data();
+            const companySpecificData = data.companies?.[companyId] || {};
             return {
               id: docSnap.id,
               companyId: companyId,
               companySlug: finalCompanySlug!,
-              slug: data.slug || slugify(data.title),
+              slug: docSnap.id,
               ...data,
+              ...companySpecificData,
             } as LeetCodeProblem;
         });
 
@@ -152,6 +163,7 @@ export const getProblemsByCompanyFromDb = async (
                 dbGetUserBookmarkedProblemsInfo(userId),
                 dbGetAllUserProblemStatuses(userId),
               ]);
+              // Bookmarks and Statuses are keyed by problemId (which is now slug)
               const bookmarkedProblemIds = new Set(userBookmarks.map((b) => b.problemId));
 
               return {
@@ -163,7 +175,7 @@ export const getProblemsByCompanyFromDb = async (
                         currentStatus: statusInfo ? statusInfo.status : undefined,
                     };
                 }),
-                totalProblems: 100, // Approximation or fetch count separately if needed. For infinite scroll, total isn't always strictly needed.
+                totalProblems: docs.length, 
                 hasMore,
                 nextCursor: hasMore ? problems[problems.length - 1].id : undefined,
               };
@@ -171,12 +183,11 @@ export const getProblemsByCompanyFromDb = async (
 
         return {
             problems,
-            totalProblems: 100, // Placeholder, or we can do a count query if strictly needed
+            totalProblems: docs.length,
             hasMore,
             nextCursor: hasMore ? problems[problems.length - 1].id : undefined,
         };
       }
-    }
 
     // --- SLOW PATH (Existing Logic) ---
     // Fetches ALL problems and filters in memory.
@@ -296,31 +307,178 @@ export const getProblemsByCompanyFromDb = async (
   }
 };
 
-async function fetchAllProblemsFromFirestore(): Promise<LeetCodeProblem[]> {
-  const problemsColGroup = collectionGroup(db, "problems");
-  const q = query(problemsColGroup, orderBy("normalizedTitle"));
-  const problemSnapshot = await getDocs(q);
+/**
+ * @function getAllProblemsPaginated
+ * @description Fetches a paginated, filtered, and sorted list of ALL problems.
+ * @param {object} [params={}] - The parameters for filtering, sorting, and pagination.
+ * @returns {Promise<PaginatedProblemsResponse>} A promise that resolves to the paginated list of problems.
+ */
+export const getAllProblemsPaginated = async (
+  params: {
+    cursor?: string;
+    pageSize?: number;
+    difficultyFilter?: DifficultyFilter[];
+    lastAskedFilter?: LastAskedFilter[]; // Note: This might be less relevant without a specific company context, but we can still support it if data exists.
+    searchTerm?: string;
+    sortKey?: SortKey;
+    userId?: string;
+  } = {},
+): Promise<PaginatedProblemsResponse> => {
+  const {
+    cursor,
+    pageSize = 10,
+    difficultyFilter = [],
+    lastAskedFilter = [],
+    searchTerm = "",
+    sortKey = "title",
+    userId,
+  } = params;
 
-  const problemsWithCompanyInfo = await Promise.all(
-    problemSnapshot.docs.map(async (docSnap) => {
-      const problemData = docSnap.data();
-      const companyId = docSnap.ref.parent.parent?.id;
-      if (!companyId) {
-        console.warn(`Problem ${docSnap.id} missing companyId in path.`);
-        return null;
-      }
+  try {
+    // For now, we'll use the "slow path" approach of fetching all and filtering in memory
+    // because we don't have complex composite indexes set up for the root collection yet.
+    // As the dataset grows, we should implement proper Firestore queries with indexes.
+    
+    const problemsCol = collection(db, "problems");
+    const q = query(problemsCol, orderBy("normalizedTitle")); // Basic sort
+    const problemSnapshot = await getDocs(q);
 
-      const company = await getCompanyById(companyId);
+    let processedProblems = problemSnapshot.docs.map((docSnap) => {
+      const data = docSnap.data();
+      // For the "all problems" view, we don't have a single company context.
+      // We can pick the first companyId if available to satisfy the type, or use a placeholder.
+      const firstCompanyId = data.companyIds?.[0] || "unknown";
+      
+      // We might want to fetch the company slug for the link, but doing it for ALL problems is expensive.
+      // For now, let's leave companySlug as "unknown" or try to derive it if we cache companies.
+      // A better approach for the UI might be to NOT link to a specific company context, 
+      // or link to the first one.
+      
       return {
         id: docSnap.id,
-        companyId: companyId,
-        companySlug: company?.slug || slugify(company?.name || "unknown"),
-        slug: problemData.slug || slugify(problemData.title),
+        companyId: firstCompanyId,
+        companySlug: "unknown", // UI should handle this gracefully or we fetch it lazily
+        slug: docSnap.id,
+        ...data,
+      } as LeetCodeProblem;
+    });
+
+    // If userId is provided, fetch and merge user-specific data
+    if (userId) {
+      const [userBookmarks, userStatuses] = await Promise.all([
+        dbGetUserBookmarkedProblemsInfo(userId),
+        dbGetAllUserProblemStatuses(userId),
+      ]);
+
+      const bookmarkedProblemIds = new Set(
+        userBookmarks.map((b) => b.problemId),
+      );
+
+      processedProblems = processedProblems.map((problem) => {
+        const statusInfo = userStatuses[problem.id];
+        return {
+          ...problem,
+          isBookmarked: bookmarkedProblemIds.has(problem.id),
+          currentStatus: statusInfo ? statusInfo.status : undefined,
+        };
+      });
+    }
+
+    // Apply Filters
+    if (difficultyFilter.length > 0) {
+      processedProblems = processedProblems.filter((p) =>
+        difficultyFilter.includes(p.difficulty),
+      );
+    }
+    // lastAskedFilter is tricky across companies. We'll skip it for "all problems" for now 
+    // or check if ANY company matches. But simpler to ignore or filter if `lastAskedPeriod` is on the root (it's not, it's in `companies` map).
+    // Let's ignore lastAskedFilter for the global list for now unless we aggregate it.
+
+    if (searchTerm.trim() !== "") {
+      const lowercasedSearchTerm = searchTerm.toLowerCase().trim();
+      processedProblems = processedProblems.filter(
+        (p) =>
+          p.title.toLowerCase().includes(lowercasedSearchTerm) ||
+          (p.tags &&
+            p.tags.some((tag) =>
+              tag.toLowerCase().includes(lowercasedSearchTerm),
+            )),
+      );
+    }
+
+    // Apply Sorting
+    const difficultyOrder: Record<LeetCodeProblem["difficulty"], number> = {
+      Easy: 1,
+      Medium: 2,
+      Hard: 3,
+    };
+    
+    processedProblems.sort((a, b) => {
+      if (sortKey === "title") return a.title.localeCompare(b.title);
+      if (sortKey === "difficulty")
+        return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
+      // lastAsked sort is also ambiguous globally.
+      return 0;
+    });
+
+    const totalProblems = processedProblems.length;
+
+    let startIndex = 0;
+    if (cursor) {
+      const cursorIndex = processedProblems.findIndex((p) => p.id === cursor);
+      if (cursorIndex !== -1) {
+        startIndex = cursorIndex + 1;
+      }
+    }
+
+    const paginatedProblems = processedProblems.slice(
+      startIndex,
+      startIndex + pageSize,
+    );
+
+    const hasMore = startIndex + pageSize < totalProblems;
+    const nextCursor = hasMore
+      ? paginatedProblems[paginatedProblems.length - 1]?.id
+      : undefined;
+
+    return {
+      problems: paginatedProblems,
+      totalProblems,
+      hasMore,
+      nextCursor,
+    };
+
+  } catch (error) {
+    console.error("Error in getAllProblemsPaginated:", error);
+    return {
+      problems: [],
+      totalProblems: 0,
+      hasMore: false,
+    };
+  }
+};
+
+async function fetchAllProblemsFromFirestore(): Promise<LeetCodeProblem[]> {
+  const problemsCol = collection(db, "problems");
+  const q = query(problemsCol, orderBy("normalizedTitle"));
+  const problemSnapshot = await getDocs(q);
+
+  return problemSnapshot.docs.map((docSnap) => {
+      const problemData = docSnap.data();
+      // For fetchAll, we don't have a specific company context.
+      // We can pick the first companyId if available, or just leave it generic.
+      // But LeetCodeProblem requires companyId/Slug.
+      // Let's pick the first one from companyIds if available.
+      const firstCompanyId = problemData.companyIds?.[0] || "unknown";
+      
+      return {
+        id: docSnap.id,
+        companyId: firstCompanyId,
+        companySlug: "unknown", // We'd need to fetch company to get slug, or store it.
+        slug: docSnap.id,
         ...problemData,
       } as LeetCodeProblem;
-    }),
-  );
-  return problemsWithCompanyInfo.filter(Boolean) as LeetCodeProblem[];
+    });
 }
 
 /**
@@ -354,17 +512,22 @@ async function fetchProblemDetailsFromFirestore(
     );
     return undefined;
   }
-  const problemDocRef = doc(db, "companies", compId, "problems", probId);
+  // probId is expected to be the slug now
+  const problemDocRef = doc(db, "problems", probId);
   const problemSnap = await getDoc(problemDocRef);
+  
   if (problemSnap.exists()) {
     const data = problemSnap.data();
     const company = await getCompanyById(compId);
+    const companySpecificData = data.companies?.[compId] || {};
+
     return {
       id: problemSnap.id,
       companyId: compId,
       companySlug: company?.slug || slugify(company?.name || "unknown"),
-      slug: data.slug || slugify(data.title),
+      slug: problemSnap.id,
       ...data,
+      ...companySpecificData,
     } as LeetCodeProblem;
   }
   return undefined;
@@ -415,21 +578,23 @@ async function fetchProblemByCompanySlugAndProblemSlug(
   const company = await getCompanyBySlug(compSlug);
   if (!company) return { company: undefined, problem: undefined };
 
-  const problemsColRef = collection(db, "companies", company.id, "problems");
-  const q = query(problemsColRef, where("slug", "==", probSlug), limit(1));
-  const problemSnapshot = await getDocs(q);
+  // Fetch from root problems collection by slug (ID)
+  const problemDocRef = doc(db, "problems", probSlug);
+  const problemSnap = await getDoc(problemDocRef);
 
-  if (!problemSnapshot.empty) {
-    const problemDoc = problemSnapshot.docs[0];
-    const problemData = problemDoc.data();
+  if (problemSnap.exists()) {
+    const problemData = problemSnap.data();
+    const companySpecificData = problemData.companies?.[company.id] || {};
+    
     return {
       company,
       problem: {
-        id: problemDoc.id,
+        id: problemSnap.id,
         companyId: company.id,
         companySlug: company.slug,
-        slug: problemData.slug || slugify(problemData.title), // Ensure slug is populated
+        slug: problemSnap.id,
         ...problemData,
+        ...companySpecificData,
       } as LeetCodeProblem,
     };
   }
@@ -509,41 +674,42 @@ export const addProblemToDb = async (
 ): Promise<{ id: string | null; updated: boolean; error?: string }> => {
   try {
     const problemSlug = slugify(problemData.title);
-    const problemCollectionRef = collection(
-      db,
-      "companies",
-      companyId,
-      "problems",
-    );
+    const problemDocRef = doc(db, "problems", problemSlug);
+    const problemSnap = await getDoc(problemDocRef);
 
-    const q = query(
-      problemCollectionRef,
-      where("normalizedTitle", "==", problemData.normalizedTitle),
-      limit(1),
-    );
-    const querySnapshot = await getDocs(q);
-
-    const dataToSave = {
-      ...problemData,
-      slug: problemSlug,
-    };
-
-    if (!querySnapshot.empty) {
-      const existingProblemDoc = querySnapshot.docs[0];
-      await updateDoc(
-        doc(db, "companies", companyId, "problems", existingProblemDoc.id),
-        {
+    if (problemSnap.exists()) {
+      const existingData = problemSnap.data();
+      const companyIds = new Set(existingData.companyIds || []);
+      companyIds.add(companyId);
+      
+      const companiesMap = existingData.companies || {};
+      companiesMap[companyId] = {
           lastAskedPeriod: problemData.lastAskedPeriod,
-          tags: problemData.tags,
-          link: problemData.link,
-          difficulty: problemData.difficulty,
-          slug: problemSlug,
-        },
-      );
-      return { id: existingProblemDoc.id, updated: true };
+      };
+
+      await updateDoc(problemDocRef, {
+        ...problemData, // Update common fields
+        slug: problemSlug,
+        companyIds: Array.from(companyIds),
+        companies: companiesMap,
+      });
+      return { id: problemSlug, updated: true };
     } else {
-      const docRef = await addDoc(problemCollectionRef, dataToSave);
-      return { id: docRef.id, updated: false };
+      const companiesMap = {
+          [companyId]: {
+              lastAskedPeriod: problemData.lastAskedPeriod,
+          }
+      };
+      
+      const dataToSave = {
+        ...problemData,
+        slug: problemSlug,
+        companyIds: [companyId],
+        companies: companiesMap,
+      };
+      
+      await setDoc(problemDocRef, dataToSave);
+      return { id: problemSlug, updated: false };
     }
   } catch (error) {
     const message =
