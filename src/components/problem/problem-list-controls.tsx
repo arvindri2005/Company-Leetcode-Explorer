@@ -39,8 +39,6 @@ interface ProblemListControlsProps {
   onLastAskedFilterChange: (filter: LastAskedFilter[]) => void;
   statusFilter: StatusFilter[];
   onStatusFilterChange: (filter: StatusFilter[]) => void;
-  searchTerm: string;
-  onSearchTermChange: (term: string) => void;
   problemCount: number;
   showStatusFilter?: boolean;
 }
@@ -65,8 +63,6 @@ const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
   onLastAskedFilterChange,
   statusFilter,
   onStatusFilterChange,
-  searchTerm,
-  onSearchTermChange,
   problemCount,
   showStatusFilter = false,
 }) => {
@@ -160,15 +156,6 @@ const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between mt-4">
-        <div className="relative w-full md:w-72">
-          <input
-            type="text"
-            placeholder="Search problems..."
-            value={searchTerm}
-            onChange={(e) => onSearchTermChange(e.target.value)}
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </div>
         <div className="text-sm text-muted-foreground whitespace-nowrap">
           {problemCount} Problems
         </div>

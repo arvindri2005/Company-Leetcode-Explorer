@@ -21,7 +21,6 @@ import ProblemCard from "./problem-card";
 import { useAuth } from "@/contexts/auth-context";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useDebounce } from "@/hooks/use-debounce";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
@@ -67,8 +66,6 @@ const ProblemList: React.FC<ProblemListProps> = ({
     lastAskedFilter: [],
     statusFilter: [],
   });
-  const [searchInput, setSearchInput] = useState(initialFilters.searchTerm);
-  const debouncedSearchTerm = useDebounce(searchInput, 500);
 
   const [displayedProblems, setDisplayedProblems] =
     useState<LeetCodeProblem[]>(initialProblems);
@@ -96,7 +93,6 @@ const ProblemList: React.FC<ProblemListProps> = ({
       setDisplayedProblems(initialProblems);
       setHasMore(initialHasMore);
       setNextCursor(initialNextCursor);
-      setSearchInput(initialFilters.searchTerm);
       setFilters(initialFilters);
       prevCompanyIdRef.current = companyId;
     }
@@ -172,11 +168,6 @@ const ProblemList: React.FC<ProblemListProps> = ({
   );
 
   const prevUserRef = useRef(user);
-  useEffect(() => {
-    if (debouncedSearchTerm !== filters.searchTerm) {
-      handleFilterChange({ searchTerm: debouncedSearchTerm });
-    }
-  }, [debouncedSearchTerm, filters.searchTerm, handleFilterChange]);
 
   useEffect(() => {
     const userJustLoggedIn = user && !prevUserRef.current;
@@ -270,8 +261,6 @@ const ProblemList: React.FC<ProblemListProps> = ({
         onStatusFilterChange={(value) =>
           handleFilterChange({ statusFilter: value })
         }
-        searchTerm={searchInput}
-        onSearchTermChange={setSearchInput}
         problemCount={displayedProblems.length}
         showStatusFilter={!!user}
       />

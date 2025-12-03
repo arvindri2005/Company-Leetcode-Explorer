@@ -11,24 +11,9 @@ describe('ProblemListControls', () => {
     onLastAskedFilterChange: jest.fn(),
     statusFilter: [],
     onStatusFilterChange: jest.fn(),
-    searchTerm: '',
-    onSearchTermChange: jest.fn(),
     problemCount: 10,
     showStatusFilter: true,
   };
-
-  it('should render search input', () => {
-    render(<ProblemListControls {...defaultProps} />);
-    const input = screen.getByPlaceholderText('Search problems...');
-    expect(input).toBeInTheDocument();
-  });
-
-  it('should call onSearchTermChange when typing', () => {
-    render(<ProblemListControls {...defaultProps} />);
-    const input = screen.getByPlaceholderText('Search problems...');
-    fireEvent.change(input, { target: { value: 'test' } });
-    expect(defaultProps.onSearchTermChange).toHaveBeenCalledWith('test');
-  });
 
   it('should render problem count', () => {
     render(<ProblemListControls {...defaultProps} />);
