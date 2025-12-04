@@ -115,6 +115,9 @@ const fetchProblemsByCompanyCore = async (
     difficultyCounts,
   } = params;
 
+  console.log(`[DB] fetchProblemsByCompanyCore called for ${companyId} (Cache Miss)`);
+  let dbReads = 0;
+
   const problemsColRef = collection(db, "problems");
   
   // Base constraints
@@ -182,6 +185,8 @@ const fetchProblemsByCompanyCore = async (
               const countQuery = query(problemsColRef, ...constraints);
               const countSnapshot = await getCountFromServer(countQuery);
               totalProblems = countSnapshot.data().count;
+              dbReads += 1; // Aggregation query counts as 1 document read (per 1000 index entries, simplified here)
+              console.log(`[DB] Count query executed. Cost: ~1 read. Total: ${totalProblems}`);
           }
 
           // 2. Get Page
@@ -207,6 +212,8 @@ const fetchProblemsByCompanyCore = async (
             const cursorDocRef = doc(db, "problems", cursor);
             const cursorDocSnap = await getDoc(cursorDocRef);
             if (cursorDocSnap.exists()) {
+              dbReads += 1;
+              console.log(`[DB] Cursor doc fetched. Cost: 1 read.`);
               q = query(
                 problemsColRef,
                 ...constraints,
@@ -219,6 +226,8 @@ const fetchProblemsByCompanyCore = async (
           }
 
           const problemSnapshot = await getDocs(q);
+          dbReads += problemSnapshot.docs.length;
+          console.log(`[DB] Main problems query executed. Fetched ${problemSnapshot.docs.length} docs. Cost: ${problemSnapshot.docs.length} reads.`);
           const docs = problemSnapshot.docs;
           const hasMore = docs.length === pageSize;
 
@@ -241,6 +250,7 @@ const fetchProblemsByCompanyCore = async (
               } as LeetCodeProblem;
           });
 
+          console.log(`[DB] fetchProblemsByCompanyCore finished. Total DB Reads: ${dbReads}`);
           return {
               problems,
               totalProblems,
@@ -261,6 +271,8 @@ const fetchProblemsByCompanyCore = async (
   // Fetch all matching DB constraints, then filter/sort in memory.
   const q = query(problemsColRef, ...constraints);
   const problemSnapshot = await getDocs(q);
+  dbReads += problemSnapshot.docs.length;
+  console.log(`[DB] Semi-optimized query executed. Fetched ${problemSnapshot.docs.length} docs. Cost: ${problemSnapshot.docs.length} reads.`);
   
   let processedProblems = problemSnapshot.docs.map((docSnap) => {
       const data = docSnap.data();
@@ -353,6 +365,7 @@ const fetchProblemsByCompanyCore = async (
     ? paginatedProblems[paginatedProblems.length - 1]?.id
     : undefined;
 
+  console.log(`[DB] fetchProblemsByCompanyCore finished (Semi-Optimized). Total DB Reads: ${dbReads}`);
   return {
     problems: paginatedProblems,
     totalProblems,
@@ -434,7 +447,9 @@ export const getProblemsByCompanyFromDb = async (
       }
     );
 
+    console.log(`[Cache] Requesting problems for company ${companyId}`);
     const { problems, totalProblems, hasMore, nextCursor } = await getCachedProblems();
+    console.log(`[Cache] Retrieved problems for company ${companyId}. (If no [DB] logs appeared, this was a CACHE HIT)`);
 
     if (userId) {
       const problemIds = problems.map((p) => p.id);
@@ -508,6 +523,9 @@ const fetchAllProblemsCore = async (
     sortKey = "title",
   } = params;
 
+  console.log(`[DB] fetchAllProblemsCore called (Cache Miss)`);
+  let dbReads = 0;
+
   const problemsColRef = collection(db, "problems");
   const constraints: any[] = [];
 
@@ -543,6 +561,8 @@ const fetchAllProblemsCore = async (
           const countQuery = query(problemsColRef, ...constraints);
           const countSnapshot = await getCountFromServer(countQuery);
           const totalProblems = countSnapshot.data().count;
+          dbReads += 1;
+          console.log(`[DB] Count query executed. Cost: ~1 read. Total: ${totalProblems}`);
 
           // 2. Get Page
           let q = query(
@@ -556,6 +576,8 @@ const fetchAllProblemsCore = async (
               const cursorDocRef = doc(db, "problems", cursor);
               const cursorDocSnap = await getDoc(cursorDocRef);
               if (cursorDocSnap.exists()) {
+                  dbReads += 1;
+                  console.log(`[DB] Cursor doc fetched. Cost: 1 read.`);
                   q = query(
                       problemsColRef, 
                       ...constraints,
@@ -567,6 +589,8 @@ const fetchAllProblemsCore = async (
           }
 
           const snap = await getDocs(q);
+          dbReads += snap.docs.length;
+          console.log(`[DB] Main problems query executed. Fetched ${snap.docs.length} docs. Cost: ${snap.docs.length} reads.`);
           const docs = snap.docs;
           const hasMore = docs.length === pageSize;
           
@@ -581,6 +605,7 @@ const fetchAllProblemsCore = async (
                } as LeetCodeProblem;
           });
           
+          console.log(`[DB] fetchAllProblemsCore finished. Total DB Reads: ${dbReads}`);
           return {
               problems,
               totalProblems,
@@ -601,6 +626,8 @@ const fetchAllProblemsCore = async (
   // Fetch all matching DB constraints, then filter/sort in memory.
   const q = query(problemsColRef, ...constraints);
   const problemSnapshot = await getDocs(q);
+  dbReads += problemSnapshot.docs.length;
+  console.log(`[DB] Semi-optimized query executed. Fetched ${problemSnapshot.docs.length} docs. Cost: ${problemSnapshot.docs.length} reads.`);
 
   let processedProblems = problemSnapshot.docs.map((docSnap) => {
     const data = docSnap.data();
@@ -674,6 +701,7 @@ const fetchAllProblemsCore = async (
     ? paginatedProblems[paginatedProblems.length - 1]?.id
     : undefined;
 
+  console.log(`[DB] fetchAllProblemsCore finished (Semi-Optimized). Total DB Reads: ${dbReads}`);
   return {
     problems: paginatedProblems,
     totalProblems,
@@ -737,7 +765,9 @@ export const getAllProblemsPaginated = async (
       }
     );
 
+    console.log(`[Cache] Requesting all problems`);
     const { problems, totalProblems, hasMore, nextCursor } = await getCachedProblems();
+    console.log(`[Cache] Retrieved all problems. (If no [DB] logs appeared, this was a CACHE HIT)`);
 
     // Fetch User Data if needed
     if (userId) {

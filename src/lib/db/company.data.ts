@@ -108,6 +108,8 @@ async function fetchCompaniesWithCursor(
   hasPrev: boolean;
 }> {
   const companiesCol = collection(getFirestore(), "companies");
+  console.log(`[DB] fetchCompaniesWithCursor called. PageSize: ${pageSize}`);
+  let dbReads = 0;
   let queryBuilder = query(
     companiesCol,
     orderBy("normalizedName"),
@@ -133,6 +135,8 @@ async function fetchCompaniesWithCursor(
   }
 
   const querySnapshot = await getDocs(queryBuilder);
+  dbReads += querySnapshot.docs.length;
+  console.log(`[DB] Companies list query executed. Fetched ${querySnapshot.docs.length} docs. Cost: ${querySnapshot.docs.length} reads.`);
   const docs = querySnapshot.docs;
   const hasMore = docs.length > pageSize;
   const hasPrev = !!cursor; // If we have a cursor, we can go back
@@ -242,7 +246,9 @@ export const getCompaniesWithTotalCount = async (
         }
 
         // Get total count (this is expensive!)
+        console.log(`[DB] getCompaniesWithTotalCount: Executing count query.`);
         const countSnapshot = await getCountFromServer(baseQuery);
+        console.log(`[DB] Count query executed. Cost: ~1 read. Total: ${countSnapshot.data().count}`);
         const totalCompanies = countSnapshot.data().count;
         const totalPages = Math.ceil(totalCompanies / pageSize) || 1;
         const currentPage = Math.min(Math.max(1, page), totalPages);
@@ -268,6 +274,7 @@ export const getCompaniesWithTotalCount = async (
         }
 
         const querySnapshot = await getDocs(finalQuery);
+        console.log(`[DB] Companies list (with count) query executed. Fetched ${querySnapshot.docs.length} docs. Cost: ${querySnapshot.docs.length} reads.`);
         const companies = querySnapshot.docs.map(mapFirestoreDocToCompany);
         const hasMore = currentPage < totalPages;
 
@@ -368,7 +375,9 @@ async function fetchCompanyByIdFromFirestore(
   }
 
   const companyDocRef = doc(getFirestore(), "companies", companyId);
+  console.log(`[DB] fetchCompanyByIdFromFirestore: Fetching company ${companyId}`);
   const companySnap = await getDoc(companyDocRef);
+  console.log(`[DB] Company doc fetched. Cost: 1 read. Exists: ${companySnap.exists()}`);
 
   if (companySnap.exists()) {
     const company = mapFirestoreDocToCompany(companySnap);
@@ -436,7 +445,9 @@ async function fetchCompanyBySlugFromFirestore(
   }
 
   const companyDocRef = doc(getFirestore(), "companies", companySlug);
+  console.log(`[DB] fetchCompanyBySlugFromFirestore: Fetching company slug ${companySlug}`);
   const companySnap = await getDoc(companyDocRef);
+  console.log(`[DB] Company slug doc fetched. Cost: 1 read. Exists: ${companySnap.exists()}`);
 
   if (companySnap.exists()) {
     const company = mapFirestoreDocToCompany(companySnap);

@@ -93,6 +93,7 @@ export const dbGetUserBookmarkedProblemsInfo = async (
       orderBy("bookmarkedAt", "desc"),
     );
     const querySnapshot = await getDocs(q);
+    console.log(`[DB] dbGetUserBookmarkedProblemsInfo: Fetched ${querySnapshot.docs.length} bookmarks. Cost: ${querySnapshot.docs.length} reads.`);
     return querySnapshot.docs
       .map((docSnap) => {
         const data = docSnap.data();
@@ -170,6 +171,7 @@ export const dbGetAllUserProblemStatuses = async (
     const progressColRef = collection(db, "users", userId, "problemProgress");
     const q = query(progressColRef, orderBy("updatedAt", "desc"));
     const querySnapshot = await getDocs(q);
+    console.log(`[DB] dbGetAllUserProblemStatuses: Fetched ${querySnapshot.docs.length} statuses. Cost: ${querySnapshot.docs.length} reads.`);
     querySnapshot.forEach((docSnap) => {
       const data = docSnap.data();
       if (data.status && data.companySlug && data.problemSlug) {
@@ -215,6 +217,7 @@ export const dbGetProblemStatusesForIds = async (
     
     const q = query(progressColRef, where(documentId(), "in", problemIds));
     const querySnapshot = await getDocs(q);
+    console.log(`[DB] dbGetProblemStatusesForIds: Fetched ${querySnapshot.docs.length} statuses for ${problemIds.length} IDs. Cost: ${querySnapshot.docs.length} reads.`);
     
     querySnapshot.forEach((docSnap) => {
       const data = docSnap.data();
@@ -257,6 +260,7 @@ export const dbGetBookmarksForIds = async (
     // Using documentId() because the document ID is the problem ID in bookmarkedProblems collection
     const q = query(bookmarksColRef, where(documentId(), "in", problemIds));
     const querySnapshot = await getDocs(q);
+    console.log(`[DB] dbGetBookmarksForIds: Fetched ${querySnapshot.docs.length} bookmarks for ${problemIds.length} IDs. Cost: ${querySnapshot.docs.length} reads.`);
     
     querySnapshot.forEach((docSnap) => {
       bookmarkedIds.add(docSnap.id);
