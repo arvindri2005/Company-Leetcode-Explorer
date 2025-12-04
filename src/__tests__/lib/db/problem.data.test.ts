@@ -88,4 +88,24 @@ describe("getProblemsByCompanyFromDb", () => {
     expect(result.problems[0].isBookmarked).toBeUndefined();
     expect(result.problems[0].currentStatus).toBeUndefined();
   });
+
+  it("should skip getCountFromServer when recencyCounts is provided and filtering by lastAsked", async () => {
+    const companyId = "1";
+    const recencyCounts = {
+      last_30_days: 10,
+      within_3_months: 5,
+      within_6_months: 2,
+      older_than_6_months: 1,
+    };
+
+    // Mock getDocs to return empty list to simplify
+    (getDocs as jest.Mock).mockResolvedValue({ docs: [] });
+
+    await getProblemsByCompanyFromDb(companyId, {
+      lastAskedFilter: ["last_30_days"],
+      recencyCounts,
+    });
+
+    expect(getCountFromServer).not.toHaveBeenCalled();
+  });
 });

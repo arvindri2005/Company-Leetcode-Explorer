@@ -56,6 +56,7 @@ export default async function CompanyPage({ company }: CompanyPageProps) {
       companySlug: company.slug,
       totalProblemCount: company.problemCount,
       difficultyCounts: company.difficultyCounts,
+      recencyCounts: company.recencyCounts,
     },
   );
 

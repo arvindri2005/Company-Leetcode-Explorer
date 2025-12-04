@@ -1,4 +1,4 @@
-import { unstable_cache } from "next/cache";
+import { unstable_cache, revalidateTag } from "next/cache";
 import type { Company, LastAskedPeriod, LeetCodeProblem } from "@/types";
 import { db } from "@/lib/firebase";
 import {
@@ -20,6 +20,7 @@ import {
   getCountFromServer,
   setDoc,
   writeBatch,
+  deleteDoc,
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
 
@@ -51,7 +52,6 @@ interface PaginatedCompaniesResponse {
 }
 
 // Store cursors for navigation
-const paginationCursors = new Map<string, QueryDocumentSnapshot>();
 
 function mapFirestoreDocToCompany(
   docSnap: import("firebase/firestore").DocumentSnapshot,
@@ -85,13 +85,19 @@ function mapFirestoreDocToCompany(
         : undefined,
   };
 }
+// Helper to encode cursor
+function encodeCursor(data: { normalizedName: string; id: string }): string {
+  return Buffer.from(JSON.stringify(data)).toString("base64");
+}
 
-// Generate a unique cursor key
-function generateCursorKey(
-  searchTerm?: string,
-  direction: "next" | "prev" = "next",
-): string {
-  return `${searchTerm || "all"}_${direction}_${Date.now()}`;
+// Helper to decode cursor
+function decodeCursor(cursor: string): { normalizedName: string; id: string } | null {
+  try {
+    return JSON.parse(Buffer.from(cursor, "base64").toString("utf-8"));
+  } catch (e) {
+    console.error("Failed to decode cursor:", e);
+    return null;
+  }
 }
 
 // Cursor-based pagination - only loads visible companies
@@ -99,71 +105,74 @@ async function fetchCompaniesWithCursor(
   pageSize: number,
   searchTerm?: string,
   cursor?: string,
-  direction: "next" | "prev" = "next",
 ): Promise<{
   companies: Company[];
   nextCursor?: string;
-  prevCursor?: string;
+  prevCursor?: string; // Kept for interface compatibility, but usually null in stateless forward-only
   hasMore: boolean;
   hasPrev: boolean;
 }> {
   const companiesCol = collection(getFirestore(), "companies");
   console.log(`[DB] fetchCompaniesWithCursor called. PageSize: ${pageSize}`);
+  
   let dbReads = 0;
-  let queryBuilder = query(
-    companiesCol,
-    orderBy("normalizedName"),
+  
+  // Base query with deterministic ordering
+  let queryConstraints: any[] = [
+    orderBy("normalizedName", "asc"),
+    orderBy("id", "asc"), // Secondary sort for stability
     limit(pageSize + 1),
-  ); // +1 to check if there's more
+  ];
 
   // Apply search filter if provided
   if (searchTerm && searchTerm.trim() !== "") {
     const lowercasedSearchTerm = searchTerm.toLowerCase().trim();
-    queryBuilder = query(
-      companiesCol,
-      orderBy("normalizedName"),
+    queryConstraints = [
       where("normalizedName", ">=", lowercasedSearchTerm),
       where("normalizedName", "<=", lowercasedSearchTerm + "\uf8ff"),
+      orderBy("normalizedName", "asc"),
+      orderBy("id", "asc"),
       limit(pageSize + 1),
-    );
+    ];
   }
 
   // Apply cursor for pagination
-  if (cursor && paginationCursors.has(cursor)) {
-    const cursorDoc = paginationCursors.get(cursor)!;
-    queryBuilder = query(queryBuilder, startAfter(cursorDoc));
+  if (cursor) {
+    const decoded = decodeCursor(cursor);
+    if (decoded) {
+      queryConstraints.push(startAfter(decoded.normalizedName, decoded.id));
+    }
   }
+
+  const queryBuilder = query(companiesCol, ...queryConstraints);
 
   const querySnapshot = await getDocs(queryBuilder);
   dbReads += querySnapshot.docs.length;
   console.log(`[DB] Companies list query executed. Fetched ${querySnapshot.docs.length} docs. Cost: ${querySnapshot.docs.length} reads.`);
+  
   const docs = querySnapshot.docs;
   const hasMore = docs.length > pageSize;
-  const hasPrev = !!cursor; // If we have a cursor, we can go back
-
+  
   // Remove the extra document used for hasMore check
   const companies = docs.slice(0, pageSize).map(mapFirestoreDocToCompany);
 
-  // Generate cursors for navigation
+  // Generate next cursor
   let nextCursor: string | undefined;
-  let prevCursor: string | undefined;
-
+  
   if (hasMore && companies.length > 0) {
-    nextCursor = generateCursorKey(searchTerm, "next");
-    paginationCursors.set(nextCursor, docs[pageSize - 1]);
-  }
-
-  if (hasPrev && companies.length > 0) {
-    prevCursor = generateCursorKey(searchTerm, "prev");
-    paginationCursors.set(prevCursor, docs[0]);
+    const lastCompany = companies[companies.length - 1];
+    nextCursor = encodeCursor({
+      normalizedName: lastCompany.normalizedName || "",
+      id: lastCompany.id
+    });
   }
 
   return {
     companies,
     nextCursor,
-    prevCursor,
+    prevCursor: undefined, // Stateless back pagination is complex, omitting for now
     hasMore,
-    hasPrev,
+    hasPrev: !!cursor, // If we have a cursor, we are not on the first page
   };
 }
 
@@ -183,15 +192,41 @@ export async function getCompanies({
   try {
     const normalizedSearchTerm = searchTerm?.trim();
 
-    // Use cursor-based pagination for better performance
+    // Cache the initial load (no search, no cursor/page 1)
+    if (!cursor && (!normalizedSearchTerm || normalizedSearchTerm === "") && page === 1) {
+       const cacheKey = `companies-list-initial-${pageSize}`;
+       
+       const getCachedInitialCompanies = unstable_cache(
+         async () => {
+           return await fetchCompaniesWithCursor(pageSize, undefined, undefined);
+         },
+         [cacheKey],
+         {
+           revalidate: 3600, // 1 hour
+           tags: ["companies-list"],
+         }
+       );
+       
+       const result = await getCachedInitialCompanies();
+       
+       return {
+        companies: result.companies,
+        nextCursor: result.nextCursor,
+        prevCursor: result.prevCursor,
+        hasMore: result.hasMore,
+        currentPage: 1,
+        totalPages: undefined,
+        totalCompanies: undefined,
+      };
+    }
+
+    // Non-cached path (search or pagination)
     const result = await fetchCompaniesWithCursor(
       pageSize,
       normalizedSearchTerm,
       cursor,
     );
 
-    // For backward compatibility, calculate approximate page info
-    // Note: This is less accurate but more performant than counting all documents
     return {
       companies: result.companies,
       nextCursor: result.nextCursor,
@@ -214,105 +249,6 @@ export async function getCompanies({
   }
 }
 
-/**
- * @function getCompaniesWithTotalCount
- * @description Fetches a paginated list of companies using traditional offset-based pagination.
- * This function is less performant as it calculates the total number of companies to provide total page counts, which involves an expensive Firestore count operation.
- * Use this only when total counts are absolutely necessary.
- * @param {Omit<GetCompaniesParams, "cursor">} [params={}] - The parameters for fetching companies, including page and page size.
- * @returns {Promise<PaginatedCompaniesResponse>} A promise that resolves to a paginated list of companies with full pagination details.
- */
-export const getCompaniesWithTotalCount = async (
-  params: Omit<GetCompaniesParams, "cursor"> = {},
-): Promise<PaginatedCompaniesResponse> => {
-  const { page = 1, pageSize = 9, searchTerm } = params;
-  const cacheKey = `companies-list-${page}-${pageSize}-${searchTerm || "all"}`;
-
-  const getCachedData = unstable_cache(
-    async () => {
-      try {
-        const companiesCol = collection(getFirestore(), "companies");
-        let baseQuery = query(companiesCol, orderBy("normalizedName"));
-
-        const normalizedSearchTerm = searchTerm?.trim();
-        if (normalizedSearchTerm) {
-          const lowercasedSearchTerm = normalizedSearchTerm.toLowerCase();
-          baseQuery = query(
-            companiesCol,
-            orderBy("normalizedName"),
-            where("normalizedName", ">=", lowercasedSearchTerm),
-            where("normalizedName", "<=", lowercasedSearchTerm + "\uf8ff"),
-          );
-        }
-
-        // Get total count (this is expensive!)
-        console.log(`[DB] getCompaniesWithTotalCount: Executing count query.`);
-        const countSnapshot = await getCountFromServer(baseQuery);
-        console.log(`[DB] Count query executed. Cost: ~1 read. Total: ${countSnapshot.data().count}`);
-        const totalCompanies = countSnapshot.data().count;
-        const totalPages = Math.ceil(totalCompanies / pageSize) || 1;
-        const currentPage = Math.min(Math.max(1, page), totalPages);
-
-        // Calculate offset for traditional pagination
-        const offset = (currentPage - 1) * pageSize;
-
-        // Get the actual data with limit
-        let finalQuery = query(baseQuery, limit(pageSize));
-
-        if (offset > 0) {
-          const skipQuery = query(baseQuery, limit(offset));
-          const skipSnapshot = await getDocs(skipQuery);
-          if (skipSnapshot.docs.length > 0) {
-            const lastSkippedDoc =
-              skipSnapshot.docs[skipSnapshot.docs.length - 1];
-            finalQuery = query(
-              baseQuery,
-              startAfter(lastSkippedDoc),
-              limit(pageSize),
-            );
-          }
-        }
-
-        const querySnapshot = await getDocs(finalQuery);
-        console.log(`[DB] Companies list (with count) query executed. Fetched ${querySnapshot.docs.length} docs. Cost: ${querySnapshot.docs.length} reads.`);
-        const companies = querySnapshot.docs.map(mapFirestoreDocToCompany);
-        const hasMore = currentPage < totalPages;
-
-        let nextCursor: string | undefined;
-        if (hasMore && querySnapshot.docs.length > 0) {
-          const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
-          nextCursor = generateCursorKey(searchTerm, "next");
-          paginationCursors.set(nextCursor, lastDoc);
-        }
-
-        return {
-          companies,
-          totalCompanies,
-          totalPages,
-          currentPage,
-          hasMore,
-          nextCursor,
-        };
-      } catch (error) {
-        console.error("Error in getCompaniesWithTotalCount:", error);
-        return {
-          companies: [],
-          totalCompanies: 0,
-          totalPages: 1,
-          currentPage: 1,
-          hasMore: false,
-        };
-      }
-    },
-    [cacheKey],
-    {
-      revalidate: 3600, // Cache for 1 hour
-      tags: ["companies-list"],
-    },
-  );
-
-  return getCachedData();
-};
 
 /**
  * @function loadMoreCompanies
@@ -352,10 +288,7 @@ export async function loadMoreCompanies(
 }
 
 // Optimized individual company fetchers with simple caching
-const singleCompanyCache = new Map<
-  string,
-  { company: Company; timestamp: number }
->();
+// Removed singleCompanyCache in favor of unstable_cache
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 1 day
 
 async function fetchCompanyByIdFromFirestore(
@@ -367,12 +300,6 @@ async function fetchCompanyByIdFromFirestore(
     return undefined;
   }
 
-  if (useCache && singleCompanyCache.has(companyId)) {
-    const cached = singleCompanyCache.get(companyId)!;
-    if (Date.now() - cached.timestamp < CACHE_DURATION) {
-      return cached.company;
-    }
-  }
 
   const companyDocRef = doc(getFirestore(), "companies", companyId);
   console.log(`[DB] fetchCompanyByIdFromFirestore: Fetching company ${companyId}`);
@@ -381,12 +308,6 @@ async function fetchCompanyByIdFromFirestore(
 
   if (companySnap.exists()) {
     const company = mapFirestoreDocToCompany(companySnap);
-    if (useCache) {
-      singleCompanyCache.set(companyId, {
-        company,
-        timestamp: Date.now(),
-      });
-    }
     return company;
   }
   return undefined;
@@ -436,13 +357,6 @@ async function fetchCompanyBySlugFromFirestore(
     return undefined;
   }
 
-  const cacheKey = `slug_${companySlug}`;
-  if (useCache && singleCompanyCache.has(cacheKey)) {
-    const cached = singleCompanyCache.get(cacheKey)!;
-    if (Date.now() - cached.timestamp < CACHE_DURATION) {
-      return cached.company;
-    }
-  }
 
   const companyDocRef = doc(getFirestore(), "companies", companySlug);
   console.log(`[DB] fetchCompanyBySlugFromFirestore: Fetching company slug ${companySlug}`);
@@ -451,12 +365,6 @@ async function fetchCompanyBySlugFromFirestore(
 
   if (companySnap.exists()) {
     const company = mapFirestoreDocToCompany(companySnap);
-    if (useCache) {
-      singleCompanyCache.set(cacheKey, {
-        company,
-        timestamp: Date.now(),
-      });
-    }
     return company;
   }
   return undefined;
@@ -544,34 +452,35 @@ export const getAllCompanySlugs = async (
  * @description Clears all in-memory caches related to company data, including single company cache, slug cache, and pagination cursors.
  * This should be called after any write operation (add, update, delete) to ensure data consistency.
  */
-// Cached companies list fetching
-const companiesListCache = new Map<
-  string,
-  { response: PaginatedCompaniesResponse; timestamp: number }
->();
-
-/**
- * @function invalidateCompaniesCache
- * @description Clears all in-memory caches related to company data, including single company cache, slug cache, pagination cursors, and list cache.
- * This should be called after any write operation (add, update, delete) to ensure data consistency.
- */
 export const invalidateCompaniesCache = () => {
-  singleCompanyCache.clear();
+  // singleCompanyCache.clear(); // Removed
   cachedSlugs = null;
-  paginationCursors.clear();
-  companiesListCache.clear();
 };
 
 /**
  * @function revalidateCompaniesPage
  * @description Triggers a revalidation of the Next.js pages that display company data and invalidates the in-memory cache.
+ * @param {string} [companyId] - The ID of the company to revalidate.
+ * @param {string} [companySlug] - The slug of the company to revalidate.
  * @async
  */
-async function revalidateCompaniesPage() {
+async function revalidateCompaniesPage(companyId?: string, companySlug?: string) {
   try {
-    // We no longer trigger the admin API revalidation here as it's being removed.
-    // The server action calling this data layer should handle Next.js cache revalidation (revalidatePath/revalidateTag).
+    // Invalidate in-memory caches
     invalidateCompaniesCache();
+    
+    // Invalidate Next.js Data Cache tags
+    revalidateTag("companies-list");
+    
+    if (companyId) {
+      revalidateTag(`company-${companyId}`);
+    }
+    
+    if (companySlug) {
+      revalidateTag(`company-slug-${companySlug}`);
+    }
+    
+    console.log(`[Cache] Revalidated companies page. Id: ${companyId}, Slug: ${companySlug}`);
   } catch (error) {
     console.error("Failed to revalidate companies page:", error);
   }
@@ -649,7 +558,7 @@ export const addCompanyToDb = async (
     const docRef = doc(companiesCol, companySlug);
     await setDoc(docRef, dataForFirestore);
 
-    await revalidateCompaniesPage();
+    await revalidateCompaniesPage(companySlug, companySlug);
 
     return { id: companySlug };
   } catch (error) {
@@ -704,7 +613,15 @@ export const updateCompanyInDb = async (
     const companyDocRef = doc(getFirestore(), "companies", companyId);
     await updateDoc(companyDocRef, updates);
 
-    await revalidateCompaniesPage();
+    // We need the slug to invalidate the slug cache, but we might not have it here.
+    // Ideally we should fetch it, but that adds a read.
+    // For now, we invalidate the ID cache and the list.
+    // If the caller knows the slug, they should pass it, but the signature doesn't allow it.
+    // We can try to fetch the company from cache to get the slug?
+    const existingCompany = await getCompanyById(companyId);
+    const companySlug = existingCompany?.slug;
+
+    await revalidateCompaniesPage(companyId, companySlug);
 
     return { success: true };
   } catch (error) {
@@ -751,7 +668,16 @@ export const bulkDeleteCompaniesFromDb = async (
       await currentBatch.commit();
     }
 
+    // We can't easily know all slugs without fetching them first.
+    // So we just invalidate the list and the IDs.
+    // This might leave stale slug caches if accessed directly, but they will eventually expire.
+    // To be safe, we could invalidate ALL company caches, but we don't have a global tag for that except 'companies-list'.
+    
     await revalidateCompaniesPage();
+    // Also invalidate each ID
+    for (const id of companyIds) {
+       revalidateTag(`company-${id}`);
+    }
 
     return { success: true, deletedCount: companyIds.length };
   } catch (error) {
@@ -783,9 +709,9 @@ export const deleteCompanyFromDb = async (
     // Optional: Check if it exists first? Not strictly necessary for delete, but good for reporting.
     // Firestore delete succeeds even if doc doesn't exist.
     
-    await import("firebase/firestore").then(mod => mod.deleteDoc(companyDocRef));
+    await deleteDoc(companyDocRef);
 
-    await revalidateCompaniesPage();
+    await revalidateCompaniesPage(companyId);
 
     return { success: true };
   } catch (error) {

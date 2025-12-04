@@ -34,43 +34,6 @@ import {
   dbGetBookmarksForIds,
 } from "./user.data";
 
-async function fetchAllProblemsForCompanyFromFirestore(
-  compId?: string,
-): Promise<LeetCodeProblem[]> {
-  if (!compId || typeof compId !== "string") {
-    console.warn(
-      "fetchAllProblemsForCompanyFromFirestore: compId was undefined or not a string.",
-      compId,
-    );
-    return [];
-  }
-  const companyDoc = await getCompanyById(compId);
-  const companySlugValue = companyDoc?.slug;
-
-  const problemsColRef = collection(db, "problems");
-  // Use array-contains to find problems for this company.
-  // We sort in memory to avoid needing a composite index on (companyIds, normalizedTitle).
-  const q = query(problemsColRef, where("companyIds", "array-contains", compId));
-  const problemSnapshot = await getDocs(q);
-  
-  const problems = problemSnapshot.docs.map((docSnap) => {
-    const data = docSnap.data();
-    // Map the company-specific data from the 'companies' map if available
-    const companySpecificData = data.companies?.[compId] || {};
-    
-    return {
-      id: docSnap.id, // This is now the slug
-      companyId: compId, // Legacy/Primary for this view
-      companySlug: companySlugValue || slugify(companyDoc?.name || "unknown"), // Legacy/Primary
-      slug: docSnap.id,
-      ...data,
-      ...companySpecificData, // Override with company-specific data (e.g. lastAskedPeriod)
-    } as LeetCodeProblem;
-  });
-
-  // Sort by normalizedTitle
-  return problems.sort((a, b) => a.normalizedTitle.localeCompare(b.normalizedTitle));
-}
 
 /**
  * @function getProblemsByCompanyFromDb
@@ -101,6 +64,12 @@ const fetchProblemsByCompanyCore = async (
     companySlug?: string;
     totalProblemCount?: number;
     difficultyCounts?: { Easy: number; Medium: number; Hard: number };
+    recencyCounts?: {
+      last_30_days: number;
+      within_3_months: number;
+      within_6_months: number;
+      older_than_6_months: number;
+    };
   }
 ) => {
   const {
@@ -113,6 +82,7 @@ const fetchProblemsByCompanyCore = async (
     companySlug,
     totalProblemCount,
     difficultyCounts,
+    recencyCounts,
   } = params;
 
   console.log(`[DB] fetchProblemsByCompanyCore called for ${companyId} (Cache Miss)`);
@@ -180,6 +150,16 @@ const fetchProblemsByCompanyCore = async (
           ) {
              // Sum up counts for selected difficulties
              totalProblems = difficultyFilter.reduce((acc, diff) => acc + (difficultyCounts[diff] || 0), 0);
+          }
+          // Case 3: Only LastAsked filter (and we have counts)
+          else if (
+            recencyCounts &&
+            difficultyFilter.length === 0 &&
+            lastAskedFilter.length > 0 &&
+            residualLastAskedFilter.length === 0
+          ) {
+             // Sum up counts for selected recency periods
+             totalProblems = lastAskedFilter.reduce((acc, period) => acc + (recencyCounts[period] || 0), 0);
           }
           else {
               const countQuery = query(problemsColRef, ...constraints);
@@ -401,6 +381,12 @@ export const getProblemsByCompanyFromDb = async (
     companySlug?: string;
     totalProblemCount?: number;
     difficultyCounts?: { Easy: number; Medium: number; Hard: number };
+    recencyCounts?: {
+      last_30_days: number;
+      within_3_months: number;
+      within_6_months: number;
+      older_than_6_months: number;
+    };
   } = {},
 ): Promise<PaginatedProblemsResponse> => {
   const {
@@ -414,6 +400,7 @@ export const getProblemsByCompanyFromDb = async (
     companySlug,
     totalProblemCount,
     difficultyCounts,
+    recencyCounts,
   } = params;
 
   try {
@@ -438,6 +425,7 @@ export const getProblemsByCompanyFromDb = async (
           companySlug,
           totalProblemCount,
           difficultyCounts,
+          recencyCounts,
         });
       },
       [cacheKey],
