@@ -99,6 +99,8 @@ const fetchProblemsByCompanyCore = async (
     searchTerm?: string;
     sortKey?: SortKey;
     companySlug?: string;
+    totalProblemCount?: number;
+    difficultyCounts?: { Easy: number; Medium: number; Hard: number };
   }
 ) => {
   const {
@@ -109,6 +111,8 @@ const fetchProblemsByCompanyCore = async (
     searchTerm = "",
     sortKey = "title",
     companySlug,
+    totalProblemCount,
+    difficultyCounts,
   } = params;
 
   const problemsColRef = collection(db, "problems");
@@ -132,7 +136,7 @@ const fetchProblemsByCompanyCore = async (
     }
   }
 
-  // Apply Last Asked Filter
+  // Apply LastAsked Filter
   if (lastAskedFilter.length > 0) {
     const fieldPath = `companies.${companyId}.lastAskedPeriod`;
     if (lastAskedFilter.length === 1) {
@@ -150,23 +154,54 @@ const fetchProblemsByCompanyCore = async (
     residualLastAskedFilter.length > 0 ||
     searchTerm.trim() !== "";
 
-  const isDefaultSort = sortKey === "title";
+  const isSupportedSort = sortKey === "title" || sortKey === "difficulty";
 
-  if (!hasResidualFilters && isDefaultSort) {
+  if (!hasResidualFilters && isSupportedSort) {
       try {
           // Fully Optimized Path
           // 1. Get Count
-          const countQuery = query(problemsColRef, ...constraints);
-          const countSnapshot = await getCountFromServer(countQuery);
-          const totalProblems = countSnapshot.data().count;
+          let totalProblems = 0;
+          
+          // Case 1: No filters (except companyId)
+          if (constraints.length === 1 && totalProblemCount !== undefined) {
+              totalProblems = totalProblemCount;
+          } 
+          // Case 2: Only Difficulty filter (and we have counts)
+          // constraints has companyId + difficulty (== or in)
+          // AND no lastAskedFilter (checked by constraints length logic or explicit check)
+          else if (
+            difficultyCounts && 
+            lastAskedFilter.length === 0 && 
+            difficultyFilter.length > 0 &&
+            residualDifficultyFilter.length === 0
+          ) {
+             // Sum up counts for selected difficulties
+             totalProblems = difficultyFilter.reduce((acc, diff) => acc + (difficultyCounts[diff] || 0), 0);
+          }
+          else {
+              const countQuery = query(problemsColRef, ...constraints);
+              const countSnapshot = await getCountFromServer(countQuery);
+              totalProblems = countSnapshot.data().count;
+          }
 
           // 2. Get Page
-          let q = query(
-            problemsColRef,
+          // Determine sort field and direction
+          const sortField = sortKey === "difficulty" ? "difficulty" : "normalizedTitle";
+          
+          // Construct query with primary sort
+          let queryConstraints = [
             ...constraints,
-            orderBy("normalizedTitle", "asc"),
-            limit(pageSize)
-          );
+            orderBy(sortField, "asc")
+          ];
+
+          // Add secondary sort by normalizedTitle if primary is difficulty for deterministic order
+          if (sortKey === "difficulty") {
+            queryConstraints.push(orderBy("normalizedTitle", "asc"));
+          }
+
+          queryConstraints.push(limit(pageSize));
+
+          let q = query(problemsColRef, ...queryConstraints);
 
           if (cursor) {
             const cursorDocRef = doc(db, "problems", cursor);
@@ -175,7 +210,8 @@ const fetchProblemsByCompanyCore = async (
               q = query(
                 problemsColRef,
                 ...constraints,
-                orderBy("normalizedTitle", "asc"),
+                orderBy(sortField, "asc"),
+                ...(sortKey === "difficulty" ? [orderBy("normalizedTitle", "asc")] : []),
                 startAfter(cursorDocSnap),
                 limit(pageSize)
               );
@@ -213,7 +249,7 @@ const fetchProblemsByCompanyCore = async (
           };
       } catch (error: any) {
           if (error.code === 'failed-precondition' || error.message?.includes("index")) {
-              console.warn("Missing index for optimized query in getProblemsByCompanyFromDb, falling back to client-side filtering.");
+              console.warn("Missing index for optimized query in getProblemsByCompanyFromDb, falling back to client-side filtering.", error.message);
               // Fall through to semi-optimized path
           } else {
               throw error;
@@ -350,6 +386,8 @@ export const getProblemsByCompanyFromDb = async (
     sortKey?: SortKey;
     userId?: string;
     companySlug?: string;
+    totalProblemCount?: number;
+    difficultyCounts?: { Easy: number; Medium: number; Hard: number };
   } = {},
 ): Promise<PaginatedProblemsResponse> => {
   const {
@@ -361,6 +399,8 @@ export const getProblemsByCompanyFromDb = async (
     sortKey = "title",
     userId,
     companySlug,
+    totalProblemCount,
+    difficultyCounts,
   } = params;
 
   try {
@@ -383,6 +423,8 @@ export const getProblemsByCompanyFromDb = async (
           searchTerm,
           sortKey,
           companySlug,
+          totalProblemCount,
+          difficultyCounts,
         });
       },
       [cacheKey],
@@ -547,7 +589,7 @@ const fetchAllProblemsCore = async (
           };
       } catch (error: any) {
           if (error.code === 'failed-precondition' || error.message?.includes("index")) {
-              console.warn("Missing index for optimized query in getAllProblemsPaginated, falling back to client-side filtering.");
+              console.warn("Missing index for optimized query in getAllProblemsPaginated, falling back to client-side filtering.", error.message);
               // Fall through to semi-optimized path
           } else {
               throw error;

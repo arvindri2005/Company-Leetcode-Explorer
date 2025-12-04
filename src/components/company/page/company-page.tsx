@@ -54,6 +54,8 @@ export default async function CompanyPage({ company }: CompanyPageProps) {
     {
       pageSize: INITIAL_ITEMS_PER_PAGE,
       companySlug: company.slug,
+      totalProblemCount: company.problemCount,
+      difficultyCounts: company.difficultyCounts,
     },
   );
 

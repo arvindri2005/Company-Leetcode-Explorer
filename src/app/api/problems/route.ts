@@ -27,6 +27,14 @@ const problemRequestSchema = z.object({
   cursor: z.string().optional(),
   pageSize: z.number().min(1).max(50).default(15),
   userId: z.string().optional(),
+  // Optimization hints
+  totalProblemCount: z.number().optional(),
+  difficultyCounts: z.object({
+    Easy: z.number(),
+    Medium: z.number(),
+    Hard: z.number(),
+  }).optional(),
+  companySlug: z.string().optional(),
   filters: z
     .object({
       difficultyFilter: z.array(z.string()).optional(),
@@ -65,11 +73,35 @@ export async function POST(request: Request) {
       );
     }
 
-    const { companyId, cursor, pageSize, filters, userId } = parsedRequest.data;
+    const { 
+      companyId, 
+      cursor, 
+      pageSize, 
+      filters, 
+      userId,
+      totalProblemCount,
+      difficultyCounts,
+      companySlug
+    } = parsedRequest.data;
     console.log("[API] /api/problems called with userId:", userId);
 
     let result;
     if (companyId) {
+      // Optimization: If we have counts and slug from client, we can skip fetching company
+      let companySlugToUse = companySlug;
+      let totalProblemCountToUse = totalProblemCount;
+      let difficultyCountsToUse = difficultyCounts;
+
+      if (!companySlugToUse || totalProblemCountToUse === undefined || !difficultyCountsToUse) {
+         // Fetch company to get optimization data (counts, slug)
+         // This is cached, so it's cheap compared to getCountFromServer
+         const { getCompanyById } = await import("@/lib/data");
+         const company = await getCompanyById(companyId);
+         companySlugToUse = company?.slug;
+         totalProblemCountToUse = company?.problemCount;
+         difficultyCountsToUse = company?.difficultyCounts;
+      }
+
       result = await getProblemsByCompanyFromDb(companyId, {
         cursor,
         pageSize,
@@ -78,6 +110,10 @@ export async function POST(request: Request) {
         searchTerm: filters?.searchTerm,
         sortKey: filters?.sortKey as SortKey,
         userId,
+        // Optimization params
+        companySlug: companySlugToUse,
+        totalProblemCount: totalProblemCountToUse,
+        difficultyCounts: difficultyCountsToUse,
       });
     } else {
       // Fetch all problems if no companyId is provided

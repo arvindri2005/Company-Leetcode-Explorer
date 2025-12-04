@@ -6,6 +6,8 @@
  */
 "use client";
 
+import type { User } from "firebase/auth";
+
 import type {
   LeetCodeProblem,
   ProblemListFilters,
@@ -46,6 +48,8 @@ interface ProblemListProps {
   initialNextCursor?: string;
   itemsPerPage: number;
   initialFilters: ProblemListFilters;
+  totalProblemCount?: number;
+  difficultyCounts?: { Easy: number; Medium: number; Hard: number };
 }
 
 const ProblemList: React.FC<ProblemListProps> = ({
@@ -56,6 +60,8 @@ const ProblemList: React.FC<ProblemListProps> = ({
   initialNextCursor,
   itemsPerPage,
   initialFilters,
+  totalProblemCount,
+  difficultyCounts,
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -125,6 +131,10 @@ const ProblemList: React.FC<ProblemListProps> = ({
             pageSize: itemsPerPage,
             filters: currentFilters,
             userId: user?.uid,
+            // Optimization hints
+            totalProblemCount,
+            difficultyCounts,
+            companySlug,
           }),
         });
 
@@ -167,7 +177,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
     [filters, fetchProblems],
   );
 
-  const prevUserRef = useRef(null);
+  const prevUserRef = useRef<User | null>(null);
 
   useEffect(() => {
     const userJustLoggedIn = user && !prevUserRef.current;

@@ -34,7 +34,7 @@ describe('CompanyProblemStats', () => {
     logo: 'logo.png',
     problemCount: 10,
     website: 'https://example.com',
-    statsLastUpdatedAt: new Date().toISOString(),
+    statsLastUpdatedAt: new Date(),
     difficultyCounts: {
       Easy: 5,
       Medium: 3,

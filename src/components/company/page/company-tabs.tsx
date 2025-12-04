@@ -133,6 +133,8 @@ export default function CompanyTabs({
             initialNextCursor={initialNextCursor ?? undefined}
             itemsPerPage={itemsPerPage}
             initialFilters={initialFilters}
+            totalProblemCount={company.problemCount}
+            difficultyCounts={company.difficultyCounts}
           />
         </TabsContent>
         <TabsContent value="stats" className="mt-0 transition-all duration-300 ease-in-out">
