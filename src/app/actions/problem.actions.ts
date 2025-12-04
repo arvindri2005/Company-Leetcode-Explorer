@@ -155,3 +155,26 @@ export async function getProblemDetailsBatchAction(
     return [];
   }
 }
+
+/**
+ * Fetches a problem and its associated company data using their respective slugs.
+ *
+ * @param {string} companySlug - The slug of the company.
+ * @param {string} problemSlug - The slug of the problem.
+ * @returns {Promise<{ company: Company | undefined; problem: LeetCodeProblem | undefined }>}
+ */
+export async function getProblemByCompanySlugAndProblemSlugAction(
+  companySlug: string,
+  problemSlug: string,
+) {
+  try {
+    const { getProblemByCompanySlugAndProblemSlug } = await import("@/lib/data");
+    return await getProblemByCompanySlugAndProblemSlug(companySlug, problemSlug);
+  } catch (error) {
+    console.error(
+      `Error fetching problem by company slug ${companySlug} and problem slug ${problemSlug}:`,
+      error,
+    );
+    return { company: undefined, problem: undefined };
+  }
+}

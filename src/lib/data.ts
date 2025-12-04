@@ -1,9 +1,9 @@
 import { db } from "./firebase";
 import { collection, getDocs, query, limit } from "firebase/firestore";
 
-export * from "./db/company.data";
-export * from "./db/problem.data";
-export * from "./db/user.data";
+export * from "./db/company";
+export * from "./db/problem";
+export * from "./db/user";
 
 /**
  * @function hasData

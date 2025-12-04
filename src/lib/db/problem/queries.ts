@@ -17,38 +17,19 @@ import {
   query,
   where,
   limit,
-  addDoc,
-  updateDoc,
   orderBy,
-  collectionGroup,
-  setDoc,
   startAfter,
   getCountFromServer,
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
-import { getCompanyById, getCompanyBySlug } from "./company.data";
+import { getCompanyById, getCompanyBySlug } from "../company";
 import {
   dbGetUserBookmarkedProblemsInfo,
   dbGetAllUserProblemStatuses,
   dbGetProblemStatusesForIds,
   dbGetBookmarksForIds,
-} from "./user.data";
+} from "../user"; // Assuming this will be created
 
-
-/**
- * @function getProblemsByCompanyFromDb
- * @description Fetches a paginated, filtered, and sorted list of problems for a specific company.
- * @param {string} companyId - The ID of the company to fetch problems for.
- * @param {object} [params={}] - The parameters for filtering, sorting, and pagination.
- * @param {string} [params.cursor] - The cursor for the next page of results.
- * @param {number} [params.pageSize=10] - The number of problems to return per page.
- * @param {DifficultyFilter} [params.difficultyFilter='all'] - The difficulty level to filter by.
- * @param {LastAskedFilter} [params.lastAskedFilter='all'] - The recency period to filter by.
- * @param {string} [params.searchTerm=''] - A search term to filter problems by title or tags.
- * @param {SortKey} [params.sortKey='title'] - The key to sort the problems by.
- * @param {string} [params.userId] - The ID of the user to fetch bookmarks and status for.
- * @returns {Promise<PaginatedProblemsResponse>} A promise that resolves to the paginated list of problems.
- */
 /**
  * Core function to fetch problems for a company from DB (Cached)
  */
@@ -70,7 +51,7 @@ const fetchProblemsByCompanyCore = async (
       within_6_months: number;
       older_than_6_months: number;
     };
-  }
+  },
 ) => {
   const {
     cursor,
@@ -85,11 +66,13 @@ const fetchProblemsByCompanyCore = async (
     recencyCounts,
   } = params;
 
-  console.log(`[DB] fetchProblemsByCompanyCore called for ${companyId} (Cache Miss)`);
+  console.log(
+    `[DB] fetchProblemsByCompanyCore called for ${companyId} (Cache Miss)`,
+  );
   let dbReads = 0;
 
   const problemsColRef = collection(db, "problems");
-  
+
   // Base constraints
   const constraints: any[] = [where("companyIds", "array-contains", companyId)];
 
@@ -130,121 +113,138 @@ const fetchProblemsByCompanyCore = async (
   const isSupportedSort = sortKey === "title" || sortKey === "difficulty";
 
   if (!hasResidualFilters && isSupportedSort) {
-      try {
-          // Fully Optimized Path
-          // 1. Get Count
-          let totalProblems = 0;
-          
-          // Case 1: No filters (except companyId)
-          if (constraints.length === 1 && totalProblemCount !== undefined) {
-              totalProblems = totalProblemCount;
-          } 
-          // Case 2: Only Difficulty filter (and we have counts)
-          // constraints has companyId + difficulty (== or in)
-          // AND no lastAskedFilter (checked by constraints length logic or explicit check)
-          else if (
-            difficultyCounts && 
-            lastAskedFilter.length === 0 && 
-            difficultyFilter.length > 0 &&
-            residualDifficultyFilter.length === 0
-          ) {
-             // Sum up counts for selected difficulties
-             totalProblems = difficultyFilter.reduce((acc, diff) => acc + (difficultyCounts[diff] || 0), 0);
-          }
-          // Case 3: Only LastAsked filter (and we have counts)
-          else if (
-            recencyCounts &&
-            difficultyFilter.length === 0 &&
-            lastAskedFilter.length > 0 &&
-            residualLastAskedFilter.length === 0
-          ) {
-             // Sum up counts for selected recency periods
-             totalProblems = lastAskedFilter.reduce((acc, period) => acc + (recencyCounts[period] || 0), 0);
-          }
-          else {
-              const countQuery = query(problemsColRef, ...constraints);
-              const countSnapshot = await getCountFromServer(countQuery);
-              totalProblems = countSnapshot.data().count;
-              dbReads += 1; // Aggregation query counts as 1 document read (per 1000 index entries, simplified here)
-              console.log(`[DB] Count query executed. Cost: ~1 read. Total: ${totalProblems}`);
-          }
+    try {
+      // Fully Optimized Path
+      // 1. Get Count
+      let totalProblems = 0;
 
-          // 2. Get Page
-          // Determine sort field and direction
-          const sortField = sortKey === "difficulty" ? "difficulty" : "normalizedTitle";
-          
-          // Construct query with primary sort
-          let queryConstraints = [
-            ...constraints,
-            orderBy(sortField, "asc")
-          ];
-
-          // Add secondary sort by normalizedTitle if primary is difficulty for deterministic order
-          if (sortKey === "difficulty") {
-            queryConstraints.push(orderBy("normalizedTitle", "asc"));
-          }
-
-          queryConstraints.push(limit(pageSize));
-
-          let q = query(problemsColRef, ...queryConstraints);
-
-          if (cursor) {
-            const cursorDocRef = doc(db, "problems", cursor);
-            const cursorDocSnap = await getDoc(cursorDocRef);
-            if (cursorDocSnap.exists()) {
-              dbReads += 1;
-              console.log(`[DB] Cursor doc fetched. Cost: 1 read.`);
-              q = query(
-                problemsColRef,
-                ...constraints,
-                orderBy(sortField, "asc"),
-                ...(sortKey === "difficulty" ? [orderBy("normalizedTitle", "asc")] : []),
-                startAfter(cursorDocSnap),
-                limit(pageSize)
-              );
-            }
-          }
-
-          const problemSnapshot = await getDocs(q);
-          dbReads += problemSnapshot.docs.length;
-          console.log(`[DB] Main problems query executed. Fetched ${problemSnapshot.docs.length} docs. Cost: ${problemSnapshot.docs.length} reads.`);
-          const docs = problemSnapshot.docs;
-          const hasMore = docs.length === pageSize;
-
-          let finalCompanySlug = companySlug;
-          if (!finalCompanySlug) {
-               const company = await getCompanyById(companyId);
-               finalCompanySlug = company?.slug || slugify(company?.name || "unknown");
-          }
-
-          const problems = docs.map((docSnap) => {
-              const data = docSnap.data();
-              const companySpecificData = data.companies?.[companyId] || {};
-              return {
-                id: docSnap.id,
-                companyId: companyId,
-                companySlug: finalCompanySlug!,
-                slug: docSnap.id,
-                ...data,
-                ...companySpecificData,
-              } as LeetCodeProblem;
-          });
-
-          console.log(`[DB] fetchProblemsByCompanyCore finished. Total DB Reads: ${dbReads}`);
-          return {
-              problems,
-              totalProblems,
-              hasMore,
-              nextCursor: hasMore ? problems[problems.length - 1].id : undefined,
-          };
-      } catch (error: any) {
-          if (error.code === 'failed-precondition' || error.message?.includes("index")) {
-              console.warn("Missing index for optimized query in getProblemsByCompanyFromDb, falling back to client-side filtering.", error.message);
-              // Fall through to semi-optimized path
-          } else {
-              throw error;
-          }
+      // Case 1: No filters (except companyId)
+      if (constraints.length === 1 && totalProblemCount !== undefined) {
+        totalProblems = totalProblemCount;
       }
+      // Case 2: Only Difficulty filter (and we have counts)
+      // constraints has companyId + difficulty (== or in)
+      // AND no lastAskedFilter (checked by constraints length logic or explicit check)
+      else if (
+        difficultyCounts &&
+        lastAskedFilter.length === 0 &&
+        difficultyFilter.length > 0 &&
+        residualDifficultyFilter.length === 0
+      ) {
+        // Sum up counts for selected difficulties
+        totalProblems = difficultyFilter.reduce(
+          (acc, diff) => acc + (difficultyCounts[diff] || 0),
+          0,
+        );
+      }
+      // Case 3: Only LastAsked filter (and we have counts)
+      else if (
+        recencyCounts &&
+        difficultyFilter.length === 0 &&
+        lastAskedFilter.length > 0 &&
+        residualLastAskedFilter.length === 0
+      ) {
+        // Sum up counts for selected recency periods
+        totalProblems = lastAskedFilter.reduce(
+          (acc, period) => acc + (recencyCounts[period] || 0),
+          0,
+        );
+      } else {
+        const countQuery = query(problemsColRef, ...constraints);
+        const countSnapshot = await getCountFromServer(countQuery);
+        totalProblems = countSnapshot.data().count;
+        dbReads += 1; // Aggregation query counts as 1 document read (per 1000 index entries, simplified here)
+        console.log(
+          `[DB] Count query executed. Cost: ~1 read. Total: ${totalProblems}`,
+        );
+      }
+
+      // 2. Get Page
+      // Determine sort field and direction
+      const sortField =
+        sortKey === "difficulty" ? "difficulty" : "normalizedTitle";
+
+      // Construct query with primary sort
+      let queryConstraints = [...constraints, orderBy(sortField, "asc")];
+
+      // Add secondary sort by normalizedTitle if primary is difficulty for deterministic order
+      if (sortKey === "difficulty") {
+        queryConstraints.push(orderBy("normalizedTitle", "asc"));
+      }
+
+      queryConstraints.push(limit(pageSize));
+
+      let q = query(problemsColRef, ...queryConstraints);
+
+      if (cursor) {
+        const cursorDocRef = doc(db, "problems", cursor);
+        const cursorDocSnap = await getDoc(cursorDocRef);
+        if (cursorDocSnap.exists()) {
+          dbReads += 1;
+          console.log(`[DB] Cursor doc fetched. Cost: 1 read.`);
+          q = query(
+            problemsColRef,
+            ...constraints,
+            orderBy(sortField, "asc"),
+            ...(sortKey === "difficulty"
+              ? [orderBy("normalizedTitle", "asc")]
+              : []),
+            startAfter(cursorDocSnap),
+            limit(pageSize),
+          );
+        }
+      }
+
+      const problemSnapshot = await getDocs(q);
+      dbReads += problemSnapshot.docs.length;
+      console.log(
+        `[DB] Main problems query executed. Fetched ${problemSnapshot.docs.length} docs. Cost: ${problemSnapshot.docs.length} reads.`,
+      );
+      const docs = problemSnapshot.docs;
+      const hasMore = docs.length === pageSize;
+
+      let finalCompanySlug = companySlug;
+      if (!finalCompanySlug) {
+        const company = await getCompanyById(companyId);
+        finalCompanySlug = company?.slug || slugify(company?.name || "unknown");
+      }
+
+      const problems = docs.map((docSnap) => {
+        const data = docSnap.data();
+        const companySpecificData = data.companies?.[companyId] || {};
+        return {
+          id: docSnap.id,
+          companyId: companyId,
+          companySlug: finalCompanySlug!,
+          slug: docSnap.id,
+          ...data,
+          ...companySpecificData,
+        } as LeetCodeProblem;
+      });
+
+      console.log(
+        `[DB] fetchProblemsByCompanyCore finished. Total DB Reads: ${dbReads}`,
+      );
+      return {
+        problems,
+        totalProblems,
+        hasMore,
+        nextCursor: hasMore ? problems[problems.length - 1].id : undefined,
+      };
+    } catch (error: any) {
+      if (
+        error.code === "failed-precondition" ||
+        error.message?.includes("index")
+      ) {
+        console.warn(
+          "Missing index for optimized query in getProblemsByCompanyFromDb, falling back to client-side filtering.",
+          error.message,
+        );
+        // Fall through to semi-optimized path
+      } else {
+        throw error;
+      }
+    }
   }
 
   // Semi-Optimized Path (Residual filters or custom sort)
@@ -252,25 +252,27 @@ const fetchProblemsByCompanyCore = async (
   const q = query(problemsColRef, ...constraints);
   const problemSnapshot = await getDocs(q);
   dbReads += problemSnapshot.docs.length;
-  console.log(`[DB] Semi-optimized query executed. Fetched ${problemSnapshot.docs.length} docs. Cost: ${problemSnapshot.docs.length} reads.`);
-  
+  console.log(
+    `[DB] Semi-optimized query executed. Fetched ${problemSnapshot.docs.length} docs. Cost: ${problemSnapshot.docs.length} reads.`,
+  );
+
   let processedProblems = problemSnapshot.docs.map((docSnap) => {
-      const data = docSnap.data();
-      const companySpecificData = data.companies?.[companyId] || {};
-      return {
-        id: docSnap.id,
-        companyId: companyId,
-        companySlug: companySlug || "unknown",
-        slug: docSnap.id,
-        ...data,
-        ...companySpecificData,
-      } as LeetCodeProblem;
+    const data = docSnap.data();
+    const companySpecificData = data.companies?.[companyId] || {};
+    return {
+      id: docSnap.id,
+      companyId: companyId,
+      companySlug: companySlug || "unknown",
+      slug: docSnap.id,
+      ...data,
+      ...companySpecificData,
+    } as LeetCodeProblem;
   });
 
   if (!companySlug) {
-       const company = await getCompanyById(companyId);
-       const slug = company?.slug || slugify(company?.name || "unknown");
-       processedProblems.forEach(p => p.companySlug = slug);
+    const company = await getCompanyById(companyId);
+    const slug = company?.slug || slugify(company?.name || "unknown");
+    processedProblems.forEach((p) => (p.companySlug = slug));
   }
 
   // Apply Residual Filters
@@ -281,7 +283,8 @@ const fetchProblemsByCompanyCore = async (
   }
   if (residualLastAskedFilter.length > 0) {
     processedProblems = processedProblems.filter(
-      (p) => p.lastAskedPeriod && residualLastAskedFilter.includes(p.lastAskedPeriod),
+      (p) =>
+        p.lastAskedPeriod && residualLastAskedFilter.includes(p.lastAskedPeriod),
     );
   }
   if (searchTerm.trim() !== "") {
@@ -345,7 +348,9 @@ const fetchProblemsByCompanyCore = async (
     ? paginatedProblems[paginatedProblems.length - 1]?.id
     : undefined;
 
-  console.log(`[DB] fetchProblemsByCompanyCore finished (Semi-Optimized). Total DB Reads: ${dbReads}`);
+  console.log(
+    `[DB] fetchProblemsByCompanyCore finished (Semi-Optimized). Total DB Reads: ${dbReads}`,
+  );
   return {
     problems: paginatedProblems,
     totalProblems,
@@ -432,12 +437,15 @@ export const getProblemsByCompanyFromDb = async (
       {
         revalidate: 3600, // 1 hour
         tags: [`problems-company-${companyId}`],
-      }
+      },
     );
 
     console.log(`[Cache] Requesting problems for company ${companyId}`);
-    const { problems, totalProblems, hasMore, nextCursor } = await getCachedProblems();
-    console.log(`[Cache] Retrieved problems for company ${companyId}. (If no [DB] logs appeared, this was a CACHE HIT)`);
+    const { problems, totalProblems, hasMore, nextCursor } =
+      await getCachedProblems();
+    console.log(
+      `[Cache] Retrieved problems for company ${companyId}. (If no [DB] logs appeared, this was a CACHE HIT)`,
+    );
 
     if (userId) {
       const problemIds = problems.map((p) => p.id);
@@ -456,10 +464,10 @@ export const getProblemsByCompanyFromDb = async (
       });
 
       return {
-          problems: finalProblems,
-          totalProblems,
-          hasMore,
-          nextCursor
+        problems: finalProblems,
+        totalProblems,
+        hasMore,
+        nextCursor,
       };
     }
 
@@ -469,7 +477,6 @@ export const getProblemsByCompanyFromDb = async (
       hasMore,
       nextCursor,
     };
-
   } catch (error) {
     console.error(
       `Error in getProblemsByCompanyFromDb for companyId ${companyId}:`,
@@ -484,24 +491,16 @@ export const getProblemsByCompanyFromDb = async (
 };
 
 /**
- * @function getAllProblemsPaginated
- * @description Fetches a paginated, filtered, and sorted list of ALL problems.
- * @param {object} [params={}] - The parameters for filtering, sorting, and pagination.
- * @returns {Promise<PaginatedProblemsResponse>} A promise that resolves to the paginated list of problems.
- */
-/**
  * Core function to fetch all problems from DB (Cached)
  */
-const fetchAllProblemsCore = async (
-  params: {
-    cursor?: string;
-    pageSize?: number;
-    difficultyFilter?: DifficultyFilter[];
-    lastAskedFilter?: LastAskedFilter[];
-    searchTerm?: string;
-    sortKey?: SortKey;
-  }
-) => {
+const fetchAllProblemsCore = async (params: {
+  cursor?: string;
+  pageSize?: number;
+  difficultyFilter?: DifficultyFilter[];
+  lastAskedFilter?: LastAskedFilter[];
+  searchTerm?: string;
+  sortKey?: SortKey;
+}) => {
   const {
     cursor,
     pageSize = 10,
@@ -519,7 +518,7 @@ const fetchAllProblemsCore = async (
 
   let usedInOperator = false;
   let residualDifficultyFilter: DifficultyFilter[] = [];
-  
+
   // Apply Difficulty Filter
   if (difficultyFilter.length > 0) {
     if (difficultyFilter.length === 1) {
@@ -543,71 +542,83 @@ const fetchAllProblemsCore = async (
   const isDefaultSort = sortKey === "title";
 
   if (!hasResidualFilters && isDefaultSort) {
-      try {
-          // Fully Optimized Path
-          // 1. Get Count
-          const countQuery = query(problemsColRef, ...constraints);
-          const countSnapshot = await getCountFromServer(countQuery);
-          const totalProblems = countSnapshot.data().count;
+    try {
+      // Fully Optimized Path
+      // 1. Get Count
+      const countQuery = query(problemsColRef, ...constraints);
+      const countSnapshot = await getCountFromServer(countQuery);
+      const totalProblems = countSnapshot.data().count;
+      dbReads += 1;
+      console.log(
+        `[DB] Count query executed. Cost: ~1 read. Total: ${totalProblems}`,
+      );
+
+      // 2. Get Page
+      let q = query(
+        problemsColRef,
+        ...constraints,
+        orderBy("normalizedTitle", "asc"),
+        limit(pageSize),
+      );
+
+      if (cursor) {
+        const cursorDocRef = doc(db, "problems", cursor);
+        const cursorDocSnap = await getDoc(cursorDocRef);
+        if (cursorDocSnap.exists()) {
           dbReads += 1;
-          console.log(`[DB] Count query executed. Cost: ~1 read. Total: ${totalProblems}`);
-
-          // 2. Get Page
-          let q = query(
-              problemsColRef, 
-              ...constraints,
-              orderBy("normalizedTitle", "asc"),
-              limit(pageSize)
+          console.log(`[DB] Cursor doc fetched. Cost: 1 read.`);
+          q = query(
+            problemsColRef,
+            ...constraints,
+            orderBy("normalizedTitle", "asc"),
+            startAfter(cursorDocSnap),
+            limit(pageSize),
           );
-
-          if (cursor) {
-              const cursorDocRef = doc(db, "problems", cursor);
-              const cursorDocSnap = await getDoc(cursorDocRef);
-              if (cursorDocSnap.exists()) {
-                  dbReads += 1;
-                  console.log(`[DB] Cursor doc fetched. Cost: 1 read.`);
-                  q = query(
-                      problemsColRef, 
-                      ...constraints,
-                      orderBy("normalizedTitle", "asc"),
-                      startAfter(cursorDocSnap),
-                      limit(pageSize)
-                  );
-              }
-          }
-
-          const snap = await getDocs(q);
-          dbReads += snap.docs.length;
-          console.log(`[DB] Main problems query executed. Fetched ${snap.docs.length} docs. Cost: ${snap.docs.length} reads.`);
-          const docs = snap.docs;
-          const hasMore = docs.length === pageSize;
-          
-          let problems = docs.map(docSnap => {
-               const data = docSnap.data();
-               return {
-                  id: docSnap.id,
-                  companyId: data.companyIds?.[0] || "unknown",
-                  companySlug: "unknown",
-                  slug: docSnap.id,
-                  ...data,
-               } as LeetCodeProblem;
-          });
-          
-          console.log(`[DB] fetchAllProblemsCore finished. Total DB Reads: ${dbReads}`);
-          return {
-              problems,
-              totalProblems,
-              hasMore,
-              nextCursor: hasMore ? problems[problems.length - 1].id : undefined
-          };
-      } catch (error: any) {
-          if (error.code === 'failed-precondition' || error.message?.includes("index")) {
-              console.warn("Missing index for optimized query in getAllProblemsPaginated, falling back to client-side filtering.", error.message);
-              // Fall through to semi-optimized path
-          } else {
-              throw error;
-          }
+        }
       }
+
+      const snap = await getDocs(q);
+      dbReads += snap.docs.length;
+      console.log(
+        `[DB] Main problems query executed. Fetched ${snap.docs.length} docs. Cost: ${snap.docs.length} reads.`,
+      );
+      const docs = snap.docs;
+      const hasMore = docs.length === pageSize;
+
+      let problems = docs.map((docSnap) => {
+        const data = docSnap.data();
+        return {
+          id: docSnap.id,
+          companyId: data.companyIds?.[0] || "unknown",
+          companySlug: "unknown",
+          slug: docSnap.id,
+          ...data,
+        } as LeetCodeProblem;
+      });
+
+      console.log(
+        `[DB] fetchAllProblemsCore finished. Total DB Reads: ${dbReads}`,
+      );
+      return {
+        problems,
+        totalProblems,
+        hasMore,
+        nextCursor: hasMore ? problems[problems.length - 1].id : undefined,
+      };
+    } catch (error: any) {
+      if (
+        error.code === "failed-precondition" ||
+        error.message?.includes("index")
+      ) {
+        console.warn(
+          "Missing index for optimized query in getAllProblemsPaginated, falling back to client-side filtering.",
+          error.message,
+        );
+        // Fall through to semi-optimized path
+      } else {
+        throw error;
+      }
+    }
   }
 
   // Semi-Optimized Path
@@ -615,16 +626,18 @@ const fetchAllProblemsCore = async (
   const q = query(problemsColRef, ...constraints);
   const problemSnapshot = await getDocs(q);
   dbReads += problemSnapshot.docs.length;
-  console.log(`[DB] Semi-optimized query executed. Fetched ${problemSnapshot.docs.length} docs. Cost: ${problemSnapshot.docs.length} reads.`);
+  console.log(
+    `[DB] Semi-optimized query executed. Fetched ${problemSnapshot.docs.length} docs. Cost: ${problemSnapshot.docs.length} reads.`,
+  );
 
   let processedProblems = problemSnapshot.docs.map((docSnap) => {
     const data = docSnap.data();
     const firstCompanyId = data.companyIds?.[0] || "unknown";
-    
+
     return {
       id: docSnap.id,
       companyId: firstCompanyId,
-      companySlug: "unknown", 
+      companySlug: "unknown",
       slug: docSnap.id,
       ...data,
     } as LeetCodeProblem;
@@ -638,8 +651,9 @@ const fetchAllProblemsCore = async (
   }
   // Note: lastAskedFilter might not work well here as discussed, but keeping logic consistent with previous implementation
   if (residualLastAskedFilter.length > 0) {
-     processedProblems = processedProblems.filter(
-      (p) => p.lastAskedPeriod && residualLastAskedFilter.includes(p.lastAskedPeriod),
+    processedProblems = processedProblems.filter(
+      (p) =>
+        p.lastAskedPeriod && residualLastAskedFilter.includes(p.lastAskedPeriod),
     );
   }
 
@@ -661,7 +675,7 @@ const fetchAllProblemsCore = async (
     Medium: 2,
     Hard: 3,
   };
-  
+
   processedProblems.sort((a, b) => {
     if (sortKey === "title") return a.title.localeCompare(b.title);
     if (sortKey === "difficulty")
@@ -689,7 +703,9 @@ const fetchAllProblemsCore = async (
     ? paginatedProblems[paginatedProblems.length - 1]?.id
     : undefined;
 
-  console.log(`[DB] fetchAllProblemsCore finished (Semi-Optimized). Total DB Reads: ${dbReads}`);
+  console.log(
+    `[DB] fetchAllProblemsCore finished (Semi-Optimized). Total DB Reads: ${dbReads}`,
+  );
   return {
     problems: paginatedProblems,
     totalProblems,
@@ -750,12 +766,15 @@ export const getAllProblemsPaginated = async (
       {
         revalidate: 3600, // 1 hour
         tags: ["all-problems"],
-      }
+      },
     );
 
     console.log(`[Cache] Requesting all problems`);
-    const { problems, totalProblems, hasMore, nextCursor } = await getCachedProblems();
-    console.log(`[Cache] Retrieved all problems. (If no [DB] logs appeared, this was a CACHE HIT)`);
+    const { problems, totalProblems, hasMore, nextCursor } =
+      await getCachedProblems();
+    console.log(
+      `[Cache] Retrieved all problems. (If no [DB] logs appeared, this was a CACHE HIT)`,
+    );
 
     // Fetch User Data if needed
     if (userId) {
@@ -775,10 +794,10 @@ export const getAllProblemsPaginated = async (
       });
 
       return {
-          problems: finalProblems,
-          totalProblems,
-          hasMore,
-          nextCursor
+        problems: finalProblems,
+        totalProblems,
+        hasMore,
+        nextCursor,
       };
     }
 
@@ -788,7 +807,6 @@ export const getAllProblemsPaginated = async (
       hasMore,
       nextCursor,
     };
-
   } catch (error) {
     console.error("Error in getAllProblemsPaginated:", error);
     return {
@@ -805,21 +823,21 @@ async function fetchAllProblemsFromFirestore(): Promise<LeetCodeProblem[]> {
   const problemSnapshot = await getDocs(q);
 
   return problemSnapshot.docs.map((docSnap) => {
-      const problemData = docSnap.data();
-      // For fetchAll, we don't have a specific company context.
-      // We can pick the first companyId if available, or just leave it generic.
-      // But LeetCodeProblem requires companyId/Slug.
-      // Let's pick the first one from companyIds if available.
-      const firstCompanyId = problemData.companyIds?.[0] || "unknown";
-      
-      return {
-        id: docSnap.id,
-        companyId: firstCompanyId,
-        companySlug: "unknown", // We'd need to fetch company to get slug, or store it.
-        slug: docSnap.id,
-        ...problemData,
-      } as LeetCodeProblem;
-    });
+    const problemData = docSnap.data();
+    // For fetchAll, we don't have a specific company context.
+    // We can pick the first companyId if available, or just leave it generic.
+    // But LeetCodeProblem requires companyId/Slug.
+    // Let's pick the first one from companyIds if available.
+    const firstCompanyId = problemData.companyIds?.[0] || "unknown";
+
+    return {
+      id: docSnap.id,
+      companyId: firstCompanyId,
+      companySlug: "unknown", // We'd need to fetch company to get slug, or store it.
+      slug: docSnap.id,
+      ...problemData,
+    } as LeetCodeProblem;
+  });
 }
 
 /**
@@ -856,7 +874,7 @@ async function fetchProblemDetailsFromFirestore(
   // probId is expected to be the slug now
   const problemDocRef = doc(db, "problems", probId);
   const problemSnap = await getDoc(problemDocRef);
-  
+
   if (problemSnap.exists()) {
     const data = problemSnap.data();
     const company = await getCompanyById(compId);
@@ -926,7 +944,7 @@ async function fetchProblemByCompanySlugAndProblemSlug(
   if (problemSnap.exists()) {
     const problemData = problemSnap.data();
     const companySpecificData = problemData.companies?.[company.id] || {};
-    
+
     return {
       company,
       problem: {
@@ -996,69 +1014,6 @@ export const getAllProblemCompanyAndProblemSlugs = async (): Promise<
       error,
     );
     return [];
-  }
-};
-
-/**
- * @function addProblemToDb
- * @description Adds a new problem to a company's subcollection in Firestore. If a problem with the same normalized title already exists, it updates the existing problem's data.
- * @param {string} companyId - The ID of the company to add the problem to.
- * @param {Omit<LeetCodeProblem, 'id' | 'companyId' | 'companySlug' | 'slug'> & { normalizedTitle: string }} problemData - The data for the problem to be added.
- * @returns {Promise<{ id: string | null; updated: boolean; error?: string }>} A promise that resolves to an object containing the problem's ID, whether it was updated, and an optional error message.
- */
-export const addProblemToDb = async (
-  companyId: string,
-  problemData: Omit<
-    LeetCodeProblem,
-    "id" | "companyId" | "companySlug" | "slug"
-  > & { normalizedTitle: string },
-): Promise<{ id: string | null; updated: boolean; error?: string }> => {
-  try {
-    const problemSlug = slugify(problemData.title);
-    const problemDocRef = doc(db, "problems", problemSlug);
-    const problemSnap = await getDoc(problemDocRef);
-
-    if (problemSnap.exists()) {
-      const existingData = problemSnap.data();
-      const companyIds = new Set(existingData.companyIds || []);
-      companyIds.add(companyId);
-      
-      const companiesMap = existingData.companies || {};
-      companiesMap[companyId] = {
-          lastAskedPeriod: problemData.lastAskedPeriod,
-      };
-
-      await updateDoc(problemDocRef, {
-        ...problemData, // Update common fields
-        slug: problemSlug,
-        companyIds: Array.from(companyIds),
-        companies: companiesMap,
-      });
-      return { id: problemSlug, updated: true };
-    } else {
-      const companiesMap = {
-          [companyId]: {
-              lastAskedPeriod: problemData.lastAskedPeriod,
-          }
-      };
-      
-      const dataToSave = {
-        ...problemData,
-        slug: problemSlug,
-        companyIds: [companyId],
-        companies: companiesMap,
-      };
-      
-      await setDoc(problemDocRef, dataToSave);
-      return { id: problemSlug, updated: false };
-    }
-  } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "An unknown error occurred while saving problem.";
-    console.error("Error in addProblemToDb:", message, error);
-    return { id: null, updated: false, error: message };
   }
 };
 

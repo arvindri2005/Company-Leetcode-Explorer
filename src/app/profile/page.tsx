@@ -63,8 +63,9 @@ import {
   getUserEducationAction,
   addUserWorkExperienceAction,
   getUserWorkExperienceAction,
+  getProblemByCompanySlugAndProblemSlugAction,
 } from "@/app/actions";
-import { getProblemByCompanySlugAndProblemSlug } from "@/lib/data";
+// import { getProblemByCompanySlugAndProblemSlug } from "@/lib/data"; // Removed direct import
 
 /**
  * Extends the LeetCodeProblem type to include user-specific status information.
@@ -229,7 +230,7 @@ export default function ProfilePage() {
           async (info) => {
             if (!info.companySlug || !info.problemSlug) return null;
             try {
-              const result = await getProblemByCompanySlugAndProblemSlug(
+              const result = await getProblemByCompanySlugAndProblemSlugAction(
                 info.companySlug,
                 info.problemSlug,
               );
@@ -285,7 +286,7 @@ export default function ProfilePage() {
         const detailedProblemsPromises = problemRefsWithStatus.map(
           async (info) => {
             try {
-              const result = await getProblemByCompanySlugAndProblemSlug(
+              const result = await getProblemByCompanySlugAndProblemSlugAction(
                 info.companySlug,
                 info.problemSlug,
               );
