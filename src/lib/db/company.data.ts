@@ -59,9 +59,9 @@ function mapFirestoreDocToCompany(
   const data = docSnap.data()!;
   return {
     id: docSnap.id,
-    slug: data.slug || slugify(data.name),
-    name: data.name,
-    normalizedName: data.normalizedName,
+    slug: data.slug || docSnap.id || slugify(data.name || ""),
+    name: data.name || docSnap.id.charAt(0).toUpperCase() + docSnap.id.slice(1), // Capitalize ID as fallback
+    normalizedName: data.normalizedName || data.name?.toLowerCase() || docSnap.id.toLowerCase(),
     logo: data.logo,
     description: data.description,
     website: data.website,
@@ -185,58 +185,111 @@ async function fetchCompaniesWithCursor(
  */
 export async function getCompanies({
   page = 1,
-  pageSize = 9,
+  pageSize = 30, // Updated default to match page constant
   searchTerm,
   cursor,
 }: GetCompaniesParams = {}): Promise<PaginatedCompaniesResponse> {
   try {
-    const normalizedSearchTerm = searchTerm?.trim();
+    const normalizedSearchTerm = searchTerm?.trim().toLowerCase();
 
-    // Cache the initial load (no search, no cursor/page 1)
-    if (!cursor && (!normalizedSearchTerm || normalizedSearchTerm === "") && page === 1) {
-       const cacheKey = `companies-list-initial-${pageSize}`;
-       
-       const getCachedInitialCompanies = unstable_cache(
-         async () => {
-           return await fetchCompaniesWithCursor(pageSize, undefined, undefined);
-         },
-         [cacheKey],
-         {
-           revalidate: 3600, // 1 hour
-           tags: ["companies-list"],
-         }
-       );
-       
-       const result = await getCachedInitialCompanies();
-       
-       return {
-        companies: result.companies,
-        nextCursor: result.nextCursor,
-        prevCursor: result.prevCursor,
-        hasMore: result.hasMore,
-        currentPage: 1,
-        totalPages: undefined,
-        totalCompanies: undefined,
-      };
+    // Strategy 1: Search provided - use simple filtering on client side if list is small, or specialized search index
+    // For now, we'll assume search needs to scan or use existing startAt/endAt if possible.
+    // But since we want "page 2 of search results", we might need to fetch all matching slugs first.
+    // Given the constraints and likely dataset size (< 1000), fetching all basic metadata is feasible.
+
+    // Strategy 2: Cursor provided - legacy/infinite scroll support (keep as is or adapt)
+    if (cursor) {
+        // ... legacy cursor logic ...
+        // We might want to phase this out if fully switching to pagination, but keeping for backward compat if needed.
+         const result = await fetchCompaniesWithCursor(
+            pageSize,
+            normalizedSearchTerm,
+            cursor,
+          );
+          return {
+            companies: result.companies,
+            nextCursor: result.nextCursor,
+            prevCursor: result.prevCursor,
+            hasMore: result.hasMore,
+            currentPage: 1, // Cursor pagination doesn't easily map to page numbers
+          };
     }
 
-    // Non-cached path (search or pagination)
-    const result = await fetchCompaniesWithCursor(
-      pageSize,
-      normalizedSearchTerm,
-      cursor,
-    );
+    // Strategy 3: Page provided (Standard Pagination)
+    // 1. Get ALL company slugs (cached).
+    // 2. Filter by search term if present (client-side filter on slugs/names if we have them).
+    //    Note: We only have slugs here. If search matches name but not slug, this fails.
+    //    Ideally we need a "lightweight directory" of {slug, name, normalizedName} for this.
+    
+    // Let's improve `getAllCompanySlugs` to return lightweight objects if we need searching.
+    // For now, if no search term:
+    
+    if (!normalizedSearchTerm) {
+        const allSlugs = await getAllCompanySlugs();
+        const totalCompanies = allSlugs.length;
+        const totalPages = Math.ceil(totalCompanies / pageSize);
+        
+        // Ensure page is valid
+        const safePage = Math.max(1, Math.min(page, totalPages || 1));
+        
+        const startIndex = (safePage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const pageSlugs = allSlugs.slice(startIndex, endIndex);
+        
+        // Fetch full details for these slugs
+        console.log(`[getCompanies] Fetching details for ${pageSlugs.length} slugs: ${pageSlugs.join(", ")}`);
+        const companyPromises = pageSlugs.map(slug => getCompanyBySlug(slug));
+        const companies = (await Promise.all(companyPromises)).filter((c): c is Company => !!c);
+        console.log(`[getCompanies] Resolved ${companies.length} companies details.`);
+        
+        return {
+            companies,
+            totalCompanies,
+            totalPages,
+            currentPage: safePage,
+            hasMore: safePage < totalPages,
+            nextCursor: undefined, // Not used for page-based
+            prevCursor: undefined,
+        };
+    }
 
+    // If search term IS provided, we fall back to the cursor/query based approach 
+    // BUT since we want pagination for search results too, we ideally need to fetch all matching docs
+    // or use a more advanced search index (Algolia/Typesense).
+    // For Firestore simple search:
+    // We can fetch ALL matching docs (ids only) then paginate?
+    // Cost: 1 read per match.
+    // If we assume result set is small, we can fetch all.
+    
+    const companiesCol = collection(getFirestore(), "companies");
+    let q = query(companiesCol, 
+        where("normalizedName", ">=", normalizedSearchTerm),
+        where("normalizedName", "<=", normalizedSearchTerm + "\uf8ff"),
+        orderBy("normalizedName", "asc")
+    );
+    
+    // We fetch ALL matches to calculate pagination. 
+    // Warning: If search matches 1000 items, this is 1000 reads.
+    // Optimization: limit to 200 matches max?
+    const snapshot = await getDocs(q);
+    const allMatchingDocs = snapshot.docs;
+    const totalMatching = allMatchingDocs.length;
+    const totalPages = Math.ceil(totalMatching / pageSize);
+    const safePage = Math.max(1, Math.min(page, totalPages || 1));
+    
+    const startIndex = (safePage - 1) * pageSize;
+    const pageDocs = allMatchingDocs.slice(startIndex, startIndex + pageSize);
+    const companies = pageDocs.map(mapFirestoreDocToCompany);
+    
     return {
-      companies: result.companies,
-      nextCursor: result.nextCursor,
-      prevCursor: result.prevCursor,
-      hasMore: result.hasMore,
-      // Optional traditional pagination info (less accurate)
-      currentPage: cursor ? undefined : page,
-      totalPages: undefined, // We don't calculate this for performance
-      totalCompanies: undefined, // We don't calculate this for performance
+        companies,
+        totalCompanies: totalMatching,
+        totalPages,
+        currentPage: safePage,
+        hasMore: safePage < totalPages,
+        nextCursor: undefined,
     };
+
   } catch (error) {
     console.error("Error in getCompanies:", error);
     return {
@@ -333,7 +386,7 @@ export const getCompanyById = async (
     [`company-${id}`],
     {
       revalidate: 3600, // 1 hour
-      tags: [`company-${id}`],
+      tags: [`company-${id}-v2`],
     }
   );
 
@@ -390,7 +443,7 @@ export const getCompanyBySlug = async (
     [`company-slug-${slug}`],
     {
       revalidate: 3600, // 1 hour
-      tags: [`company-slug-${slug}`],
+      tags: [`company-slug-${slug}-v2`],
     }
   );
 
@@ -408,6 +461,7 @@ let cachedSlugs: { slugs: string[]; timestamp: number } | null = null;
 async function fetchAllCompanySlugsFromFirestore(
   useCache: boolean = true,
 ): Promise<string[]> {
+  /*
   if (
     useCache &&
     cachedSlugs &&
@@ -415,13 +469,15 @@ async function fetchAllCompanySlugsFromFirestore(
   ) {
     return cachedSlugs.slugs;
   }
+  */
 
   const companiesCol = collection(getFirestore(), "companies");
-  const q = query(companiesCol, orderBy("slug"));
+  // Fetch all docs without ordering to avoid missing index issues
+  const q = query(companiesCol); 
   const companiesSnapshot = await getDocs(q);
   const slugs = companiesSnapshot.docs
-    .map((docSnap) => docSnap.data().slug as string)
-    .filter(Boolean);
+    .map((docSnap) => docSnap.id)
+    .sort(); // Sort in memory
 
   if (useCache) {
     cachedSlugs = { slugs, timestamp: Date.now() };

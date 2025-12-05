@@ -19,9 +19,9 @@ export function mapFirestoreDocToCompany(
   const data = docSnap.data()!;
   return {
     id: docSnap.id,
-    slug: data.slug || slugify(data.name),
-    name: data.name,
-    normalizedName: data.normalizedName,
+    slug: data.slug || docSnap.id || slugify(data.name || ""),
+    name: data.name || docSnap.id.charAt(0).toUpperCase() + docSnap.id.slice(1),
+    normalizedName: data.normalizedName || data.name?.toLowerCase() || docSnap.id.toLowerCase(),
     logo: data.logo,
     description: data.description,
     website: data.website,

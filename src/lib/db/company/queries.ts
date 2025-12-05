@@ -122,46 +122,46 @@ async function fetchCompaniesWithCursor(
  */
 export async function getCompanies({
   page = 1,
-  pageSize = 9,
+  pageSize = 30, // Updated default to match page constant
   searchTerm,
   cursor,
 }: GetCompaniesParams = {}): Promise<PaginatedCompaniesResponse> {
   try {
-    const normalizedSearchTerm = searchTerm?.trim();
+    const normalizedSearchTerm = searchTerm?.trim().toLowerCase();
 
-    // Cache the initial load (no search, no cursor/page 1)
-    if (
-      !cursor &&
-      (!normalizedSearchTerm || normalizedSearchTerm === "") &&
-      page === 1
-    ) {
-      const cacheKey = `companies-list-initial-${pageSize}`;
+    // Strategy: Page provided (Standard Pagination) - Default
+    // This bypasses specific index requirements by fetching all IDs first.
+    if (!cursor) {
+        const allSlugs = await getAllCompanySlugs();
+        
+        // Filter by searchTerm if present (manual search on IDs)
+        let filteredSlugs = allSlugs;
+        if (normalizedSearchTerm) {
+             filteredSlugs = allSlugs.filter(s => s.toLowerCase().includes(normalizedSearchTerm));
+        }
 
-      const getCachedInitialCompanies = unstable_cache(
-        async () => {
-          return await fetchCompaniesWithCursor(pageSize, undefined, undefined);
-        },
-        [cacheKey],
-        {
-          revalidate: 3600, // 1 hour
-          tags: ["companies-list"],
-        },
-      );
-
-      const result = await getCachedInitialCompanies();
-
-      return {
-        companies: result.companies,
-        nextCursor: result.nextCursor,
-        prevCursor: result.prevCursor,
-        hasMore: result.hasMore,
-        currentPage: 1,
-        totalPages: undefined,
-        totalCompanies: undefined,
-      };
+        const totalCompanies = filteredSlugs.length;
+        const totalPages = Math.ceil(totalCompanies / pageSize);
+        const safePage = Math.max(1, Math.min(page, totalPages || 1));
+        
+        const startIndex = (safePage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const pageSlugs = filteredSlugs.slice(startIndex, endIndex);
+        
+        const companyPromises = pageSlugs.map(slug => getCompanyBySlug(slug));
+        const companies = (await Promise.all(companyPromises)).filter((c): c is Company => !!c);
+        
+        return {
+            companies,
+            totalCompanies,
+            totalPages,
+            currentPage: safePage,
+            hasMore: safePage < totalPages,
+        };
     }
 
-    // Non-cached path (search or pagination)
+    // Internal Cursor Strategy (Legacy/Infinite Scroll)
+    // Only used if cursor is explicitly provided
     const result = await fetchCompaniesWithCursor(
       pageSize,
       normalizedSearchTerm,
@@ -173,10 +173,9 @@ export async function getCompanies({
       nextCursor: result.nextCursor,
       prevCursor: result.prevCursor,
       hasMore: result.hasMore,
-      // Optional traditional pagination info (less accurate)
-      currentPage: cursor ? undefined : page,
-      totalPages: undefined, // We don't calculate this for performance
-      totalCompanies: undefined, // We don't calculate this for performance
+      currentPage: 1,
+      totalPages: undefined,
+      totalCompanies: undefined,
     };
   } catch (error) {
     console.error("Error in getCompanies:", error);
@@ -354,6 +353,7 @@ let cachedSlugs: { slugs: string[]; timestamp: number } | null = null;
 async function fetchAllCompanySlugsFromFirestore(
   useCache: boolean = true,
 ): Promise<string[]> {
+  /*
   if (
     useCache &&
     cachedSlugs &&
@@ -361,13 +361,15 @@ async function fetchAllCompanySlugsFromFirestore(
   ) {
     return cachedSlugs.slugs;
   }
+  */
 
   const companiesCol = collection(getFirestore(), "companies");
-  const q = query(companiesCol, orderBy("slug"));
+  // Fetch all docs without ordering to avoid missing index issues
+  const q = query(companiesCol); 
   const companiesSnapshot = await getDocs(q);
   const slugs = companiesSnapshot.docs
-    .map((docSnap) => docSnap.data().slug as string)
-    .filter(Boolean);
+    .map((docSnap) => docSnap.id)
+    .sort(); // Sort in memory
 
   if (useCache) {
     cachedSlugs = { slugs, timestamp: Date.now() };
