@@ -526,14 +526,14 @@ async function revalidateCompaniesPage(companyId?: string, companySlug?: string)
     invalidateCompaniesCache();
     
     // Invalidate Next.js Data Cache tags
-    revalidateTag("companies-list");
+    revalidateTag("companies-list", "max");
     
     if (companyId) {
-      revalidateTag(`company-${companyId}`);
+      revalidateTag(`company-${companyId}`, "max");
     }
     
     if (companySlug) {
-      revalidateTag(`company-slug-${companySlug}`);
+      revalidateTag(`company-slug-${companySlug}`, "max");
     }
     
     console.log(`[Cache] Revalidated companies page. Id: ${companyId}, Slug: ${companySlug}`);
@@ -732,7 +732,7 @@ export const bulkDeleteCompaniesFromDb = async (
     await revalidateCompaniesPage();
     // Also invalidate each ID
     for (const id of companyIds) {
-       revalidateTag(`company-${id}`);
+       revalidateTag(`company-${id}`, "max");
     }
 
     return { success: true, deletedCount: companyIds.length };
