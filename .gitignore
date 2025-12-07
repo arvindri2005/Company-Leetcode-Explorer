@@ -8,3 +8,6 @@ coverage
 dev_server.log
 tsconfig.tsbuildinfo
 .swc
+Guide/
+agent/
+
