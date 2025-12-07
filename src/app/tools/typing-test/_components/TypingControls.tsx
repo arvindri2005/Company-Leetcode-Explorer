@@ -19,7 +19,7 @@ export default function TypingControls({
         onValueChange={(val) => onLanguageChange(val as Language)}
         disabled={disabled}
     >
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-[180px] bg-background/50 backdrop-blur-md border-white/10 hover:bg-background/80 transition-colors shadow-sm">
             <SelectValue placeholder="Select Language" />
         </SelectTrigger>
         <SelectContent>
