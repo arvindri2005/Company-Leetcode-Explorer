@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import TypingTestGame from "./_components/TypingTestGame";
+import TypingTestGame from "@/components/tools/typing-test/typing-test-game";
 
 export const metadata: Metadata = {
   title: "Speed Coder - Typing Test for Developers | Byte to Offer",

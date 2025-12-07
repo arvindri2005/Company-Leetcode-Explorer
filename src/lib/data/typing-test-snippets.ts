@@ -1,11 +1,4 @@
-export type Language = 'javascript' | 'python' | 'cpp' | 'typescript' | 'java' | 'go' | 'rust' | 'sql' | 'html' | 'css';
-
-export interface Snippet {
-  id: string;
-  language: Language;
-  code: string;
-  description: string;
-}
+import { Snippet } from "@/types/typing-test";
 
 export const snippets: Snippet[] = [
   // --- JavaScript ---
@@ -185,7 +178,8 @@ func main() {
 	go sum(s[len(s)/2:], c)
 	x, y := <-c, <-c
 	fmt.Println(x, y, x+y)
-}`
+}
+`
   },
 
   // --- Rust --- 

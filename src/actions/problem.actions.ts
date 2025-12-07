@@ -1,6 +1,6 @@
 "use server";
 
-import { getProblemsByCompanyFromDb } from "@/lib/data";
+import { problemService } from "@/services/problem.service";
 import type { LeetCodeProblem } from "@/types";
 
 const MAX_PROBLEMS_FOR_AI_FEATURES = 200;
@@ -16,7 +16,7 @@ export async function getAIProblems(
   companyId: string,
 ): Promise<LeetCodeProblem[]> {
   try {
-    const { problems } = await getProblemsByCompanyFromDb(companyId, {
+    const { problems } = await problemService.getProblemsByCompany(companyId, {
       pageSize: MAX_PROBLEMS_FOR_AI_FEATURES,
     });
     return problems;

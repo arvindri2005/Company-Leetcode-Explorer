@@ -1,9 +1,9 @@
-import { getAllCompanySlugs } from "@/lib/data";
+import { companyService } from "@/services/company.service";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 
 export async function GET() {
-  const companySlugs = await getAllCompanySlugs();
+  const companySlugs = await companyService.getAllCompanySlugs();
 
   const companyUrls = companySlugs
     .map((slug) => {

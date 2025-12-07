@@ -6,7 +6,7 @@
  * companies to populate a dropdown in the form and includes metadata for SEO.
  */
 import ProblemSubmissionForm from "@/components/problem/problem-submission-form";
-import { getCompanies } from "@/lib/data";
+import { companyService } from "@/services/company.service";
 import type { Company } from "@/types";
 import { Separator } from "@/components/ui/separator";
 
@@ -35,7 +35,7 @@ export const metadata = {
  */
 export default async function SubmitProblemPage() {
   // Fetch a manageable number of companies for the dropdown.
-  const companiesData = await getCompanies({ pageSize: 200 });
+  const companiesData = await companyService.getCompanies({ pageSize: 200 });
   const allCompanies = companiesData.companies;
 
   return (

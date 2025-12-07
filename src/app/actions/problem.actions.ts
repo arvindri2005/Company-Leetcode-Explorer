@@ -11,12 +11,9 @@
 import type {
   LeetCodeProblem,
 } from "@/types";
-import {
-  addProblemToDb,
-  getProblemDetailsFromDb,
-  getCompanyById,
-} from "@/lib/data";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { problemService } from "@/services/problem.service";
+import { companyService } from "@/services/company.service";
+import { revalidateTag, revalidatePath } from "next/cache";
 import { slugify } from "@/lib/utils";
 
 /**
@@ -75,7 +72,7 @@ export async function addProblem(
       };
     }
 
-    const company = await getCompanyById(problemData.companyId);
+    const company = await companyService.getCompanyById(problemData.companyId);
     if (!company) {
       return {
         success: false,
@@ -90,7 +87,7 @@ export async function addProblem(
       id: problemId,
       updated,
       error: dbError,
-    } = await addProblemToDb(problemData.companyId, problemData);
+    } = await problemService.addProblem(problemData.companyId, problemData);
 
     if (dbError || !problemId) {
       return {
@@ -99,10 +96,11 @@ export async function addProblem(
       };
     }
 
-    revalidateTag("problems-collection-broad", 'max');
-    revalidateTag(`problems-for-company-${problemData.companyId}`, 'max');
-    revalidateTag(`company-detail-${problemData.companyId}`, 'max');
-    revalidateTag(`company-slug-${company.slug}`, 'max');
+
+    revalidateTag("all-problems", "max");
+    revalidateTag(`problems-company-${problemData.companyId}`, "max");
+    revalidateTag(`company-${problemData.companyId}-v2`, "max");
+    revalidateTag(`company-slug-${company.slug}-v2`, "max");
     revalidatePath(`/company/${company.slug}`);
     ["/", "/submit-problem"].forEach((p) => revalidatePath(p));
 
@@ -146,7 +144,7 @@ export async function getProblemDetailsBatchAction(
   try {
     const problems = await Promise.all(
       problemRefs.map((ref) =>
-        getProblemDetailsFromDb(ref.companyId, ref.problemId),
+        problemService.getProblemDetails(ref.companyId, ref.problemId),
       ),
     );
     return problems.filter(Boolean) as LeetCodeProblem[];
@@ -168,8 +166,7 @@ export async function getProblemByCompanySlugAndProblemSlugAction(
   problemSlug: string,
 ) {
   try {
-    const { getProblemByCompanySlugAndProblemSlug } = await import("@/lib/data");
-    return await getProblemByCompanySlugAndProblemSlug(companySlug, problemSlug);
+    return await problemService.getProblemByCompanySlugAndProblemSlug(companySlug, problemSlug);
   } catch (error) {
     console.error(
       `Error fetching problem by company slug ${companySlug} and problem slug ${problemSlug}:`,

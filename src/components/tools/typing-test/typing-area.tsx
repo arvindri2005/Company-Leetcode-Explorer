@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Snippet } from "../_data/snippets";
+import { Snippet } from "@/types/typing-test";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { RotateCcw, Keyboard as KeyboardIcon, MousePointerClick, AlertCircle } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { RotateCcw, Keyboard as KeyboardIcon, MousePointerClick } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface TypingAreaProps {
   currentSnippet: Snippet | null;

@@ -11,7 +11,6 @@
 "use server";
 
 import type {
-  UserProfile,
   BookmarkedProblemInfo,
   UserProblemStatusInfo,
   ProblemStatus,
@@ -20,30 +19,8 @@ import type {
   EducationExperience,
   WorkExperience,
 } from "@/types";
-import {
-  dbToggleBookmarkProblem,
-  dbGetUserBookmarkedProblemsInfo,
-  dbSetProblemStatus,
-  dbGetAllUserProblemStatuses,
-  dbUpdateUserDisplayName,
-  dbSaveStrategyTodoList,
-  dbGetUserStrategyTodoLists,
-  dbUpdateStrategyTodoItemStatus,
-  dbGetStrategyTodoListForCompany,
-  dbAddUserEducation,
-  dbGetUserEducation,
-  dbAddUserWorkExperience,
-  dbGetUserWorkExperience,
-} from "@/lib/data";
+import { userService } from "@/services/user.service";
 import { revalidateTag } from "next/cache";
-import {
-  doc as firestoreDoc,
-  setDoc,
-  updateDoc,
-  serverTimestamp,
-  getDoc,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase";
 
 interface SyncUserProfileInput {
   uid: string;
@@ -64,43 +41,7 @@ interface SyncUserProfileInput {
 export async function syncUserProfile(
   userData: SyncUserProfileInput,
 ): Promise<{ success: boolean; error?: string }> {
-  try {
-    if (!userData.uid)
-      return { success: false, error: "User ID is required for profile sync." };
-
-    const userDocRef = firestoreDoc(db, "users", userData.uid);
-    const userDocSnap = await getDoc(userDocRef);
-
-    if (!userDocSnap.exists()) {
-      await setDoc(userDocRef, {
-        uid: userData.uid,
-        email: userData.email,
-        displayName: userData.displayName,
-        createdAt: serverTimestamp(),
-      });
-    } else {
-      const existingData = userDocSnap.data() as UserProfile;
-      const updates: Partial<UserProfile> = {};
-      if (userData.displayName !== existingData.displayName) {
-        updates.displayName = userData.displayName;
-      }
-      if (userData.email !== existingData.email) {
-        updates.email = userData.email;
-      }
-
-      if (Object.keys(updates).length > 0) {
-        await updateDoc(userDocRef, updates);
-      }
-    }
-    return { success: true };
-  } catch (error) {
-    console.error("Error syncing user profile to Firestore:", error);
-    if (error instanceof Error) return { success: false, error: error.message };
-    return {
-      success: false,
-      error: "An unknown error occurred while syncing user profile.",
-    };
-  }
+  return await userService.syncUserProfile(userData.uid, userData.email, userData.displayName);
 }
 
 /**
@@ -141,7 +82,7 @@ export async function toggleBookmarkProblemAction(
     return { success: false, error: "Problem slug is required." };
 
   try {
-    const result = await dbToggleBookmarkProblem(
+    const result = await userService.toggleBookmarkProblem(
       userId,
       problemId,
       companySlug,
@@ -149,8 +90,8 @@ export async function toggleBookmarkProblemAction(
     );
     if (result.error) return { success: false, error: result.error };
 
-    revalidateTag(`user-bookmarks-${userId}`, 'max');
-    revalidateTag(`user-profile-${userId}`, 'max');
+    revalidateTag(`user-bookmarks-${userId}`, "max");
+    revalidateTag(`user-profile-${userId}`, "max");
     return { success: true, isBookmarked: result.isBookmarked };
   } catch (error) {
     console.error("Error in toggleBookmarkProblemAction:", error);
@@ -180,7 +121,7 @@ export async function getUsersBookmarkedProblemsInfoAction(
   if (!userId)
     return { error: "User not authenticated. Cannot fetch bookmarks." };
   try {
-    return await dbGetUserBookmarkedProblemsInfo(userId);
+    return await userService.getBookmarkedProblemsInfo(userId);
   } catch (error) {
     console.error("Error in getUsersBookmarkedProblemsInfoAction:", error);
     if (error instanceof Error) return { error: error.message };
@@ -223,7 +164,7 @@ export async function setProblemStatusAction(
     return { success: false, error: "Problem slug is required." };
 
   try {
-    const result = await dbSetProblemStatus(
+    const result = await userService.setProblemStatus(
       userId,
       problemId,
       status,
@@ -231,8 +172,8 @@ export async function setProblemStatusAction(
       problemSlug,
     );
     if (result.success) {
-      revalidateTag(`user-problem-statuses-${userId}`, 'max');
-      revalidateTag(`user-profile-${userId}`, 'max');
+      revalidateTag(`user-problem-statuses-${userId}`, "max");
+      revalidateTag(`user-profile-${userId}`, "max");
     }
     return result;
   } catch (error) {
@@ -262,7 +203,7 @@ export async function getAllUserProblemStatusesAction(
   if (!userId)
     return { error: "User not authenticated. Cannot fetch problem statuses." };
   try {
-    return await dbGetAllUserProblemStatuses(userId);
+    return await userService.getAllUserProblemStatuses(userId);
   } catch (error) {
     const message =
       error instanceof Error
@@ -302,9 +243,9 @@ export async function updateUserDisplayNameInFirestore(
   }
 
   try {
-    const result = await dbUpdateUserDisplayName(userId, newDisplayName.trim());
+    const result = await userService.updateUserDisplayName(userId, newDisplayName.trim());
     if (result.success) {
-      revalidateTag(`user-profile-${userId}`, 'max');
+      revalidateTag(`user-profile-${userId}`, "max");
     }
     return result;
   } catch (error) {
@@ -328,10 +269,10 @@ export async function addUserEducationAction(
   educationData: Omit<EducationExperience, "id">,
 ): Promise<{ id: string | null; error?: string }> {
   if (!userId) return { id: null, error: "User not authenticated." };
-  const result = await dbAddUserEducation(userId, educationData);
+  const result = await userService.addUserEducation(userId, educationData);
   if (result.id) {
-    revalidateTag(`user-profile-${userId}`, 'max');
-    revalidateTag(`user-education-${userId}`, 'max');
+    revalidateTag(`user-profile-${userId}`, "max");
+    revalidateTag(`user-education-${userId}`, "max");
   }
   return result;
 }
@@ -346,7 +287,7 @@ export async function getUserEducationAction(
 ): Promise<EducationExperience[] | { error: string }> {
   if (!userId) return { error: "User not authenticated." };
   try {
-    return await dbGetUserEducation(userId);
+    return await userService.getUserEducation(userId);
   } catch (error) {
     const message =
       error instanceof Error
@@ -367,10 +308,10 @@ export async function addUserWorkExperienceAction(
   workData: Omit<WorkExperience, "id">,
 ): Promise<{ id: string | null; error?: string }> {
   if (!userId) return { id: null, error: "User not authenticated." };
-  const result = await dbAddUserWorkExperience(userId, workData);
+  const result = await userService.addUserWorkExperience(userId, workData);
   if (result.id) {
-    revalidateTag(`user-profile-${userId}`, 'max');
-    revalidateTag(`user-work-experience-${userId}`, 'max');
+    revalidateTag(`user-profile-${userId}`, "max");
+    revalidateTag(`user-work-experience-${userId}`, "max");
   }
   return result;
 }
@@ -385,7 +326,7 @@ export async function getUserWorkExperienceAction(
 ): Promise<WorkExperience[] | { error: string }> {
   if (!userId) return { error: "User not authenticated." };
   try {
-    return await dbGetUserWorkExperience(userId);
+    return await userService.getUserWorkExperience(userId);
   } catch (error) {
     const message =
       error instanceof Error
@@ -438,16 +379,16 @@ export async function saveStrategyTodoListAction(
   }
 
   try {
-    const result = await dbSaveStrategyTodoList(
+    const result = await userService.saveStrategyTodoList(
       userId,
       companyId,
       companyName,
       strategy,
     );
     if (result.success) {
-      revalidateTag(`user-profile-${userId}`, 'max');
-      revalidateTag(`user-strategy-todo-lists-${userId}`, 'max');
-      revalidateTag(`user-strategy-for-company-${companyId}-${userId}`, 'max');
+      revalidateTag(`user-profile-${userId}`, "max");
+      revalidateTag(`user-strategy-todo-lists-${userId}`, "max");
+      revalidateTag(`user-strategy-for-company-${companyId}-${userId}`, "max");
     }
     return result;
   } catch (error) {
@@ -474,7 +415,7 @@ export async function getUserStrategyTodoListsAction(
   if (!userId)
     return { error: "User not authenticated. Cannot fetch saved strategies." };
   try {
-    return await dbGetUserStrategyTodoLists(userId);
+    return await userService.getUserStrategyTodoLists(userId);
   } catch (error) {
     const message =
       error instanceof Error
@@ -503,8 +444,7 @@ export async function getStrategyTodoListForCompanyAction(
   if (!userId) return { error: "User not authenticated." };
   if (!companyId) return { error: "Company ID is required." };
   try {
-    const result = await dbGetStrategyTodoListForCompany(userId, companyId);
-    return result;
+    return await userService.getStrategyTodoListForCompany(userId, companyId);
   } catch (error) {
     const message =
       error instanceof Error
@@ -539,16 +479,16 @@ export async function updateStrategyTodoItemStatusAction(
   if (itemIndex < 0) return { success: false, error: "Invalid item index." };
 
   try {
-    const result = await dbUpdateStrategyTodoItemStatus(
+    const result = await userService.updateStrategyTodoItemStatus(
       userId,
       companyId,
       itemIndex,
       isCompleted,
     );
     if (result.success) {
-      revalidateTag(`user-profile-${userId}`, 'max');
-      revalidateTag(`user-strategy-todo-lists-${userId}`, 'max');
-      revalidateTag(`user-strategy-for-company-${companyId}-${userId}`, 'max');
+      revalidateTag(`user-profile-${userId}`, "max");
+      revalidateTag(`user-strategy-todo-lists-${userId}`, "max");
+      revalidateTag(`user-strategy-for-company-${companyId}-${userId}`, "max");
     }
     return result;
   } catch (error) {

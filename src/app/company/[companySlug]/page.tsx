@@ -6,10 +6,7 @@
  * retrieves the initial list of associated problems, and renders the main page layout.
  * It also includes `generateStaticParams` to pre-render pages for known companies at build time.
  */
-import {
-  getCompanyBySlug,
-  getAllCompanySlugs,
-} from "@/lib/data";
+import { companyService } from "@/services/company.service";
 import type { Metadata } from "next";
 import CompanyNotFound from "@/components/company/page/company-not-found";
 import CompanyPage from "@/components/company/page/company-page";
@@ -115,7 +112,7 @@ export async function generateMetadata(
   props: CompanyPageProps,
 ): Promise<Metadata> {
   const params = await props.params;
-  const company = await getCompanyBySlug(params.companySlug);
+  const company = await companyService.getCompanyBySlug(params.companySlug);
 
   if (!company) {
     return {
@@ -203,7 +200,7 @@ export async function generateMetadata(
  */
 export default async function CompanyPageWrapper(props: CompanyPageProps) {
   const params = await props.params;
-  const company = await getCompanyBySlug(params.companySlug);
+  const company = await companyService.getCompanyBySlug(params.companySlug);
 
   if (!company) {
     return <CompanyNotFound companySlug={params.companySlug} />;
@@ -232,7 +229,7 @@ export default async function CompanyPageWrapper(props: CompanyPageProps) {
  */
 export async function generateStaticParams() {
   try {
-    const companySlugs = await getAllCompanySlugs();
+    const companySlugs = await companyService.getAllCompanySlugs();
     if (!companySlugs || companySlugs.length === 0) {
       return [];
     }

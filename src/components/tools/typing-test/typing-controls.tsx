@@ -1,5 +1,5 @@
 import React from "react";
-import { Language } from "../_data/snippets";
+import { Language } from "@/types/typing-test";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface TypingControlsProps {

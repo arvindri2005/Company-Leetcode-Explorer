@@ -1,0 +1,506 @@
+import { Company } from "@/types";
+import { db } from "@/lib/firebase";
+import {
+  collection,
+  getDocs,
+  doc,
+  getDoc,
+  query,
+  where,
+  limit,
+  setDoc,
+  updateDoc,
+  orderBy,
+  Timestamp,
+  startAfter,
+  writeBatch,
+  deleteDoc,
+  Firestore,
+} from "firebase/firestore";
+import { slugify } from "@/lib/utils";
+
+// Make sure db is initialized
+function getFirestore(): Firestore {
+  if (!db) {
+    throw new Error(
+      "Firestore is not initialized. Check your Firebase configuration.",
+    );
+  }
+  return db;
+}
+
+export interface GetCompaniesParams {
+  page?: number;
+  pageSize?: number;
+  searchTerm?: string;
+  cursor?: string;
+}
+
+export interface PaginatedCompaniesResponse {
+  companies: Company[];
+  totalCompanies?: number;
+  totalPages?: number;
+  currentPage?: number;
+  nextCursor?: string;
+  prevCursor?: string;
+  hasMore: boolean;
+}
+
+function mapFirestoreDocToCompany(
+  docSnap: import("firebase/firestore").DocumentSnapshot,
+): Company {
+  const data = docSnap.data()!;
+  return {
+    id: docSnap.id,
+    slug: data.slug || docSnap.id || slugify(data.name || ""),
+    name: data.name || docSnap.id.charAt(0).toUpperCase() + docSnap.id.slice(1),
+    normalizedName:
+      data.normalizedName ||
+      data.name?.toLowerCase() ||
+      docSnap.id.toLowerCase(),
+    logo: data.logo,
+    description: data.description,
+    website: data.website,
+    problemCount: data.problemCount || 0,
+    difficultyCounts: data.difficultyCounts || {
+      Easy: 0,
+      Medium: 0,
+      Hard: 0,
+    },
+    recencyCounts: data.recencyCounts || {
+      last_30_days: 0,
+      within_3_months: 0,
+      within_6_months: 0,
+      older_than_6_months: 0,
+    },
+    commonTags: data.commonTags || [],
+    relatedCompanies: data.relatedCompanies || [],
+    statsLastUpdatedAt:
+      data.statsLastUpdatedAt instanceof Timestamp
+        ? data.statsLastUpdatedAt.toDate()
+        : undefined,
+  };
+}
+
+// Helper to encode cursor
+function encodeCursor(data: { normalizedName: string; id: string }): string {
+  return Buffer.from(JSON.stringify(data)).toString("base64");
+}
+
+// Helper to decode cursor
+function decodeCursor(
+  cursor: string,
+): { normalizedName: string; id: string } | null {
+  try {
+    return JSON.parse(Buffer.from(cursor, "base64").toString("utf-8"));
+  } catch (e) {
+    console.error("Failed to decode cursor:", e);
+    return null;
+  }
+}
+
+export class CompanyRepository {
+  async getCompanies({
+    page = 1,
+    pageSize = 30,
+    searchTerm,
+    cursor,
+  }: GetCompaniesParams = {}): Promise<PaginatedCompaniesResponse> {
+    try {
+      const normalizedSearchTerm = searchTerm?.trim().toLowerCase();
+
+      // Strategy: Cursor provided
+      if (cursor) {
+        return await this.fetchCompaniesWithCursor(
+          pageSize,
+          normalizedSearchTerm,
+          cursor,
+        );
+      }
+
+      // Strategy: Page provided (Standard Pagination)
+      if (!normalizedSearchTerm) {
+        // Fetch all slugs for pagination calculation (this could be optimized)
+        // In a real large app, we'd use count() but Firestore count() is one read per 1000 index entries.
+        // Fetching all slugs might be heavy if thousands of companies.
+        // But the original code did fetchAllCompanySlugs.
+        const allSlugs = await this.getAllCompanySlugs(false); // No cache here, service handles it
+        const totalCompanies = allSlugs.length;
+        const totalPages = Math.ceil(totalCompanies / pageSize);
+        const safePage = Math.max(1, Math.min(page, totalPages || 1));
+        const startIndex = (safePage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const pageSlugs = allSlugs.slice(startIndex, endIndex);
+
+        const companyPromises = pageSlugs.map((slug) =>
+          this.getCompanyBySlug(slug),
+        );
+        const companies = (await Promise.all(companyPromises)).filter(
+          (c): c is Company => !!c,
+        );
+
+        return {
+          companies,
+          totalCompanies,
+          totalPages,
+          currentPage: safePage,
+          hasMore: safePage < totalPages,
+          nextCursor: undefined,
+        };
+      }
+
+      // Strategy: Search Term provided
+      const companiesCol = collection(getFirestore(), "companies");
+      const q = query(
+        companiesCol,
+        where("normalizedName", ">=", normalizedSearchTerm),
+        where("normalizedName", "<=", normalizedSearchTerm + "\uf8ff"),
+        orderBy("normalizedName", "asc"),
+      );
+
+      const snapshot = await getDocs(q);
+      const allMatchingDocs = snapshot.docs;
+      const totalMatching = allMatchingDocs.length;
+      const totalPages = Math.ceil(totalMatching / pageSize);
+      const safePage = Math.max(1, Math.min(page, totalPages || 1));
+
+      const startIndex = (safePage - 1) * pageSize;
+      const pageDocs = allMatchingDocs.slice(startIndex, startIndex + pageSize);
+      const companies = pageDocs.map(mapFirestoreDocToCompany);
+
+      return {
+        companies,
+        totalCompanies: totalMatching,
+        totalPages,
+        currentPage: safePage,
+        hasMore: safePage < totalPages,
+        nextCursor: undefined,
+      };
+    } catch (error) {
+      console.error("Error in getCompanies:", error);
+      return {
+        companies: [],
+        hasMore: false,
+        currentPage: 1,
+        totalPages: 1,
+        totalCompanies: 0,
+      };
+    }
+  }
+
+  private async fetchCompaniesWithCursor(
+    pageSize: number,
+    searchTerm?: string,
+    cursor?: string,
+  ): Promise<{
+    companies: Company[];
+    nextCursor?: string;
+    prevCursor?: string;
+    hasMore: boolean;
+    hasPrev: boolean;
+  }> {
+    const companiesCol = collection(getFirestore(), "companies");
+    let queryConstraints: any[] = [
+      orderBy("normalizedName", "asc"),
+      orderBy("id", "asc"),
+      limit(pageSize + 1),
+    ];
+
+    if (searchTerm && searchTerm.trim() !== "") {
+      const lowercasedSearchTerm = searchTerm.toLowerCase().trim();
+      queryConstraints = [
+        where("normalizedName", ">=", lowercasedSearchTerm),
+        where("normalizedName", "<=", lowercasedSearchTerm + "\uf8ff"),
+        orderBy("normalizedName", "asc"),
+        orderBy("id", "asc"),
+        limit(pageSize + 1),
+      ];
+    }
+
+    if (cursor) {
+      const decoded = decodeCursor(cursor);
+      if (decoded) {
+        queryConstraints.push(startAfter(decoded.normalizedName, decoded.id));
+      }
+    }
+
+    const queryBuilder = query(companiesCol, ...queryConstraints);
+    const querySnapshot = await getDocs(queryBuilder);
+    const docs = querySnapshot.docs;
+    const hasMore = docs.length > pageSize;
+
+    const companies = docs.slice(0, pageSize).map(mapFirestoreDocToCompany);
+
+    let nextCursor: string | undefined;
+    if (hasMore && companies.length > 0) {
+      const lastCompany = companies[companies.length - 1];
+      nextCursor = encodeCursor({
+        normalizedName: lastCompany.normalizedName || "",
+        id: lastCompany.id,
+      });
+    }
+
+    return {
+      companies,
+      nextCursor,
+      prevCursor: undefined,
+      hasMore,
+      hasPrev: !!cursor,
+    };
+  }
+
+  async getCompanyById(id: string): Promise<Company | undefined> {
+    if (!id) return undefined;
+    try {
+      const companyDocRef = doc(getFirestore(), "companies", id);
+      const companySnap = await getDoc(companyDocRef);
+      if (companySnap.exists()) {
+        return mapFirestoreDocToCompany(companySnap);
+      }
+      return undefined;
+    } catch (error) {
+       console.error(`Error fetching company by ID ${id}:`, error);
+       return undefined;
+    }
+  }
+
+  async getCompanyBySlug(slug: string): Promise<Company | undefined> {
+    if (!slug) return undefined;
+    try {
+        const companyDocRef = doc(getFirestore(), "companies", slug);
+        const companySnap = await getDoc(companyDocRef);
+        if (companySnap.exists()) {
+            return mapFirestoreDocToCompany(companySnap);
+        }
+        return undefined;
+    } catch (error) {
+        console.error(`Error fetching company by slug ${slug}:`, error);
+        return undefined;
+    }
+  }
+
+  async getAllCompanySlugs(sorted: boolean = true): Promise<string[]> {
+    try {
+        const companiesCol = collection(getFirestore(), "companies");
+        const q = query(companiesCol);
+        const companiesSnapshot = await getDocs(q);
+        const slugs = companiesSnapshot.docs.map((docSnap) => docSnap.id);
+        if (sorted) {
+            slugs.sort();
+        }
+        return slugs;
+    } catch (error) {
+        console.error("Error fetching all company slugs:", error);
+        return [];
+    }
+  }
+
+  async addCompany(
+    companyData: Omit<
+      Company,
+      | "id"
+      | "slug"
+      | "problemCount"
+      | "difficultyCounts"
+      | "recencyCounts"
+      | "commonTags"
+      | "statsLastUpdatedAt"
+    >,
+  ): Promise<{ id: string | null; error?: string; alreadyExists?: boolean }> {
+    try {
+      if (!companyData.name?.trim()) {
+        return { id: null, error: "Company name is required" };
+      }
+
+      const companySlug = slugify(companyData.name);
+      const normalizedName = companyData.name.toLowerCase().trim();
+
+      const existingCompany = await this.getCompanyBySlug(companySlug);
+      if (existingCompany) {
+        return {
+          id: existingCompany.id,
+          error: `Company with name "${companyData.name}" already exists.`,
+          alreadyExists: true,
+        };
+      }
+
+      const dataForFirestore: Omit<Company, "id"> = {
+        name: companyData.name.trim(),
+        normalizedName,
+        slug: companySlug,
+        logo: companyData.logo,
+        description: companyData.description?.trim(),
+        website: companyData.website?.trim(),
+        problemCount: 0,
+        difficultyCounts: { Easy: 0, Medium: 0, Hard: 0 },
+        recencyCounts: {
+          last_30_days: 0,
+          within_3_months: 0,
+          within_6_months: 0,
+          older_than_6_months: 0,
+        },
+        commonTags: [],
+        relatedCompanies: companyData.relatedCompanies || [],
+        statsLastUpdatedAt: undefined,
+      };
+
+      // Clean up undefined values
+      Object.keys(dataForFirestore).forEach((key) => {
+        if (
+          dataForFirestore[key as keyof typeof dataForFirestore] === undefined
+        ) {
+          delete dataForFirestore[key as keyof typeof dataForFirestore];
+        }
+      });
+
+      const companiesCol = collection(getFirestore(), "companies");
+      const docRef = doc(companiesCol, companySlug);
+      await setDoc(docRef, dataForFirestore);
+
+      return { id: companySlug };
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "An unknown error occurred while adding company.";
+      console.error("Error in addCompany:", message, error);
+      return { id: null, error: message };
+    }
+  }
+
+  async updateCompany(
+    companyId: string,
+    companyData: Partial<Company>,
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      if (!companyId) {
+        return { success: false, error: "Company ID is required" };
+      }
+
+      const updates: Record<string, any> = { ...companyData };
+
+      if (updates.name) {
+        updates.normalizedName = updates.name.toLowerCase().trim();
+      }
+
+      delete updates.id;
+      delete updates.slug;
+      delete updates.problemCount;
+      delete updates.difficultyCounts;
+      delete updates.recencyCounts;
+      delete updates.commonTags;
+      delete updates.statsLastUpdatedAt;
+
+      Object.keys(updates).forEach((key) => {
+        if (updates[key] === undefined) {
+          delete updates[key];
+        }
+      });
+
+      const companyDocRef = doc(getFirestore(), "companies", companyId);
+      await updateDoc(companyDocRef, updates);
+
+      return { success: true };
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "An unknown error occurred while updating company.";
+      console.error(`Error in updateCompany for ${companyId}:`, message, error);
+      return { success: false, error: message };
+    }
+  }
+
+  async bulkDeleteCompanies(
+    companyIds: string[],
+  ): Promise<{ success: boolean; error?: string; deletedCount?: number }> {
+    try {
+      if (!companyIds || companyIds.length === 0) {
+        return { success: true, deletedCount: 0 };
+      }
+
+      const db = getFirestore(); // Use local var to avoid closure issues if any
+      const CHUNK_SIZE = 500;
+
+      for (let i = 0; i < companyIds.length; i += CHUNK_SIZE) {
+        const chunk = companyIds.slice(i, i + CHUNK_SIZE);
+        const currentBatch = writeBatch(db);
+
+        chunk.forEach((id) => {
+          const docRef = doc(db, "companies", id);
+          currentBatch.delete(docRef);
+        });
+
+        await currentBatch.commit();
+      }
+
+      return { success: true, deletedCount: companyIds.length };
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "An unknown error occurred while bulk deleting companies.";
+      console.error(`Error in bulkDeleteCompanies:`, message, error);
+      return { success: false, error: message };
+    }
+  }
+
+  async deleteCompany(
+    companyId: string,
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      if (!companyId) {
+        return { success: false, error: "Company ID is required" };
+      }
+
+      const companyDocRef = doc(getFirestore(), "companies", companyId);
+      await deleteDoc(companyDocRef);
+
+      return { success: true };
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "An unknown error occurred while deleting company.";
+      console.error(`Error in deleteCompany for ${companyId}:`, message, error);
+      return { success: false, error: message };
+    }
+  }
+
+  async fetchCompanySuggestions(
+    searchTerm: string,
+    limitNum: number = 5,
+  ): Promise<Array<Pick<Company, "id" | "name" | "slug" | "logo">>> {
+    if (!searchTerm || searchTerm.trim().length < 1) {
+      return [];
+    }
+    try {
+      const companiesCol = collection(getFirestore(), "companies");
+      const lowercasedSearchTerm = searchTerm.toLowerCase().trim();
+
+      const q = query(
+        companiesCol,
+        orderBy("normalizedName"),
+        where("normalizedName", ">=", lowercasedSearchTerm),
+        where("normalizedName", "<=", lowercasedSearchTerm + "\uf8ff"),
+        limit(limitNum),
+      );
+
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((docSnap) => {
+        const data = docSnap.data();
+        return {
+          id: docSnap.id,
+          name: data.name,
+          slug: data.slug || slugify(data.name),
+          logo: data.logo,
+        } as Pick<Company, "id" | "name" | "slug" | "logo">;
+      });
+    } catch (error) {
+      console.error("Error fetching company suggestions:", error);
+      throw error;
+    }
+  }
+}
+
+export const companyRepository = new CompanyRepository();

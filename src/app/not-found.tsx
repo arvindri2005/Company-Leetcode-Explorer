@@ -14,7 +14,7 @@ import { AlertTriangle, Home } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useDebounce } from "@/hooks/use-debounce";
-import { fetchCompanySuggestionsAction } from "@/app/actions";
+import { fetchCompanySuggestionsAction } from "@/app/actions/company.actions";
 import CompnaySearchBar from "@/components/company/company-search-bar";
 import type { Company } from "@/types";
 

@@ -10,49 +10,20 @@
  */
 "use server";
 
+import type { GroupQuestionsOutput } from "@/ai/flows/group-questions";
+import type { FindSimilarQuestionsOutput } from "@/ai/flows/find-similar-questions-flow";
+import type { GenerateFlashcardsOutput } from "@/ai/flows/generate-flashcards-flow";
 import type {
-  GroupQuestionsInput,
-  GroupQuestionsOutput,
-} from "@/ai/flows/group-questions";
-import { groupQuestions as groupQuestionsFlow } from "@/ai/flows/group-questions";
-import type {
-  FindSimilarQuestionsInput,
-  FindSimilarQuestionsOutput,
-} from "@/ai/flows/find-similar-questions-flow";
-import { findSimilarQuestions as findSimilarQuestionsFlow } from "@/ai/flows/find-similar-questions-flow";
-import type {
-  GenerateFlashcardsInput,
-  GenerateFlashcardsOutput,
-  FlashcardProblemInput,
-} from "@/ai/flows/generate-flashcards-flow";
-import { generateFlashcardsForCompany as generateFlashcardsFlow } from "@/ai/flows/generate-flashcards-flow";
-import type {
-  GenerateCompanyStrategyInput,
   GenerateCompanyStrategyOutput,
-  CompanyStrategyProblemInput,
   TargetRoleLevel,
-  EducationExperience,
-  WorkExperience,
-} from "@/ai/flows/generate-company-strategy-flow"; // Added EducationExperience, WorkExperience
-import { generateCompanyStrategy as generateCompanyStrategyFlow } from "@/ai/flows/generate-company-strategy-flow";
-import type {
-  GenerateProblemInsightsInput,
-  GenerateProblemInsightsOutput,
-} from "@/ai/flows/generate-problem-insights-flow";
-import { generateProblemInsights as generateProblemInsightsFlow } from "@/ai/flows/generate-problem-insights-flow";
+} from "@/ai/flows/generate-company-strategy-flow"; 
+import type { GenerateProblemInsightsOutput } from "@/ai/flows/generate-problem-insights-flow";
 import type { AIProblemInput, LeetCodeProblem } from "@/types";
-import {
-  getCompanyById,
-  getProblemByCompanySlugAndProblemSlug,
-  getProblemsByCompanyFromDb,
-} from "@/lib/data";
-import {
-  getUserEducationAction,
-  getUserWorkExperienceAction,
-} from "./user.actions"; // Import new actions
+import { aiService } from "@/services/ai.service";
 import { revalidateTag } from "next/cache";
 import { auth } from "@/lib/firebase"; // For current user ID
-
+import { companyService } from "@/services/company.service"; // needed for revalidate lookup
+import { problemService } from "@/services/problem.service"; // needed for revalidate lookup
 
 
 /**
@@ -71,13 +42,7 @@ export async function performQuestionGrouping(
   problems: AIProblemInput[],
 ): Promise<GroupQuestionsOutput | { error: string }> {
   try {
-    const input: GroupQuestionsInput = {
-      questions: problems.map((p) => ({
-        ...p,
-        link: p.link || `https://example.com/problem/${p.slug}`,
-      })),
-    };
-    const result = await groupQuestionsFlow(input);
+    const result = await aiService.groupQuestions(problems);
     return result;
   } catch (error) {
     console.error("Error in AI question grouping:", error);
@@ -109,26 +74,8 @@ export async function performSimilarQuestionSearch(
   currentProblemCompanySlug: string,
 ): Promise<FindSimilarQuestionsOutput | { error: string }> {
   try {
-    const { company, problem: currentProblem } =
-      await getProblemByCompanySlugAndProblemSlug(
-        currentProblemCompanySlug,
-        currentProblemSlug,
-      );
-
-    if (!currentProblem)
-      return {
-        error: `Problem with slug ${currentProblemSlug} not found for company ${currentProblemCompanySlug}.`,
-      };
-
-    const input: FindSimilarQuestionsInput = {
-      currentProblem: {
-        title: currentProblem.title,
-        difficulty: currentProblem.difficulty,
-        tags: currentProblem.tags,
-        slug: currentProblem.slug,
-      },
-    };
-    return await findSimilarQuestionsFlow(input);
+    // aiService handles the lookup of the problem internally now
+    return await aiService.findSimilarQuestions(currentProblemSlug, currentProblemCompanySlug);
   } catch (error) {
     console.error("Error in AI similar question search:", error);
     if (error instanceof Error)
@@ -156,31 +103,16 @@ export async function generateFlashcardsAction(
   companyId: string,
 ): Promise<GenerateFlashcardsOutput | { error: string }> {
   try {
-    if (!companyId)
-      return { error: "Company ID is required to generate flashcards." };
+    const result = await aiService.generateFlashcards(companyId);
 
-    const company = await getCompanyById(companyId);
-    if (!company) return { error: `Company with ID ${companyId} not found.` };
-
-    const problemsResponse = await getProblemsByCompanyFromDb(companyId);
-    if (!problemsResponse.problems || problemsResponse.problems.length === 0) {
-      return { flashcards: [] };
+    // Revalidation logic moved here from service, or kept here.
+    // We need company details for the tag. aiService doesn't return company object if successful, only flashcards.
+    const company = await companyService.getCompanyById(companyId);
+    if (company) {
+       revalidateTag(`company-slug-${company.slug}`, 'max');
+       revalidateTag(`company-detail-${company.id}`, 'max');
     }
 
-    const problemInputs: FlashcardProblemInput[] =
-      problemsResponse.problems.map((p) => ({
-        title: p.title,
-        difficulty: p.difficulty,
-        tags: p.tags,
-        lastAskedPeriod: p.lastAskedPeriod as any,
-      }));
-
-    const result = await generateFlashcardsFlow({
-      companyName: company.name,
-      problems: problemInputs,
-    });
-    revalidateTag(`company-slug-${company.slug}`, 'max');
-    revalidateTag(`company-detail-${company.id}`, 'max');
     return result;
   } catch (error) {
     console.error("Error in AI flashcard generation:", error);
@@ -210,60 +142,15 @@ export async function generateCompanyStrategyAction(
   targetRoleLevel?: TargetRoleLevel,
 ): Promise<GenerateCompanyStrategyOutput | { error: string }> {
   try {
-    if (!companyId)
-      return { error: "Company ID is required to generate a strategy." };
+      const firebaseUser = auth.currentUser;
+      const result = await aiService.generateCompanyStrategy(companyId, firebaseUser?.uid, targetRoleLevel);
 
-    const company = await getCompanyById(companyId);
-    if (!company) return { error: `Company with ID ${companyId} not found.` };
-
-    const problemsResponse = await getProblemsByCompanyFromDb(companyId);
-    if (!problemsResponse.problems || problemsResponse.problems.length === 0) {
-      const reason =
-        targetRoleLevel && targetRoleLevel !== "general"
-          ? `No problem data available for ${company.name} to tailor a strategy for the ${targetRoleLevel} role.`
-          : `No problem data available for ${company.name} to generate a strategy.`;
-      return {
-        preparationStrategy: `Cannot generate a detailed strategy for ${company.name} due to lack of problem data. Please add some problems associated with this company first. General advice: Focus on common data structures, algorithms, and practice problem-solving.`,
-        focusTopics: [{ topic: "General Problem Solving", reason }],
-        todoItems: [
-          {
-            text: "Add problems for this company to enable strategy generation.",
-            isCompleted: false,
-          },
-        ],
-      };
-    }
-
-    const problemInputs: CompanyStrategyProblemInput[] =
-      problemsResponse.problems.map((p) => ({
-        title: p.title,
-        difficulty: p.difficulty,
-        tags: p.tags,
-        lastAskedPeriod: p.lastAskedPeriod as any,
-      }));
-
-    let educationHistory: EducationExperience[] | undefined = undefined;
-    let workHistory: WorkExperience[] | undefined = undefined;
-    const firebaseUser = auth.currentUser;
-
-    if (firebaseUser?.uid) {
-      const eduResult = await getUserEducationAction(firebaseUser.uid);
-      if (Array.isArray(eduResult)) educationHistory = eduResult;
-
-      const workResult = await getUserWorkExperienceAction(firebaseUser.uid);
-      if (Array.isArray(workResult)) workHistory = workResult;
-    }
-
-    const result = await generateCompanyStrategyFlow({
-      companyName: company.name,
-      problems: problemInputs,
-      targetRoleLevel,
-      educationHistory,
-      workHistory,
-    });
-    revalidateTag(`company-slug-${company.slug}`, 'max');
-    revalidateTag(`company-detail-${company.id}`, 'max');
-    return result;
+      const company = await companyService.getCompanyById(companyId);
+      if (company) {
+        revalidateTag(`company-slug-${company.slug}`, 'max');
+        revalidateTag(`company-detail-${company.id}`, 'max');
+      }
+      return result;
   } catch (error) {
     console.error("Error in AI company strategy generation:", error);
     if (error instanceof Error)
@@ -292,25 +179,13 @@ export async function generateProblemInsightsAction(
   problem: LeetCodeProblem,
 ): Promise<GenerateProblemInsightsOutput | { error: string }> {
   try {
-    if (!problem || !problem.companySlug || !problem.slug)
-      return {
-        error:
-          "Problem details including company and problem slugs are required.",
-      };
+    const result = await aiService.generateProblemInsights(problem);
 
-    const problemDescriptionForAI = `Problem Title: "${problem.title}" (Difficulty: ${problem.difficulty}). Tags: ${problem.tags.join(", ")}. Link (for context only): ${problem.link}. Analyze this problem to provide key concepts, common data structures, common algorithms, and a high-level hint.`;
-
-    const input: GenerateProblemInsightsInput = {
-      title: problem.title,
-      difficulty: problem.difficulty,
-      tags: problem.tags,
-      problemDescription: problemDescriptionForAI,
-    };
-    const result = await generateProblemInsightsFlow(input);
     revalidateTag(`problem-slug-${problem.slug}`, 'max');
     revalidateTag(`company-slug-${problem.companySlug}`, 'max');
     revalidateTag(`problem-detail-${problem.id}`, 'max');
     revalidateTag(`company-detail-${problem.companyId}`, 'max');
+
     return result;
   } catch (error) {
     console.error("Error in AI problem insights generation:", error);

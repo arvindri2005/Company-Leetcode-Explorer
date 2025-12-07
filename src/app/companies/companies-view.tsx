@@ -1,7 +1,7 @@
 import { DashboardHeader } from "@/components/company/dashboard-header";
 import { TechCompanyCard } from "@/components/company/tech-company-card";
 import { CompanyTable } from "@/components/company/company-table";
-import { getCompanies, getCompanyBySlug } from "@/lib/data";
+import { companyService } from "@/services/company.service";
 import { Separator } from "@/components/ui/separator";
 import {
   Accordion,
@@ -27,7 +27,7 @@ export async function CompaniesView({ page, searchParams }: CompaniesViewProps) 
   const currentPage = page > 0 ? page : 1;
 
   // Parallelize data fetching
-  const companiesPromise = getCompanies({
+  const companiesPromise = companyService.getCompanies({
     page: currentPage,
     pageSize: ITEMS_PER_PAGE,
     searchTerm,
@@ -39,7 +39,7 @@ export async function CompaniesView({ page, searchParams }: CompaniesViewProps) 
   if (!searchTerm && currentPage === 1) {
     const trendingSlugs = ["google", "amazon", "microsoft"];
     const trendingPromises = trendingSlugs.map((slug) =>
-      getCompanyBySlug(slug)
+      companyService.getCompanyBySlug(slug)
     );
     trendingPromise = Promise.all(trendingPromises).then((results) =>
       results.filter((c) => c !== undefined)

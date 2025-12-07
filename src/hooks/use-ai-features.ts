@@ -7,7 +7,7 @@ import { useAICooldown } from "@/hooks/use-ai-cooldown";
 import {
   performSimilarQuestionSearch,
   generateProblemInsightsAction,
-} from "@/app/actions";
+} from "@/app/actions/ai.actions";
 import type {
   SimilarProblemDetail,
   GenerateProblemInsightsOutput,

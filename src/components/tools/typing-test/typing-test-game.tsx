@@ -1,11 +1,11 @@
 "use client";
 
 import React from "react";
-import { useTypingGame } from "../_hooks/useTypingGame";
-import TypingArea from "./TypingArea";
-import TypingStats from "./TypingStats";
-import TypingResults from "./TypingResults";
-import TypingControls from "./TypingControls";
+import { useTypingGame } from "@/hooks/use-typing-game";
+import TypingArea from "./typing-area";
+import TypingStats from "./typing-stats";
+import TypingResults from "./typing-results";
+import TypingControls from "./typing-controls";
 
 export default function TypingTestGame() {
   const {

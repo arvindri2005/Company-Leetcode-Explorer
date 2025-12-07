@@ -12,7 +12,7 @@ import type { LeetCodeProblem, AIProblemInput } from "@/types";
 import type { GroupQuestionsOutput } from "@/ai/flows/group-questions";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { performQuestionGrouping } from "@/app/actions";
+import { performQuestionGrouping } from "@/app/actions/ai.actions";
 import { useToast } from "@/hooks/use-toast";
 import {
   Accordion,

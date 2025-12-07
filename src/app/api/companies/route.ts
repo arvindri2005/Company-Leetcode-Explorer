@@ -7,7 +7,7 @@
  * validation and calls a data-layer function to retrieve the companies.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { loadMoreCompanies } from "@/lib/data";
+import { companyService } from "@/services/company.service";
 
 /**
  * Handles POST requests to fetch the next page of companies.
@@ -53,11 +53,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await loadMoreCompanies(
+    const result = await companyService.getCompanies({
       cursor,
       pageSize,
-      searchTerm?.trim(),
-    );
+      searchTerm: searchTerm?.trim(),
+    });
     return NextResponse.json(result);
   } catch (error) {
     console.error("Error in companies API route:", error);
@@ -93,7 +93,11 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const result = await loadMoreCompanies(cursor, pageSize, searchTerm);
+    const result = await companyService.getCompanies({
+      cursor,
+      pageSize,
+      searchTerm: searchTerm?.trim(),
+    });
     return NextResponse.json(result);
   } catch (error) {
     console.error("Error in companies GET API route:", error);

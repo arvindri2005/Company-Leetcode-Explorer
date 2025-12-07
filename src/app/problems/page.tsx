@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getAllProblemsPaginated } from "@/lib/data";
+import { problemService } from "@/services/problem.service"; // Import service
 import AllProblemsList from "@/components/problem/all-problems-list";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { Metadata } from "next";
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export const revalidate = 3600; // Revalidate every hour
 
 export default async function AllProblemsPage() {
-  const { problems, hasMore, nextCursor } = await getAllProblemsPaginated({
+  const { problems, hasMore, nextCursor } = await problemService.getAllProblemsPaginated({
     pageSize: 15,
   });
 

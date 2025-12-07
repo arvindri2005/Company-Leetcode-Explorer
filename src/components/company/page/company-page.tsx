@@ -6,9 +6,11 @@
  * retrieves the initial list of associated problems, and renders the main page layout.
  */
 import {
-  getCompanyBySlug,
-  getProblemsByCompanyFromDb,
-} from "@/lib/data";
+  companyService
+} from "@/services/company.service";
+import {
+  problemService
+} from "@/services/problem.service";
 import type { Company, ProblemListFilters } from "@/types";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import CompanyHeader from "@/components/company/company-header";
@@ -49,7 +51,7 @@ export default async function CompanyPage({ company }: CompanyPageProps) {
     sortKey: "title",
   };
 
-  const initialPaginatedProblemsData = await getProblemsByCompanyFromDb(
+  const initialPaginatedProblemsData = await problemService.getProblemsByCompany(
     company.id,
     {
       pageSize: INITIAL_ITEMS_PER_PAGE,

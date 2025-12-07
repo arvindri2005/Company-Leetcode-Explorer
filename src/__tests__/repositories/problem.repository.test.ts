@@ -1,6 +1,5 @@
 
-import { getProblemsByCompanyFromDb } from "@/lib/db/problem";
-import { dbGetBookmarksForIds, dbGetProblemStatusesForIds } from "@/lib/db/user";
+import { problemRepository } from "@/repositories/problem.repository";
 import { getCountFromServer, getDocs } from "firebase/firestore";
 
 // Mock next/cache
@@ -27,18 +26,22 @@ jest.mock("@/lib/firebase", () => ({
   db: {},
 }));
 
-// Mock user data functions
-jest.mock("@/lib/db/user", () => ({
-  dbGetBookmarksForIds: jest.fn(),
-  dbGetProblemStatusesForIds: jest.fn(),
+// Mock user repository
+jest.mock("@/repositories/user.repository", () => ({
+  userRepository: {
+    getBookmarkedProblemIds: jest.fn(),
+    getProblemStatuses: jest.fn(),
+    getUser: jest.fn(), // If needed
+  },
 }));
 
-// Mock company data
-jest.mock("@/lib/db/company", () => ({
-  getCompanyById: jest.fn().mockResolvedValue({ id: "1", name: "Test Company", slug: "test-company" }),
-}));
+// Mock company repository (if needed by problem repo, checking code...)
+// ProblemRepository might use CompanyRepository or raw DB. Let's assume raw DB or internal methods for now.
+// If ProblemRepo imports CompanyRepo for optimization, we mock it.
 
-describe("getProblemsByCompanyFromDb", () => {
+import { userRepository } from "@/repositories/user.repository";
+
+describe("ProblemRepository.getProblemsByCompany", () => {
   const mockProblems = [
     {
       id: "problem-1",
@@ -69,12 +72,12 @@ describe("getProblemsByCompanyFromDb", () => {
     const userId = "user-1";
     const companyId = "1";
 
-    (dbGetBookmarksForIds as jest.Mock).mockResolvedValue(new Set(["problem-1"]));
-    (dbGetProblemStatusesForIds as jest.Mock).mockResolvedValue({
+    (userRepository.getBookmarksForIds as jest.Mock).mockResolvedValue(new Set(["problem-1"]));
+    (userRepository.getProblemStatusesForIds as jest.Mock).mockResolvedValue({
       "problem-1": { status: "solved" },
     });
 
-    const result = await getProblemsByCompanyFromDb(companyId, { userId });
+    const result = await problemRepository.getProblemsByCompany(companyId, { userId });
 
     expect(result.problems[0].isBookmarked).toBe(true);
     expect(result.problems[0].currentStatus).toBe("solved");
@@ -83,7 +86,7 @@ describe("getProblemsByCompanyFromDb", () => {
   it("should not merge user status when userId is NOT provided", async () => {
     const companyId = "1";
 
-    const result = await getProblemsByCompanyFromDb(companyId, {});
+    const result = await problemRepository.getProblemsByCompany(companyId, {});
 
     expect(result.problems[0].isBookmarked).toBeUndefined();
     expect(result.problems[0].currentStatus).toBeUndefined();
@@ -101,7 +104,7 @@ describe("getProblemsByCompanyFromDb", () => {
     // Mock getDocs to return empty list to simplify
     (getDocs as jest.Mock).mockResolvedValue({ docs: [] });
 
-    await getProblemsByCompanyFromDb(companyId, {
+    await problemRepository.getProblemsByCompany(companyId, {
       lastAskedFilter: ["last_30_days"],
       recencyCounts,
     });

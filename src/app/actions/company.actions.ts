@@ -10,20 +10,8 @@
 "use server";
 
 import type { Company } from "@/types";
-import {
-  addCompanyToDb,
-  getCompanies as getAllCompaniesFromDbInternal,
-} from "@/lib/data";
+import { companyService } from "@/services/company.service";
 import { revalidatePath, revalidateTag } from "next/cache";
-import {
-  collection,
-  query,
-  orderBy,
-  where,
-  limit,
-  getDocs,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { slugify } from "@/lib/utils";
 
 /**
@@ -81,7 +69,7 @@ export async function addCompany(
       id: newCompanyId,
       error: dbError,
       alreadyExists,
-    } = await addCompanyToDb(companyData);
+    } = await companyService.addCompany(companyData);
 
     if (dbError || !newCompanyId) {
       if (alreadyExists) return { success: false, error: dbError };
@@ -91,6 +79,7 @@ export async function addCompany(
       };
     }
     revalidateTag("companies-collection-broad", 'max');
+    revalidateTag("companies-list", 'max');
     revalidatePath("/");
     revalidatePath("/add-company");
     return {
@@ -138,7 +127,7 @@ export async function fetchCompaniesAction(
   error?: string;
 }> {
   try {
-    const result = await getAllCompaniesFromDbInternal({ page, pageSize, searchTerm });
+    const result = await companyService.getCompanies({ page, pageSize, searchTerm });
     return {
       ...result,
       totalPages: result.totalPages ?? 0,
@@ -184,29 +173,7 @@ export async function fetchCompanySuggestionsAction(
     return [];
   }
   try {
-    const companiesCol = collection(db, "companies");
-    const lowercasedSearchTerm = searchTerm.toLowerCase().trim();
-
-    const q = query(
-      companiesCol,
-      orderBy("normalizedName"),
-      where("normalizedName", ">=", lowercasedSearchTerm),
-      where("normalizedName", "<=", lowercasedSearchTerm + "\uf8ff"),
-      limit(limitNum),
-    );
-
-    const querySnapshot = await getDocs(q);
-    const suggestions = querySnapshot.docs.map((docSnap) => {
-      const data = docSnap.data();
-      return {
-        id: docSnap.id,
-        name: data.name,
-        slug: data.slug || slugify(data.name),
-        logo: data.logo, // Include logo for richer suggestions
-      } as Pick<Company, "id" | "name" | "slug" | "logo">;
-    });
-
-    return suggestions;
+    return await companyService.fetchCompanySuggestions(searchTerm, limitNum);
   } catch (error) {
     console.error("Error fetching company suggestions in action:", error);
     const message =

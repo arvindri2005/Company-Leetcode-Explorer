@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { snippets, Snippet, Language } from "../_data/snippets";
+import { snippets } from "@/lib/data/typing-test-snippets";
+import { Snippet, Language } from "@/types/typing-test";
 
 // Utility to calculate WPM
 // Raw WPM = (Total Characters / 5) / Time (min)

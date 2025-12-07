@@ -7,7 +7,7 @@
  * sorting. It uses Zod for robust input validation.
  */
 import { NextResponse } from "next/server";
-import { getProblemsByCompanyFromDb } from "@/lib/data";
+import { problemService } from "@/services/problem.service";
 import { z } from "zod";
 import type {
   DifficultyFilter,
@@ -95,14 +95,14 @@ export async function POST(request: Request) {
       if (!companySlugToUse || totalProblemCountToUse === undefined || !difficultyCountsToUse) {
          // Fetch company to get optimization data (counts, slug)
          // This is cached, so it's cheap compared to getCountFromServer
-         const { getCompanyById } = await import("@/lib/data");
-         const company = await getCompanyById(companyId);
+         const { companyService } = await import("@/services/company.service");
+         const company = await companyService.getCompanyById(companyId);
          companySlugToUse = company?.slug;
          totalProblemCountToUse = company?.problemCount;
          difficultyCountsToUse = company?.difficultyCounts;
       }
 
-      result = await getProblemsByCompanyFromDb(companyId, {
+      result = await problemService.getProblemsByCompany(companyId, {
         cursor,
         pageSize,
         difficultyFilter: filters?.difficultyFilter as DifficultyFilter[],
@@ -117,8 +117,8 @@ export async function POST(request: Request) {
       });
     } else {
       // Fetch all problems if no companyId is provided
-      const { getAllProblemsPaginated } = await import("@/lib/data");
-      result = await getAllProblemsPaginated({
+      const { problemService: ps } = await import("@/services/problem.service");
+      result = await ps.getAllProblemsPaginated({
         cursor,
         pageSize,
         difficultyFilter: filters?.difficultyFilter as DifficultyFilter[],
