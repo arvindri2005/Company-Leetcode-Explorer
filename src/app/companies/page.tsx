@@ -1,4 +1,4 @@
-import { CompaniesView } from "./companies-view";
+import { CompaniesView } from "@/components/company/companies-view";
 import type { Metadata } from "next";
 
 type CompaniesPageProps = {

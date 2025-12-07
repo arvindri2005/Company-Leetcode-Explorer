@@ -1,9 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import CompanyTabs from '@/components/company/page/company-tabs';
-import { getAIProblems } from '@/actions/problem.actions';
+import { getAIProblems } from '@/app/actions/problem.actions';
 
 // Mock actions
-jest.mock('@/actions/problem.actions', () => ({
+jest.mock('@/app/actions/problem.actions', () => ({
   getAIProblems: jest.fn(),
 }));
 

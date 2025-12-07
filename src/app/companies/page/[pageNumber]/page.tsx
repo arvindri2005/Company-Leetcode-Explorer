@@ -1,4 +1,4 @@
-import { CompaniesView } from "@/app/companies/companies-view";
+import { CompaniesView } from "@/components/company/companies-view";
 import type { Metadata } from "next";
 
 type PaginatedCompaniesPageProps = {

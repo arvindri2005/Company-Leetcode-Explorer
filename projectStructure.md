@@ -148,13 +148,49 @@ export default async function NewFeaturePage() {
 }
 ```
 
-## Best Practices
+# Best Practices & Conventions
 
-*   **Imports**: Use absolute imports `@/` (e.g., `import { Button } from "@/components/ui/button"`).
-*   **Styling**: Use Tailwind CSS classes. Avoid inline styles.
-*   **Naming**:
-    *   Files: `kebab-case.ts`, `kebab-case.tsx`
-    *   Classes/Components: `PascalCase`
-    *   Functions/Variables: `camelCase`
-*   **Components**: Keep components small and focused. Extract sub-components if a file grows too large.
-*   **Async/Await**: Always use `async/await` for asynchronous operations.
+We enforce strict conventions to ensure consistency and avoid case-sensitivity issues across OS environments (Windows/Linux).
+
+## 1. Naming Conventions
+
+### File System
+- **Files:** kebab-case (e.g., `user-profile.tsx`, `api-utils.ts`)
+- **Directories:** kebab-case (e.g., `components/auth-flow/`)
+
+#### Next.js Specifics
+- **Route Groups:** (kebab-case)
+- **Dynamic Params:** [kebab-case]
+
+### Code Identifiers
+
+#### React Components
+- PascalCase
+- Component name should roughly match the filename (e.g., `user-card.tsx` exports `UserCard`).
+
+#### Functions & Methods
+- camelCase (e.g., `getCompanyDetails`)
+
+#### Server Actions
+- verb-noun pattern (e.g., `submitForm`, `deleteUser`)
+
+#### Variables
+- camelCase (e.g., `userData`)
+
+#### Booleans
+- Must use prefixes: `is`, `has`, `should`, `can` (e.g., `isLoading`, `hasPermission`).
+
+#### Constants
+- UPPER_SNAKE_CASE (e.g., `DEFAULT_PAGE_SIZE = 20`)
+
+#### Types & Interfaces
+- PascalCase (e.g., `CompanyProps`, `UserResponse`)
+- Do not use `I` prefix (e.g., `IUser` is forbidden).
+
+## 2. General Best Practices
+
+### Imports
+Use absolute imports `@/`:
+```ts
+import { Button } from "@/components/ui/button";
+

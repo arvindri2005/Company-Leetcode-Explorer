@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Brain, Target, Users } from "lucide-react";
 import ProblemList from "@/components/problem/problem-list";
 import type { Company, LeetCodeProblem, ProblemListFilters } from "@/types";
-import { getAIProblems } from "@/actions/problem.actions";
+import { getAIProblems } from "@/app/actions/problem.actions";
 
 const AIGroupingSection = dynamic(
   () => import("@/components/ai/ai-grouping-section"),

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { snippets } from "@/lib/data/typing-test-snippets";
+import { snippets } from "@/constants/typing-test-snippets";
 import { Snippet, Language } from "@/types/typing-test";
 
 // Utility to calculate WPM
