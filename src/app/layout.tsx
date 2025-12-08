@@ -18,6 +18,8 @@ import { ThemeProvider } from "@/components/shared/theme-provider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 import { CooldownStateProvider } from "@/hooks/use-ai-cooldown";
+import StructuredData from "@/components/seo/structured-data";
+import { COLORS } from "@/constants/colors";
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -114,14 +116,7 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  other: {
-    'script[type="application/ld+json"]': JSON.stringify(
-      organizationStructuredData,
-    ),
-  },
 };
-
-import { COLORS } from "@/constants/colors";
 
 export const viewport: Viewport = {
   themeColor: [
@@ -190,6 +185,7 @@ export default function RootLayout({
                 <Toaster />
               </div>
             </CooldownStateProvider>
+            <StructuredData data={organizationStructuredData} />
           </AuthProvider>
         </ThemeProvider>
       </body>
