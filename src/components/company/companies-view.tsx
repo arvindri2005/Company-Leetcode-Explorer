@@ -146,7 +146,7 @@ export async function CompaniesView({ page, searchParams }: CompaniesViewProps) 
             <h2 className="text-2xl font-bold">Trending Companies</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {trendingCompanies.map((company) => (
-                <TechCompanyCard key={company.id} company={company} />
+                <TechCompanyCard key={company.id} company={company} priority={true} />
               ))}
             </div>
           </section>

@@ -115,6 +115,7 @@ export class ProblemService {
   async getAllProblemsPaginated(
     params: {
       cursor?: string;
+      page?: number;
       pageSize?: number;
       difficultyFilter?: DifficultyFilter[];
       lastAskedFilter?: LastAskedFilter[];
@@ -125,6 +126,7 @@ export class ProblemService {
   ): Promise<PaginatedProblemsResponse> {
       const {
         cursor,
+        page,
         pageSize = 10,
         difficultyFilter = [],
         lastAskedFilter = [],
@@ -132,8 +134,9 @@ export class ProblemService {
         sortKey = "title",
       } = params;
       
-      const cacheKey = `all-problems-${JSON.stringify({
+      const cacheKey = `all-problems-v3-${JSON.stringify({
         cursor,
+        page,
         pageSize,
         difficultyFilter,
         lastAskedFilter,
@@ -145,6 +148,7 @@ export class ProblemService {
         async () => {
             return await problemRepository.getAllProblemsPaginated({
                 cursor,
+                page,
                 pageSize,
                 difficultyFilter,
                 lastAskedFilter,
@@ -156,11 +160,11 @@ export class ProblemService {
         [cacheKey],
         {
             revalidate: 3600, // 1 hour
-            tags: ["all-problems"],
+            tags: ["all-problems-v3"],
         }
       );
 
-      const { problems, totalProblems, hasMore, nextCursor } = await getCachedProblems();
+      const { problems, totalProblems, hasMore, nextCursor, totalPages, currentPage } = await getCachedProblems();
 
       if (params.userId) {
           const { userService } = await import("./user.service");
@@ -184,6 +188,8 @@ export class ProblemService {
                 totalProblems,
                 hasMore,
                 nextCursor,
+                totalPages,
+                currentPage,
             };
       }
 
@@ -191,7 +197,9 @@ export class ProblemService {
           problems,
           totalProblems,
           hasMore,
-          nextCursor
+          nextCursor,
+          totalPages,
+          currentPage,
       };
   }
 

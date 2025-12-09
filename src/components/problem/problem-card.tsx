@@ -64,6 +64,7 @@ interface ProblemCardProps {
   onBookmarkChanged?: (problemId: string, isBookmarked: boolean) => void;
   problemStatus?: ProblemStatus;
   onProblemStatusChange?: (problemId: string, status: ProblemStatus) => void;
+  showCompanies?: boolean;
 }
 
 const difficultyStyles: Record<
@@ -89,10 +90,12 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
   onBookmarkChanged,
   problemStatus = "none",
   onProblemStatusChange,
+  showCompanies = false,
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isCompaniesExpanded, setIsCompaniesExpanded] = useState(false);
 
   const {
     isBookmarked,
@@ -212,13 +215,44 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                             >
                               {problem.title}
                           </Link>
-                          {problem.lastAskedPeriod && (
-                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap mt-1">
-                                  <Clock className="h-3 w-3" />
-                                  <span>
-                                      {displayTime}
-                                  </span>
+                          {showCompanies && problem.companyIds && problem.companyIds.length > 0 ? (
+                              <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                                  {(isCompaniesExpanded ? problem.companyIds : problem.companyIds.slice(0, 3)).map(companyId => (
+                                      <Link 
+                                        key={companyId} 
+                                        href={`/company/${companyId}`}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="hover:opacity-80 transition-opacity"
+                                      >
+                                          <Badge 
+                                              variant="outline" 
+                                              className="text-[10px] px-1.5 py-0 h-5 font-medium capitalize bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors"
+                                          >
+                                              {companyId}
+                                          </Badge>
+                                      </Link>
+                                  ))}
+                                  {problem.companyIds.length > 3 && (
+                                     <button 
+                                        onClick={(e) => {
+                                            e.stopPropagation(); // Prevent card expansion if needed, though card expansion is on chevron
+                                            setIsCompaniesExpanded(!isCompaniesExpanded);
+                                        }}
+                                        className="text-[10px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                                     >
+                                        {isCompaniesExpanded ? "Show less" : `+${problem.companyIds.length - 3}`}
+                                     </button>
+                                  )}
                               </div>
+                          ) : (
+                              problem.lastAskedPeriod && (
+                                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap mt-1">
+                                      <Clock className="h-3 w-3" />
+                                      <span>
+                                          {displayTime}
+                                      </span>
+                                  </div>
+                              )
                           )}
                       </div>
                   </div>
@@ -296,6 +330,8 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                                   </Badge>
                               )}
                           </div>
+                          
+
 
                           <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground">
                               {showTrending && (

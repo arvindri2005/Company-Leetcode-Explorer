@@ -499,6 +499,8 @@ export interface PaginatedProblemsResponse {
   totalProblems: number;
   hasMore?: boolean;
   nextCursor?: string;
+  totalPages?: number;
+  currentPage?: number;
 }
 
 /**

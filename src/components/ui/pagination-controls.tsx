@@ -9,6 +9,7 @@ interface PaginationControlsProps {
   totalPages: number;
   baseUrl: string;
   className?: string;
+  hideOnSinglePage?: boolean;
 }
 
 export function PaginationControls({
@@ -16,7 +17,55 @@ export function PaginationControls({
   totalPages,
   baseUrl,
   className,
-}: PaginationControlsProps) {
+  createPageUrl,
+  hideOnSinglePage = true,
+  hasNextPage,
+}: PaginationControlsProps & {
+  createPageUrl?: (page: number) => string;
+  hasNextPage?: boolean;
+}) {
+  const getUrl = (page: number) => {
+    if (createPageUrl) return createPageUrl(page);
+    return `${baseUrl}/${page}`;
+  };
+
+  // Infinite/Unknown Total Pages Mode
+  if (totalPages <= 0) {
+      if (currentPage === 1 && !hasNextPage && hideOnSinglePage) return null;
+
+      return (
+        <div className={cn("flex items-center justify-center gap-2", className)}>
+          <Link
+            href={currentPage > 1 ? getUrl(currentPage - 1) : "#"}
+            aria-disabled={currentPage <= 1}
+            className={cn(
+              "flex h-9 px-4 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sm font-medium transition-colors hover:bg-white/10 hover:text-white",
+              currentPage <= 1 && "pointer-events-none opacity-50"
+            )}
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Previous
+          </Link>
+
+          <div className="flex items-center justify-center px-4 font-medium text-sm">
+             Page {currentPage}
+          </div>
+
+          <Link
+            href={hasNextPage ? getUrl(currentPage + 1) : "#"}
+            aria-disabled={!hasNextPage}
+            className={cn(
+              "flex h-9 px-4 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sm font-medium transition-colors hover:bg-white/10 hover:text-white",
+              !hasNextPage && "pointer-events-none opacity-50"
+            )}
+          >
+            Next
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Link>
+        </div>
+      );
+  }
+
   // Logic to show a window of pages (e.g., 1 ... 4 5 6 ... 10)
   const getPageNumbers = () => {
     const pages = [];
@@ -48,12 +97,12 @@ export function PaginationControls({
     return pages;
   };
 
-  if (totalPages <= 1) return null;
+  if (totalPages <= 1 && hideOnSinglePage) return null;
 
   return (
     <div className={cn("flex items-center justify-center gap-2", className)}>
       <Link
-        href={currentPage > 1 ? `${baseUrl}/${currentPage - 1}` : "#"}
+        href={currentPage > 1 ? getUrl(currentPage - 1) : "#"}
         aria-disabled={currentPage <= 1}
         className={cn(
           "flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sm font-medium transition-colors hover:bg-white/10 hover:text-white",
@@ -75,7 +124,7 @@ export function PaginationControls({
         ) : (
           <Link
             key={page}
-            href={`${baseUrl}/${page}`}
+            href={getUrl(page as number)}
             className={cn(
               "flex h-9 w-9 items-center justify-center rounded-md border text-sm font-medium transition-colors",
               currentPage === page
@@ -89,7 +138,7 @@ export function PaginationControls({
       )}
 
       <Link
-        href={currentPage < totalPages ? `${baseUrl}/${currentPage + 1}` : "#"}
+        href={currentPage < totalPages ? getUrl(currentPage + 1) : "#"}
         aria-disabled={currentPage >= totalPages}
         className={cn(
           "flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sm font-medium transition-colors hover:bg-white/10 hover:text-white",

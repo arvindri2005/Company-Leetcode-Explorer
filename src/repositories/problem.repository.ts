@@ -121,6 +121,7 @@ export class ProblemRepository {
   async getAllProblemsPaginated(
     params: {
       cursor?: string;
+      page?: number;
       pageSize?: number;
       difficultyFilter?: DifficultyFilter[];
       lastAskedFilter?: LastAskedFilter[];
@@ -131,6 +132,7 @@ export class ProblemRepository {
   ): Promise<PaginatedProblemsResponse> {
     const {
         cursor,
+        page,
         pageSize = 10,
         difficultyFilter = [],
         lastAskedFilter = [],
@@ -139,8 +141,9 @@ export class ProblemRepository {
         userId,
       } = params;
     
-    const { problems, totalProblems, hasMore, nextCursor } = await this.fetchAllProblemsCore({
+    const { problems, totalProblems, hasMore, nextCursor, totalPages, currentPage } = await this.fetchAllProblemsCore({
         cursor,
+        page,
         pageSize,
         difficultyFilter,
         lastAskedFilter,
@@ -170,6 +173,8 @@ export class ProblemRepository {
         totalProblems,
         hasMore,
         nextCursor,
+        totalPages,
+        currentPage,
       };
     }
 
@@ -178,6 +183,8 @@ export class ProblemRepository {
       totalProblems,
       hasMore,
       nextCursor,
+      totalPages,
+      currentPage,
     };
   }
 
@@ -573,6 +580,7 @@ export class ProblemRepository {
   
   private async fetchAllProblemsCore(params: {
     cursor?: string;
+    page?: number;
     pageSize?: number;
     difficultyFilter?: DifficultyFilter[];
     lastAskedFilter?: LastAskedFilter[];
@@ -581,6 +589,7 @@ export class ProblemRepository {
   }) {
     const {
       cursor,
+      page,
       pageSize = 10,
       difficultyFilter = [],
       lastAskedFilter = [],
@@ -614,38 +623,94 @@ export class ProblemRepository {
 
     const isDefaultSort = sortKey === "title";
 
-    if (!hasResidualFilters && isDefaultSort) {
+    // Optimized Path: Use DB Limits if possible
+    // We can use this path if:
+    // 1. No text search (requires in-memory filtering or dedicated search service)
+    // 2. Filters are compatible with Firestore composite indexes (usually handled, but 'in' operator has limits)
+    // 3. Sorting is standard
+    
+    // Check if we can use the optimized path
+    const canUseOptimizedPath = 
+        !hasResidualFilters && 
+        (isDefaultSort || sortKey === "difficulty"); 
+        // Note: Sort by difficulty is supported in optimized path logic below
+
+    if (canUseOptimizedPath) {
       try {
-        const countQuery = query(problemsColRef, ...constraints);
-        const countSnapshot = await getCountFromServer(countQuery);
-        const totalProblems = countSnapshot.data().count;
+        let totalProblems = -1; // -1 indicates unknown
+        
+        // REMOVED: getCountFromServer to save reads
+        // const countQuery = query(problemsColRef, ...constraints);
+        // const countSnapshot = await getCountFromServer(countQuery);
+        // totalProblems = countSnapshot.data().count;
 
-        let q = query(
-          problemsColRef,
-          ...constraints,
-          orderBy("normalizedTitle", "asc"),
-          limit(pageSize),
-        );
-
-        if (cursor) {
-          const cursorDocRef = doc(getFirestore(), "problems", cursor);
-          const cursorDocSnap = await getDoc(cursorDocRef);
-          if (cursorDocSnap.exists()) {
-            q = query(
-              problemsColRef,
-              ...constraints,
-              orderBy("normalizedTitle", "asc"),
-              startAfter(cursorDocSnap),
-              limit(pageSize),
-            );
-          }
+        // 2. Prepare Query for Data
+        const sortField = sortKey === "difficulty" ? "difficulty" : "normalizedTitle";
+        let queryConstraints = [...constraints, orderBy(sortField, "asc")];
+        
+        if (sortKey === "difficulty") {
+             queryConstraints.push(orderBy("normalizedTitle", "asc"));
         }
 
+        let limitCount = pageSize;
+        let startIndex = 0;
+
+        // PAGINATION STRATEGY
+        if (page) {
+             // Fetch limit = (page * pageSize) + 1 to detect hasMore
+             limitCount = (page * pageSize) + 1;
+             startIndex = (page - 1) * pageSize;
+             queryConstraints.push(limit(limitCount));
+        } else {
+             // Cursor based (existing logic)
+             // Fetch pageSize + 1 to detect hasMore easily without total count?
+             // Existing logic was consistent with matching pageSize.
+             // We'll keep it simple for cursor or bump it too?
+             // Let's bump it to be consistent with "cheaper" checks.
+             queryConstraints.push(limit(pageSize + 1));
+             if (cursor) {
+                const cursorDocRef = doc(getFirestore(), "problems", cursor);
+                const cursorDocSnap = await getDoc(cursorDocRef);
+                if (cursorDocSnap.exists()) {
+                    queryConstraints.push(startAfter(cursorDocSnap));
+                }
+             }
+        }
+
+        let q = query(problemsColRef, ...queryConstraints);
         const snap = await getDocs(q);
         const docs = snap.docs;
-        const hasMore = docs.length === pageSize;
 
-        let problems = docs.map((docSnap) => {
+        // Process results
+        let resultDocs = docs;
+        let hasMore = false;
+
+        if (page) {
+            // Check if we got more than needed (indicating next page exists)
+            // We wanted 'page * pageSize' items effectively to fill up to this page.
+            // Actually 'limitCount' is 'page * pageSize + 1'.
+            // If docs.length == limitCount, then we have at least one more item after this current page set.
+            const targetSize = page * pageSize;
+            hasMore = docs.length > targetSize;
+
+            if (docs.length <= startIndex) {
+                resultDocs = [];
+            } else {
+                // Slice the relevant window: [startIndex, startIndex + pageSize]
+                // But we must stop before the extra item if fetched.
+                // The 'docs' array contains 0..N items.
+                // We want items at indices [startIndex, startIndex + pageSize).
+                resultDocs = docs.slice(startIndex, startIndex + pageSize);
+            }
+        } else {
+             // Cursor logic
+             hasMore = docs.length > pageSize;
+             if (hasMore) {
+                 resultDocs = docs.slice(0, pageSize);
+             }
+        }
+
+        let problems = resultDocs.map((docSnap) => {
           const data = docSnap.data();
           return {
             id: docSnap.id,
@@ -656,25 +721,37 @@ export class ProblemRepository {
           } as LeetCodeProblem;
         });
 
+        // Calculate pagination metadata
+        // totalPages is unknown (-1)
+        let totalPages = -1; 
+        let currentPage = page || 1;
+        let nextCursor = hasMore ? problems[problems.length - 1]?.id : undefined;
+
+        console.log(`[OPTIMIZED FETCH - NO COUNT] Page: ${page}, Limit: ${limitCount}, Fetched: ${docs.length}, HasMore: ${hasMore}`);
+
         return {
           problems,
           totalProblems,
           hasMore,
-          nextCursor: hasMore ? problems[problems.length - 1].id : undefined,
+          nextCursor,
+          totalPages,
+          currentPage
         };
       } catch (error: any) {
         if (
           error.code === "failed-precondition" ||
           error.message?.includes("index")
         ) {
-          // Fall through
+           console.warn("Optimized path failed, falling back to full fetch:", error.message);
+          // Fall through to full fetch
         } else {
           throw error;
         }
       }
     }
 
-    // Semi-Optimized Path
+    // Semi-Optimized Path (Fetch All + In-Memory Slice)
+    // Used for: Complex filters OR Page-based pagination
     const q = query(problemsColRef, ...constraints);
     const problemSnapshot = await getDocs(q);
     
@@ -729,30 +806,46 @@ export class ProblemRepository {
     });
 
     const totalProblems = processedProblems.length;
+    let paginatedProblems: LeetCodeProblem[] = [];
+    let hasMore = false;
+    let nextCursor: string | undefined = undefined;
+    let totalPages: number | undefined = undefined;
+    let currentPage: number | undefined = undefined;
 
-    let startIndex = 0;
-    if (cursor) {
-      const cursorIndex = processedProblems.findIndex((p) => p.id === cursor);
-      if (cursorIndex !== -1) {
-        startIndex = cursorIndex + 1;
-      }
+    if (page) {
+       // Page-Based Pagination Logic
+       totalPages = Math.ceil(totalProblems / pageSize);
+       currentPage = Math.max(1, Math.min(page, totalPages || 1));
+       const startIndex = (currentPage - 1) * pageSize;
+       paginatedProblems = processedProblems.slice(startIndex, startIndex + pageSize);
+       hasMore = currentPage < totalPages;
+    } else {
+       // Cursor-Based or Default Logic (Fallback)
+       let startIndex = 0;
+       if (cursor) {
+         const cursorIndex = processedProblems.findIndex((p) => p.id === cursor);
+         if (cursorIndex !== -1) {
+           startIndex = cursorIndex + 1;
+         }
+       }
+
+       paginatedProblems = processedProblems.slice(
+         startIndex,
+         startIndex + pageSize,
+       );
+       hasMore = startIndex + pageSize < totalProblems;
+       nextCursor = hasMore
+         ? paginatedProblems[paginatedProblems.length - 1]?.id
+         : undefined;
     }
-
-    const paginatedProblems = processedProblems.slice(
-      startIndex,
-      startIndex + pageSize,
-    );
-
-    const hasMore = startIndex + pageSize < totalProblems;
-    const nextCursor = hasMore
-      ? paginatedProblems[paginatedProblems.length - 1]?.id
-      : undefined;
 
     return {
       problems: paginatedProblems,
       totalProblems,
       hasMore,
       nextCursor,
+      totalPages,
+      currentPage
     };
   }
 

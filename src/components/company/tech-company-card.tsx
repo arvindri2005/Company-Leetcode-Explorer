@@ -6,9 +6,10 @@ import { getLogoUrl } from "@/lib/utils";
 
 interface TechCompanyCardProps {
   company: Company;
+  priority?: boolean;
 }
 
-export function TechCompanyCard({ company }: TechCompanyCardProps) {
+export function TechCompanyCard({ company, priority = false }: TechCompanyCardProps) {
   const imgSrc = getLogoUrl(company.logo) || "/icon.png";
 
   return (
@@ -20,7 +21,7 @@ export function TechCompanyCard({ company }: TechCompanyCardProps) {
           width={48}
           height={48}
           className="object-contain"
-          unoptimized
+          priority={priority}
         />
       </div>
       <div className="flex-1 min-w-0 space-y-2">

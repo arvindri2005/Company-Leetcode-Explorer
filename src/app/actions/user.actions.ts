@@ -500,3 +500,54 @@ export async function updateStrategyTodoItemStatusAction(
     return { success: false, error: message };
   }
 }
+
+/**
+ * Fetches status and bookmark info for a specific list of problem IDs.
+ *
+ * This action is optimized for client-side hydration where we only want to fetch
+ * user data for the problems currently visible on the screen, rather than re-fetching
+ * the entire problem list or all user statuses.
+ *
+ * @param {string} userId - The ID of the authenticated user.
+ * @param {string[]} problemIds - The list of problem IDs to fetch status for.
+ * @returns {Promise<Record<string, { isBookmarked: boolean; status?: ProblemStatus }> | { error: string }>}
+ */
+export async function getUserProblemStatusesForIdsAction(
+  userId: string,
+  problemIds: string[],
+): Promise<
+  | Record<string, { isBookmarked: boolean; status?: ProblemStatus }>
+  | { error: string }
+> {
+  if (!userId)
+    return { error: "User not authenticated." };
+  if (!problemIds || problemIds.length === 0) return {};
+
+  try {
+    const [bookmarks, statuses] = await Promise.all([
+      userService.getBookmarksForIds(userId, problemIds),
+      userService.getProblemStatusesForIds(userId, problemIds),
+    ]);
+
+    const result: Record<
+      string,
+      { isBookmarked: boolean; status?: ProblemStatus }
+    > = {};
+
+    problemIds.forEach((id) => {
+      result[id] = {
+        isBookmarked: bookmarks.has(id),
+        status: statuses[id]?.status,
+      };
+    });
+
+    return result;
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to fetch user problem statuses.";
+    console.error("Error in getUserProblemStatusesForIdsAction:", error);
+    return { error: message };
+  }
+}
