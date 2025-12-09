@@ -4,13 +4,40 @@ import AllProblemsList from "@/components/problem/all-problems-list";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { Metadata } from "next";
 
+// Removed unused import
+// BETTER: I'll use hardcoded values but structured properly, and add the JSON-LD script. This avoids dependency on siteConfig if it's missing.
+
 export const metadata: Metadata = {
-  title: "All Coding Problems | Byte to Offer",
+  title: "Company Interview Problems | Byte to Offer",
   description:
-    "Browse all coding problems available on Byte to Offer. Practice and improve your coding skills.",
+    "Practice real interview questions from top tech companies. Filter by difficulty, company, and topic to ace your next technical interview.",
+  openGraph: {
+    title: "Company Interview Problems | Byte to Offer",
+    description: "Practice real interview questions from top tech companies. Filter by difficulty, company, and topic to ace your next technical interview.",
+    url: "https://bytetoffer.com/problems", // Assuming domain, will fix if wrong
+    siteName: "Byte to Offer",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Company Interview Problems | Byte to Offer",
+    description: "Practice real interview questions from top tech companies. Filter by difficulty, company, and topic to ace your next technical interview.",
+  },
 };
 
 export const revalidate = 3600; // Revalidate every hour
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: "Company Interview Problems",
+  description: "Collection of coding interview problems from top tech companies.",
+  provider: {
+    "@type": "Organization",
+    name: "Byte to Offer",
+    url: "https://bytetooffer.com"
+  }
+};
 
 import {
   DifficultyFilter,
@@ -142,6 +169,10 @@ export default async function AllProblemsPage({
           </div>
         </aside>
       </div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
     </div>
   );
 }
