@@ -6,14 +6,7 @@
  * the `LoginForm` component, which contains the actual authentication logic and UI.
  */
 import LoginForm from "@/components/auth/login-form";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import AuthLayout from "@/components/auth/auth-layout";
 
 /**
  * Metadata for the Login page.
@@ -40,36 +33,11 @@ export const metadata = {
  */
 export default function LoginPage() {
   return (
-    <section className="flex min-h-[calc(100vh-4rem)] justify-center items-center py-12">
-      <Card className="w-full max-w-md border-border/50 bg-card/60 backdrop-blur-xl rounded-3xl mb-8 shadow-2xl relative z-10 overflow-hidden">
-        <CardHeader className="text-center space-y-2 pb-2">
-          <div className="mx-auto w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="w-6 h-6 text-primary"
-            >
-              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-              <polyline points="10 17 15 12 10 7" />
-              <line x1="15" x2="3" y1="12" y2="12" />
-            </svg>
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
-            Welcome Back!
-          </h1>
-          <CardDescription className="text-lg">
-            Sign in to access your account.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <LoginForm />
-        </CardContent>
-      </Card>
-    </section>
+    <AuthLayout
+      title="Welcome Back!"
+      description="Sign in to access your account."
+    >
+      <LoginForm />
+    </AuthLayout>
   );
 }

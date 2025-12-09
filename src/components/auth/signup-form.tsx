@@ -27,7 +27,7 @@ import { useState } from "react";
 import { Loader2, UserPlusIcon, Eye, EyeOff } from "lucide-react";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import GoogleAuthButton from "./google-auth-button";
 import { useAuth } from "@/contexts/auth-context";
@@ -66,6 +66,7 @@ type SignupFormValues = z.infer<typeof signupFormSchema>;
 export default function SignupForm() {
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { syncUserProfileIfNeeded } = useAuth();
@@ -99,12 +100,18 @@ export default function SignupForm() {
         title: "Account Created! 🎉",
         description: "Welcome! You have been successfully signed up.",
       });
-      router.push("/profile");
+
+      const redirectUrl = searchParams.get("redirectUrl");
+      if (redirectUrl) {
+        router.push(redirectUrl);
+      } else {
+        router.push("/profile");
+      }
     } catch (error) {
       console.error("Signup error:", error);
       let errorMessage = "An unknown error occurred. Please try again.";
-      
-      if (error instanceof Error && 'code' in error) {
+
+      if (error instanceof Error && "code" in error) {
         const firebaseError = error as { code: string; message: string };
         switch (firebaseError.code) {
           case "auth/email-already-in-use":
@@ -120,7 +127,7 @@ export default function SignupForm() {
             errorMessage = firebaseError.message || errorMessage;
         }
       }
-      
+
       toast({
         title: "Signup Failed",
         description: errorMessage,
@@ -133,7 +140,7 @@ export default function SignupForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="displayName"
@@ -141,7 +148,11 @@ export default function SignupForm() {
             <FormItem>
               <FormLabel>Display Name</FormLabel>
               <FormControl>
-                <Input placeholder="Your Name" {...field} className="transition-all duration-200 focus:ring-2 focus:ring-primary/50" />
+                <Input
+                  placeholder="Your Name"
+                  {...field}
+                  className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -154,7 +165,12 @@ export default function SignupForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="you@example.com" {...field} className="transition-all duration-200 focus:ring-2 focus:ring-primary/50" />
+                <Input
+                  type="email"
+                  placeholder="you@example.com"
+                  {...field}
+                  className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -168,11 +184,11 @@ export default function SignupForm() {
               <FormLabel>Password</FormLabel>
               <FormControl>
                 <div className="relative">
-                  <Input 
-                    type={showPassword ? "text" : "password"} 
-                    placeholder="••••••••" 
-                    {...field} 
-                    className="transition-all duration-200 focus:ring-2 focus:ring-primary/50 pr-10" 
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    {...field}
+                    className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50 pr-10"
                   />
                   <Button
                     type="button"
@@ -196,7 +212,11 @@ export default function SignupForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isSubmitting} className="w-full transition-all duration-200 hover:scale-[1.02]">
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full h-11 text-base transition-all duration-200 hover:scale-[1.02] shadow-lg hover:shadow-primary/25"
+        >
           {isSubmitting ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
@@ -204,7 +224,8 @@ export default function SignupForm() {
           )}
           Sign Up
         </Button>
-        <div className="relative">
+
+        <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
           </div>
@@ -214,11 +235,19 @@ export default function SignupForm() {
             </span>
           </div>
         </div>
+
         <GoogleAuthButton />
-        <p className="text-center text-sm text-muted-foreground">
+
+        <p className="text-center text-sm text-muted-foreground mt-6">
           Already have an account?{" "}
           <Link
-            href="/login"
+            href={`/login${
+              searchParams.get("redirectUrl")
+                ? `?redirectUrl=${encodeURIComponent(
+                    searchParams.get("redirectUrl")!
+                  )}`
+                : ""
+            }`}
             className="font-medium text-primary hover:underline transition-colors"
           >
             Log in
