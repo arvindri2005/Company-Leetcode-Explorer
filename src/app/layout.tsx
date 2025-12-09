@@ -176,7 +176,7 @@ export default function RootLayout({
             <CooldownStateProvider>
               <div className="flex flex-col min-h-screen w-full">
                 <Header />
-                <main className="pt-20">
+                <main className="flex-1 w-full">
                   {children}
                   <SpeedInsights />
                   <Analytics />

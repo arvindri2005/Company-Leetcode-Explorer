@@ -88,17 +88,17 @@ const Header = React.memo(function Header() {
           </Link>
 
           <Link
-            href="/submit-problem"
+            href="/problems"
             className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${
               isMobile
                 ? `block py-4 border-b border-gray-200/10 font-bold ${
-                    pathname === "/submit-problem" ? "text-teal-400" : ""
+                    pathname === "/problems" ? "text-teal-400" : ""
                   }`
                 : ""
             }`}
             onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
           >
-            Submit Problem
+            Problems
           </Link>
         </>
       )},
@@ -184,7 +184,7 @@ const Header = React.memo(function Header() {
 
   return (
     <>
-      <nav className="fixed top-0 w-full bg-opacity-95 bg-gray-900 backdrop-blur-lg z-50 py-4 transition-all duration-300 ease-in-out border-b border-gray-200/10">
+      <nav className="sticky top-0 w-full bg-opacity-95 bg-gray-900 backdrop-blur-lg z-50 py-4 transition-all duration-300 ease-in-out border-b border-gray-200/10">
         <div className="container mx-auto flex justify-between items-center px-8">
           <Link
             href="/"
