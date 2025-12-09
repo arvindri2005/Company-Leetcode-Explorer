@@ -124,6 +124,7 @@ export async function fetchCompaniesAction(
   totalPages: number;
   totalCompanies: number;
   currentPage: number;
+  hasMore: boolean;
   error?: string;
 }> {
   try {
@@ -133,6 +134,7 @@ export async function fetchCompaniesAction(
       totalPages: result.totalPages ?? 0,
       totalCompanies: result.totalCompanies ?? 0,
       currentPage: result.currentPage ?? 1,
+      hasMore: result.hasMore ?? false,
     };
   } catch (error) {
     console.error("Error fetching companies in action:", error);
@@ -145,6 +147,7 @@ export async function fetchCompaniesAction(
       totalPages: 0,
       totalCompanies: 0,
       currentPage: 1,
+      hasMore: false,
       error: message,
     };
   }

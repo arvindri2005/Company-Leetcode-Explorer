@@ -109,7 +109,7 @@ export class CompanyRepository {
     try {
       const normalizedSearchTerm = searchTerm?.trim().toLowerCase();
 
-      // Strategy: Cursor provided
+      // Strategy: Cursor provided (Load More)
       if (cursor) {
         return await this.fetchCompaniesWithCursor(
           pageSize,
@@ -118,62 +118,53 @@ export class CompanyRepository {
         );
       }
 
-      // Strategy: Page provided (Standard Pagination)
-      if (!normalizedSearchTerm) {
-        // Fetch all slugs for pagination calculation (this could be optimized)
-        // In a real large app, we'd use count() but Firestore count() is one read per 1000 index entries.
-        // Fetching all slugs might be heavy if thousands of companies.
-        // But the original code did fetchAllCompanySlugs.
-        const allSlugs = await this.getAllCompanySlugs(false); // No cache here, service handles it
-        const totalCompanies = allSlugs.length;
-        const totalPages = Math.ceil(totalCompanies / pageSize);
-        const safePage = Math.max(1, Math.min(page, totalPages || 1));
-        const startIndex = (safePage - 1) * pageSize;
-        const endIndex = startIndex + pageSize;
-        const pageSlugs = allSlugs.slice(startIndex, endIndex);
+      // Strategy: Standard Page-based Pagination (Optimized)
+      const companiesCol = collection(getFirestore(), "companies");
+      let queryConstraints: any[] = [
+        orderBy("normalizedName", "asc"),
+      ];
 
-        const companyPromises = pageSlugs.map((slug) =>
-          this.getCompanyBySlug(slug),
-        );
-        const companies = (await Promise.all(companyPromises)).filter(
-          (c): c is Company => !!c,
-        );
-
-        return {
-          companies,
-          totalCompanies,
-          totalPages,
-          currentPage: safePage,
-          hasMore: safePage < totalPages,
-          nextCursor: undefined,
-        };
+      if (normalizedSearchTerm) {
+        queryConstraints = [
+          where("normalizedName", ">=", normalizedSearchTerm),
+          where("normalizedName", "<=", normalizedSearchTerm + "\uf8ff"),
+          orderBy("normalizedName", "asc"),
+        ];
       }
 
-      // Strategy: Search Term provided
-      const companiesCol = collection(getFirestore(), "companies");
-      const q = query(
-        companiesCol,
-        where("normalizedName", ">=", normalizedSearchTerm),
-        where("normalizedName", "<=", normalizedSearchTerm + "\uf8ff"),
-        orderBy("normalizedName", "asc"),
-      );
+      // Calculate limit to fetch enough for the current page + 1 (to check hasMore)
+      // This avoids reading ALL documents to calculate total count.
+      const limitCount = page * pageSize + 1;
+      queryConstraints.push(limit(limitCount));
 
+      const q = query(companiesCol, ...queryConstraints);
       const snapshot = await getDocs(q);
-      const allMatchingDocs = snapshot.docs;
-      const totalMatching = allMatchingDocs.length;
-      const totalPages = Math.ceil(totalMatching / pageSize);
-      const safePage = Math.max(1, Math.min(page, totalPages || 1));
+      const docs = snapshot.docs;
 
-      const startIndex = (safePage - 1) * pageSize;
-      const pageDocs = allMatchingDocs.slice(startIndex, startIndex + pageSize);
-      const companies = pageDocs.map(mapFirestoreDocToCompany);
+      let hasMore = false;
+      let companies: Company[] = [];
+      const startIndex = (page - 1) * pageSize;
 
+      if (docs.length > page * pageSize) {
+          hasMore = true;
+      }
+
+      // Slice the results for the current page
+      if (docs.length > startIndex) {
+        // We take up to pageSize items starting from startIndex
+        // The docs array might have up to (page * pageSize + 1) items
+        const sliceEnd = Math.min(docs.length, startIndex + pageSize);
+        companies = docs.slice(startIndex, sliceEnd).map(mapFirestoreDocToCompany);
+      } else {
+        companies = [];
+      }
+      
       return {
         companies,
-        totalCompanies: totalMatching,
-        totalPages,
-        currentPage: safePage,
-        hasMore: safePage < totalPages,
+        totalCompanies: -1, // Unknown total to save reads
+        totalPages: -1,     // Unknown pages to save reads
+        currentPage: page,
+        hasMore,
         nextCursor: undefined,
       };
     } catch (error) {

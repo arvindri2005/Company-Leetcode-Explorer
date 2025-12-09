@@ -50,7 +50,8 @@ export async function generateMetadata(
 
 export default async function CompaniesPage(props: CompaniesPageProps) {
   const searchParams = await props.searchParams;
+  const page = searchParams?.page ? parseInt(searchParams.page as string) : 1;
+  const safePage = isNaN(page) || page < 1 ? 1 : page;
   
-  // This is the main page, so page is always 1
-  return <CompaniesView page={1} searchParams={searchParams} />;
+  return <CompaniesView page={safePage} searchParams={searchParams} />;
 }

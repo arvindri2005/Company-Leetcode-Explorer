@@ -55,6 +55,7 @@ export async function CompaniesView({ page, searchParams }: CompaniesViewProps) 
     companies: initialCompanies,
     totalPages,
     totalCompanies,
+    hasMore,
   } = companiesResult;
 
   let trendingCompanies = trendingCompaniesResult;
@@ -161,8 +162,10 @@ export async function CompaniesView({ page, searchParams }: CompaniesViewProps) 
                 
                 <PaginationControls 
                     currentPage={currentPage}
-                    totalPages={totalPages || 1}
-                    baseUrl="/companies/page"
+                    totalPages={totalPages || -1} // Use -1 or valid total
+                    baseUrl="/companies"
+                    hasNextPage={hasMore}
+                    searchParams={searchParams}
                 />
              </div>
           ) : (

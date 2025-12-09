@@ -20,12 +20,30 @@ export function PaginationControls({
   createPageUrl,
   hideOnSinglePage = true,
   hasNextPage,
+  searchParams,
 }: PaginationControlsProps & {
-  createPageUrl?: (page: number) => string;
   hasNextPage?: boolean;
+  createPageUrl?: (page: number) => string;
+  searchParams?: { [key: string]: string | string[] | undefined } | URLSearchParams;
 }) {
   const getUrl = (page: number) => {
     if (createPageUrl) return createPageUrl(page);
+    
+    if (searchParams) {
+        // Construct new URLSearchParams from the passed object or instance
+        const params = new URLSearchParams(searchParams as any); 
+        
+        // Handle page param (default 'page', could be configurable but fixed for now)
+        if (page > 1) {
+            params.set("page", page.toString());
+        } else {
+            params.delete("page");
+        }
+        
+        // baseUrl should be the path without query string ideally, e.g. "/companies"
+        return `${baseUrl}?${params.toString()}`;
+    }
+
     return `${baseUrl}/${page}`;
   };
 
