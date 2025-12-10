@@ -41,6 +41,7 @@ export class ProblemRepository {
     companyId: string,
     params: {
       cursor?: string;
+      page?: number;
       pageSize?: number;
       difficultyFilter?: DifficultyFilter[];
       lastAskedFilter?: LastAskedFilter[];
@@ -60,6 +61,7 @@ export class ProblemRepository {
   ): Promise<PaginatedProblemsResponse> {
     const {
       cursor,
+      page,
       pageSize = 10,
       difficultyFilter = [],
       lastAskedFilter = [],
@@ -75,6 +77,7 @@ export class ProblemRepository {
     const { problems, totalProblems, hasMore, nextCursor } =
       await this.fetchProblemsByCompanyCore(companyId, {
         cursor,
+        page,
         pageSize,
         difficultyFilter,
         lastAskedFilter,
@@ -297,6 +300,7 @@ export class ProblemRepository {
     companyId: string,
     params: {
       cursor?: string;
+      page?: number;     
       pageSize?: number;
       difficultyFilter?: DifficultyFilter[];
       lastAskedFilter?: LastAskedFilter[];
@@ -315,6 +319,7 @@ export class ProblemRepository {
   ) {
     const {
       cursor,
+      page,
       pageSize = 10,
       difficultyFilter = [],
       lastAskedFilter = [],
@@ -412,15 +417,33 @@ export class ProblemRepository {
           queryConstraints.push(orderBy("normalizedTitle", "asc"));
         }
 
-        queryConstraints.push(limit(pageSize));
+        let limitCount = pageSize;
+        let startIndex = 0;
+
+        // PAGINATION STRATEGY
+        if (page) {
+             // Fetch limit = (page * pageSize) + 1 to detect hasMore
+             limitCount = (page * pageSize) + 1;
+             startIndex = (page - 1) * pageSize;
+             queryConstraints.push(limit(limitCount));
+        } else {
+             queryConstraints.push(limit(pageSize + 1)); // Consistent +1 for cursor too 
+        }
 
         let q = query(problemsColRef, ...queryConstraints);
 
-        if (cursor) {
+        if (!page && cursor) {
           const cursorDocRef = doc(getFirestore(), "problems", cursor);
           const cursorDocSnap = await getDoc(cursorDocRef);
           if (cursorDocSnap.exists()) {
             q = query(
+              problemsColRef,
+              ...queryConstraints, // reuse constraints
+              startAfter(cursorDocSnap)
+            );
+             // Re-apply specific order/limit if needed for cursor logic within complex query
+             // Actually, recreating q is safer to avoid duplication
+             q = query(
               problemsColRef,
               ...constraints,
               orderBy(sortField, "asc"),
@@ -428,14 +451,25 @@ export class ProblemRepository {
                 ? [orderBy("normalizedTitle", "asc")]
                 : []),
               startAfter(cursorDocSnap),
-              limit(pageSize),
+              limit(pageSize + 1)
             );
           }
         }
 
         const problemSnapshot = await getDocs(q);
         const docs = problemSnapshot.docs;
-        const hasMore = docs.length === pageSize;
+        const hasMore = docs.length > (page ? page * pageSize : pageSize);
+
+        let resultDocs = docs;
+        if (page) {
+             if (docs.length <= startIndex) {
+                resultDocs = [];
+             } else {
+                resultDocs = docs.slice(startIndex, startIndex + pageSize);
+             }
+        } else if (hasMore) {
+             resultDocs = docs.slice(0, pageSize);
+        }
 
         let finalCompanySlug = companySlug;
         if (!finalCompanySlug) {
@@ -553,7 +587,9 @@ export class ProblemRepository {
     const totalProblems = processedProblems.length;
 
     let startIndex = 0;
-    if (cursor) {
+    if (page) {
+        startIndex = (page - 1) * pageSize;
+    } else if (cursor) {
       const cursorIndex = processedProblems.findIndex((p) => p.id === cursor);
       if (cursorIndex !== -1) {
         startIndex = cursorIndex + 1;

@@ -14,6 +14,7 @@ export class ProblemService {
     companyId: string,
     params: {
       cursor?: string;
+      page?: number;     
       pageSize?: number;
       difficultyFilter?: DifficultyFilter[];
       lastAskedFilter?: LastAskedFilter[];
@@ -33,6 +34,7 @@ export class ProblemService {
   ): Promise<PaginatedProblemsResponse> {
     const {
         cursor,
+        page,
         pageSize = 10,
         difficultyFilter = [],
         lastAskedFilter = [],
@@ -46,6 +48,7 @@ export class ProblemService {
 
     const cacheKey = `problems-${companyId}-${JSON.stringify({
         cursor,
+        page,
         pageSize,
         difficultyFilter,
         lastAskedFilter,
@@ -57,6 +60,7 @@ export class ProblemService {
         async () => {
             return await problemRepository.getProblemsByCompany(companyId, {
                 cursor,
+                page,
                 pageSize,
                 difficultyFilter,
                 lastAskedFilter,
@@ -76,10 +80,14 @@ export class ProblemService {
         }
     );
 
-    const { problems, totalProblems, hasMore, nextCursor } = await getCachedProblems();
+    const { problems, totalProblems, hasMore, nextCursor, totalPages, currentPage } = await getCachedProblems();
+
+    // Fallback if repository doesn't return pagination metadata yet (though we just added it)
+    const finalTotalPages = totalPages ?? Math.ceil((totalProblemCount || totalProblems || 0) / pageSize);
+    const finalCurrentPage = currentPage ?? (page || 1);
 
     if (params.userId) {
-        const { userService } = await import("./user.service");
+        const { userService } = await import("../services/user.service");
         
         const problemIds = problems.map((p) => p.id);
         const [userBookmarks, userStatuses] = await Promise.all([
@@ -101,6 +109,8 @@ export class ProblemService {
             totalProblems,
             hasMore,
             nextCursor,
+            totalPages: finalTotalPages,
+            currentPage: finalCurrentPage,
         };
     }
     
@@ -108,7 +118,9 @@ export class ProblemService {
         problems,
         totalProblems,
         hasMore,
-        nextCursor
+        nextCursor,
+        totalPages: finalTotalPages,
+        currentPage: finalCurrentPage,
     };
   }
 

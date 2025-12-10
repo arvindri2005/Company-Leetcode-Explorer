@@ -27,38 +27,80 @@ const INITIAL_ITEMS_PER_PAGE = 15;
  */
 interface CompanyPageProps {
   company: Company;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 /**
  * Renders the redesigned page for a specific company.
- *
- * This server component fetches the company's details based on the slug from the URL.
- * If the company is not found, it renders a `CompanyNotFound` component. Otherwise, it
- * fetches the first page of problems for that company. It then passes this initial data
- * to the `CompanyTabs` client component, which handles the interactive display of
- * problems, AI tools, and other company-specific information. It also handles
- * error states for problem fetching.
- *
- * @param {CompanyPageProps} props - The props containing the dynamic route parameters.
- * @returns {Promise<JSX.Element>} The rendered company page or a not-found component.
+ * ...
  */
-export default async function CompanyPage({ company }: CompanyPageProps) {
+export default async function CompanyPage({ company, searchParams }: CompanyPageProps) {
+  const resolvedSearchParams = await searchParams;
+
+  // Helper to parse array filters
+  const parseArrayValid = <T extends string>(
+    val: string | string[] | undefined,
+    validValues: T[]
+  ): T[] => {
+    if (!val) return [];
+    if (Array.isArray(val)) {
+      return val.filter((v): v is T => validValues.includes(v as T));
+    }
+    return validValues.includes(val as T) ? [val as T] : [];
+  };
+
+  const difficultyFilter = parseArrayValid(
+     resolvedSearchParams?.difficultyFilter,
+     ["Easy", "Medium", "Hard"]
+   ) as any[]; // Type cast as necessary or import types
+ 
+  const lastAskedFilter = parseArrayValid(resolvedSearchParams?.lastAskedFilter, [
+     "last_30_days",
+     "within_3_months",
+     "within_6_months",
+     "older_than_6_months",
+   ]) as any[];
+ 
+  const statusFilter = parseArrayValid(resolvedSearchParams?.statusFilter, [
+     "solved",
+     "attempted",
+     "todo",
+   ]) as any[];
+ 
+  const searchTerm =
+     typeof resolvedSearchParams?.searchTerm === "string"
+       ? resolvedSearchParams.searchTerm
+       : "";
+ 
+  const sortKey = (
+     typeof resolvedSearchParams?.sortKey === "string"
+       ? resolvedSearchParams.sortKey
+       : "title"
+   ) as any;
+ 
+  const page = 
+     typeof resolvedSearchParams?.page === "string" 
+       ? parseInt(resolvedSearchParams.page, 10) 
+       : 1;
+
   const initialFilters: ProblemListFilters = {
-    difficultyFilter: [],
-    lastAskedFilter: [],
-    statusFilter: [],
-    searchTerm: "",
-    sortKey: "title",
+    difficultyFilter,
+    lastAskedFilter,
+    statusFilter,
+    searchTerm,
+    sortKey,
   };
 
   const initialPaginatedProblemsData = await problemService.getProblemsByCompany(
     company.id,
     {
+      page: isNaN(page) ? 1 : page,
       pageSize: INITIAL_ITEMS_PER_PAGE,
       companySlug: company.slug,
       totalProblemCount: company.problemCount,
       difficultyCounts: company.difficultyCounts,
       recencyCounts: company.recencyCounts,
+      ...initialFilters,
     },
   );
 
@@ -83,6 +125,8 @@ export default async function CompanyPage({ company }: CompanyPageProps) {
     hasMore: initialHasMore,
     nextCursor: initialNextCursor,
     totalProblems: displayProblemCount,
+    totalPages,
+    currentPage,
   } = initialPaginatedProblemsData;
 
   const hasProblems = displayProblemCount > 0;
@@ -113,6 +157,8 @@ export default async function CompanyPage({ company }: CompanyPageProps) {
                               initialNextCursor={initialNextCursor}
                               initialFilters={initialFilters}
                               itemsPerPage={INITIAL_ITEMS_PER_PAGE}
+                              totalPages={totalPages ?? 1}
+                              currentPage={currentPage ?? 1}
                           />
                       ) : (
                           <NoProblemsAvailable

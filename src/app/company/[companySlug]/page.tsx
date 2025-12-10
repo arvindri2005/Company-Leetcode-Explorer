@@ -198,7 +198,10 @@ export async function generateMetadata(
  * @param {CompanyPageProps} props - The props containing the dynamic route parameters.
  * @returns {Promise<JSX.Element>} The rendered company page or a not-found component.
  */
-export default async function CompanyPageWrapper(props: CompanyPageProps) {
+// Update props interface at the top first? No, modify usage here.
+// But we need to update CompanyPageProps definition too.
+
+export default async function CompanyPageWrapper(props: CompanyPageProps & { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const params = await props.params;
   const company = await companyService.getCompanyBySlug(params.companySlug);
 
@@ -211,7 +214,10 @@ export default async function CompanyPageWrapper(props: CompanyPageProps) {
   return (
     <>
       <StructuredData data={structuredData} />
-      <CompanyPage company={company} />
+      <CompanyPage 
+        company={company} 
+        searchParams={props.searchParams} 
+      />
     </>
   );
 }

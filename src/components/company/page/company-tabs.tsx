@@ -64,6 +64,8 @@ interface CompanyTabsProps {
   initialNextCursor: string | null | undefined;
   initialFilters: ProblemListFilters;
   itemsPerPage: number;
+  totalPages: number;
+  currentPage: number;
 }
 
 export default function CompanyTabs({
@@ -74,6 +76,8 @@ export default function CompanyTabs({
   initialNextCursor,
   initialFilters,
   itemsPerPage,
+  totalPages,
+  currentPage,
 }: CompanyTabsProps) {
   const [aiProblems, setAiProblems] = useState<LeetCodeProblem[]>([]);
   const [isLoadingAI, setIsLoadingAI] = useState(true);
@@ -135,6 +139,8 @@ export default function CompanyTabs({
             initialFilters={initialFilters}
             totalProblemCount={company.problemCount}
             difficultyCounts={company.difficultyCounts}
+            totalPages={totalPages}
+            currentPage={currentPage}
           />
         </TabsContent>
         <TabsContent value="stats" className="mt-0 transition-all duration-300 ease-in-out">

@@ -1,9 +1,3 @@
-/**
- * @fileoverview A redesigned, modern client-side component for displaying an interactive list of coding problems.
- *
- * This component features a clean, table-based layout with enhanced user
- * interaction, sorting, filtering, and infinite scrolling.
- */
 "use client";
 
 import type { User } from "firebase/auth";
@@ -11,21 +5,19 @@ import type { User } from "firebase/auth";
 import type {
   LeetCodeProblem,
   ProblemListFilters,
-  PaginatedProblemsResponse,
   ProblemStatus,
-  DifficultyFilter,
   SortKey,
-  LastAskedFilter,
-  StatusFilter,
 } from "@/types";
 import { useState, useEffect, useCallback, useRef } from "react";
 import ProblemCard from "./problem-card";
 import { useAuth } from "@/contexts/auth-context";
-import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+import { getUserProblemStatusesForIdsAction } from "@/app/actions/user.actions";
 
 const ProblemListControls = dynamic(() => import("./problem-list-controls"), {
   loading: () => (
@@ -50,236 +42,169 @@ interface ProblemListProps {
   initialFilters: ProblemListFilters;
   totalProblemCount?: number;
   difficultyCounts?: { Easy: number; Medium: number; Hard: number };
+  totalPages: number;
+  currentPage: number;
 }
 
 const ProblemList: React.FC<ProblemListProps> = ({
   companyId,
   companySlug,
   initialProblems,
-  initialHasMore,
-  initialNextCursor,
   itemsPerPage,
   initialFilters,
-  totalProblemCount,
-  difficultyCounts,
+  totalPages,
+  currentPage,
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
-
-  const [filters, setFilters] = useState<ProblemListFilters>({
-    ...initialFilters,
-    difficultyFilter: [],
-    lastAskedFilter: [],
-    statusFilter: [],
-  });
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   const [displayedProblems, setDisplayedProblems] =
     useState<LeetCodeProblem[]>(initialProblems);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(initialHasMore);
-  const [nextCursor, setNextCursor] = useState<string | undefined>(
-    initialNextCursor,
-  );
 
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
-
-  // Use a ref to track the previous companyId to determine if we should reset the list.
-  // We only want to reset the list if the company context changes.
-  // Revalidations (e.g. from toggling a bookmark) will cause `initialProblems` to update
-  // with data that might be missing user context (bookmarks/status) or reset pagination.
-  // By checking companyId, we assume that if we are on the same company page,
-  // the client-side state (which includes optimistic updates and pagination) is more accurate
-  // or desirable than the reset server state.
-  const prevCompanyIdRef = useRef(companyId);
-
-  useEffect(() => {
-    if (companyId !== prevCompanyIdRef.current) {
-      setDisplayedProblems(initialProblems);
-      setHasMore(initialHasMore);
-      setNextCursor(initialNextCursor);
-      setFilters(initialFilters);
-      prevCompanyIdRef.current = companyId;
-    }
-  }, [
-    companyId,
-    initialProblems,
-    initialHasMore,
-    initialNextCursor,
-    initialFilters,
-  ]);
-
-  const fetchProblems = useCallback(
-    async (cursor?: string, newFilters?: Partial<ProblemListFilters>) => {
-      const currentFilters = newFilters
-        ? { ...filters, ...newFilters }
-        : filters;
-      if (!cursor) {
-        setIsLoading(true);
-      } else {
-        setIsLoadingMore(true);
-      }
-
-      try {
-        const response = await fetch("/api/problems", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            companyId,
-            cursor,
-            pageSize: itemsPerPage,
-            filters: currentFilters,
-            userId: user?.uid,
-            // Optimization hints
-            totalProblemCount,
-            difficultyCounts,
-            companySlug,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result: PaginatedProblemsResponse = await response.json();
-
-        if (cursor) {
-          setDisplayedProblems((prev) => [...prev, ...result.problems]);
-        } else {
-          setDisplayedProblems(result.problems);
-        }
-        setHasMore(result.hasMore ?? false);
-        setNextCursor(result.nextCursor);
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "An unknown error occurred";
-        toast({
-          title: "Error Fetching Problems",
-          description: errorMessage,
-          variant: "destructive",
-        });
-        setHasMore(false);
-      } finally {
-        setIsLoading(false);
-        setIsLoadingMore(false);
-      }
-    },
-    [companyId, itemsPerPage, user?.uid, toast, filters],
-  );
-
+  // -- Filter Handling (URL Sync) --
   const handleFilterChange = useCallback(
     (newFiltersApplied: Partial<ProblemListFilters>) => {
-      const updatedFilters = { ...filters, ...newFiltersApplied };
-      setFilters(updatedFilters);
-      fetchProblems(undefined, updatedFilters);
-    },
-    [filters, fetchProblems],
-  );
+      const params = new URLSearchParams(searchParams.toString());
 
-  const prevUserRef = useRef<User | null>(null);
-
-  useEffect(() => {
-    const userJustLoggedIn = user && !prevUserRef.current;
-    if (userJustLoggedIn) {
-      handleFilterChange(filters);
-    }
-    prevUserRef.current = user;
-  }, [user, filters, handleFilterChange]);
-
-  const loadMoreProblems = useCallback(() => {
-    if (hasMore && nextCursor) {
-      fetchProblems(nextCursor);
-    }
-  }, [hasMore, nextCursor, fetchProblems]);
-
-  useEffect(() => {
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        if (
-          entries[0].isIntersecting &&
-          hasMore &&
-          !isLoading &&
-          !isLoadingMore
-        ) {
-          loadMoreProblems();
+      // Update params based on newFiltersApplied
+      Object.entries(newFiltersApplied).forEach(([key, value]) => {
+        params.delete(key);
+        if (Array.isArray(value)) {
+          value.forEach((v) => params.append(key, v));
+        } else if (value) {
+          params.set(key, value as string);
         }
-      },
-      { threshold: 1.0, rootMargin: "500px" },
-    );
+      });
+      
+      // Reset page to 1 when filters change
+      params.delete("page");
 
-    const currentTriggerRef = loadMoreTriggerRef.current;
-    if (currentTriggerRef) {
-      observerRef.current.observe(currentTriggerRef);
+      router.push(pathname + "?" + params.toString(), { scroll: false });
+    },
+    [router, pathname, searchParams]
+  );
+  
+  // -- Pagination URL Generation --
+  const createPageUrl = useCallback((pageNumber: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (pageNumber > 1) {
+      params.set("page", pageNumber.toString());
+    } else {
+      params.delete("page");
     }
+    return `${pathname}?${params.toString()}`;
+  }, [searchParams, pathname]);
 
-    return () => {
-      if (observerRef.current && currentTriggerRef) {
-        observerRef.current.unobserve(currentTriggerRef);
-      }
-      if (observerRef.current) {
-        observerRef.current.disconnect();
+  // Sync state with props when filters/page change (server re-renders)
+  useEffect(() => {
+    setDisplayedProblems(initialProblems);
+    // Clear hydration cache because we are resetting 'displayedProblems'
+    hydratedIdsRef.current.clear(); 
+  }, [initialProblems]);
+
+  // -- Optimized User Data Hydration --
+  const hydratedIdsRef = useRef<Set<string>>(new Set());
+
+  // Reset hydration cache if user changes (e.g. login/logout)
+  useEffect(() => {
+    hydratedIdsRef.current.clear();
+  }, [user?.uid]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    // Identify which displayed problems haven't been hydrated yet
+    const idsToHydrate = displayedProblems
+      .map((p) => p.id)
+      .filter((id) => !hydratedIdsRef.current.has(id));
+
+    if (idsToHydrate.length === 0) return;
+
+    // Mark as hydrated immediately to prevent double-firing
+    idsToHydrate.forEach((id) => hydratedIdsRef.current.add(id));
+
+    const fetchStatus = async () => {
+      try {
+        const result = await getUserProblemStatusesForIdsAction(
+          user.uid,
+          idsToHydrate
+        );
+
+        if ("error" in result) {
+          console.error("Error fetching statuses:", result.error);
+          return;
+        }
+
+        setDisplayedProblems((prev) =>
+          prev.map((p) => {
+            if (result[p.id]) {
+              return {
+                ...p,
+                isBookmarked: result[p.id].isBookmarked,
+                currentStatus: result[p.id].status,
+              };
+            }
+            return p;
+          })
+        );
+      } catch (error) {
+        console.error("Failed to hydrate user data", error);
       }
     };
-  }, [hasMore, isLoading, isLoadingMore, loadMoreProblems]);
+
+    fetchStatus();
+  }, [displayedProblems, user]);
 
   const handleProblemBookmarkChange = useCallback(
     (problemId: string, newIsBookmarked: boolean) => {
       setDisplayedProblems((prev) =>
         prev.map((p) =>
-          p.id === problemId ? { ...p, isBookmarked: newIsBookmarked } : p,
-        ),
+          p.id === problemId ? { ...p, isBookmarked: newIsBookmarked } : p
+        )
       );
     },
-    [],
+    []
   );
 
   const handleProblemStatusChange = useCallback(
     (problemId: string, newStatus: ProblemStatus) => {
       setDisplayedProblems((prev) =>
         prev.map((p) =>
-          p.id === problemId ? { ...p, currentStatus: newStatus } : p,
-        ),
+          p.id === problemId ? { ...p, currentStatus: newStatus } : p
+        )
       );
-      if (
-        filters.statusFilter.length > 0 &&
-        !filters.statusFilter.includes(newStatus)
-      ) {
-        handleFilterChange({ statusFilter: filters.statusFilter });
-      }
     },
-    [filters.statusFilter, handleFilterChange],
+    []
   );
 
   return (
     <div>
       <h2 className="sr-only">Problems</h2>
       <ProblemListControls
-        difficultyFilter={filters.difficultyFilter}
+        difficultyFilter={initialFilters.difficultyFilter}
         onDifficultyFilterChange={(value) =>
           handleFilterChange({ difficultyFilter: value })
         }
-        sortKey={filters.sortKey}
+        sortKey={initialFilters.sortKey}
         onSortKeyChange={(value) =>
           handleFilterChange({ sortKey: value as SortKey })
         }
-        lastAskedFilter={filters.lastAskedFilter}
+        lastAskedFilter={initialFilters.lastAskedFilter}
         onLastAskedFilterChange={(value) =>
           handleFilterChange({ lastAskedFilter: value })
         }
-        statusFilter={filters.statusFilter}
+        statusFilter={initialFilters.statusFilter}
         onStatusFilterChange={(value) =>
           handleFilterChange({ statusFilter: value })
         }
         problemCount={displayedProblems.length}
         showStatusFilter={!!user}
       />
-      {isLoading && displayedProblems.length === 0 ? (
-        <div className="flex justify-center items-center py-10">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="ml-2 text-muted-foreground">Loading problems...</p>
-        </div>
-      ) : displayedProblems.length > 0 ? (
+      
+      {displayedProblems.length > 0 ? (
         <div className="space-y-4">
           {displayedProblems.map((problem, index) => (
             <div key={problem.id}>
@@ -305,18 +230,16 @@ const ProblemList: React.FC<ProblemListProps> = ({
           No problems match the current filters or search term for this company.
         </p>
       )}
-      <div
-        ref={loadMoreTriggerRef}
-        className="h-10 flex items-center justify-center"
-      >
-        {isLoadingMore && (
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        )}
-        {!isLoadingMore && !hasMore && displayedProblems.length > 0 && (
-          <p className="text-muted-foreground text-sm">
-            You&apos;ve reached the end!
-          </p>
-        )}
+
+      <div className="mt-8">
+        <PaginationControls 
+            currentPage={currentPage || 1}
+            totalPages={totalPages || 1}
+            baseUrl={pathname}
+            createPageUrl={createPageUrl}
+            hideOnSinglePage={false}
+            hasNextPage={currentPage < totalPages}
+        />
       </div>
     </div>
   );
