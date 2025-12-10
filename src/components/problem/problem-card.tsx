@@ -18,7 +18,6 @@ import {
   XCircle,
   Circle,
   ExternalLink,
-  Bot,
   Sparkles,
   Lightbulb,
   Clock,
@@ -34,7 +33,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import TagBadge from "./tag-badge";
-import { lastAskedPeriodDisplayMap } from "@/types";
 import { useProblemInteractions } from "@/hooks/use-problem-interactions";
 import { useAIFeatures } from "@/hooks/use-ai-features";
 import { useAuth } from "@/contexts/auth-context";
@@ -53,6 +51,7 @@ const ProblemInsightsDialog = dynamic(
     loading: () => <p>Loading dialog...</p>,
   },
 );
+
 
 interface ProblemCardProps {
   problem: LeetCodeProblem;
@@ -90,7 +89,6 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
     isTogglingBookmark,
     handleToggleBookmark,
     currentStatus,
-    isUpdatingStatus,
     handleStatusUpdate,
     promptLogin,
   } = useProblemInteractions(
@@ -115,49 +113,37 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
     handleGenerateInsights,
   } = useAIFeatures(problem, companySlug);
 
-  const { displayTime, showTrending } = useMemo(() => {
-    let time = "";
+  const { displayTime } = useMemo(() => {
+     let time = "";
     if (problem.lastAskedPeriod) {
       switch (problem.lastAskedPeriod) {
-        case "last_30_days":
-          time = `${Math.floor(Math.random() * 30) + 1} days ago`;
-          break;
-        case "within_3_months":
-          time = `${Math.floor(Math.random() * 3) + 1} months ago`;
-          break;
-        case "within_6_months":
-          time = `${Math.floor(Math.random() * 3) + 3} months ago`;
-          break;
-        case "older_than_6_months":
-          time = `${Math.floor(Math.random() * 6) + 6} months ago`;
-          break;
-        default:
-          time = "";
+        case "last_30_days": time = `${Math.floor(Math.random() * 30) + 1}d ago`; break;
+        case "within_3_months": time = `${Math.floor(Math.random() * 3) + 1}mo ago`; break;
+        case "within_6_months": time = `${Math.floor(Math.random() * 3) + 3}mo ago`; break;
+        case "older_than_6_months": time = `${Math.floor(Math.random() * 6) + 6}mo ago`; break;
+        default: time = "";
       }
     }
-    return {
-      displayTime: time,
-      showTrending: Math.random() > 0.5,
-    };
+    return { displayTime: time };
   }, [problem.lastAskedPeriod]);
 
+
   const StatusIcon = statusIcons[currentStatus];
-  // Calculate specific colors for difficulty with new palette
+  
   const difficultyColor = useMemo(() => {
     switch(problem.difficulty) {
-        case 'Easy': return "text-emerald-400 border-emerald-400/20 bg-emerald-400/5";
-        case 'Medium': return "text-amber-400 border-amber-400/20 bg-amber-400/5";
-        case 'Hard': return "text-rose-400 border-rose-400/20 bg-rose-400/5";
-        default: return "text-slate-400 border-slate-400/20 bg-slate-400/5";
+        case 'Easy': return "text-emerald-500 bg-emerald-500/10 border-emerald-500/20";
+        case 'Medium': return "text-amber-500 bg-amber-500/10 border-amber-500/20";
+        case 'Hard': return "text-rose-500 bg-rose-500/10 border-rose-500/20";
+        default: return "text-slate-500 bg-slate-500/10 border-slate-500/20";
     }
   }, [problem.difficulty]);
 
-    // Handle problem status color
     const statusColor = useMemo(() => {
         switch(currentStatus) {
             case 'solved': return "text-emerald-500";
             case 'attempted': return "text-amber-500";
-            default: return "text-muted-foreground/60 group-hover:text-muted-foreground/80";
+            default: return "text-muted-foreground/40 group-hover:text-muted-foreground/60";
         }
     }, [currentStatus]);
 
@@ -166,245 +152,172 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
   return (
       <>
           <div 
-            className="group relative flex flex-col bg-card/40 hover:bg-card/60 backdrop-blur-sm border border-white/5 hover:border-white/10 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 overflow-hidden"
+            className="group relative flex flex-col bg-card hover:bg-muted/40 border border-border/40 hover:border-border/80 rounded-lg transition-all duration-200 overflow-hidden cursor-pointer"
+            onClick={() => setIsExpanded(!isExpanded)}
           >
-              {/* Hover Glow Effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-
-              <div className="relative p-4 md:p-5 flex flex-col gap-3">
-                {/* Main Row */}
-                <div className="flex items-start gap-3 md:gap-5">
-                    {/* Status Indicator */}
-                    <div className="pt-1 flex-shrink-0">
+              <div className="flex items-center gap-3 p-3 md:p-4">
+                    {/* Status Toggle */}
+                    <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                          <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-8 w-8 hover:bg-white/5 rounded-full transition-colors"
+                                    className="h-8 w-8 hover:bg-primary/5 rounded-full"
                                 >
                                     <StatusIcon className={cn("h-5 w-5 transition-colors", statusColor)} />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start" className="w-40 bg-card/95 backdrop-blur-xl border-white/10">
-                                <DropdownMenuItem onClick={() => handleStatusUpdate("solved")} className="focus:bg-primary/10 focus:text-primary cursor-pointer">
+                            <DropdownMenuContent align="start" className="w-40">
+                                <DropdownMenuItem onClick={() => handleStatusUpdate("solved")} className="text-sm">
                                     <CheckCircle className="h-4 w-4 mr-2 text-emerald-500" /> Solved
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleStatusUpdate("attempted")} className="focus:bg-primary/10 focus:text-primary cursor-pointer">
+                                <DropdownMenuItem onClick={() => handleStatusUpdate("attempted")} className="text-sm">
                                     <XCircle className="h-4 w-4 mr-2 text-amber-500" /> Attempted
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleStatusUpdate("none")} className="focus:bg-primary/10 focus:text-primary cursor-pointer">
+                                <DropdownMenuItem onClick={() => handleStatusUpdate("none")} className="text-sm">
                                     <ListTodo className="h-4 w-4 mr-2 text-slate-500" /> To Do
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
 
-                    {/* Content Section */}
-                    <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-                        <div className="flex items-start justify-between gap-4">
-                            <Link
+                    {/* Title & Key Info */}
+                    <div className="flex-1 min-w-0 flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                             <Link
                                 href={problem.link}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-base md:text-lg font-medium text-foreground/90 group-hover:text-primary transition-colors line-clamp-2 leading-snug"
+                                className="text-base md:text-lg font-medium text-foreground hover:text-primary transition-colors truncate"
+                                onClick={(e) => e.stopPropagation()}
                             >
                                 {problem.title}
                             </Link>
-
-                            {/* Mobile Difficulty Badge (Visible only on small screens) */}
-                             <div className={cn("md:hidden flex-shrink-0 text-[10px] px-2 py-0.5 rounded-full border font-medium uppercase tracking-wider", difficultyColor)}>
+                             <span className={cn("text-xs md:text-sm px-2 py-0.5 rounded-full border font-medium uppercase tracking-wider", difficultyColor)}>
                                 {problem.difficulty}
-                             </div>
-                        </div>
-
-                         {/* Companies & Meta */}
-                        <div className="flex flex-wrap items-center gap-y-2 gap-x-3">
-                            {showCompanies && problem.companyIds && problem.companyIds.length > 0 ? (
-                                <div className="flex flex-wrap items-center gap-1.5">
-                                    {(isCompaniesExpanded ? problem.companyIds : problem.companyIds.slice(0, 3)).map(companyId => (
-                                        <Link 
-                                            key={companyId} 
-                                            href={`/company/${companyId}`}
-                                            onClick={(e) => e.stopPropagation()}
-                                            className="group/badge"
-                                        >
-                                            <Badge 
-                                                variant="outline" 
-                                                className="bg-primary/5 text-primary/80 border-primary/20 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all text-[10px] px-2 py-0 h-5 lowercase font-normal"
-                                            >
-                                                {companyId}
-                                            </Badge>
-                                        </Link>
-                                    ))}
-                                     {problem.companyIds.length > 3 && (
-                                       <button 
-                                          onClick={(e) => {
-                                              e.stopPropagation();
-                                              setIsCompaniesExpanded(!isCompaniesExpanded);
-                                          }}
-                                          className="text-[10px] px-1.5 py-0.5 rounded-md hover:bg-white/5 text-muted-foreground hover:text-foreground transition-colors"
-                                       >
-                                          {isCompaniesExpanded ? "less" : `+${problem.companyIds.length - 3}`}
-                                       </button>
-                                    )}
-                                </div>
-                            ) : null}
-                            
-                            {/* Last Asked / Trending Meta */}
-                            {problem.lastAskedPeriod && (
-                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground/60">
-                                   <Clock className="h-3 w-3" />
-                                   <span>{displayTime}</span>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Desktop Actions (Hidden on Mobile) */}
-                    <div className="hidden md:flex flex-col items-end gap-2 flex-shrink-0 pl-2">
-                        <div className={cn("text-xs px-2.5 py-1 rounded-md border font-medium uppercase tracking-wider mb-1", difficultyColor)}>
-                            {problem.difficulty}
+                            </span>
                         </div>
                         
-                        <div className="flex items-center gap-1">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={handleToggleBookmark}
-                                disabled={isTogglingBookmark}
-                                className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                            >
-                                {isTogglingBookmark ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                    <Bookmark className={cn("h-4 w-4 transition-colors", isBookmarked && "fill-primary text-primary")} />
+                         {/* Companies (Compact) */}
+                        {showCompanies && problem.companyIds && problem.companyIds.length > 0 && (
+                            <div className="flex items-center gap-1.5 overflow-hidden h-5 md:h-6">
+                                {problem.companyIds.slice(0, 3).map(companyId => (
+                                     <span key={companyId} className="text-xs md:text-sm text-muted-foreground bg-muted px-1.5 rounded-sm border border-border/50 whitespace-nowrap">
+                                        {companyId}
+                                     </span>
+                                ))}
+                                {problem.companyIds.length > 3 && (
+                                     <span className="text-xs md:text-sm text-muted-foreground px-1">
+                                        +{problem.companyIds.length - 3}
+                                     </span>
                                 )}
-                            </Button>
-                             <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setIsExpanded(!isExpanded)}
-                                className={cn("h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-white/5 transition-all duration-300", isExpanded && "rotate-180 bg-white/5 text-foreground")}
-                            >
-                                <ChevronDown className="h-4 w-4" />
-                            </Button>
-                        </div>
+                            </div>
+                        )}
                     </div>
-                </div>
 
-                {/* Mobile Actions Row (Visible only on small screens) */}
-                <div className="md:hidden flex items-center justify-between pt-2 border-t border-white/5 mt-1">
-                     <div className="flex items-center gap-1">
+
+                    {/* Right Actions */}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                         {problem.lastAskedPeriod && (
+                            <div className="hidden sm:flex items-center gap-1 text-xs md:text-sm text-muted-foreground mr-3">
+                               <Clock className="h-3.5 w-3.5" />
+                               <span>{displayTime}</span>
+                            </div>
+                        )}
+
                         <Button
                             variant="ghost"
-                            size="sm"
-                            onClick={handleToggleBookmark}
+                            size="icon"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleBookmark();
+                            }}
                             disabled={isTogglingBookmark}
-                            className="h-8 px-2 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                            className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/5"
                         >
                             {isTogglingBookmark ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                                <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
-                                <Bookmark className={cn("h-3.5 w-3.5 mr-1.5", isBookmarked && "fill-primary text-primary")} />
+                                <Bookmark className={cn("h-4 w-4", isBookmarked && "fill-primary text-primary")} />
                             )}
-                            <span className="text-xs">{isBookmarked ? 'Saved' : 'Save'}</span>
                         </Button>
-                     </div>
-                     <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsExpanded(!isExpanded)}
-                        className="h-8 px-2 text-muted-foreground hover:text-foreground"
-                    >
-                        <span className="text-xs mr-1.5">{isExpanded ? 'Less' : 'More'}</span>
-                        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-300", isExpanded && "rotate-180")} />
-                    </Button>
-                </div>
+                         <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsExpanded(!isExpanded);
+                            }}
+                            className={cn("h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-transform duration-200", isExpanded && "rotate-180")}
+                        >
+                            <ChevronDown className="h-4 w-4" />
+                        </Button>
+                    </div>
               </div>
 
-              {/* Expandable Content Panel */}
+               {/* Expanded Content */}
               <div
                   className={cn(
-                      "grid transition-[grid-template-rows] duration-500 ease-out",
-                      isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                      "grid transition-[grid-template-rows] duration-200 ease-out bg-muted/20",
+                      isExpanded ? "grid-rows-[1fr] border-t border-border/40" : "grid-rows-[0fr]"
                   )}
               >
-                  <div className="overflow-hidden">
-                      <div className="px-4 md:px-5 pb-5 pt-0 flex flex-col gap-4">
-                          {/* Divider */}
-                          <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent w-full" />
+                   <div className="overflow-hidden">
+                       <div className="p-3 pt-2 flex flex-col gap-3">
+                           {/* Tags */}
+                           {problemTags.length > 0 && (
+                               <div className="flex flex-wrap gap-2">
+                                   {problemTags.map((tag) => (
+                                       <TagBadge
+                                           key={tag}
+                                           tag={tag}
+                                           className="bg-background border-border/50 text-xs md:text-sm px-2 py-0.5 h-auto text-muted-foreground"
+                                       />
+                                   ))}
+                               </div>
+                           )}
 
-                          {/* Tags */}
-                          <div className="flex flex-wrap gap-2">
-                              {problemTags.slice(0, 6).map((tag) => (
-                                  <TagBadge
-                                      key={tag}
-                                      tag={tag}
-                                      className="bg-secondary/40 hover:bg-secondary/60 transition-colors border-white/5 text-secondary-foreground/80"
-                                  />
-                              ))}
-                              {problemTags.length > 6 && (
-                                  <Badge
-                                      variant="outline"
-                                      className="bg-transparent border-dashed border-white/20 text-muted-foreground text-[10px] px-2"
-                                  >
-                                      +{problemTags.length - 6}
-                                  </Badge>
-                              )}
-                          </div>
-                          
-                           {/* Quick Actions Grid */}
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
-                              <Button
-                                  variant="default"
-                                  className="w-full bg-primary/10 text-primary hover:bg-primary/20 hover:shadow-glow-sm border border-primary/20 backdrop-blur-sm"
+                           {/* Compact Actions Row */}
+                           <div className="flex items-center gap-3">
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  className="h-8 text-sm md:text-base flex-1 bg-background hover:bg-muted border border-border/50"
                                   onClick={() => problem.link && window.open(problem.link, "_blank", "noopener,noreferrer")}
-                              >
-                                  <ExternalLink className="h-4 w-4 mr-2" />
+                                >
+                                  <ExternalLink className="h-3.5 w-3.5 mr-2" />
                                   Write Code
-                              </Button>
-
-                              <Button
-                                  variant="outline"
-                                   className="w-full border-white/10 hover:bg-white/5 hover:border-white/20"
+                                </Button>
+                                 <Button
+                                  variant="secondary"
+                                  size="sm"
+                                   className="h-8 text-sm md:text-base flex-1 bg-background hover:bg-muted border border-border/50"
                                   onClick={() => {
                                       if (!user) promptLogin();
                                       else handleFindSimilar();
                                   }}
                                   disabled={isLoadingSimilar}
-                              >
-                                   {isLoadingSimilar ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2 text-purple-400" />}
+                                >
+                                   {isLoadingSimilar ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" /> : <Sparkles className="h-3.5 w-3.5 mr-2 text-purple-400" />}
                                   Similar
-                              </Button>
-
-                               <Button
-                                  variant="outline"
-                                  className="w-full border-white/10 hover:bg-white/5 hover:border-white/20"
+                                </Button>
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  className="h-8 text-sm md:text-base flex-1 bg-background hover:bg-muted border border-border/50"
                                   onClick={() => {
                                       if (!user) promptLogin();
                                       else handleGenerateInsights();
                                   }}
                                   disabled={isLoadingInsights}
-                              >
-                                  {isLoadingInsights ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Lightbulb className="h-4 w-4 mr-2 text-yellow-400" />}
+                                >
+                                  {isLoadingInsights ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" /> : <Lightbulb className="h-3.5 w-3.5 mr-2 text-yellow-400" />}
                                   Hints
-                              </Button>
-
-                              <Button
-                                  variant="ghost"
-                                  className="w-full hover:bg-white/5 text-muted-foreground opacity-50 cursor-not-allowed"
-                                  onClick={(e) => {
-                                      e.preventDefault();
-                                      toast({ title: "Coming Soon", description: "Mock interview feature is in development." });
-                                  }}
-                              >
-                                  <Bot className="h-4 w-4 mr-2" />
-                                  Mock AI
-                              </Button>
-                          </div>
-                      </div>
-                  </div>
+                                </Button>
+                           </div>
+                       </div>
+                   </div>
               </div>
           </div>
 
