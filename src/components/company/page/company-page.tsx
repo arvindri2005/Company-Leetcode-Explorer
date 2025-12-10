@@ -169,17 +169,23 @@ export default async function CompanyPage({ company, searchParams }: CompanyPage
                       
                       <CompanyPreparationGuide company={company} />
 
-                      {/* Mobile Related Companies */}
-                      <div className="lg:hidden mt-8">
+                      {/* Related Companies (Desktop & Mobile) */}
+                      <div className="mt-12">
+                          <h2 className="text-2xl font-bold mb-6 text-white">Related Companies</h2>
                           <RelatedCompanies companies={company.relatedCompanies || []} />
                       </div>
                   </main>
 
-                  {/* Right Sidebar: Ads & Related Companies */}
-                  <aside className="lg:col-span-1 space-y-8 hidden lg:block transition-all duration-300 ease-in-out">
-                      <AdPlaceholder />
-                      <RelatedCompanies companies={company.relatedCompanies || []} />
-                      <AdPlaceholder />
+                  {/* Right Sidebar: Ads Only */}
+                  <aside className="lg:col-span-1 hidden lg:block transition-all duration-300 ease-in-out">
+                      <div className="sticky top-24 h-[calc(100vh-8rem)] flex flex-col gap-4">
+                          <div className="flex-1">
+                              <AdPlaceholder title="Sponsored" className="h-full" />
+                          </div>
+                          <div className="flex-1">
+                              <AdPlaceholder title="Advertisement" className="h-full" />
+                          </div>
+                      </div>
                   </aside>
               </div>
           </div>
