@@ -1,0 +1,23 @@
+# Company LeetCode Explorer (ByteToOffer)
+
+## Project Summary
+ByteToOffer is a Next.js application designed to help software engineers prepare for technical interviews. It provides a platform to explore LeetCode problems frequently asked by specific companies, supercharged with AI features for problem insights and personalized strategies.
+
+## Core Navigation
+- [Home](/)
+- [Companies](/companies) - Browse companies and their associated problems.
+- [Problems](/problems) - View and filter LeetCode problems.
+
+## Key Features
+- **Company & Problem Database**: Curated list of companies and problems.
+- **AI-Powered Tools**:
+    - **Similar Problems**: Get suggestions for conceptually similar problems.
+    - **Problem Insights**: Key concepts and hints.
+    - **Flashcards**: Company-specific study aids.
+    - **Interview Strategy**: Tailored preparation plans.
+- **User Progress**: Track solved, attempted, and to-do problems.
+- **Modern UI**: Built with Next.js App Router, ShadCN UI, and Tailwind CSS.
+
+## Documentation
+- [Developer Guide](/Guide)
+- [Contributing](/CONTRIBUTING.md)
