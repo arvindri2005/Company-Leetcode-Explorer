@@ -200,18 +200,18 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                         </div>
                         
                          {/* Companies (Compact) */}
-                        {showCompanies && problem.companyIds && problem.companyIds.length > 0 && (
-                            <div className="flex items-center gap-1.5 overflow-hidden h-5 md:h-6">
-                                {problem.companyIds.slice(0, 3).map(companyId => (
-                                     <span key={companyId} className="text-xs md:text-sm text-muted-foreground bg-muted px-1.5 rounded-sm border border-border/50 whitespace-nowrap">
-                                        {companyId}
-                                     </span>
+                       {showCompanies && problem.companyIds && problem.companyIds.length > 0 && (
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                                {problem.companyIds.map(companyId => (
+                                     <Link 
+                                        key={companyId} 
+                                        href={`/company/${companyId}`}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="text-xs md:text-sm text-muted-foreground bg-muted px-1.5 rounded-sm border border-border/50 whitespace-nowrap capitalize hover:text-foreground hover:border-border transition-colors"
+                                     >
+                                        {companyId.replace(/-/g, ' ')}
+                                     </Link>
                                 ))}
-                                {problem.companyIds.length > 3 && (
-                                     <span className="text-xs md:text-sm text-muted-foreground px-1">
-                                        +{problem.companyIds.length - 3}
-                                     </span>
-                                )}
                             </div>
                         )}
                     </div>
