@@ -6,7 +6,8 @@
             "feature-production-readiness-refactor",
             "v2",
             "v5",
-            "v5.1"
+            "v5.1",
+            "v6"
         ]
     }
 }

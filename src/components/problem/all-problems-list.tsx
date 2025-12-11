@@ -229,9 +229,9 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
                 onProblemStatusChange={handleProblemStatusChange}
                 showCompanies={true}
               />
-              {(index + 1) % 8 === 0 && (
-                <div className="lg:hidden">
-                  <AdPlaceholder className="my-4 h-32" title="Sponsored" />
+              {(index + 1) % 25 === 0 && (
+                <div className="py-4">
+                  <AdPlaceholder title="Sponsored" className="h-32 w-full" />
                 </div>
               )}
             </div>

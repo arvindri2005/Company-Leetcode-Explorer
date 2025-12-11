@@ -20,7 +20,7 @@ import NoProblemsAvailable from "@/components/company/page/no-problems-available
 import RelatedCompanies from "@/components/company/related-companies";
 import CompanyPreparationGuide from "@/components/company/company-preparation-guide";
 
-const INITIAL_ITEMS_PER_PAGE = 15;
+const INITIAL_ITEMS_PER_PAGE = 40;
 
 /**
  * Defines the props structure for the CompanyPage, including the dynamic route parameters.
@@ -110,7 +110,7 @@ export default async function CompanyPage({ company, searchParams }: CompanyPage
       initialPaginatedProblemsData.error,
     );
     return (
-      <div className="container mx-auto px-4 py-4 max-w-7xl">
+      <div className="container mx-auto px-4 py-4">
         <CompanyHeader company={company} />
         <ProblemLoadError
           companyName={company.name}

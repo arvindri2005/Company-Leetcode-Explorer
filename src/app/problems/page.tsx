@@ -104,7 +104,7 @@ export default async function AllProblemsPage({
   const { problems, totalProblems, totalPages, currentPage, hasMore } =
     await problemService.getAllProblemsPaginated({
       page: isNaN(page) ? 1 : page,
-      pageSize: 10,
+      pageSize: 50,
       difficultyFilter,
       lastAskedFilter,
       searchTerm,
@@ -142,7 +142,7 @@ export default async function AllProblemsPage({
           <Suspense fallback={<div>Loading problems...</div>}>
             <AllProblemsList
               initialProblems={problems}
-              itemsPerPage={10}
+              itemsPerPage={50}
               totalPages={totalPages || 1}
               currentPage={currentPage || 1}
               hasMore={hasMore}

@@ -154,12 +154,6 @@ const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
             </Chip>
           ))}
       </div>
-
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between mt-4">
-        <div className="text-sm text-muted-foreground whitespace-nowrap">
-          {problemCount} Problems
-        </div>
-      </div>
     </div>
   );
 };
