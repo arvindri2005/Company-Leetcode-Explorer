@@ -16,8 +16,9 @@ import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { PaginationControls } from "@/components/ui/pagination-controls";
 import { getUserProblemStatusesForIdsAction } from "@/app/actions/user.actions";
+import { loadMoreProblemsAction } from "@/app/actions/problem.actions";
+import { Loader2 } from "lucide-react";
 
 const ProblemListControls = dynamic(() => import("./problem-list-controls"), {
   loading: () => (
@@ -50,10 +51,11 @@ const ProblemList: React.FC<ProblemListProps> = ({
   companyId,
   companySlug,
   initialProblems,
+  initialHasMore,
+  initialNextCursor,
   itemsPerPage,
   initialFilters,
-  totalPages,
-  currentPage,
+  // totalPages and currentPage are unused in infinite scroll, but kept for interface compatibility if needed
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -63,6 +65,11 @@ const ProblemList: React.FC<ProblemListProps> = ({
 
   const [displayedProblems, setDisplayedProblems] =
     useState<LeetCodeProblem[]>(initialProblems);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [nextCursor, setNextCursor] = useState<string | null | undefined>(
+    initialNextCursor
+  );
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   // -- Filter Handling (URL Sync) --
   const handleFilterChange = useCallback(
@@ -78,32 +85,23 @@ const ProblemList: React.FC<ProblemListProps> = ({
           params.set(key, value as string);
         }
       });
-      
-      // Reset page to 1 when filters change
+
+      // Reset page to 1 (or remove it) when filters change
       params.delete("page");
 
       router.push(pathname + "?" + params.toString(), { scroll: false });
     },
     [router, pathname, searchParams]
   );
-  
-  // -- Pagination URL Generation --
-  const createPageUrl = useCallback((pageNumber: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (pageNumber > 1) {
-      params.set("page", pageNumber.toString());
-    } else {
-      params.delete("page");
-    }
-    return `${pathname}?${params.toString()}`;
-  }, [searchParams, pathname]);
 
-  // Sync state with props when filters/page change (server re-renders)
+  // Sync state with props when filters change (server re-renders)
   useEffect(() => {
     setDisplayedProblems(initialProblems);
+    setHasMore(initialHasMore);
+    setNextCursor(initialNextCursor);
     // Clear hydration cache because we are resetting 'displayedProblems'
-    hydratedIdsRef.current.clear(); 
-  }, [initialProblems]);
+    hydratedIdsRef.current.clear();
+  }, [initialProblems, initialHasMore, initialNextCursor]);
 
   // -- Optimized User Data Hydration --
   const hydratedIdsRef = useRef<Set<string>>(new Set());
@@ -180,6 +178,78 @@ const ProblemList: React.FC<ProblemListProps> = ({
     []
   );
 
+  // -- Infinite Scroll Logic --
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  const loadMoreProblems = useCallback(async () => {
+    if (isLoadingMore || !hasMore || !nextCursor) return;
+
+    setIsLoadingMore(true);
+    try {
+      const result = await loadMoreProblemsAction(
+        companyId,
+        nextCursor,
+        initialFilters,
+        itemsPerPage
+      );
+
+      if ("error" in result) {
+        toast({
+          title: "Error loading problems",
+          description: "Could not load more problems. Please try again.",
+          variant: "destructive",
+        });
+      } else {
+        const { problems: newProblems, nextCursor: newCursor, hasMore: newHasMore } = result;
+        
+        setDisplayedProblems((prev) => [...prev, ...newProblems]);
+        setNextCursor(newCursor);
+        setHasMore(newHasMore ?? false);
+      }
+    } catch (error) {
+        console.error("Failed to load more problems", error);
+      toast({
+        title: "Error",
+        description: "Failed to load more problems.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [
+    isLoadingMore,
+    hasMore,
+    nextCursor,
+    companyId,
+    initialFilters,
+    itemsPerPage,
+    toast,
+  ]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMoreProblems();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    observerRef.current = observer;
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [loadMoreProblems]);
+
   return (
     <div>
       <h2 className="sr-only">Problems</h2>
@@ -203,7 +273,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
         problemCount={displayedProblems.length}
         showStatusFilter={!!user}
       />
-      
+
       {displayedProblems.length > 0 ? (
         <div className="space-y-4">
           {displayedProblems.map((problem, index) => (
@@ -217,10 +287,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
                 onProblemStatusChange={handleProblemStatusChange}
               />
               {(index + 1) % 8 === 0 && (
-                <AdPlaceholder
-                  className="my-4 h-32"
-                  title="Sponsored"
-                />
+                <AdPlaceholder className="my-4 h-32" title="Sponsored" />
               )}
             </div>
           ))}
@@ -231,16 +298,15 @@ const ProblemList: React.FC<ProblemListProps> = ({
         </p>
       )}
 
-      <div className="mt-8">
-        <PaginationControls 
-            currentPage={currentPage || 1}
-            totalPages={totalPages || 1}
-            baseUrl={pathname}
-            createPageUrl={createPageUrl}
-            hideOnSinglePage={false}
-            hasNextPage={currentPage < totalPages}
-        />
-      </div>
+      {/* Infinite Scroll Sentinel / Loading Indicator */}
+      {(hasMore || isLoadingMore) && (
+        <div
+          ref={loadMoreRef}
+          className="py-8 flex justify-center items-center w-full"
+        >
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      )}
     </div>
   );
 };

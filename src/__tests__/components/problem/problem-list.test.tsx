@@ -74,6 +74,8 @@ describe('ProblemList', () => {
       searchTerm: '',
       sortKey: 'title' as const,
     },
+    totalPages: 1,
+    currentPage: 1,
   };
 
   beforeEach(() => {

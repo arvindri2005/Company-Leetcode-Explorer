@@ -1,3 +1,5 @@
+"use server";
+
 /**
  * @fileoverview Server-side actions for managing coding problem data.
  *
@@ -6,7 +8,6 @@
  * a single problem and fetching details for a batch of problems.
  * These actions also handle data validation and cache revalidation.
  */
-"use server";
 
 import type {
   LeetCodeProblem,
@@ -15,6 +16,7 @@ import { problemService } from "@/services/problem.service";
 import { companyService } from "@/services/company.service";
 import { revalidateTag, revalidatePath } from "next/cache";
 import { slugify } from "@/lib/utils";
+import type { ProblemListFilters } from "@/types";
 
 /**
  * Adds a new coding problem to the database or updates an existing one.
@@ -58,7 +60,7 @@ export async function addProblem(
       return {
         success: false,
         error:
-          "Missing required fields for problem submission (Title, Difficulty, Link, Company, Last Asked Period).",
+          "Missing required fields for problem submission (Title, Difficulty, Link, Company, LastAskedPeriod).",
       };
     }
     if (
@@ -200,5 +202,35 @@ export async function getAIProblems(
     );
     // In a real-world app, you might want to return a more structured error response
     return [];
+  }
+}
+
+/**
+ * Server action to load more problems for infinite scrolling.
+ *
+ * @param {string} companyId - The ID of the company.
+ * @param {string} cursor - The cursor to start fetching from.
+ * @param {ProblemListFilters} filters - The current filters to apply.
+ * @param {number} pageSize - The number of items to fetch.
+ * @returns {Promise<PaginatedProblemsResponse>}
+ */
+export async function loadMoreProblemsAction(
+  companyId: string,
+  cursor: string,
+  filters: ProblemListFilters,
+  pageSize: number = 10
+) {
+  try {
+    return await problemService.getProblemsByCompany(companyId, {
+      cursor,
+      pageSize,
+      difficultyFilter: filters.difficultyFilter,
+      lastAskedFilter: filters.lastAskedFilter,
+      searchTerm: filters.searchTerm,
+      sortKey: filters.sortKey,
+    });
+  } catch (error) {
+    console.error("Error loading more problems:", error);
+    throw new Error("Failed to load more problems");
   }
 }
