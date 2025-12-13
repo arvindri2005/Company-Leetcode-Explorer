@@ -179,11 +179,11 @@ export default async function CompanyPage({ company, searchParams }: CompanyPage
                   {/* Right Sidebar: Ads Only */}
                   <aside className="lg:col-span-1 hidden lg:block transition-all duration-300 ease-in-out">
                       <div className="sticky top-24 h-[calc(100vh-8rem)] flex flex-col gap-4">
-                          <div className="flex-1">
-                              <AdPlaceholder title="Sponsored" className="h-full" />
+                          <div className="flex-1 min-h-0">
+                              <AdPlaceholder title="Sponsored" className="h-full my-0" />
                           </div>
-                          <div className="flex-1">
-                              <AdPlaceholder title="Advertisement" className="h-full" />
+                          <div className="flex-1 min-h-0">
+                              <AdPlaceholder title="Advertisement" className="h-full my-0" />
                           </div>
                       </div>
                   </aside>
