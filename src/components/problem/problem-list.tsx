@@ -16,7 +16,7 @@ import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { getUserProblemStatusesForIdsAction } from "@/app/actions/user.actions";
+import { getUserGlobalProblemStatsAction } from "@/app/actions/user.actions";
 import { loadMoreProblemsAction } from "@/app/actions/problem.actions";
 import { Loader2 } from "lucide-react";
 
@@ -55,7 +55,6 @@ const ProblemList: React.FC<ProblemListProps> = ({
   initialNextCursor,
   itemsPerPage,
   initialFilters,
-  // totalPages and currentPage are unused in infinite scroll, but kept for interface compatibility if needed
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -70,6 +69,13 @@ const ProblemList: React.FC<ProblemListProps> = ({
     initialNextCursor
   );
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  // Optimistic/Global Status State
+  const [solvedProblemIds, setSolvedProblemIds] = useState<Set<string>>(new Set());
+  const [attemptedProblemIds, setAttemptedProblemIds] = useState<Set<string>>(new Set());
+  const [bookmarkedProblemIds, setBookmarkedProblemIds] = useState<Set<string>>(new Set());
+  const [areGlobalStatsLoaded, setAreGlobalStatsLoaded] = useState(false);
+
   // -- Helper to derive current filters from URL --
   const getCurrentFilters = useCallback((): ProblemListFilters => {
      const params = new URLSearchParams(searchParams.toString());
@@ -163,7 +169,6 @@ const ProblemList: React.FC<ProblemListProps> = ({
             setDisplayedProblems(initialProblems);
              setHasMore(initialHasMore);
              setNextCursor(initialNextCursor);
-             hydratedIdsRef.current.clear();
             return;
         }
 
@@ -194,7 +199,6 @@ const ProblemList: React.FC<ProblemListProps> = ({
                  setDisplayedProblems(result.problems);
                  setNextCursor(result.nextCursor);
                  setHasMore(result.hasMore ?? false);
-                 hydratedIdsRef.current.clear();
             }
 
         } catch (error) {
@@ -210,62 +214,59 @@ const ProblemList: React.FC<ProblemListProps> = ({
     };
 
     fetchFilteredProblems();
-  }, [searchParams, initialProblems, initialHasMore, initialNextCursor, companyId, itemsPerPage, toast, initialFilters]); // initialFilters dependency is technically constant now
+  }, [searchParams, initialProblems, initialHasMore, initialNextCursor, companyId, itemsPerPage, toast, initialFilters]);
 
-  // removed the old useEffect that synced solely on initialProblems change, as this new one covers it (via isDefault check)
+  // -- Optimized User Data Hydration (Aggregate Pattern) --
 
-  // -- Optimized User Data Hydration --
-  const hydratedIdsRef = useRef<Set<string>>(new Set());
-
-  // Reset hydration cache if user changes (e.g. login/logout)
+  // 1. Fetch Global Stats on Mount (once per user session/mount)
   useEffect(() => {
-    hydratedIdsRef.current.clear();
-  }, [user?.uid]);
+    if (!user) {
+        setSolvedProblemIds(new Set());
+        setAttemptedProblemIds(new Set());
+        setBookmarkedProblemIds(new Set());
+        setAreGlobalStatsLoaded(false);
+        return;
+    }
 
+    const fetchGlobalStats = async () => {
+        const result = await getUserGlobalProblemStatsAction(user.uid);
+        if ("error" in result) {
+            console.error("Error fetching global stats:", result.error);
+        } else {
+            setSolvedProblemIds(new Set(result.solvedProblemIds));
+            setAttemptedProblemIds(new Set(result.attemptedProblemIds));
+            setBookmarkedProblemIds(new Set(result.bookmarkedProblemIds));
+            setAreGlobalStatsLoaded(true);
+        }
+    };
+
+    fetchGlobalStats();
+  }, [user]);
+
+  // 2. Apply Global Statuses immediately if loaded
   useEffect(() => {
     if (!user) return;
 
-    // Identify which displayed problems haven't been hydrated yet
-    const idsToHydrate = displayedProblems
-      .map((p) => p.id)
-      .filter((id) => !hydratedIdsRef.current.has(id));
+    if (areGlobalStatsLoaded) {
+        setDisplayedProblems((prev) => {
+            let hasChanges = false;
+            const next = prev.map(p => {
+                let newStatus: ProblemStatus = "none";
+                if (solvedProblemIds.has(p.id)) newStatus = "solved";
+                else if (attemptedProblemIds.has(p.id)) newStatus = "attempted";
 
-    if (idsToHydrate.length === 0) return;
+                const isBookmarked = bookmarkedProblemIds.has(p.id);
 
-    // Mark as hydrated immediately to prevent double-firing
-    idsToHydrate.forEach((id) => hydratedIdsRef.current.add(id));
-
-    const fetchStatus = async () => {
-      try {
-        const result = await getUserProblemStatusesForIdsAction(
-          user.uid,
-          idsToHydrate
-        );
-
-        if ("error" in result) {
-          console.error("Error fetching statuses:", result.error);
-          return;
-        }
-
-        setDisplayedProblems((prev) =>
-          prev.map((p) => {
-            if (result[p.id]) {
-              return {
-                ...p,
-                isBookmarked: result[p.id].isBookmarked,
-                currentStatus: result[p.id].status,
-              };
-            }
-            return p;
-          })
-        );
-      } catch (error) {
-        console.error("Failed to hydrate user data", error);
-      }
-    };
-
-    fetchStatus();
-  }, [displayedProblems, user]);
+                 if (p.currentStatus !== newStatus || p.isBookmarked !== isBookmarked) {
+                     hasChanges = true;
+                     return { ...p, currentStatus: newStatus, isBookmarked: isBookmarked };
+                 }
+                return p;
+            });
+            return hasChanges ? next : prev;
+        });
+    }
+  }, [displayedProblems, user, areGlobalStatsLoaded, solvedProblemIds, attemptedProblemIds, bookmarkedProblemIds]);
 
   const handleProblemBookmarkChange = useCallback(
     (problemId: string, newIsBookmarked: boolean) => {
@@ -274,6 +275,15 @@ const ProblemList: React.FC<ProblemListProps> = ({
           p.id === problemId ? { ...p, isBookmarked: newIsBookmarked } : p
         )
       );
+      if (newIsBookmarked) {
+          setBookmarkedProblemIds(prev => new Set(prev).add(problemId));
+      } else {
+          setBookmarkedProblemIds(prev => {
+              const next = new Set(prev);
+              next.delete(problemId);
+              return next;
+          });
+      }
     },
     []
   );
@@ -285,6 +295,35 @@ const ProblemList: React.FC<ProblemListProps> = ({
           p.id === problemId ? { ...p, currentStatus: newStatus } : p
         )
       );
+      
+      // Update local Sets for optimistic UI
+      if (newStatus === 'solved') {
+          setSolvedProblemIds(prev => new Set(prev).add(problemId));
+          setAttemptedProblemIds(prev => {
+              const next = new Set(prev);
+              next.delete(problemId); 
+              return next; 
+          });
+      } else if (newStatus === 'attempted') {
+          setAttemptedProblemIds(prev => new Set(prev).add(problemId));
+          setSolvedProblemIds(prev => {
+              const next = new Set(prev);
+              next.delete(problemId);
+              return next;
+          });
+      } else {
+          // Cleared status
+          setSolvedProblemIds(prev => {
+              const next = new Set(prev);
+              next.delete(problemId);
+              return next;
+          });
+           setAttemptedProblemIds(prev => {
+              const next = new Set(prev);
+              next.delete(problemId);
+              return next;
+          });
+      }
     },
     []
   );
