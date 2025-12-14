@@ -94,23 +94,39 @@ export class UserRepository {
   ): Promise<Record<string, UserProblemStatusInfo>> {
     if (!userId || !problemIds || problemIds.length === 0) return {};
     const statuses: Record<string, UserProblemStatusInfo> = {};
+    
+    // Chunking to avoid "IN supports up to 30 comparison values" error
+    const CHUNK_SIZE = 10;
+    const chunks = [];
+    for (let i = 0; i < problemIds.length; i += CHUNK_SIZE) {
+        chunks.push(problemIds.slice(i, i + CHUNK_SIZE));
+    }
+
     try {
       const progressColRef = collection(db, "users", userId, "problemProgress");
-      const q = query(progressColRef, where(documentId(), "in", problemIds));
-      const querySnapshot = await getDocs(q);
-
-      querySnapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        if (data.status) {
-          statuses[docSnap.id] = {
-            problemId: docSnap.id,
-            status: data.status as ProblemStatus,
-            companySlug: data.companySlug,
-            problemSlug: data.problemSlug,
-            updatedAt: data.updatedAt?.toDate(),
-          };
-        }
+      
+      const queryPromises = chunks.map(chunk => {
+          const q = query(progressColRef, where(documentId(), "in", chunk));
+          return getDocs(q);
       });
+
+      const querySnapshots = await Promise.all(queryPromises);
+
+      querySnapshots.forEach(querySnapshot => {
+          querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            if (data.status) {
+              statuses[docSnap.id] = {
+                problemId: docSnap.id,
+                status: data.status as ProblemStatus,
+                companySlug: data.companySlug,
+                problemSlug: data.problemSlug,
+                updatedAt: data.updatedAt?.toDate(),
+              };
+            }
+          });
+      });
+
       return statuses;
     } catch (error) {
       console.error(
@@ -124,6 +140,14 @@ export class UserRepository {
   async getBookmarksForIds(userId: string, problemIds: string[]): Promise<Set<string>> {
     if (!userId || !problemIds || problemIds.length === 0) return new Set();
     const bookmarkedIds = new Set<string>();
+
+    // Chunking to avoid "IN supports up to 30 comparison values" error
+    const CHUNK_SIZE = 10;
+    const chunks = [];
+    for (let i = 0; i < problemIds.length; i += CHUNK_SIZE) {
+        chunks.push(problemIds.slice(i, i + CHUNK_SIZE));
+    }
+
     try {
       const bookmarksColRef = collection(
         db,
@@ -131,12 +155,20 @@ export class UserRepository {
         userId,
         "bookmarkedProblems",
       );
-      const q = query(bookmarksColRef, where(documentId(), "in", problemIds));
-      const querySnapshot = await getDocs(q);
-
-      querySnapshot.forEach((docSnap) => {
-        bookmarkedIds.add(docSnap.id);
+      
+      const queryPromises = chunks.map(chunk => {
+           const q = query(bookmarksColRef, where(documentId(), "in", chunk));
+           return getDocs(q);
       });
+
+      const querySnapshots = await Promise.all(queryPromises);
+
+      querySnapshots.forEach(snap => {
+          snap.forEach((docSnap) => {
+            bookmarkedIds.add(docSnap.id);
+          });
+      });
+
       return bookmarkedIds;
     } catch (error) {
       console.error(

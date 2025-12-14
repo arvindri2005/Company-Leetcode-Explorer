@@ -234,3 +234,55 @@ export async function loadMoreProblemsAction(
     throw new Error("Failed to load more problems");
   }
 }
+
+/**
+ * Server action to load more problems for infinite scrolling on the all problems page.
+ *
+ * @param {string} cursor - The cursor to start fetching from.
+ * @param {ProblemListFilters} filters - The current filters to apply.
+ * @param {number} pageSize - The number of items to fetch.
+ * @returns {Promise<PaginatedProblemsResponse>}
+ */
+export async function loadMoreAllProblemsAction(
+  cursor: string,
+  filters: ProblemListFilters,
+  pageSize: number = 50
+) {
+  try {
+    return await problemService.getAllProblemsPaginated({
+      cursor,
+      pageSize,
+      difficultyFilter: filters.difficultyFilter,
+      lastAskedFilter: filters.lastAskedFilter,
+      searchTerm: filters.searchTerm,
+      sortKey: filters.sortKey,
+    });
+  } catch (error) {
+    console.error("Error loading more all problems:", error);
+    throw new Error("Failed to load more all problems");
+  }
+}
+
+/**
+ * Server action to fetch problems with filters (for client-side filtering).
+ * Can be used for initial fetch or loading more.
+ */
+export async function fetchProblemsAction(
+  filters: ProblemListFilters,
+  pageSize: number = 50,
+  cursor?: string
+) {
+  try {
+    return await problemService.getAllProblemsPaginated({
+      cursor,
+      pageSize,
+      difficultyFilter: filters.difficultyFilter,
+      lastAskedFilter: filters.lastAskedFilter,
+      searchTerm: filters.searchTerm,
+      sortKey: filters.sortKey,
+    });
+  } catch (error) {
+    console.error("Error fetching problems:", error);
+    throw new Error("Failed to fetch problems");
+  }
+}

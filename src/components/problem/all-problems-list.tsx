@@ -30,9 +30,6 @@ const ProblemListControls = dynamic(() => import("./problem-list-controls"), {
   ),
 });
 
-import { PaginationControls } from "@/components/ui/pagination-controls";
-
-// ... imports
 
 interface AllProblemsListProps {
   initialProblems: LeetCodeProblem[];
@@ -41,6 +38,7 @@ interface AllProblemsListProps {
   totalPages: number;
   currentPage: number;
   hasMore?: boolean;
+  initialNextCursor?: string;
 }
 
 const AllProblemsList: React.FC<AllProblemsListProps> = ({
@@ -50,6 +48,7 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
   totalPages,
   currentPage,
   hasMore = false,
+  initialNextCursor,
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -57,19 +56,16 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  // We rely on props for the initial list (filtered by server)
-  const [displayedProblems, setDisplayedProblems] =
-    useState<LeetCodeProblem[]>(initialProblems);
-    
-  console.log("AllProblemsList Pagination Debug:", {
-    totalPages,
-    currentPage,
-    problemsCount: displayedProblems.length,
-    hasMore,
-  });
+  // State for infinite scroll
+  const [displayedProblems, setDisplayedProblems] = useState<LeetCodeProblem[]>(initialProblems);
+  const [cursor, setCursor] = useState<string | undefined>(initialNextCursor);
+  const [hasMoreState, setHasMoreState] = useState<boolean>(hasMore);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  // Observer ref
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   // -- Filter Handling (URL Sync) --
-
   const handleFilterChange = useCallback(
     (newFiltersApplied: Partial<ProblemListFilters>) => {
       let params = new URLSearchParams(searchParams.toString());
@@ -78,39 +74,188 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
       Object.entries(newFiltersApplied).forEach(([key, value]) => {
         params.delete(key);
         if (Array.isArray(value)) {
-          value.forEach((v) => params.append(key, v));
+           if (value.length > 0) {
+              value.forEach((v) => params.append(key, v));
+           }
         } else if (value) {
           params.set(key, value as string);
         }
       });
       
-      // Reset page to 1 when filters change
+      // Reset page to 1 when filters change (though we rely on scroll mostly now)
       params.delete("page");
 
       router.push(pathname + "?" + params.toString(), { scroll: false });
     },
     [router, pathname, searchParams]
   );
-  
-  // -- Pagination URL Generation --
-  const createPageUrl = useCallback((pageNumber: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (pageNumber > 1) {
-      params.set("page", pageNumber.toString());
-    } else {
-      params.delete("page");
-    }
-    return `${pathname}?${params.toString()}`;
-  }, [searchParams, pathname]);
 
-
-  // Sync state with props when filters/page change (server re-renders)
+  // -- Client-Side Fetch on Params Change --
   useEffect(() => {
-    setDisplayedProblems(initialProblems);
-    
-    // Clear hydration cache because we are resetting 'displayedProblems'
-    hydratedIdsRef.current.clear(); 
-  }, [initialProblems]);
+    const fetchFilteredProblems = async () => {
+        const params = new URLSearchParams(searchParams.toString());
+        
+        // Helper to parse array filters
+        const parseArrayValid = <T extends string>(
+             val: string[] | null,
+             validValues: T[]
+        ): T[] => {
+            if (!val) return [];
+            return val.filter((v): v is T => validValues.includes(v as T));
+        };
+
+        const difficultyFilter = parseArrayValid(
+            params.getAll("difficultyFilter"),
+            ["Easy", "Medium", "Hard"]
+        ) as any[];
+
+        const lastAskedFilter = parseArrayValid(params.getAll("lastAskedFilter"), [
+            "last_30_days",
+            "within_3_months",
+            "within_6_months",
+            "older_than_6_months",
+        ]) as any[];
+
+         const statusFilter = parseArrayValid(params.getAll("statusFilter"), [
+            "solved",
+            "attempted",
+            "todo",
+         ]) as any[];
+
+        const searchTerm = params.get("searchTerm") || "";
+        const sortKey = (params.get("sortKey") || "title") as SortKey;
+
+        // Check if current filters are "default" (matching initial props)
+        const isDefault = 
+            difficultyFilter.length === 0 &&
+            lastAskedFilter.length === 0 &&
+            statusFilter.length === 0 &&
+            searchTerm === "" &&
+            sortKey === "title";
+
+        if (isDefault) {
+            // If default, we can use the initial props (which are static/SSR'd default)
+            setDisplayedProblems(initialProblems);
+            setCursor(initialNextCursor);
+            setHasMoreState(hasMore);
+            // Clear hydration to allow hydrating defaults
+            hydratedIdsRef.current.clear();
+            return;
+        }
+
+        setIsLoadingMore(true); 
+        // Using isLoadingMore for loading indicator might be confusing if it shows "Loading more..." 
+        // but for now it's fine or we add isFiltering state.
+        
+        try {
+            const { fetchProblemsAction } = await import("@/app/actions/problem.actions");
+            const result = await fetchProblemsAction({
+                difficultyFilter,
+                lastAskedFilter,
+                statusFilter,
+                searchTerm,
+                sortKey
+            }, itemsPerPage); // fetch first page
+
+            setDisplayedProblems(result.problems);
+            setCursor(result.nextCursor);
+            setHasMoreState(result.hasMore ?? false);
+            hydratedIdsRef.current.clear();
+        } catch (error) {
+            console.error("Failed to fetch filtered problems", error);
+            toast({
+                title: "Error",
+                description: "Failed to load filtered problems.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsLoadingMore(false);
+        }
+    };
+
+    fetchFilteredProblems();
+  }, [searchParams, initialProblems, initialNextCursor, hasMore, itemsPerPage, toast]);
+
+  // Sync state with props when filters change (server re-renders) -- REMOVED as we handle via searchParams now
+  // However, we still want to reset if initialProblems change (e.g. revalidation)
+  // The above effect depends on [searchParams], which changes on nav.
+  // It also depends on [initialProblems]. If initialProblems changes (revalidation), it re-runs.
+  // If params are default, it sets to initialProblems. Correct.
+
+
+
+  // -- Helper to derive current filters from URL --
+  const getCurrentFilters = useCallback((): ProblemListFilters => {
+     const params = new URLSearchParams(searchParams.toString());
+     const parseArrayValid = <T extends string>(
+             val: string[] | null,
+             validValues: T[]
+        ): T[] => {
+            if (!val) return [];
+            return val.filter((v): v is T => validValues.includes(v as T));
+        };
+      
+     return {
+        difficultyFilter: parseArrayValid(params.getAll("difficultyFilter"), ["Easy", "Medium", "Hard"]) as any[],
+        lastAskedFilter: parseArrayValid(params.getAll("lastAskedFilter"), ["last_30_days", "within_3_months", "within_6_months", "older_than_6_months"]) as any[],
+        statusFilter: parseArrayValid(params.getAll("statusFilter"), ["solved", "attempted", "todo"]) as any[],
+        searchTerm: params.get("searchTerm") || "",
+        sortKey: (params.get("sortKey") || "title") as SortKey,
+     };
+  }, [searchParams]);
+
+  // -- Infinite Scroll Loader --
+  const loadMore = useCallback(async () => {
+    if (isLoadingMore || !hasMoreState || !cursor) return;
+
+    setIsLoadingMore(true);
+    try {
+      const { loadMoreAllProblemsAction } = await import("@/app/actions/problem.actions");
+      const currentFilters = getCurrentFilters();
+      
+      const result = await loadMoreAllProblemsAction(
+          cursor, 
+          currentFilters, // Use current filters!
+          itemsPerPage
+      );
+      
+      if (result.problems.length > 0) {
+        setDisplayedProblems((prev) => [...prev, ...result.problems]);
+        setCursor(result.nextCursor);
+        setHasMoreState(result.hasMore ?? false);
+      } else {
+        setHasMoreState(false);
+      }
+    } catch (error) {
+      console.error("Failed to load more problems", error);
+      toast({
+          title: "Error",
+          description: "Failed to load more problems. Please try again.",
+          variant: "destructive",
+      });
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [cursor, hasMoreState, isLoadingMore, getCurrentFilters, itemsPerPage, toast]);
+
+  // -- Intersection Observer --
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMoreState && !isLoadingMore) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: "100px" } 
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [loadMore, hasMoreState, isLoadingMore]);
+
 
   // -- Optimized User Data Hydration --
   const hydratedIdsRef = useRef<Set<string>>(new Set());
@@ -187,30 +332,33 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
     []
   );
 
+  const currentFilters = getCurrentFilters();
+
   return (
     <div>
       <h2 className="sr-only">All Problems</h2>
 
       <ProblemListControls
-        difficultyFilter={initialFilters.difficultyFilter}
+        difficultyFilter={currentFilters.difficultyFilter}
         onDifficultyFilterChange={(value) =>
            handleFilterChange({ difficultyFilter: value })
         }
-        sortKey={initialFilters.sortKey}
+        sortKey={currentFilters.sortKey}
         onSortKeyChange={(value) =>
            handleFilterChange({ sortKey: value as SortKey })
         }
-        lastAskedFilter={initialFilters.lastAskedFilter}
+        lastAskedFilter={currentFilters.lastAskedFilter}
         onLastAskedFilterChange={(value) =>
           handleFilterChange({ lastAskedFilter: value })
         }
-        statusFilter={initialFilters.statusFilter}
+        statusFilter={currentFilters.statusFilter}
         onStatusFilterChange={(value) =>
           handleFilterChange({ statusFilter: value })
         }
         problemCount={displayedProblems.length}
         showStatusFilter={!!user} 
       />
+
       
       {displayedProblems.length === 0 ? (
           <p className="text-center text-muted-foreground py-10">
@@ -239,16 +387,15 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
         </div>
       )}
       
-      <div className="mt-8">
-        <PaginationControls 
-            currentPage={currentPage || 1}
-            totalPages={totalPages || 1}
-            baseUrl={pathname}
-            createPageUrl={createPageUrl}
-            hideOnSinglePage={false}
-            hasNextPage={hasMore}
-        />
-      </div>
+      {/* Infinite Scroll Trigger */}
+      {hasMoreState && (
+        <div 
+            ref={observerTarget}
+            className="py-10 text-center text-muted-foreground"
+        >
+            {isLoadingMore ? "Loading more problems..." : "Scroll to load more"}
+        </div>
+      )}
     </div>
   );
 };
