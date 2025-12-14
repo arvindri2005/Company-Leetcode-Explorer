@@ -42,7 +42,7 @@ export class CompanyService {
       async () => companyRepository.getCompanyById(id),
       [`company-${id}`],
       {
-        revalidate: 3600, // 1 hour
+        revalidate: 86400, // 24 hours
         tags: [`company-${id}-v2`],
       }
     );
@@ -64,7 +64,7 @@ export class CompanyService {
       async () => companyRepository.getCompanyBySlug(slug),
       [`company-slug-${slug}`],
       {
-        revalidate: 3600, // 1 hour
+        revalidate: 86400, // 24 hours
         tags: [`company-slug-${slug}-v2`],
       }
     );
