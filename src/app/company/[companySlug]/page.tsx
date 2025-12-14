@@ -201,7 +201,7 @@ export async function generateMetadata(
 // Update props interface at the top first? No, modify usage here.
 // But we need to update CompanyPageProps definition too.
 
-export default async function CompanyPageWrapper(props: CompanyPageProps & { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+export default async function CompanyPageWrapper(props: CompanyPageProps) {
   const params = await props.params;
   const company = await companyService.getCompanyBySlug(params.companySlug);
 
@@ -216,7 +216,6 @@ export default async function CompanyPageWrapper(props: CompanyPageProps & { sea
       <StructuredData data={structuredData} />
       <CompanyPage 
         company={company} 
-        searchParams={props.searchParams} 
       />
     </>
   );

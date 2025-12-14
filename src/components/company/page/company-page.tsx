@@ -27,61 +27,20 @@ const INITIAL_ITEMS_PER_PAGE = 40;
  */
 interface CompanyPageProps {
   company: Company;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 /**
  * Renders the redesigned page for a specific company.
  * ...
  */
-export default async function CompanyPage({ company, searchParams }: CompanyPageProps) {
-  const resolvedSearchParams = await searchParams;
+export default async function CompanyPage({ company }: CompanyPageProps) {
+// Helper to parse array filters
+  const difficultyFilter: any[] = [];
+  const lastAskedFilter: any[] = [];
+  const statusFilter: any[] = [];
+  const searchTerm = "";
+  const sortKey: any = "title";
 
-  // Helper to parse array filters
-  const parseArrayValid = <T extends string>(
-    val: string | string[] | undefined,
-    validValues: T[]
-  ): T[] => {
-    if (!val) return [];
-    if (Array.isArray(val)) {
-      return val.filter((v): v is T => validValues.includes(v as T));
-    }
-    return validValues.includes(val as T) ? [val as T] : [];
-  };
-
-  const difficultyFilter = parseArrayValid(
-     resolvedSearchParams?.difficultyFilter,
-     ["Easy", "Medium", "Hard"]
-   ) as any[]; // Type cast as necessary or import types
- 
-  const lastAskedFilter = parseArrayValid(resolvedSearchParams?.lastAskedFilter, [
-     "last_30_days",
-     "within_3_months",
-     "within_6_months",
-     "older_than_6_months",
-   ]) as any[];
- 
-  const statusFilter = parseArrayValid(resolvedSearchParams?.statusFilter, [
-     "solved",
-     "attempted",
-     "todo",
-   ]) as any[];
- 
-  const searchTerm =
-     typeof resolvedSearchParams?.searchTerm === "string"
-       ? resolvedSearchParams.searchTerm
-       : "";
- 
-  const sortKey = (
-     typeof resolvedSearchParams?.sortKey === "string"
-       ? resolvedSearchParams.sortKey
-       : "title"
-   ) as any;
- 
-  const page = 
-     typeof resolvedSearchParams?.page === "string" 
-       ? parseInt(resolvedSearchParams.page, 10) 
-       : 1;
 
   const initialFilters: ProblemListFilters = {
     difficultyFilter,
@@ -94,7 +53,6 @@ export default async function CompanyPage({ company, searchParams }: CompanyPage
   const initialPaginatedProblemsData = await problemService.getProblemsByCompany(
     company.id,
     {
-      page: isNaN(page) ? 1 : page,
       pageSize: INITIAL_ITEMS_PER_PAGE,
       companySlug: company.slug,
       totalProblemCount: company.problemCount,

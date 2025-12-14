@@ -216,13 +216,13 @@ export async function getAIProblems(
  */
 export async function loadMoreProblemsAction(
   companyId: string,
-  cursor: string,
+  cursor: string | undefined | null,
   filters: ProblemListFilters,
   pageSize: number = 10
 ) {
   try {
     return await problemService.getProblemsByCompany(companyId, {
-      cursor,
+      cursor: cursor ?? undefined,
       pageSize,
       difficultyFilter: filters.difficultyFilter,
       lastAskedFilter: filters.lastAskedFilter,

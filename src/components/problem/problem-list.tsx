@@ -70,6 +70,27 @@ const ProblemList: React.FC<ProblemListProps> = ({
     initialNextCursor
   );
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  // -- Helper to derive current filters from URL --
+  const getCurrentFilters = useCallback((): ProblemListFilters => {
+     const params = new URLSearchParams(searchParams.toString());
+     const parseArrayValid = <T extends string>(
+             val: string[] | null,
+             validValues: T[]
+        ): T[] => {
+            if (!val) return [];
+            return val.filter((v): v is T => validValues.includes(v as T));
+        };
+      
+     return {
+        difficultyFilter: parseArrayValid(params.getAll("difficultyFilter"), ["Easy", "Medium", "Hard"]) as any[],
+        lastAskedFilter: parseArrayValid(params.getAll("lastAskedFilter"), ["last_30_days", "within_3_months", "within_6_months", "older_than_6_months"]) as any[],
+        statusFilter: parseArrayValid(params.getAll("statusFilter"), ["solved", "attempted", "todo"]) as any[],
+        searchTerm: params.get("searchTerm") || "",
+        sortKey: (params.get("sortKey") || "title") as SortKey,
+     };
+  }, [searchParams]);
+
+  const currentFilters = getCurrentFilters();
 
   // -- Filter Handling (URL Sync) --
   const handleFilterChange = useCallback(
@@ -94,14 +115,104 @@ const ProblemList: React.FC<ProblemListProps> = ({
     [router, pathname, searchParams]
   );
 
-  // Sync state with props when filters change (server re-renders)
+  // -- Client-Side Fetch on Params Change --
   useEffect(() => {
-    setDisplayedProblems(initialProblems);
-    setHasMore(initialHasMore);
-    setNextCursor(initialNextCursor);
-    // Clear hydration cache because we are resetting 'displayedProblems'
-    hydratedIdsRef.current.clear();
-  }, [initialProblems, initialHasMore, initialNextCursor]);
+    const fetchFilteredProblems = async () => {
+        const params = new URLSearchParams(searchParams.toString());
+        
+        // Helper to parse array filters
+        const parseArrayValid = <T extends string>(
+             val: string[] | null,
+             validValues: T[]
+        ): T[] => {
+            if (!val) return [];
+            return val.filter((v): v is T => validValues.includes(v as T));
+        };
+
+        const difficultyFilter = parseArrayValid(
+            params.getAll("difficultyFilter"),
+            ["Easy", "Medium", "Hard"]
+        ) as any[];
+
+        const lastAskedFilter = parseArrayValid(params.getAll("lastAskedFilter"), [
+            "last_30_days",
+            "within_3_months",
+            "within_6_months",
+            "older_than_6_months",
+        ]) as any[];
+
+         const statusFilter = parseArrayValid(params.getAll("statusFilter"), [
+            "solved",
+            "attempted",
+            "todo",
+         ]) as any[];
+
+        const searchTerm = params.get("searchTerm") || "";
+        const sortKey = (params.get("sortKey") || "title") as SortKey;
+
+        // Check if current filters are "default" (matching initial props)
+        const isDefault = 
+            difficultyFilter.length === 0 &&
+            lastAskedFilter.length === 0 &&
+            statusFilter.length === 0 &&
+            searchTerm === "" &&
+            sortKey === "title";
+
+        if (isDefault) {
+             // If default, we can use the initial props (which are static/SSR'd default)
+            setDisplayedProblems(initialProblems);
+             setHasMore(initialHasMore);
+             setNextCursor(initialNextCursor);
+             hydratedIdsRef.current.clear();
+            return;
+        }
+
+        setIsLoadingMore(true);
+        
+        try {
+            // Using loadMoreProblemsAction with null cursor to start fresh
+            const result = await loadMoreProblemsAction(
+                companyId,
+                null,
+                {
+                  difficultyFilter,
+                  lastAskedFilter,
+                  statusFilter,
+                  searchTerm,
+                  sortKey
+                },
+                itemsPerPage
+            );
+
+            if ("error" in result) {
+                 toast({
+                     title: "Error",
+                     description: "Failed to load filtered problems.",
+                     variant: "destructive",
+                 });
+            } else {
+                 setDisplayedProblems(result.problems);
+                 setNextCursor(result.nextCursor);
+                 setHasMore(result.hasMore ?? false);
+                 hydratedIdsRef.current.clear();
+            }
+
+        } catch (error) {
+            console.error("Failed to fetch filtered problems", error);
+            toast({
+                title: "Error",
+                description: "Failed to load filtered problems.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsLoadingMore(false);
+        }
+    };
+
+    fetchFilteredProblems();
+  }, [searchParams, initialProblems, initialHasMore, initialNextCursor, companyId, itemsPerPage, toast, initialFilters]); // initialFilters dependency is technically constant now
+
+  // removed the old useEffect that synced solely on initialProblems change, as this new one covers it (via isDefault check)
 
   // -- Optimized User Data Hydration --
   const hydratedIdsRef = useRef<Set<string>>(new Set());
@@ -190,7 +301,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
       const result = await loadMoreProblemsAction(
         companyId,
         nextCursor,
-        initialFilters,
+        currentFilters,
         itemsPerPage
       );
 
@@ -222,7 +333,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
     hasMore,
     nextCursor,
     companyId,
-    initialFilters,
+    currentFilters,
     itemsPerPage,
     toast,
   ]);
@@ -250,23 +361,25 @@ const ProblemList: React.FC<ProblemListProps> = ({
     };
   }, [loadMoreProblems]);
 
+
+
   return (
     <div>
       <h2 className="sr-only">Problems</h2>
       <ProblemListControls
-        difficultyFilter={initialFilters.difficultyFilter}
+        difficultyFilter={currentFilters.difficultyFilter}
         onDifficultyFilterChange={(value) =>
           handleFilterChange({ difficultyFilter: value })
         }
-        sortKey={initialFilters.sortKey}
+        sortKey={currentFilters.sortKey}
         onSortKeyChange={(value) =>
           handleFilterChange({ sortKey: value as SortKey })
         }
-        lastAskedFilter={initialFilters.lastAskedFilter}
+        lastAskedFilter={currentFilters.lastAskedFilter}
         onLastAskedFilterChange={(value) =>
           handleFilterChange({ lastAskedFilter: value })
         }
-        statusFilter={initialFilters.statusFilter}
+        statusFilter={currentFilters.statusFilter}
         onStatusFilterChange={(value) =>
           handleFilterChange({ statusFilter: value })
         }
