@@ -15,7 +15,7 @@ import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { getUserProblemStatusesForIdsAction } from "@/app/actions/user.actions";
+import { getUserGlobalProblemStatsAction } from "@/app/actions/user.actions";
 
 const ProblemListControls = dynamic(() => import("./problem-list-controls"), {
   loading: () => (
@@ -61,6 +61,12 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
   const [cursor, setCursor] = useState<string | undefined>(initialNextCursor);
   const [hasMoreState, setHasMoreState] = useState<boolean>(hasMore);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  // Optimistic/Global Status State
+  const [solvedProblemIds, setSolvedProblemIds] = useState<Set<string>>(new Set());
+  const [attemptedProblemIds, setAttemptedProblemIds] = useState<Set<string>>(new Set());
+  const [bookmarkedProblemIds, setBookmarkedProblemIds] = useState<Set<string>>(new Set());
+  const [areGlobalStatsLoaded, setAreGlobalStatsLoaded] = useState(false);
 
   // Observer ref
   const observerTarget = useRef<HTMLDivElement>(null);
@@ -260,6 +266,30 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
   // -- Optimized User Data Hydration --
   const hydratedIdsRef = useRef<Set<string>>(new Set());
 
+  // 1. Fetch Global Stats on Mount (once per user session/mount)
+  useEffect(() => {
+    if (!user) {
+        setSolvedProblemIds(new Set());
+        setAttemptedProblemIds(new Set());
+        setAreGlobalStatsLoaded(false);
+        return;
+    }
+
+    const fetchGlobalStats = async () => {
+        const result = await getUserGlobalProblemStatsAction(user.uid);
+        if ("error" in result) {
+            console.error("Error fetching global stats:", result.error);
+        } else {
+            setSolvedProblemIds(new Set(result.solvedProblemIds));
+            setAttemptedProblemIds(new Set(result.attemptedProblemIds));
+            setBookmarkedProblemIds(new Set(result.bookmarkedProblemIds));
+            setAreGlobalStatsLoaded(true);
+        }
+    };
+
+    fetchGlobalStats();
+  }, [user]);
+
   // Reset hydration cache if user changes (e.g. login/logout)
   useEffect(() => {
     hydratedIdsRef.current.clear();
@@ -268,47 +298,27 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
   useEffect(() => {
     if (!user) return;
 
-    // Identify which displayed problems haven't been hydrated yet
-    const idsToHydrate = displayedProblems
-      .map((p) => p.id)
-      .filter((id) => !hydratedIdsRef.current.has(id));
+    // A. Apply Global Statuses immediately if loaded
+    if (areGlobalStatsLoaded) {
+        setDisplayedProblems((prev) => 
+            prev.map(p => {
+                // Determine status from sets
+                let newStatus: ProblemStatus = "none";
+                if (solvedProblemIds.has(p.id)) newStatus = "solved";
+                else if (attemptedProblemIds.has(p.id)) newStatus = "attempted"; // Solved takes precedence if logic allows
 
-    if (idsToHydrate.length === 0) return;
+                const isBookmarked = bookmarkedProblemIds.has(p.id);
 
-    // Mark as hydrated immediately to prevent double-firing
-    idsToHydrate.forEach((id) => hydratedIdsRef.current.add(id));
-
-    const fetchStatus = async () => {
-      try {
-        const result = await getUserProblemStatusesForIdsAction(
-          user.uid,
-          idsToHydrate
+                // Only update if changed prevents loops? React state updates if object ref changes
+                // Optimization: Checked inside map
+                 if (p.currentStatus !== newStatus || p.isBookmarked !== isBookmarked) {
+                     return { ...p, currentStatus: newStatus, isBookmarked: isBookmarked };
+                 }
+                return p;
+            })
         );
-
-        if ("error" in result) {
-          console.error("Error fetching statuses:", result.error);
-          return;
-        }
-
-        setDisplayedProblems((prev) =>
-          prev.map((p) => {
-            if (result[p.id]) {
-              return {
-                ...p,
-                isBookmarked: result[p.id].isBookmarked,
-                currentStatus: result[p.id].status,
-              };
-            }
-            return p;
-          })
-        );
-      } catch (error) {
-        console.error("Failed to hydrate user data", error);
-      }
-    };
-
-    fetchStatus();
-  }, [displayedProblems, user]);
+    }
+  }, [displayedProblems, user, areGlobalStatsLoaded, solvedProblemIds, attemptedProblemIds, bookmarkedProblemIds]);
 
   const handleProblemBookmarkChange = useCallback(
     (problemId: string, newIsBookmarked: boolean) => {
@@ -317,6 +327,15 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
           p.id === problemId ? { ...p, isBookmarked: newIsBookmarked } : p
         )
       );
+      if (newIsBookmarked) {
+          setBookmarkedProblemIds(prev => new Set(prev).add(problemId));
+      } else {
+          setBookmarkedProblemIds(prev => {
+              const next = new Set(prev);
+              next.delete(problemId);
+              return next;
+          });
+      }
     },
     []
   );
@@ -328,6 +347,36 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
           p.id === problemId ? { ...p, currentStatus: newStatus } : p
         )
       );
+      // Also update local Sets to reflect the change immediately without refetch
+      if (newStatus === 'solved') {
+          setSolvedProblemIds(prev => new Set(prev).add(problemId));
+          setAttemptedProblemIds(prev => {
+              const next = new Set(prev);
+              next.delete(problemId); // Optionally remove from attempted if logic implies exclusive
+              return next; 
+          });
+      } else if (newStatus === 'attempted') {
+          setAttemptedProblemIds(prev => new Set(prev).add(problemId));
+          // If moving from solved to attempted, unsolve it
+          setSolvedProblemIds(prev => {
+              const next = new Set(prev);
+              next.delete(problemId);
+              return next;
+          });
+      } else {
+          // 'none' or 'todo' (if todo is status? usually todo is different list)
+          // If status is cleared
+          setSolvedProblemIds(prev => {
+              const next = new Set(prev);
+              next.delete(problemId);
+              return next;
+          });
+           setAttemptedProblemIds(prev => {
+              const next = new Set(prev);
+              next.delete(problemId);
+              return next;
+          });
+      }
     },
     []
   );

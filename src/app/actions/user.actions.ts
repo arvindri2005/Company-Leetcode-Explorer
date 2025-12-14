@@ -501,6 +501,7 @@ export async function updateStrategyTodoItemStatusAction(
   }
 }
 
+
 /**
  * Fetches status and bookmark info for a specific list of problem IDs.
  *
@@ -548,6 +549,63 @@ export async function getUserProblemStatusesForIdsAction(
         ? error.message
         : "Failed to fetch user problem statuses.";
     console.error("Error in getUserProblemStatusesForIdsAction:", error);
+    return { error: message };
+  }
+}
+
+
+/**
+ * Fetches the global problem stats (solved/attempted/bookmarked IDs) for a user.
+ *
+ * This action returns arrays of problem IDs for solved, attempted, and bookmarked problems.
+ * This is used for O(1) status lookup on the client.
+ *
+ * @param {string} userId - The ID of the authenticated user.
+ * @returns {Promise<{ solvedProblemIds: string[]; attemptedProblemIds: string[]; bookmarkedProblemIds: string[] } | { error: string }>}
+ */
+export async function getUserGlobalProblemStatsAction(
+  userId: string,
+): Promise<
+  { solvedProblemIds: string[]; attemptedProblemIds: string[]; bookmarkedProblemIds: string[] } | { error: string }
+> {
+  if (!userId) return { error: "User not authenticated." };
+  try {
+    return await userService.getUserGlobalProblemStats(userId);
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to fetch global problem stats.";
+    console.error("Error in getUserGlobalProblemStatsAction:", error);
+    return { error: message };
+  }
+}
+
+/**
+ * Fetches only bookmark info for a specific list of problem IDs.
+ *
+ * @param {string} userId - The ID of the authenticated user.
+ * @param {string[]} problemIds - The list of problem IDs to fetch bookmarks for.
+ * @returns {Promise<Record<string, boolean> | { error: string }>}
+ */
+export async function getUserBookmarksForIdsAction(
+  userId: string,
+  problemIds: string[],
+): Promise<Record<string, boolean> | { error: string }> {
+  if (!userId) return { error: "User not authenticated." };
+  if (!problemIds || problemIds.length === 0) return {};
+
+  try {
+    const bookmarks = await userService.getBookmarksForIds(userId, problemIds);
+    const result: Record<string, boolean> = {};
+    problemIds.forEach((id) => {
+      result[id] = bookmarks.has(id);
+    });
+    return result;
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to fetch user bookmarks.";
+    console.error("Error in getUserBookmarksForIdsAction:", error);
     return { error: message };
   }
 }

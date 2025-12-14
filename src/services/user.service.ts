@@ -14,6 +14,11 @@ export class UserService {
     return await userRepository.getBookmarkedProblemsInfo(userId);
   }
 
+  async getUserGlobalProblemStats(userId: string): Promise<{ solvedProblemIds: string[], attemptedProblemIds: string[], bookmarkedProblemIds: string[] }> {
+    return await userRepository.getUserGlobalProblemStats(userId);
+  }
+
+
   async getAllUserProblemStatuses(userId: string): Promise<Record<string, UserProblemStatusInfo>> {
     return await userRepository.getAllUserProblemStatuses(userId);
   }

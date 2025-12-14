@@ -25,6 +25,9 @@ import {
   setDoc,
   updateDoc,
   addDoc,
+  writeBatch,
+  arrayUnion,
+  arrayRemove,
 } from "firebase/firestore";
 
 /**
@@ -57,6 +60,27 @@ export class UserRepository {
       );
       return [];
     }
+  }
+
+  async getUserGlobalProblemStats(userId: string): Promise<{ solvedProblemIds: string[], attemptedProblemIds: string[], bookmarkedProblemIds: string[] }> {
+      if (!userId) return { solvedProblemIds: [], attemptedProblemIds: [], bookmarkedProblemIds: [] };
+      try {
+          const docRef = doc(db, "users", userId, "aggregates", "problemStats");
+          const docSnap = await getDoc(docRef);
+
+          if (docSnap.exists()) {
+              const data = docSnap.data();
+              return {
+                  solvedProblemIds: (data.solvedProblemIds as string[]) || [],
+                  attemptedProblemIds: (data.attemptedProblemIds as string[]) || [],
+                  bookmarkedProblemIds: (data.bookmarkedProblemIds as string[]) || [],
+              };
+          }
+          return { solvedProblemIds: [], attemptedProblemIds: [], bookmarkedProblemIds: [] };
+      } catch (error) {
+          console.error(`Error fetching global problem stats for user ${userId}:`, error);
+          return { solvedProblemIds: [], attemptedProblemIds: [], bookmarkedProblemIds: [] };
+      }
   }
 
   async getAllUserProblemStatuses(userId: string): Promise<Record<string, UserProblemStatusInfo>> {
@@ -328,19 +352,33 @@ export class UserRepository {
       "bookmarkedProblems",
       problemId,
     );
+    const aggregateDocRef = doc(db, "users", userId, "aggregates", "problemStats");
+
     try {
       const docSnap = await getDoc(bookmarkDocRef);
+      const batch = writeBatch(db);
+      let isBookmarked = false;
+
       if (docSnap.exists()) {
-        await deleteDoc(bookmarkDocRef);
-        return { isBookmarked: false };
+        batch.delete(bookmarkDocRef);
+        batch.set(aggregateDocRef, {
+            bookmarkedProblemIds: arrayRemove(problemId)
+        }, { merge: true });
+        isBookmarked = false;
       } else {
-        await setDoc(bookmarkDocRef, {
+        batch.set(bookmarkDocRef, {
           bookmarkedAt: serverTimestamp(),
           companySlug: companySlug,
           problemSlug: problemSlug,
         });
-        return { isBookmarked: true };
+        batch.set(aggregateDocRef, {
+            bookmarkedProblemIds: arrayUnion(problemId)
+        }, { merge: true });
+        isBookmarked = true;
       }
+
+      await batch.commit();
+      return { isBookmarked };
     } catch (error) {
       const message =
         error instanceof Error
@@ -360,18 +398,40 @@ export class UserRepository {
   ): Promise<{ success: boolean; error?: string }> {
     if (!userId || !problemId)
       return { success: false, error: "User ID and Problem ID are required." };
+    
     const statusDocRef = doc(db, "users", userId, "problemProgress", problemId);
+    const aggregateDocRef = doc(db, "users", userId, "aggregates", "problemStats");
+
     try {
+      const batch = writeBatch(db);
+
+      // 1. Update individual problem status
       if (status === "none") {
-        await deleteDoc(statusDocRef);
+        batch.delete(statusDocRef);
       } else {
-        await setDoc(statusDocRef, {
+        batch.set(statusDocRef, {
           status: status,
           updatedAt: serverTimestamp(),
           companySlug: companySlug,
           problemSlug: problemSlug,
         });
       }
+
+      // 2. Update aggregate stats
+      // Note: We only ADD to the aggregate arrays as requested. 
+      // We do not remove from them if status changes or is removed, to keep it as a historical record of "ever solved" or "ever attempted".
+      // If stricter sync is needed later, we can add logic to remove from other arrays.
+      if (status === "solved") {
+          batch.set(aggregateDocRef, {
+              solvedProblemIds: arrayUnion(problemId)
+          }, { merge: true });
+      } else if (status === "attempted") {
+          batch.set(aggregateDocRef, {
+              attemptedProblemIds: arrayUnion(problemId)
+          }, { merge: true });
+      }
+
+      await batch.commit();
       return { success: true };
     } catch (error) {
       const message =
