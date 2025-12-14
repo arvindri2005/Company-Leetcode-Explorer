@@ -1,4 +1,5 @@
 import { problemRepository } from "@/repositories/problem.repository";
+import { companyService } from "@/services/company.service";
 import {
   DifficultyFilter,
   LastAskedFilter,
@@ -10,7 +11,7 @@ import {
 import { unstable_cache } from "next/cache";
 
 export class ProblemService {
-  async getProblemsByCompany(
+  async getPublicProblems(
     companyId: string,
     params: {
       cursor?: string;
@@ -20,7 +21,6 @@ export class ProblemService {
       lastAskedFilter?: LastAskedFilter[];
       searchTerm?: string;
       sortKey?: SortKey;
-      userId?: string;
       companySlug?: string;
       totalProblemCount?: number;
       difficultyCounts?: { Easy: number; Medium: number; Hard: number };
@@ -46,66 +46,63 @@ export class ProblemService {
         recencyCounts,
     } = params;
 
-    const cacheKey = `problems-${companyId}-${JSON.stringify({
-        cursor,
-        page,
-        pageSize,
-        difficultyFilter,
-        lastAskedFilter,
-        searchTerm,
-        sortKey,
-    })}`;
+    // Only cache the "default" view to prevent key explosion and redundant caching
+    const isDefaultQuery = 
+        !cursor && 
+        (!page || page === 1) && 
+        difficultyFilter.length === 0 && 
+        lastAskedFilter.length === 0 && 
+        (!searchTerm || searchTerm.trim() === "") && 
+        (sortKey === "title");
 
-    const getCachedProblems = unstable_cache(
-        async () => {
-            return await problemRepository.getProblemsByCompany(companyId, {
-                cursor,
-                page,
-                pageSize,
-                difficultyFilter,
-                lastAskedFilter,
-                searchTerm,
-                sortKey,
-                companySlug,
-                totalProblemCount,
-                difficultyCounts,
-                recencyCounts,
-                userId: undefined,
-            });
-        },
-        [cacheKey],
-        {
-            revalidate: 3600, // 1 hour
-            tags: [`problems-company-${companyId}`],
-        }
-    );
-
-    const { problems, totalProblems, hasMore, nextCursor, totalPages, currentPage } = await getCachedProblems();
-
-    // Fallback if repository doesn't return pagination metadata yet (though we just added it)
-    const finalTotalPages = totalPages ?? Math.ceil((totalProblemCount || totalProblems || 0) / pageSize);
-    const finalCurrentPage = currentPage ?? (page || 1);
-
-    if (params.userId) {
-        const { userService } = await import("../services/user.service");
-        
-        const problemIds = problems.map((p) => p.id);
-        const [userBookmarks, userStatuses] = await Promise.all([
-             userService.getBookmarksForIds(params.userId, problemIds),
-             userService.getProblemStatusesForIds(params.userId, problemIds),
-        ]);
-        
-        const finalProblems = problems.map((problem) => {
-            const statusInfo = userStatuses[problem.id];
-            return {
-              ...problem,
-              isBookmarked: userBookmarks.has(problem.id),
-              currentStatus: statusInfo ? statusInfo.status : undefined,
-            };
+    const fetchProblems = async () => {
+        return await problemRepository.getProblemsByCompany(companyId, {
+            cursor,
+            page,
+            pageSize,
+            difficultyFilter,
+            lastAskedFilter,
+            searchTerm,
+            sortKey,
+            companySlug,
+            totalProblemCount,
+            difficultyCounts,
+            recencyCounts,
         });
+    };
+
+    if (isDefaultQuery) {
+        const cacheKey = `problems-public-${companyId}-default`;
+        const getCachedProblems = unstable_cache(
+            fetchProblems,
+            [cacheKey],
+            {
+                revalidate: 3600, // 1 hour
+                tags: [`problems-company-${companyId}`],
+            }
+        );
+        
+        const { problems, totalProblems, hasMore, nextCursor, totalPages, currentPage } = await getCachedProblems();
+        const finalTotalPages = totalPages ?? Math.ceil((totalProblemCount || totalProblems || 0) / pageSize);
+        const finalCurrentPage = currentPage ?? (page || 1);
 
         return {
-            problems: finalProblems,
+            problems,
+            totalProblems,
+            hasMore,
+            nextCursor,
+            totalPages: finalTotalPages,
+            currentPage: finalCurrentPage,
+        };
+    } else {
+        // Bypass cache for filtered/paginated queries
+        const { problems, totalProblems, hasMore, nextCursor, totalPages, currentPage } = await fetchProblems();
+        
+        const finalTotalPages = totalPages ?? Math.ceil((totalProblemCount || totalProblems || 0) / pageSize);
+        const finalCurrentPage = currentPage ?? (page || 1);
+
+        return {
+            problems,
             totalProblems,
             hasMore,
             nextCursor,
@@ -113,15 +110,35 @@ export class ProblemService {
             currentPage: finalCurrentPage,
         };
     }
-    
-    return {
-        problems,
-        totalProblems,
-        hasMore,
-        nextCursor,
-        totalPages: finalTotalPages,
-        currentPage: finalCurrentPage,
-    };
+  }
+
+  async getProblemsByCompanySlug(
+    companySlug: string,
+    params: Parameters<ProblemService["getPublicProblems"]>[1]
+  ): Promise<PaginatedProblemsResponse> {
+      // Direct optimization: Use slug as ID (invariant in our system)
+      return this.getPublicProblems(companySlug, { ...params, companySlug });
+  }
+
+  async getUserProblemStatuses(
+      userId: string,
+      problemIds: string[]
+  ): Promise<Record<string, { isBookmarked: boolean; status?: string }>> {
+      const { userService } = await import("../services/user.service");
+      const [userBookmarks, userStatuses] = await Promise.all([
+           userService.getBookmarksForIds(userId, problemIds),
+           userService.getProblemStatusesForIds(userId, problemIds),
+      ]);
+
+      const result: Record<string, { isBookmarked: boolean; status?: string }> = {};
+      problemIds.forEach(id => {
+          const statusInfo = userStatuses[id];
+          result[id] = {
+              isBookmarked: userBookmarks.has(id),
+              status: statusInfo ? statusInfo.status : undefined
+          };
+      });
+      return result;
   }
 
   async getAllProblemsPaginated(
@@ -166,7 +183,7 @@ export class ProblemService {
                 lastAskedFilter,
                 searchTerm,
                 sortKey,
-                userId: undefined,
+                recencyCounts,
             });
         },
         [cacheKey],

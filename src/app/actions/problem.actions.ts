@@ -191,7 +191,7 @@ export async function getAIProblems(
   companyId: string,
 ): Promise<LeetCodeProblem[]> {
   try {
-    const { problems } = await problemService.getProblemsByCompany(companyId, {
+    const { problems } = await problemService.getPublicProblems(companyId, {
       pageSize: MAX_PROBLEMS_FOR_AI_FEATURES,
     });
     return problems;
@@ -221,7 +221,7 @@ export async function loadMoreProblemsAction(
   pageSize: number = 10
 ) {
   try {
-    return await problemService.getProblemsByCompany(companyId, {
+    return await problemService.getPublicProblems(companyId, {
       cursor: cursor ?? undefined,
       pageSize,
       difficultyFilter: filters.difficultyFilter,
@@ -231,7 +231,8 @@ export async function loadMoreProblemsAction(
     });
   } catch (error) {
     console.error("Error loading more problems:", error);
-    throw new Error("Failed to load more problems");
+    const message = error instanceof Error ? error.message : "Failed to load more problems";
+    throw new Error(message);
   }
 }
 

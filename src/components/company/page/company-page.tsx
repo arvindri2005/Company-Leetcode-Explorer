@@ -8,10 +8,8 @@
 import {
   companyService
 } from "@/services/company.service";
-import {
-  problemService
-} from "@/services/problem.service";
-import type { Company, ProblemListFilters } from "@/types";
+
+import type { Company, ProblemListFilters, PaginatedProblemsResponse } from "@/types";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import CompanyHeader from "@/components/company/company-header";
 import CompanyTabs from "@/components/company/page/company-tabs";
@@ -27,13 +25,14 @@ const INITIAL_ITEMS_PER_PAGE = 40;
  */
 interface CompanyPageProps {
   company: Company;
+  initialPaginatedProblems: PaginatedProblemsResponse | { error: string };
 }
 
 /**
  * Renders the redesigned page for a specific company.
  * ...
  */
-export default async function CompanyPage({ company }: CompanyPageProps) {
+export default async function CompanyPage({ company, initialPaginatedProblems }: CompanyPageProps) {
 // Helper to parse array filters
   const difficultyFilter: any[] = [];
   const lastAskedFilter: any[] = [];
@@ -48,19 +47,10 @@ export default async function CompanyPage({ company }: CompanyPageProps) {
     statusFilter,
     searchTerm,
     sortKey,
+    // Note: User status merging should be handled by caller or hydration if needed
   };
 
-  const initialPaginatedProblemsData = await problemService.getProblemsByCompany(
-    company.id,
-    {
-      pageSize: INITIAL_ITEMS_PER_PAGE,
-      companySlug: company.slug,
-      totalProblemCount: company.problemCount,
-      difficultyCounts: company.difficultyCounts,
-      recencyCounts: company.recencyCounts,
-      ...initialFilters,
-    },
-  );
+  const initialPaginatedProblemsData = initialPaginatedProblems;
 
   if ("error" in initialPaginatedProblemsData) {
     console.error(

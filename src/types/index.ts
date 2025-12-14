@@ -56,6 +56,14 @@ export interface LeetCodeProblem {
 }
 
 /**
+ * @description Lightweight DTO for listing problems.
+ */
+export interface ProblemSummaryDTO extends Pick<LeetCodeProblem, "id" | "title" | "slug" | "difficulty" | "companyId" | "companySlug" | "lastAskedPeriod" | "isBookmarked" | "currentStatus" | "tags" | "link"> {
+    acceptanceRate?: number; // Add if available in DB, otherwise optional
+}
+
+
+/**
  * @description Represents a company entity in the application.
  */
 export interface Company {
@@ -494,8 +502,11 @@ export interface ProblemListFilters {
 /**
  * @description Represents the response structure for a paginated list of problems.
  */
+/**
+ * @description Represents the response structure for a paginated list of problems.
+ */
 export interface PaginatedProblemsResponse {
-  problems: LeetCodeProblem[];
+  problems: LeetCodeProblem[] | ProblemSummaryDTO[];
   totalProblems: number;
   hasMore?: boolean;
   nextCursor?: string;

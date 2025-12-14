@@ -7,6 +7,7 @@
  * It also includes `generateStaticParams` to pre-render pages for known companies at build time.
  */
 import { companyService } from "@/services/company.service";
+import { problemService } from "@/services/problem.service";
 import type { Metadata } from "next";
 import CompanyNotFound from "@/components/company/page/company-not-found";
 import CompanyPage from "@/components/company/page/company-page";
@@ -203,19 +204,38 @@ export async function generateMetadata(
 
 export default async function CompanyPageWrapper(props: CompanyPageProps) {
   const params = await props.params;
-  const company = await companyService.getCompanyBySlug(params.companySlug);
+  
+  // Step 1: Parallelize Fetching
+  // We fetch company and problems concurrently.
+  // problemService.getProblemsByCompanySlug handles the company lookup internally if needed,
+  // but we also need the company object for the page itself.
+  const [company, problemsResponse] = await Promise.all([
+      companyService.getCompanyBySlug(params.companySlug),
+      problemService.getProblemsByCompanySlug(params.companySlug, {
+          pageSize: 40, // Match INITIAL_ITEMS_PER_PAGE from CompanyPage
+      })
+  ]);
 
   if (!company) {
     return <CompanyNotFound companySlug={params.companySlug} />;
   }
 
+  // Step 2: Merge User Status (Hollow Caching)
+  // Logic to merge user status if userId is available.
+  // Currently assuming public view or hydration handles this, 
+  // as userId is not strictly available in this server component context without additional auth setup.
+  // If we had userId:
+  // const userStatuses = await problemService.getUserProblemStatuses(userId, problemsResponse.problems.map(p => p.id));
+  // merge(problemsResponse.problems, userStatuses);
+  
   const structuredData = getStructuredData(company);
 
   return (
     <>
       <StructuredData data={structuredData} />
       <CompanyPage 
-        company={company} 
+        company={company}
+        initialPaginatedProblems={problemsResponse}
       />
     </>
   );

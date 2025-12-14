@@ -1,5 +1,6 @@
 import {
   LeetCodeProblem,
+  ProblemSummaryDTO,
   PaginatedProblemsResponse,
   DifficultyFilter,
   LastAskedFilter,
@@ -41,13 +42,13 @@ export class ProblemRepository {
     companyId: string,
     params: {
       cursor?: string;
-      page?: number;
+      page?: number;     
       pageSize?: number;
       difficultyFilter?: DifficultyFilter[];
       lastAskedFilter?: LastAskedFilter[];
       searchTerm?: string;
       sortKey?: SortKey;
-      userId?: string;
+      // userId removed as per hollow caching strategy
       companySlug?: string;
       totalProblemCount?: number;
       difficultyCounts?: { Easy: number; Medium: number; Hard: number };
@@ -67,15 +68,13 @@ export class ProblemRepository {
       lastAskedFilter = [],
       searchTerm = "",
       sortKey = "title",
-      userId,
       companySlug,
       totalProblemCount,
       difficultyCounts,
       recencyCounts,
     } = params;
 
-    const { problems, totalProblems, hasMore, nextCursor } =
-      await this.fetchProblemsByCompanyCore(companyId, {
+    return await this.fetchProblemsByCompanyCore(companyId, {
         cursor,
         page,
         pageSize,
@@ -87,38 +86,7 @@ export class ProblemRepository {
         totalProblemCount,
         difficultyCounts,
         recencyCounts,
-      });
-
-    if (userId) {
-      const problemIds = problems.map((p) => p.id);
-      const [userBookmarks, userStatuses] = await Promise.all([
-        userRepository.getBookmarksForIds(userId, problemIds),
-        userRepository.getProblemStatusesForIds(userId, problemIds),
-      ]);
-
-      const finalProblems = problems.map((problem) => {
-        const statusInfo = userStatuses[problem.id];
-        return {
-          ...problem,
-          isBookmarked: userBookmarks.has(problem.id),
-          currentStatus: statusInfo ? statusInfo.status : undefined,
-        };
-      });
-
-      return {
-        problems: finalProblems,
-        totalProblems,
-        hasMore,
-        nextCursor,
-      };
-    }
-
-    return {
-      problems,
-      totalProblems,
-      hasMore,
-      nextCursor,
-    };
+    });
   }
 
   async getAllProblemsPaginated(
@@ -412,64 +380,32 @@ export class ProblemRepository {
           sortKey === "difficulty" ? "difficulty" : "normalizedTitle";
 
         let queryConstraints = [...constraints, orderBy(sortField, "asc")];
-
+        
+        // Ensure deterministic ordering for cursor pagination
         if (sortKey === "difficulty") {
-          queryConstraints.push(orderBy("normalizedTitle", "asc"));
+             queryConstraints.push(orderBy("normalizedTitle", "asc"));
+        } else if (sortField === "normalizedTitle") {
+             // Normalized title is unique-ish, but ID is best for tie breaking if needed
+             // But usually normalizedTitle + ID is good practice
         }
 
-        let limitCount = pageSize;
-        let startIndex = 0;
+        queryConstraints.push(limit(pageSize + 1));
 
-        // PAGINATION STRATEGY
-        if (page) {
-             // Fetch limit = (page * pageSize) + 1 to detect hasMore
-             limitCount = (page * pageSize) + 1;
-             startIndex = (page - 1) * pageSize;
-             queryConstraints.push(limit(limitCount));
-        } else {
-             queryConstraints.push(limit(pageSize + 1)); // Consistent +1 for cursor too 
+        if (cursor) {
+           const cursorDocRef = doc(getFirestore(), "problems", cursor);
+           const cursorDocSnap = await getDoc(cursorDocRef);
+           if (cursorDocSnap.exists()) {
+             queryConstraints.push(startAfter(cursorDocSnap));
+           }
         }
 
         let q = query(problemsColRef, ...queryConstraints);
 
-        if (!page && cursor) {
-          const cursorDocRef = doc(getFirestore(), "problems", cursor);
-          const cursorDocSnap = await getDoc(cursorDocRef);
-          if (cursorDocSnap.exists()) {
-            q = query(
-              problemsColRef,
-              ...queryConstraints, // reuse constraints
-              startAfter(cursorDocSnap)
-            );
-             // Re-apply specific order/limit if needed for cursor logic within complex query
-             // Actually, recreating q is safer to avoid duplication
-             q = query(
-              problemsColRef,
-              ...constraints,
-              orderBy(sortField, "asc"),
-              ...(sortKey === "difficulty"
-                ? [orderBy("normalizedTitle", "asc")]
-                : []),
-              startAfter(cursorDocSnap),
-              limit(pageSize + 1)
-            );
-          }
-        }
-
         const problemSnapshot = await getDocs(q);
         const docs = problemSnapshot.docs;
-        const hasMore = docs.length > (page ? page * pageSize : pageSize);
+        const hasMore = docs.length > pageSize;
 
-        let resultDocs = docs;
-        if (page) {
-             if (docs.length <= startIndex) {
-                resultDocs = [];
-             } else {
-                resultDocs = docs.slice(startIndex, startIndex + pageSize);
-             }
-        } else if (hasMore) {
-             resultDocs = docs.slice(0, pageSize);
-        }
+        const resultDocs = hasMore ? docs.slice(0, pageSize) : docs;
 
         let finalCompanySlug = companySlug;
         if (!finalCompanySlug) {
@@ -478,24 +414,34 @@ export class ProblemRepository {
             company?.slug || slugify(company?.name || "unknown");
         }
 
-        const problems = docs.map((docSnap) => {
+        const problems = resultDocs.map((docSnap) => {
           const data = docSnap.data();
           const companySpecificData = data.companies?.[companyId] || {};
+          
           return {
             id: docSnap.id,
+            title: data.title,
+            slug: docSnap.id,
+            difficulty: data.difficulty,
             companyId: companyId,
             companySlug: finalCompanySlug!,
-            slug: docSnap.id,
-            ...data,
-            ...companySpecificData,
-          } as LeetCodeProblem;
+            lastAskedPeriod: companySpecificData.lastAskedPeriod || data.lastAskedPeriod || undefined,
+            tags: data.tags || [],
+            acceptanceRate: data.acceptanceRate,
+            isBookmarked: false, // Will be filled by UI layer
+            currentStatus: undefined, // Will be filled by UI layer
+            link: data.link,
+          } as ProblemSummaryDTO;
         });
+
+        // Use cursor from the LAST item
+        const nextCursor = hasMore ? problems[problems.length - 1].id : undefined;
 
         return {
           problems,
           totalProblems,
           hasMore,
-          nextCursor: hasMore ? problems[problems.length - 1].id : undefined,
+          nextCursor,
         };
       } catch (error: any) {
         if (
@@ -510,20 +456,28 @@ export class ProblemRepository {
     }
 
     // Semi-Optimized Path
-    const q = query(problemsColRef, ...constraints);
+    // Added safety limit of 200
+    const q = query(problemsColRef, ...constraints, limit(200));
     const problemSnapshot = await getDocs(q);
 
     let processedProblems = problemSnapshot.docs.map((docSnap) => {
       const data = docSnap.data();
       const companySpecificData = data.companies?.[companyId] || {};
+      
       return {
         id: docSnap.id,
+        title: data.title,
+        slug: docSnap.id,
+        difficulty: data.difficulty,
         companyId: companyId,
         companySlug: companySlug || "unknown",
-        slug: docSnap.id,
-        ...data,
-        ...companySpecificData,
-      } as LeetCodeProblem;
+        lastAskedPeriod: companySpecificData.lastAskedPeriod || data.lastAskedPeriod || undefined,
+        tags: data.tags || [],
+        acceptanceRate: data.acceptanceRate,
+        isBookmarked: false,
+        currentStatus: undefined,
+        link: data.link,
+      } as ProblemSummaryDTO;
     });
 
     if (!companySlug) {
@@ -556,6 +510,7 @@ export class ProblemRepository {
       );
     }
 
+    // Client-side sorting for the 200 items
     const difficultyOrder: Record<LeetCodeProblem["difficulty"], number> = {
       Easy: 1,
       Medium: 2,
