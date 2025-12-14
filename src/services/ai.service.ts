@@ -80,7 +80,7 @@ export class AIService {
     const company = await companyService.getCompanyById(companyId);
     if (!company) return { error: `Company with ID ${companyId} not found.` };
 
-    const problemsResponse = await problemService.getProblemsByCompany(companyId);
+    const problemsResponse = await problemService.getPublicProblems(companyId);
 
     if (
       !problemsResponse.problems ||
@@ -114,7 +114,7 @@ export class AIService {
     const company = await companyService.getCompanyById(companyId);
     if (!company) return { error: `Company with ID ${companyId} not found.` };
 
-    const problemsResponse = await problemService.getProblemsByCompany(companyId);
+    const problemsResponse = await problemService.getPublicProblems(companyId);
 
     if (
       !problemsResponse.problems ||

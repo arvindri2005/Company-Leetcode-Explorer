@@ -183,7 +183,7 @@ export class ProblemService {
                 lastAskedFilter,
                 searchTerm,
                 sortKey,
-                recencyCounts,
+
             });
         },
         [cacheKey],

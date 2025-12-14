@@ -102,14 +102,14 @@ export async function POST(request: Request) {
          difficultyCountsToUse = company?.difficultyCounts;
       }
 
-      result = await problemService.getProblemsByCompany(companyId, {
+      result = await problemService.getPublicProblems(companyId, {
         cursor,
         pageSize,
         difficultyFilter: filters?.difficultyFilter as DifficultyFilter[],
         lastAskedFilter: filters?.lastAskedFilter as LastAskedFilter[],
         searchTerm: filters?.searchTerm,
         sortKey: filters?.sortKey as SortKey,
-        userId,
+        // userId removed as it is not supported in public/cached flow
         // Optimization params
         companySlug: companySlugToUse,
         totalProblemCount: totalProblemCountToUse,

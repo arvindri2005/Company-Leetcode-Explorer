@@ -58,7 +58,7 @@ export interface LeetCodeProblem {
 /**
  * @description Lightweight DTO for listing problems.
  */
-export interface ProblemSummaryDTO extends Pick<LeetCodeProblem, "id" | "title" | "slug" | "difficulty" | "companyId" | "companySlug" | "lastAskedPeriod" | "isBookmarked" | "currentStatus" | "tags" | "link"> {
+export interface ProblemSummaryDTO extends Pick<LeetCodeProblem, "id" | "title" | "slug" | "difficulty" | "companyId" | "companySlug" | "lastAskedPeriod" | "isBookmarked" | "currentStatus" | "tags" | "link" | "normalizedTitle"> {
     acceptanceRate?: number; // Add if available in DB, otherwise optional
 }
 
