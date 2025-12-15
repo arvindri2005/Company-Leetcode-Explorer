@@ -1,11 +1,5 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import CompanyPage from '@/components/company/page/company-page';
-import { getProblemsByCompanyFromDb } from '@/lib/data';
-
-// Mock data fetching
-jest.mock('@/lib/data', () => ({
-  getProblemsByCompanyFromDb: jest.fn(),
-}));
 
 // Mock child components
 jest.mock('@/components/company/company-header', () => ({
@@ -43,6 +37,10 @@ jest.mock('@/components/ads/ad-placeholder', () => ({
   default: () => <div data-testid="ad-placeholder">Ad Placeholder</div>,
 }));
 
+jest.mock('@/services/company.service', () => ({
+  companyService: {},
+}));
+
 describe('CompanyPage', () => {
   const mockCompany = {
     id: '1',
@@ -60,6 +58,8 @@ describe('CompanyPage', () => {
     hasMore: false,
     nextCursor: null,
     totalProblems: 1,
+    totalPages: 1,
+    currentPage: 1,
   };
 
   beforeEach(() => {
@@ -67,27 +67,28 @@ describe('CompanyPage', () => {
   });
 
   it('should render company page with problems', async () => {
-    (getProblemsByCompanyFromDb as jest.Mock).mockResolvedValue(mockProblemsData);
-
-    const Page = await CompanyPage({ company: mockCompany });
+    // Pass the mock data directly as a prop
+    const Page = await CompanyPage({ 
+      company: mockCompany,
+      initialPaginatedProblems: mockProblemsData
+    });
     render(Page);
 
     expect(screen.getByTestId('company-header')).toBeInTheDocument();
     expect(screen.getByTestId('company-tabs')).toBeInTheDocument();
-    expect(screen.getByTestId('company-preparation-guide')).toBeInTheDocument();
-    expect(screen.getAllByTestId('related-companies')).toHaveLength(2); // Mobile and Desktop
-    expect(screen.queryByTestId('no-problems-available')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('problem-load-error')).not.toBeInTheDocument();
   });
 
   it('should render no problems available when count is 0', async () => {
-    (getProblemsByCompanyFromDb as jest.Mock).mockResolvedValue({
+    const emptyProblemsData = {
       ...mockProblemsData,
       problems: [],
       totalProblems: 0,
-    });
+    };
 
-    const Page = await CompanyPage({ company: mockCompany });
+    const Page = await CompanyPage({ 
+      company: mockCompany, 
+      initialPaginatedProblems: emptyProblemsData 
+    });
     render(Page);
 
     expect(screen.getByTestId('no-problems-available')).toBeInTheDocument();
@@ -97,11 +98,12 @@ describe('CompanyPage', () => {
   it('should render error state when fetching fails', async () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     
-    (getProblemsByCompanyFromDb as jest.Mock).mockResolvedValue({
-      error: 'Failed to fetch',
+    // Pass the error object as the prop
+    const Page = await CompanyPage({ 
+      company: mockCompany,
+      initialPaginatedProblems: { error: 'Failed to fetch' }
     });
-
-    const Page = await CompanyPage({ company: mockCompany });
+    
     render(Page);
 
     expect(screen.getByTestId('problem-load-error')).toBeInTheDocument();

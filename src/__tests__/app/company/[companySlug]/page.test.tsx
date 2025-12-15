@@ -1,14 +1,23 @@
 import { render, screen } from '@testing-library/react';
 import CompanyPageWrapper, { generateMetadata, generateStaticParams } from '@/app/company/[companySlug]/page';
-import { getCompanyBySlug, getAllCompanySlugs } from '@/lib/data';
+import { companyService } from '@/services/company.service';
+import { problemService } from '@/services/problem.service';
 
-// Mock the data fetching functions
-jest.mock('@/lib/data', () => ({
-  getCompanyBySlug: jest.fn(),
-  getAllCompanySlugs: jest.fn(),
+// Mock the services
+jest.mock('@/services/company.service', () => ({
+  companyService: {
+    getCompanyBySlug: jest.fn(),
+    getAllCompanySlugs: jest.fn(),
+  },
 }));
 
-// Mock child components to avoid testing their implementation details
+jest.mock('@/services/problem.service', () => ({
+  problemService: {
+    getProblemsByCompanySlug: jest.fn(),
+  },
+}));
+
+// Mock child components
 jest.mock('@/components/company/page/company-not-found', () => ({
   __esModule: true,
   default: ({ companySlug }: { companySlug: string }) => <div data-testid="company-not-found">{companySlug}</div>,
@@ -21,7 +30,7 @@ jest.mock('@/components/company/page/company-page', () => ({
 
 jest.mock('@/components/seo/structured-data', () => ({
   __esModule: true,
-  default: ({ data }: { data: any }) => <script type="application/ld+json" data-testid="structured-data">{JSON.stringify(data)}</script>,
+  default: ({ data }: { data: any }) => <script type="application/ld+json" data-testid="structured-data" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />,
 }));
 
 // Mock utils
@@ -40,13 +49,22 @@ describe('Company Page', () => {
     commonTags: [{ tag: 'tag1' }, { tag: 'tag2' }],
   };
 
+  const mockProblemsResponse = {
+    problems: [
+      { id: '1', title: 'Problem 1' },
+      { id: '2', title: 'Problem 2' },
+    ],
+    total: 2,
+    hasMore: false,
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('generateMetadata', () => {
     it('should return correct metadata for a valid company', async () => {
-      (getCompanyBySlug as jest.Mock).mockResolvedValue(mockCompany);
+      (companyService.getCompanyBySlug as jest.Mock).mockResolvedValue(mockCompany);
       const params = Promise.resolve({ companySlug: 'test-company' });
       
       const metadata = await generateMetadata({ params });
@@ -59,7 +77,7 @@ describe('Company Page', () => {
     });
 
     it('should return "Not Found" metadata for an invalid company', async () => {
-      (getCompanyBySlug as jest.Mock).mockResolvedValue(null);
+      (companyService.getCompanyBySlug as jest.Mock).mockResolvedValue(null);
       const params = Promise.resolve({ companySlug: 'invalid-company' });
 
       const metadata = await generateMetadata({ params });
@@ -71,7 +89,7 @@ describe('Company Page', () => {
 
   describe('generateStaticParams', () => {
     it('should return a list of company slugs', async () => {
-      (getAllCompanySlugs as jest.Mock).mockResolvedValue(['company-1', 'company-2']);
+      (companyService.getAllCompanySlugs as jest.Mock).mockResolvedValue(['company-1', 'company-2']);
 
       const params = await generateStaticParams();
 
@@ -82,7 +100,7 @@ describe('Company Page', () => {
     });
 
     it('should return an empty array if fetching fails', async () => {
-      (getAllCompanySlugs as jest.Mock).mockRejectedValue(new Error('Fetch error'));
+      (companyService.getAllCompanySlugs as jest.Mock).mockRejectedValue(new Error('Fetch error'));
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
       const params = await generateStaticParams();
@@ -93,7 +111,7 @@ describe('Company Page', () => {
     });
     
     it('should return an empty array if no slugs are found', async () => {
-        (getAllCompanySlugs as jest.Mock).mockResolvedValue([]);
+        (companyService.getAllCompanySlugs as jest.Mock).mockResolvedValue([]);
   
         const params = await generateStaticParams();
   
@@ -103,7 +121,8 @@ describe('Company Page', () => {
 
   describe('CompanyPageWrapper', () => {
     it('should render CompanyPage when company exists', async () => {
-      (getCompanyBySlug as jest.Mock).mockResolvedValue(mockCompany);
+      (companyService.getCompanyBySlug as jest.Mock).mockResolvedValue(mockCompany);
+      (problemService.getProblemsByCompanySlug as jest.Mock).mockResolvedValue(mockProblemsResponse);
       const params = Promise.resolve({ companySlug: 'test-company' });
 
       const ui = await CompanyPageWrapper({ params });
@@ -111,10 +130,16 @@ describe('Company Page', () => {
 
       expect(screen.getByTestId('company-page')).toHaveTextContent('test company');
       expect(screen.getByTestId('structured-data')).toBeInTheDocument();
+      expect(companyService.getCompanyBySlug).toHaveBeenCalledWith('test-company');
+      expect(problemService.getProblemsByCompanySlug).toHaveBeenCalledWith('test-company', { pageSize: 40 });
     });
 
     it('should render CompanyNotFound when company does not exist', async () => {
-      (getCompanyBySlug as jest.Mock).mockResolvedValue(null);
+      (companyService.getCompanyBySlug as jest.Mock).mockResolvedValue(null);
+      // Even if company is null, we might still call getProblems due to Promise.all, or handle it gracefully.
+      // In the implementation, we do Promise.all, so both are called.
+      (problemService.getProblemsByCompanySlug as jest.Mock).mockResolvedValue({ problems: [], total: 0 });
+      
       const params = Promise.resolve({ companySlug: 'invalid-company' });
 
       const ui = await CompanyPageWrapper({ params });

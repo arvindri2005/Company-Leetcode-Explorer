@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import CompanyTabs from '@/components/company/page/company-tabs';
 import { getAIProblems } from '@/app/actions/problem.actions';
 
@@ -83,6 +83,10 @@ describe('CompanyTabs', () => {
     expect(screen.getByText('Strategy')).toBeInTheDocument();
     
     await waitFor(() => expect(getAIProblems).toHaveBeenCalled());
+    // Flush any pending state updates from the useEffect
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
   });
 
   it('should render all content components (mocked tabs show all)', async () => {
@@ -100,6 +104,10 @@ describe('CompanyTabs', () => {
     expect(await screen.findByTestId('company-strategy-generator')).toBeInTheDocument();
 
     await waitFor(() => expect(getAIProblems).toHaveBeenCalled());
+    // Flush any pending state updates from the useEffect
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
   });
 
   it('should fetch AI problems on mount', async () => {
@@ -108,6 +116,10 @@ describe('CompanyTabs', () => {
 
     await waitFor(() => {
       expect(getAIProblems).toHaveBeenCalledWith(mockCompany.id);
+    });
+    // Flush any pending state updates from the useEffect
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
   });
 });

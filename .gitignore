@@ -11,7 +11,7 @@ tsconfig.tsbuildinfo
 .agent/
 
 
-*storybook.log
+
 storybook-static
 
 # OS

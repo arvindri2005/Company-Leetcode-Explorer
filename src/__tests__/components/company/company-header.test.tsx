@@ -4,7 +4,7 @@ import CompanyHeader from '@/components/company/company-header';
 // Mock next/image
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: ({ fill, ...props }: any) => <img {...props} />,
+  default: ({ fill, unoptimized,...props }: any) => <img {...props} />,
 }));
 
 // Mock utils

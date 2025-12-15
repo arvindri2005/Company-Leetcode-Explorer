@@ -8,6 +8,11 @@ jest.mock('@/components/problem/problem-card', () => ({
   default: ({ problem }: { problem: any }) => <div data-testid="problem-card">{problem.title}</div>,
 }));
 
+// Mock server actions
+jest.mock('@/app/actions/user.actions', () => ({
+  getUserGlobalProblemStatsAction: jest.fn(),
+}));
+
 jest.mock('@/components/problem/problem-list-controls', () => ({
   __esModule: true,
   default: () => <div data-testid="problem-list-controls">Controls</div>,
@@ -25,6 +30,17 @@ jest.mock('@/contexts/auth-context', () => ({
 
 jest.mock('@/hooks/use-toast', () => ({
   useToast: () => ({ toast: jest.fn() }),
+}));
+
+// Mock next/navigation
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+  }),
+  useSearchParams: () => new URLSearchParams(),
+  usePathname: () => '/problems',
 }));
 
 // Mock IntersectionObserver
@@ -83,6 +99,14 @@ describe('ProblemList', () => {
   });
 
   it('should render initial problems', async () => {
+    // Setup mock return value for getUserGlobalProblemStatsAction
+    const { getUserGlobalProblemStatsAction } = require('@/app/actions/user.actions');
+    getUserGlobalProblemStatsAction.mockResolvedValue({
+      solvedProblemIds: [],
+      attemptedProblemIds: [],
+      bookmarkedProblemIds: [],
+    });
+
     render(<ProblemList {...defaultProps} />);
 
     await waitFor(() => {

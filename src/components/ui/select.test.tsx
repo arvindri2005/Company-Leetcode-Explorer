@@ -1,5 +1,5 @@
-
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import {
   Select,
   SelectContent,
@@ -8,9 +8,22 @@ import {
   SelectValue,
 } from "./select";
 
+// Setup mocks for Radix UI
+beforeAll(() => {
+  window.ResizeObserver = jest.fn().mockImplementation(() => ({
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+    disconnect: jest.fn(),
+  }));
+
+  window.HTMLElement.prototype.scrollIntoView = jest.fn();
+  
+  window.HTMLElement.prototype.setPointerCapture = jest.fn();
+  window.HTMLElement.prototype.releasePointerCapture = jest.fn();
+  window.HTMLElement.prototype.hasPointerCapture = jest.fn(() => false);
+});
+
 describe("Select", () => {
-    // Select requires somewhat complex mocking for Radix UI, especially for pointer interactions.
-    // Basic rendering tests are easier.
   it("renders trigger", () => {
     render(
       <Select>
@@ -24,25 +37,16 @@ describe("Select", () => {
       </Select>
     );
 
+    // It's okay to check text existence, just don't click it
     expect(screen.getByText("Theme")).toBeInTheDocument();
   });
 
-  // Basic open test using simple click (might need pointer events mock for complex cases)
   it("opens content on click", async () => {
-       // Mocking ResizeObserver for Radix UI
-       window.ResizeObserver = jest.fn().mockImplementation(() => ({
-          observe: jest.fn(),
-          unobserve: jest.fn(),
-          disconnect: jest.fn(),
-       }));
-
-       // Need to mock pointer capture for Radix UI primitives as they use it
-      Element.prototype.setPointerCapture = jest.fn();
-      Element.prototype.releasePointerCapture = jest.fn();
+    const user = userEvent.setup();
 
     render(
       <Select>
-        <SelectTrigger>
+        <SelectTrigger aria-label="Select one">
           <SelectValue placeholder="Theme" />
         </SelectTrigger>
         <SelectContent>
@@ -52,13 +56,16 @@ describe("Select", () => {
       </Select>
     );
 
-    const trigger = screen.getByText("Theme");
-    fireEvent.click(trigger);
-    
-    // Sometimes triggers pointer down
-    fireEvent.pointerDown(trigger, { button: 0 });
-    
-    // This is notoriously hard to test in full integration in JSDOM due to Radix's robust pointer handling.
-    // If it fails, we keep it simple or use user-event
+    // FIX: Select the button (combobox) instead of the inner text span
+    // Radix Trigger always has the role "combobox"
+    const trigger = screen.getByRole("combobox");
+
+    await user.click(trigger);
+
+    await waitFor(() => {
+      expect(screen.getByText("Light")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Dark")).toBeInTheDocument();
   });
 });

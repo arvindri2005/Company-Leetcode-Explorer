@@ -80,20 +80,16 @@ export default function CompanyTabs({
   currentPage,
 }: CompanyTabsProps) {
   const [aiProblems, setAiProblems] = useState<LeetCodeProblem[]>([]);
-  const [isLoadingAI, setIsLoadingAI] = useState(true);
 
   useEffect(() => {
     async function fetchAIProblems() {
       if (!company.id) return;
 
-      setIsLoadingAI(true);
       try {
         const problems = await getAIProblems(company.id);
         setAiProblems(problems);
       } catch (error) {
         console.error("Failed to fetch problems for AI features:", error);
-      } finally {
-        setIsLoadingAI(false);
       }
     }
     fetchAIProblems();

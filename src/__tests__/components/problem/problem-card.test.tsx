@@ -63,7 +63,6 @@ describe('ProblemCard', () => {
     companyId: '1',
     companySlug: 'google',
     normalizedTitle: 'two sum',
-
     tags: ['Array'],
   };
 
@@ -84,13 +83,17 @@ describe('ProblemCard', () => {
     expect(screen.getByText('Array')).toBeInTheDocument();
   });
 
-  it('should render external link to LeetCode', () => {
+  it('should render external link to LeetCode and action buttons', () => {
     render(<ProblemCard {...defaultProps} />);
 
     const titleLink = screen.getByRole('link', { name: 'Two Sum' });
     expect(titleLink).toHaveAttribute('href', 'https://leetcode.com/problems/two-sum/');
 
-    const solveButton = screen.getByRole('button', { name: /solve/i });
-    expect(solveButton).toBeInTheDocument();
+    // Simulate clicking the card (e.g., via the difficulty badge) to expand it
+    fireEvent.click(screen.getByText('Easy'));
+
+    // Updated expectation: Look for "Write Code" instead of "Solve"
+    const writeCodeButton = screen.getByRole('button', { name: /write code/i });
+    expect(writeCodeButton).toBeInTheDocument();
   });
 });

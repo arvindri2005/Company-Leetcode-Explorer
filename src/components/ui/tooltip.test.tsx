@@ -1,5 +1,5 @@
-
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import {
   Tooltip,
   TooltipContent,
@@ -10,15 +10,32 @@ import { Button } from "./button";
 
 describe("Tooltip", () => {
   it("renders tooltip on hover", async () => {
-       // Mocking ResizeObserver for Radix UI
-       window.ResizeObserver = jest.fn().mockImplementation(() => ({
-          observe: jest.fn(),
-          unobserve: jest.fn(),
-          disconnect: jest.fn(),
-       }));
+    // Mocking ResizeObserver for Radix UI
+    global.ResizeObserver = jest.fn().mockImplementation(() => ({
+      observe: jest.fn(),
+      unobserve: jest.fn(),
+      disconnect: jest.fn(),
+    }));
+
+    // Mocking matchMedia for Radix UI
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: jest.fn().mockImplementation(query => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: jest.fn(), // deprecated
+        removeListener: jest.fn(), // deprecated
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+      })),
+    });
+
+    const user = userEvent.setup();
 
     render(
-      <TooltipProvider>
+      <TooltipProvider delayDuration={0} skipDelayDuration={0}>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button>Hover Me</Button>
@@ -29,14 +46,14 @@ describe("Tooltip", () => {
     );
 
     const trigger = screen.getByText("Hover Me");
-    fireEvent.mouseEnter(trigger);
-    
-    // Radix Tooltip has a default delay (700ms). We often need to await it or bypass it.
-    // However, in JSDOM, focus might also trigger it or just wait.
-     fireEvent.focus(trigger);
+    await user.hover(trigger);
 
     await waitFor(() => {
-        expect(screen.getByText("Tooltip Content")).toBeInTheDocument();
+        // Radix renders two elements: one visible, one hidden for a11y.
+        // getAllByText returns an array, resolving the "multiple elements" error.
+        const tooltips = screen.getAllByText("Tooltip Content");
+        expect(tooltips.length).toBeGreaterThan(0);
+        expect(tooltips[0]).toBeInTheDocument();
     });
   });
 });

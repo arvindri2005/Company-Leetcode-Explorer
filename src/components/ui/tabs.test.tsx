@@ -1,10 +1,12 @@
-
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 
 describe("Tabs", () => {
-  it("renders correctly and switches tabs", () => {
-    // Mocking ResizeObserver is sometimes needed for Tabs as well
+  it("renders correctly and switches tabs", async () => {
+    // 1. Setup the userEvent instance before rendering
+    const user = userEvent.setup();
+
     render(
       <Tabs defaultValue="tab1">
         <TabsList>
@@ -16,13 +18,18 @@ describe("Tabs", () => {
       </Tabs>
     );
 
+    // Initial check
     expect(screen.getByText("Content 1")).toBeInTheDocument();
     expect(screen.queryByText("Content 2")).not.toBeInTheDocument();
 
+    // 2. Use `await user.click` instead of fireEvent
     const tab2 = screen.getByText("Tab 2");
-    fireEvent.click(tab2);
+    await user.click(tab2);
 
-    expect(screen.getByText("Content 2")).toBeInTheDocument();
+    // 3. Use `findByText` (which is async) to wait for the element to appear
+    expect(await screen.findByText("Content 2")).toBeInTheDocument();
+    
+    // 4. Verify Content 1 is gone
     expect(screen.queryByText("Content 1")).not.toBeInTheDocument();
   });
 });

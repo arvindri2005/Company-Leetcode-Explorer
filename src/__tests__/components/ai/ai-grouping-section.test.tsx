@@ -28,8 +28,13 @@ jest.mock('@/components/ai/similar-problems-dialog', () => ({
   default: () => <div data-testid="similar-problems-dialog">Similar Problems Dialog</div>,
 }));
 
+jest.mock('@/components/problem/problem-card', () => ({
+  __esModule: true,
+  default: () => <div data-testid="problem-card">Problem Card</div>,
+}));
+
 // Mock AI actions
-jest.mock('@/app/actions', () => ({
+jest.mock('@/app/actions/ai.actions', () => ({
   performQuestionGrouping: jest.fn().mockResolvedValue({
     groups: [
       {

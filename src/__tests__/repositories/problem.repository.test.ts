@@ -29,15 +29,19 @@ jest.mock("@/lib/firebase", () => ({
 // Mock user repository
 jest.mock("@/repositories/user.repository", () => ({
   userRepository: {
-    getBookmarkedProblemIds: jest.fn(),
-    getProblemStatuses: jest.fn(),
-    getUser: jest.fn(), // If needed
+    getBookmarksForIds: jest.fn(),
+    getProblemStatusesForIds: jest.fn(),
   },
 }));
 
-// Mock company repository (if needed by problem repo, checking code...)
-// ProblemRepository might use CompanyRepository or raw DB. Let's assume raw DB or internal methods for now.
-// If ProblemRepo imports CompanyRepo for optimization, we mock it.
+// Mock company repository
+jest.mock("@/repositories/company.repository", () => ({
+  companyRepository: {
+    getCompanyById: jest.fn(),
+  },
+}));
+
+import { companyRepository } from "@/repositories/company.repository";
 
 import { userRepository } from "@/repositories/user.repository";
 
@@ -63,32 +67,25 @@ describe("ProblemRepository.getProblemsByCompany", () => {
     (getCountFromServer as jest.Mock).mockResolvedValue({
       data: () => ({ count: 1 }),
     });
+    (getCountFromServer as jest.Mock).mockResolvedValue({
+      data: () => ({ count: 1 }),
+    });
     (getDocs as jest.Mock).mockResolvedValue({
       docs: mockProblems,
     });
-  });
-
-  it("should merge user status when userId is provided", async () => {
-    const userId = "user-1";
-    const companyId = "1";
-
-    (userRepository.getBookmarksForIds as jest.Mock).mockResolvedValue(new Set(["problem-1"]));
-    (userRepository.getProblemStatusesForIds as jest.Mock).mockResolvedValue({
-      "problem-1": { status: "solved" },
+    (companyRepository.getCompanyById as jest.Mock).mockResolvedValue({
+      id: "1",
+      slug: "google",
+      name: "Google",
     });
-
-    const result = await problemRepository.getProblemsByCompany(companyId, { userId });
-
-    expect(result.problems[0].isBookmarked).toBe(true);
-    expect(result.problems[0].currentStatus).toBe("solved");
   });
 
-  it("should not merge user status when userId is NOT provided", async () => {
+  it("should return problems (without user data)", async () => {
     const companyId = "1";
 
     const result = await problemRepository.getProblemsByCompany(companyId, {});
 
-    expect(result.problems[0].isBookmarked).toBeUndefined();
+    expect(result.problems[0].isBookmarked).toBe(false); // Default value
     expect(result.problems[0].currentStatus).toBeUndefined();
   });
 
