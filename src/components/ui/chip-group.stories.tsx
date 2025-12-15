@@ -1,0 +1,75 @@
+import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "@storybook/test";
+import { ChipGroup } from "./chip-group";
+import { useState } from "react";
+
+const meta = {
+  title: "UI/ChipGroup",
+  component: ChipGroup,
+  parameters: {
+    layout: "centered",
+  },
+  tags: ["autodocs"],
+  argTypes: {
+    multiple: {
+      control: "boolean",
+    },
+  },
+  args: {
+    onChange: fn(),
+  },
+} satisfies Meta<typeof ChipGroup>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+const options = [
+  { value: "react", label: "React" },
+  { value: "vue", label: "Vue" },
+  { value: "angular", label: "Angular" },
+  { value: "svelte", label: "Svelte" },
+  { value: "nextjs", label: "Next.js" },
+];
+
+export const SingleSelection: Story = {
+  args: {
+    options,
+    value: "react",
+  },
+  render: (args) => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const [value, setValue] = useState(args.value);
+    return (
+      <ChipGroup
+        {...args}
+        value={value}
+        onChange={(val) => {
+          setValue(val);
+          args.onChange(val);
+        }}
+      />
+    );
+  },
+};
+
+export const MultipleSelection: Story = {
+  args: {
+    options,
+    value: ["react", "nextjs"],
+    multiple: true,
+  },
+  render: (args) => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const [value, setValue] = useState(args.value);
+    return (
+      <ChipGroup
+        {...args}
+        value={value}
+        onChange={(val) => {
+          setValue(val);
+          args.onChange(val);
+        }}
+      />
+    );
+  },
+};
