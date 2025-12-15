@@ -10,3 +10,25 @@ tsconfig.tsbuildinfo
 .swc
 .agent/
 
+
+*storybook.log
+storybook-static
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log
+
+# Vercel
+.vercel
