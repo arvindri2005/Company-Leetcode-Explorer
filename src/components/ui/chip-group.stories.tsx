@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { fn } from "@storybook/test";
 import { ChipGroup } from "./chip-group";
 import { useState } from "react";
 
@@ -16,7 +15,7 @@ const meta = {
     },
   },
   args: {
-    onChange: fn(),
+    onChange: () => {},
   },
 } satisfies Meta<typeof ChipGroup>;
 
@@ -45,7 +44,7 @@ export const SingleSelection: Story = {
         value={value}
         onChange={(val) => {
           setValue(val);
-          args.onChange(val);
+          args.onChange();
         }}
       />
     );
@@ -67,7 +66,7 @@ export const MultipleSelection: Story = {
         value={value}
         onChange={(val) => {
           setValue(val);
-          args.onChange(val);
+          args.onChange();
         }}
       />
     );

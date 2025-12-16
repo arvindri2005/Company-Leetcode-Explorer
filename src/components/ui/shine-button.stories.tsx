@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { fn } from "@storybook/test";
 import ShineButton from "./shine-button";
 import { FaRocket, FaHeart, FaStar } from "react-icons/fa";
 
@@ -24,7 +23,7 @@ const meta = {
     disabled: { control: "boolean" },
   },
   args: {
-    onClick: fn(),
+    onClick: () => {},
     children: "Get Started",
   },
 } satisfies Meta<typeof ShineButton>;
