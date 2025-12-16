@@ -16,6 +16,7 @@ import {
   writeBatch,
   deleteDoc,
   Firestore,
+  documentId,
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
 
@@ -136,6 +137,15 @@ export class CompanyRepository {
       // This avoids reading ALL documents to calculate total count.
       const limitCount = page * pageSize + 1;
       queryConstraints.push(limit(limitCount));
+      
+      // Ensure consistent sorting with cursor-based query
+      if (!searchTerm) {
+          queryConstraints.push(orderBy(documentId(), "asc"));
+      } else {
+          // search query already has orderBy id implicitly added? 
+          // No, we must add it explicitely if we want to rely on it for cursor
+          queryConstraints.push(orderBy(documentId(), "asc"));
+      }
 
       const q = query(companiesCol, ...queryConstraints);
       const snapshot = await getDocs(q);
@@ -149,12 +159,22 @@ export class CompanyRepository {
           hasMore = true;
       }
 
+      let nextCursor: string | undefined;
       // Slice the results for the current page
       if (docs.length > startIndex) {
         // We take up to pageSize items starting from startIndex
         // The docs array might have up to (page * pageSize + 1) items
         const sliceEnd = Math.min(docs.length, startIndex + pageSize);
         companies = docs.slice(startIndex, sliceEnd).map(mapFirestoreDocToCompany);
+        
+        // Generate cursor for the last item if we have more
+        if (hasMore && companies.length > 0) {
+            const lastCompany = companies[companies.length - 1];
+            nextCursor = encodeCursor({
+                normalizedName: lastCompany.normalizedName || "",
+                id: lastCompany.id,
+            });
+        }
       } else {
         companies = [];
       }
@@ -165,7 +185,7 @@ export class CompanyRepository {
         totalPages: -1,     // Unknown pages to save reads
         currentPage: page,
         hasMore,
-        nextCursor: undefined,
+        nextCursor, // Return the generated cursor
       };
     } catch (error) {
       console.error("Error in getCompanies:", error);
@@ -193,7 +213,7 @@ export class CompanyRepository {
     const companiesCol = collection(getFirestore(), "companies");
     let queryConstraints: any[] = [
       orderBy("normalizedName", "asc"),
-      orderBy("id", "asc"),
+      orderBy(documentId(), "asc"),
       limit(pageSize + 1),
     ];
 
@@ -203,7 +223,7 @@ export class CompanyRepository {
         where("normalizedName", ">=", lowercasedSearchTerm),
         where("normalizedName", "<=", lowercasedSearchTerm + "\uf8ff"),
         orderBy("normalizedName", "asc"),
-        orderBy("id", "asc"),
+        orderBy(documentId(), "asc"),
         limit(pageSize + 1),
       ];
     }
