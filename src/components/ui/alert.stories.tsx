@@ -1,4 +1,5 @@
 
+import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { Alert, AlertDescription, AlertTitle } from "./alert";
 import { Terminal, AlertCircle } from "lucide-react";
@@ -51,23 +52,21 @@ export const Destructive: Story = {
   ),
 };
 
-export const Customizable: Story = {
-    args: {
-        variant: "default",
-        // @ts-ignore
-        title: "Custom Title",
-        // @ts-ignore
-        description: "This is a custom description controlled by Storybook args.",
-    },
-    argTypes: {
-        title: { control: "text" },
-        description: { control: "text" },
-    },
-    render: ({ title, description, ...args }: any) => (
-        <Alert {...args} className="w-[380px]">
-            <Terminal className="h-4 w-4" />
-            <AlertTitle>{title}</AlertTitle>
-            <AlertDescription>{description}</AlertDescription>
-        </Alert>
-    ),
+export const Customizable: StoryObj<React.ComponentProps<typeof Alert> & { title?: string; description?: string }> = {
+  args: {
+    variant: "default",
+    title: "Custom Title",
+    description: "This is a custom description controlled by Storybook args.",
+  },
+  argTypes: {
+    title: { control: "text" },
+    description: { control: "text" },
+  },
+  render: ({ title, description, ...args }) => (
+    <Alert {...args} className="w-[380px]">
+      <Terminal className="h-4 w-4" />
+      <AlertTitle>{title}</AlertTitle>
+      <AlertDescription>{description}</AlertDescription>
+    </Alert>
+  ),
 };

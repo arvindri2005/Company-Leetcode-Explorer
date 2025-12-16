@@ -52,18 +52,14 @@ export const Default: Story = {
   ),
 };
 
-export const Customizable: Story = {
-    args: {
-        className: "w-[350px]",
-        // @ts-ignore
-        title: "Custom Title",
-        // @ts-ignore
-        description: "Custom description text.",
-        // @ts-ignore
-        content: "This content is configurable.",
-        // @ts-ignore
-        footer: "Footer content",
-    },
+export const Customizable: StoryObj<any> = {
+  args: {
+    className: "w-[350px]",
+    title: "Custom Title",
+    description: "Custom description text.",
+    content: "This content is configurable.",
+    footer: "Footer content",
+  },
     argTypes: {
         title: { control: "text" },
         description: { control: "text" },

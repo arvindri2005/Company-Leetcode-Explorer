@@ -6,14 +6,13 @@ const mockProblem: LeetCodeProblem = {
   id: "1",
   title: "Two Sum",
   difficulty: "Easy",
-  acceptanceRate: 49.2,
-  frequency: 5,
-  url: "https://leetcode.com/problems/two-sum",
   tags: ["Array", "Hash Table"],
   companyIds: ["google", "facebook"],
   link: "https://leetcode.com/problems/two-sum",
-  questionId: "1",
-  isPaidOnly: false,
+  slug: "two-sum",
+  companyId: "google",
+  companySlug: "google",
+  normalizedTitle: "two sum",
 };
 
 const meta = {

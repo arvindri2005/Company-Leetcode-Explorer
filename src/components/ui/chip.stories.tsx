@@ -17,12 +17,7 @@ const meta = {
     selected: {
       control: "boolean",
     },
-    asChild: {
-        control: "boolean",
-        table: {
-            disable: true
-        }
-    }
+
   },
   args: {
     onClick: fn(),

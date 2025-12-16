@@ -1,4 +1,5 @@
 
+import * as React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import {
   Sheet,
@@ -67,43 +68,44 @@ export const Default: Story = {
   ),
 };
 
-export const Customizable: Story = {
-    args: {
-        // @ts-ignore
-        side: "right",
-        // @ts-ignore
-        title: "Custom Sheet",
-        // @ts-ignore
-        description: "Sheet description.",
+export const Customizable: StoryObj<
+  React.ComponentProps<typeof Sheet> & {
+    side?: "top" | "right" | "bottom" | "left";
+    title?: string;
+    description?: string;
+  }
+> = {
+  args: {
+    side: "right",
+    title: "Custom Sheet",
+    description: "Sheet description.",
+  },
+  argTypes: {
+    side: {
+      control: "select",
+      options: ["top", "right", "bottom", "left"],
+      description: "The side of the screen where the sheet appears.",
     },
-    argTypes: {
-        side: {
-            control: "select",
-            options: ["top", "right", "bottom", "left"],
-            description: "The side of the screen where the sheet appears.",
-        },
-        title: { control: "text" },
-        description: { control: "text" },
-    },
-    render: ({ side, title, description }: any) => (
-        <Sheet>
-            <SheetTrigger asChild>
-                <Button variant="outline">Open {side} Sheet</Button>
-            </SheetTrigger>
-            <SheetContent side={side}>
-                <SheetHeader>
-                    <SheetTitle>{title}</SheetTitle>
-                    <SheetDescription>{description}</SheetDescription>
-                </SheetHeader>
-                <div className="py-4">
-                    Content goes here.
-                </div>
-                <SheetFooter>
-                    <SheetClose asChild>
-                        <Button type="submit">Close</Button>
-                    </SheetClose>
-                </SheetFooter>
-            </SheetContent>
-        </Sheet>
-    ),
+    title: { control: "text" },
+    description: { control: "text" },
+  },
+  render: ({ side, title, description, ...args }) => (
+    <Sheet {...args}>
+      <SheetTrigger asChild>
+        <Button variant="outline">Open {side} Sheet</Button>
+      </SheetTrigger>
+      <SheetContent side={side}>
+        <SheetHeader>
+          <SheetTitle>{title}</SheetTitle>
+          <SheetDescription>{description}</SheetDescription>
+        </SheetHeader>
+        <div className="py-4">Content goes here.</div>
+        <SheetFooter>
+          <SheetClose asChild>
+            <Button type="submit">Close</Button>
+          </SheetClose>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
+  ),
 };

@@ -11,6 +11,7 @@
 
 import type {
   LeetCodeProblem,
+  ProblemSummaryDTO,
 } from "@/types";
 import { problemService } from "@/services/problem.service";
 import { companyService } from "@/services/company.service";
@@ -189,7 +190,7 @@ const MAX_PROBLEMS_FOR_AI_FEATURES = 200;
  */
 export async function getAIProblems(
   companyId: string,
-): Promise<LeetCodeProblem[]> {
+): Promise<LeetCodeProblem[] | ProblemSummaryDTO[]> {
   try {
     const { problems } = await problemService.getPublicProblems(companyId, {
       pageSize: MAX_PROBLEMS_FOR_AI_FEATURES,

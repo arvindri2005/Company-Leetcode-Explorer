@@ -11,7 +11,7 @@ import dynamic from "next/dynamic";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Brain, Target, Users } from "lucide-react";
 import ProblemList from "@/components/problem/problem-list";
-import type { Company, LeetCodeProblem, ProblemListFilters } from "@/types";
+import type { Company, LeetCodeProblem, ProblemListFilters, ProblemSummaryDTO } from "@/types";
 import { getAIProblems } from "@/app/actions/problem.actions";
 
 const AIGroupingSection = dynamic(
@@ -79,7 +79,7 @@ export default function CompanyTabs({
   totalPages,
   currentPage,
 }: CompanyTabsProps) {
-  const [aiProblems, setAiProblems] = useState<LeetCodeProblem[]>([]);
+  const [aiProblems, setAiProblems] = useState<LeetCodeProblem[] | ProblemSummaryDTO[]>([]);
 
   useEffect(() => {
     async function fetchAIProblems() {

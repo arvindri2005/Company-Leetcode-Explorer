@@ -8,7 +8,7 @@
  */
 "use client";
 
-import type { LeetCodeProblem, AIProblemInput } from "@/types";
+import type { LeetCodeProblem, AIProblemInput, ProblemSummaryDTO } from "@/types";
 import type { GroupQuestionsOutput } from "@/ai/flows/group-questions";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -41,7 +41,7 @@ import { slugify } from "@/lib/utils";
  */
 interface AIGroupingSectionProps {
   /** The list of problems to be potentially grouped. */
-  problems: LeetCodeProblem[];
+  problems: LeetCodeProblem[] | ProblemSummaryDTO[];
   /** The name of the company the problems belong to. */
   companyName: string;
   /** The slug of the company, used for generating links. */

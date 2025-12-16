@@ -32,3 +32,5 @@ lerna-debug.log*
 
 # Vercel
 .vercel
+
+*storybook.log

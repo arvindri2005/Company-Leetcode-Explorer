@@ -39,6 +39,20 @@ const ProblemListControlsWrapper = () => {
 }
 
 export const Interactive: Story = {
+    // Arguments are required by TypeScript to match the component props,
+    // even though the render function ignores them in favor of the wrapper.
+    args: {
+        difficultyFilter: [],
+        onDifficultyFilterChange: () => {},
+        lastAskedFilter: [],
+        onLastAskedFilterChange: () => {},
+        statusFilter: [],
+        onStatusFilterChange: () => {},
+        sortKey: "difficulty",
+        onSortKeyChange: () => {},
+        problemCount: 10,
+        showStatusFilter: true,
+    },
     render: () => <ProblemListControlsWrapper />
 };
 

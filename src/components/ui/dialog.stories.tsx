@@ -1,4 +1,5 @@
 
+import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import {
   Dialog,
@@ -67,40 +68,41 @@ export const Default: Story = {
   ),
 };
 
-export const Customizable: Story = {
-    args: {
-        // @ts-ignore
-        triggerText: "Open Dialog",
-        // @ts-ignore
-        title: "Custom Title",
-        // @ts-ignore
-        description: "This is a customizable dialog.",
-        // @ts-ignore
-        content: "Dialog body content goes here.",
-    },
-    argTypes: {
-        triggerText: { control: "text" },
-        title: { control: "text" },
-        description: { control: "text" },
-        content: { control: "text" },
-    },
-    render: ({ triggerText, title, description, content }: any) => (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button variant="outline">{triggerText}</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle>{title}</DialogTitle>
-                    <DialogDescription>{description}</DialogDescription>
-                </DialogHeader>
-                <div className="py-4">
-                    {content}
-                </div>
-                <DialogFooter>
-                    <Button type="submit">Action</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    ),
+export const Customizable: StoryObj<
+  React.ComponentProps<typeof Dialog> & {
+    triggerText: string;
+    title: string;
+    description: string;
+    content: string;
+  }
+> = {
+  args: {
+    triggerText: "Open Dialog",
+    title: "Custom Title",
+    description: "This is a customizable dialog.",
+    content: "Dialog body content goes here.",
+  },
+  argTypes: {
+    triggerText: { control: "text" },
+    title: { control: "text" },
+    description: { control: "text" },
+    content: { control: "text" },
+  },
+  render: ({ triggerText, title, description, content, ...args }) => (
+    <Dialog {...args}>
+      <DialogTrigger asChild>
+        <Button variant="outline">{triggerText}</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+        <div className="py-4">{content}</div>
+        <DialogFooter>
+          <Button type="submit">Action</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  ),
 };
