@@ -58,32 +58,35 @@ const problemRequestSchema = z.object({
  * @returns {Promise<NextResponse>} A response containing a paginated list of problems
  * and a new cursor, or an error response if the request is invalid or an issue occurs.
  */
-export async function POST(request: Request) {
+export async function GET(request: Request) {
   try {
-    const body = await request.json();
-    const parsedRequest = problemRequestSchema.safeParse(body);
-
-    if (!parsedRequest.success) {
-      return NextResponse.json(
-        {
-          error: "Invalid request body",
-          details: parsedRequest.error.format(),
-        },
-        { status: 400 },
-      );
+    const { searchParams } = new URL(request.url);
+    const companyId = searchParams.get("companyId") || undefined;
+    const cursor = searchParams.get("cursor") || undefined;
+    const pageSize = parseInt(searchParams.get("pageSize") || "15");
+    const userId = searchParams.get("userId") || undefined;
+    const companySlug = searchParams.get("companySlug") || undefined;
+    const totalProblemCount = searchParams.get("totalProblemCount") ? parseInt(searchParams.get("totalProblemCount")!) : undefined;
+    
+    // Parse difficulty counts if provided as JSON string, otherwise undefined
+    let difficultyCounts;
+    const difficultyCountsParam = searchParams.get("difficultyCounts");
+    if (difficultyCountsParam) {
+      try {
+        difficultyCounts = JSON.parse(difficultyCountsParam);
+      } catch (e) {
+        console.warn("Invalid difficultyCounts param", e);
+      }
     }
 
-    const { 
-      companyId, 
-      cursor, 
-      pageSize, 
-      filters, 
-      userId,
-      totalProblemCount,
-      difficultyCounts,
-      companySlug
-    } = parsedRequest.data;
-    console.log("[API] /api/problems called with userId:", userId);
+    // Filters
+    const searchTerm = searchParams.get("searchTerm") || undefined;
+    const sortKey = (searchParams.get("sortKey") as SortKey) || undefined;
+    const difficultyFilter = searchParams.getAll("difficulty") as DifficultyFilter[];
+    const lastAskedFilter = searchParams.getAll("lastAsked") as LastAskedFilter[];
+    // statusFilter is not used in getPublicProblems (line 112 note in original file) but we can parse it if needed
+    
+    console.log("[API] /api/problems (GET) called with userId:", userId);
 
     let result;
     if (companyId) {
@@ -94,7 +97,6 @@ export async function POST(request: Request) {
 
       if (!companySlugToUse || totalProblemCountToUse === undefined || !difficultyCountsToUse) {
          // Fetch company to get optimization data (counts, slug)
-         // This is cached, so it's cheap compared to getCountFromServer
          const { companyService } = await import("@/services/company.service");
          const company = await companyService.getCompanyById(companyId);
          companySlugToUse = company?.slug;
@@ -105,12 +107,10 @@ export async function POST(request: Request) {
       result = await problemService.getPublicProblems(companyId, {
         cursor,
         pageSize,
-        difficultyFilter: filters?.difficultyFilter as DifficultyFilter[],
-        lastAskedFilter: filters?.lastAskedFilter as LastAskedFilter[],
-        searchTerm: filters?.searchTerm,
-        sortKey: filters?.sortKey as SortKey,
-        // userId removed as it is not supported in public/cached flow
-        // Optimization params
+        difficultyFilter: difficultyFilter.length > 0 ? difficultyFilter : undefined,
+        lastAskedFilter: lastAskedFilter.length > 0 ? lastAskedFilter : undefined,
+        searchTerm,
+        sortKey,
         companySlug: companySlugToUse,
         totalProblemCount: totalProblemCountToUse,
         difficultyCounts: difficultyCountsToUse,
@@ -121,10 +121,10 @@ export async function POST(request: Request) {
       result = await ps.getAllProblemsPaginated({
         cursor,
         pageSize,
-        difficultyFilter: filters?.difficultyFilter as DifficultyFilter[],
-        lastAskedFilter: filters?.lastAskedFilter as LastAskedFilter[],
-        searchTerm: filters?.searchTerm,
-        sortKey: filters?.sortKey as SortKey,
+        difficultyFilter: difficultyFilter.length > 0 ? difficultyFilter : undefined,
+        lastAskedFilter: lastAskedFilter.length > 0 ? lastAskedFilter : undefined,
+        searchTerm,
+        sortKey,
         userId,
       });
     }

@@ -24,16 +24,16 @@ export const useCursorPagination = () => {
       searchTerm?: string,
     ): Promise<CompaniesResponse> => {
       try {
-        const response = await fetch("/api/companies", {
-          method: "POST",
+        const params = new URLSearchParams();
+        if (cursor) params.append("cursor", cursor);
+        if (pageSize) params.append("pageSize", pageSize.toString());
+        if (searchTerm?.trim()) params.append("searchTerm", searchTerm.trim());
+
+        const response = await fetch(`/api/companies?${params.toString()}`, {
+          method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            cursor,
-            pageSize,
-            searchTerm: searchTerm?.trim(),
-          }),
         });
 
         if (!response.ok) {

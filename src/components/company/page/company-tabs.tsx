@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Brain, Target, Users } from "lucide-react";
 import ProblemList from "@/components/problem/problem-list";
 import type { Company, LeetCodeProblem, ProblemListFilters, ProblemSummaryDTO } from "@/types";
-import { getAIProblems } from "@/app/actions/problem.actions";
+// import { getAIProblems } from "@/app/actions/problem.actions";
 
 const AIGroupingSection = dynamic(
   () => import("@/components/ai/ai-grouping-section"),
@@ -86,7 +86,9 @@ export default function CompanyTabs({
       if (!company.id) return;
 
       try {
-        const problems = await getAIProblems(company.id);
+        const response = await fetch(`/api/companies/${company.id}/ai-problems`);
+        if (!response.ok) throw new Error("Failed to fetch AI problems");
+        const problems = await response.json();
         setAiProblems(problems);
       } catch (error) {
         console.error("Failed to fetch problems for AI features:", error);
