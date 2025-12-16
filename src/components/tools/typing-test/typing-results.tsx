@@ -136,7 +136,7 @@ export default function TypingResults({
                                     }}
                                     itemStyle={{ color: 'hsl(var(--primary))', fontWeight: 'bold', fontSize: '14px' }}
                                     labelStyle={{ display: 'none' }}
-                                    formatter={(value: number | undefined) => [value !== undefined ? `${value} WPM` : '', '']}
+                                    formatter={(value: any) => [value ? `${value} WPM` : '', '']}
                                 />
                                 <Line 
                                     type="monotone" 
