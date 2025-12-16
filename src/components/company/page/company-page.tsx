@@ -18,6 +18,7 @@ import NoProblemsAvailable from "@/components/company/page/no-problems-available
 import RelatedCompanies from "@/components/company/related-companies";
 import CompanyPreparationGuide from "@/components/company/company-preparation-guide";
 
+
 const INITIAL_ITEMS_PER_PAGE = 40;
 
 /**
@@ -80,63 +81,67 @@ export default async function CompanyPage({ company, initialPaginatedProblems }:
   const hasProblems = displayProblemCount > 0;
 
   return (
-      <div className="min-h-screen bg-background">
-          <div className="container mx-auto px-4 py-4 max-w-7xl transition-all duration-300 ease-in-out">
-              {/* Company Header Section */}
-              <CompanyHeader company={company} />
+    <div className="min-h-screen bg-background pb-12">
+      <div className="container mx-auto px-4 py-4 max-w-7xl transition-all duration-300 ease-in-out">
+        {/* Company Header Section */}
+        <CompanyHeader company={company} />
 
-              {/* Mobile Ad (Top) */}
-              <div className="lg:hidden mt-6">
-                  <AdPlaceholder
-                      className="h-24"
-                      title="Sponsored"
-                  />
+        {/* Mobile Ad (Top) */}
+        <div className="lg:hidden mt-6 mb-6">
+          <AdPlaceholder className="h-24" title="Sponsored" />
+        </div>
+
+        {/* Main Content Grid: Problem List + Ads */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-4 transition-all duration-300 ease-in-out mb-12">
+          {/* Main Column: Tabs/Problem List */}
+          <main className="lg:col-span-3 transition-all duration-300 ease-in-out min-h-[500px]">
+            {hasProblems ? (
+              <CompanyTabs
+                company={company}
+                displayProblemCount={displayProblemCount}
+                initialProblems={initialProblems}
+                initialHasMore={initialHasMore ?? false}
+                initialNextCursor={initialNextCursor}
+                initialFilters={initialFilters}
+                itemsPerPage={INITIAL_ITEMS_PER_PAGE}
+                totalPages={totalPages ?? 1}
+                currentPage={currentPage ?? 1}
+              />
+            ) : (
+              <NoProblemsAvailable
+                companyName={company.name}
+                companyId={company.id}
+              />
+            )}
+          </main>
+
+          {/* Right Sidebar: Ads Only */}
+          <aside className="lg:col-span-1 hidden lg:block transition-all duration-300 ease-in-out">
+            <div className="sticky top-24 flex flex-col gap-4">
+              <div className="h-[300px] w-full">
+                <AdPlaceholder title="Sponsored" className="h-full my-0" />
               </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-4 pb-20 lg:pb-0 transition-all duration-300 ease-in-out">
-                  {/* Main Content: Tabs & Problem List */}
-                  <main className="lg:col-span-3 transition-all duration-300 ease-in-out">
-                      {hasProblems ? (
-                          <CompanyTabs
-                              company={company}
-                              displayProblemCount={displayProblemCount}
-                              initialProblems={initialProblems}
-                              initialHasMore={initialHasMore ?? false}
-                              initialNextCursor={initialNextCursor}
-                              initialFilters={initialFilters}
-                              itemsPerPage={INITIAL_ITEMS_PER_PAGE}
-                              totalPages={totalPages ?? 1}
-                              currentPage={currentPage ?? 1}
-                          />
-                      ) : (
-                          <NoProblemsAvailable
-                              companyName={company.name}
-                              companyId={company.id}
-                          />
-                      )}
-                      
-                      <CompanyPreparationGuide company={company} />
-
-                      {/* Related Companies (Desktop & Mobile) */}
-                      <div className="mt-12">
-                          <h2 className="text-2xl font-bold mb-6 text-white">Related Companies</h2>
-                          <RelatedCompanies companies={company.relatedCompanies || []} />
-                      </div>
-                  </main>
-
-                  {/* Right Sidebar: Ads Only */}
-                  <aside className="lg:col-span-1 hidden lg:block transition-all duration-300 ease-in-out">
-                      <div className="sticky top-24 h-[calc(100vh-8rem)] flex flex-col gap-4">
-                          <div className="flex-1 min-h-0">
-                              <AdPlaceholder title="Sponsored" className="h-full my-0" />
-                          </div>
-                          <div className="flex-1 min-h-0">
-                              <AdPlaceholder title="Advertisement" className="h-full my-0" />
-                          </div>
-                      </div>
-                  </aside>
+              <div className="h-[300px] w-full">
+                <AdPlaceholder title="Advertisement" className="h-full my-0" />
               </div>
-          </div>
+            </div>
+          </aside>
+        </div>
+
+        {/* Bottom Sections: Full Width */}
+        <div className="space-y-12">
+          {/* Related Companies */}
+          <section>
+            <RelatedCompanies companies={company.relatedCompanies || []} />
+          </section>
+
+          {/* How to Prepare */}
+          <section>
+            <CompanyPreparationGuide company={company} />
+          </section>
+
+        </div>
       </div>
+    </div>
   );
 }
