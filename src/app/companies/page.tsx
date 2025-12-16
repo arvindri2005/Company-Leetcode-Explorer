@@ -55,11 +55,27 @@ export default async function CompaniesPage() {
   const trendingPromises = trendingSlugs.map((slug) =>
     companyService.getCompanyBySlug(slug)
   );
-  
-  // Use Promise.allSettled or just Promise.all depending on error handling needed. 
-  // Assuming Promise.all is fine as in original code.
+
   const trendingResult = await Promise.all(trendingPromises);
-  const trendingCompanies = trendingResult.filter((c): c is NonNullable<typeof c> => c !== undefined && c !== null);
+  const foundTrending = trendingResult.filter(
+    (c): c is NonNullable<typeof c> => c !== undefined && c !== null
+  );
+
+  // Fallback: If < 3 trending, fill with companies from the main list
+  // We want to ensure we have at least 3 companies if possible
+  const distinctTrending = new Map<string, typeof foundTrending[0]>();
+  foundTrending.forEach((c) => distinctTrending.set(c.id, c));
+
+  if (distinctTrending.size < 3) {
+    for (const company of companies) {
+      if (distinctTrending.size >= 3) break;
+      if (!distinctTrending.has(company.id)) {
+        distinctTrending.set(company.id, company);
+      }
+    }
+  }
+
+  const trendingCompanies = Array.from(distinctTrending.values()).slice(0, 3);
 
   return (
     <Suspense fallback={<div className="container mx-auto px-4 py-8 text-center text-gray-400">Loading companies...</div>}>

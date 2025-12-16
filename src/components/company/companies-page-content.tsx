@@ -17,6 +17,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { HelpCircle } from "lucide-react";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { fetchCompaniesAction } from "@/app/actions/company.actions";
+import Footer from "@/components/landing/footer";
 
 const ITEMS_PER_PAGE = 30;
 
@@ -194,11 +195,7 @@ export function CompaniesPageContent({
   };
 
   return (
-    <main className="min-h-screen w-full text-white">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
-      />
+    <main className="min-h-screen w-full text-white flex flex-col">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
@@ -215,33 +212,40 @@ export function CompaniesPageContent({
         />
       )}
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex-1 pb-12">
         <DashboardHeader />
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Main Content */}
-            <div className="lg:col-span-3">
-                {showTrending && (
-                <section className="mb-16 space-y-6">
-                    <h2 className="text-2xl font-bold">Trending Companies</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {initialTrendingCompanies.map((company) => (
-                        <TechCompanyCard key={company.id} company={company} priority={true} />
-                    ))}
-                    </div>
-                </section>
-                )}
+        {/* Trending Section - Now Full Width outside main grid */}
+        {showTrending && (
+          <section className="mb-12 space-y-4">
+            <h2 className="text-xl font-bold text-gray-200 pl-1">Trending Companies</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {initialTrendingCompanies.map((company) => (
+                <TechCompanyCard key={company.id} company={company} priority={true} />
+              ))}
+            </div>
+            <Separator className="my-8 bg-white/5" />
+          </section>
+        )}
 
-                <section className="space-y-6">
-                <h2 className="text-2xl font-bold">All Companies</h2>
-                
+        {/* Main Content Grid: List + Ads */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-16">
+          {/* Main Column: Company List (Scrollable) */}
+          <div className="lg:col-span-3">
+            <section className="space-y-4 h-full"> 
+              <div className="flex items-center justify-between mb-2">
+                 <h2 className="text-xl font-bold text-gray-200">All Companies</h2>
+              </div>
+              
+              {/* Natural flow - Page level scroll */}
+              <div className="space-y-4">
                 {isLoading ? (
                     <div className="space-y-8">
                          {/* Simple loading skeleton */}
                          <div className="w-full h-96 bg-white/5 rounded-xl animate-pulse"></div>
                     </div>
                 ) : companies.length > 0 ? (
-                    <div className="space-y-8">
+                    <div className="space-y-4">
                         <CompanyTable companies={companies} />
                         
                         {/* Loading trigger / Sentinel */}
@@ -259,99 +263,89 @@ export function CompaniesPageContent({
                         )}
                     </div>
                 ) : (
-                    <div className="text-center py-12">
+                    <div className="text-center py-12 bg-[#1A1A1A] rounded-xl border border-white/5">
                         <h2 className="text-lg font-semibold text-white mb-2">No Results</h2>
                         <p className="text-gray-400">
                         No companies found matching your criteria.
                         </p>
                     </div>
                 )}
-                </section>
+              </div>
+            </section>
+          </div>
 
-                <Separator className="my-16 bg-white/10" />
-                
-                <Separator className="my-16 bg-white/10" />
-                
-                {/* Only show SEO content on initial non-search view */}
-                {!searchTerm && (
-                    <section className="space-y-8 max-w-4xl mx-auto">
+          {/* Right Sidebar: Ads Only */}
+          <aside className="hidden lg:block lg:col-span-1">
+            <div className="sticky top-24 flex flex-col gap-6">
+                <div className="h-[300px] w-full">
+                    <AdPlaceholder title="Sponsored" className="h-full" />
+                </div>
+                <div className="h-[300px] w-full">
+                    <AdPlaceholder title="Advertisement" className="h-full" />
+                </div>
+            </div>
+          </aside>
+        </div>
+
+        {/* About / FAQ Section - Now separate below grid */}
+        {!searchTerm && (
+            <section className="space-y-12 max-w-5xl mx-auto pt-8 border-t border-white/5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                     <div className="space-y-4">
-                        <h2 className="text-2xl font-bold">
+                        <h2 className="text-2xl font-bold text-white">
                         About Our Company Interview Questions
                         </h2>
-                        <p className="text-gray-400 leading-relaxed">
-                        Byte to Offer provides a comprehensive collection of real interview
+                        <p className="text-gray-400 leading-relaxed text-lg">
+                        Byte to Offer provides a collection of real interview
                         questions from top technology companies. Our platform helps software
                         engineers, data scientists, and product managers prepare effectively
                         by practicing with the actual problems asked in recent interviews.
-                        Whether you are targeting FAANG giants or innovative startups, our
-                        curated lists and detailed solutions give you the edge you need to
-                        succeed.
                         </p>
                     </div>
-
+                    
                     <div className="space-y-6">
-                        <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                        <HelpCircle className="h-6 w-6 text-primary" />
+                        <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-white">
+                        <HelpCircle className="h-5 w-5 text-teal-400" />
                         Frequently Asked Questions
                         </h3>
-                        <Card className="border-white/10 bg-[#1A1A1A]">
-                        <CardContent className="pt-6">
-                            <Accordion type="single" collapsible className="w-full">
-                            {/* FAQ Items */}
-                            <AccordionItem value="item-1">
-                                <AccordionTrigger className="text-white hover:text-teal-400">
-                                What companies can I find interview questions for?
-                                </AccordionTrigger>
-                                <AccordionContent className="text-gray-400">
-                                You can find interview questions for top tech companies
-                                including Google, Amazon, Microsoft, Meta, Netflix, Apple,
-                                Uber, Airbnb, and many more. We cover a wide range of
-                                companies from FAANG to startups.
-                                </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="item-2">
-                                <AccordionTrigger className="text-white hover:text-teal-400">
-                                Are the interview questions real?
-                                </AccordionTrigger>
-                                <AccordionContent className="text-gray-400">
-                                Yes, our questions are collected from recent interview
-                                experiences shared by candidates. We verify and curate them
-                                to ensure they reflect the current interview patterns.
-                                </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="item-3">
-                                <AccordionTrigger className="text-white hover:text-teal-400">
-                                How can I prepare for a specific company?
-                                </AccordionTrigger>
-                                <AccordionContent className="text-gray-400">
-                                You can browse our company-specific pages to find curated
-                                lists of questions, interview guides, and common topics
-                                asked by that company. We also provide difficulty breakdowns
-                                and trending tags.
-                                </AccordionContent>
-                            </AccordionItem>
-                            </Accordion>
-                        </CardContent>
-                        </Card>
-                    </div>
-                    </section>
-                )}
-            </div>
-
-            {/* Sidebar */}
-            <aside className="hidden lg:block lg:col-span-1">
-                <div className="sticky top-24 h-[calc(100vh-8rem)] flex flex-col gap-4">
-                    <div className="flex-1">
-                        <AdPlaceholder title="Sponsored" className="h-full" />
-                    </div>
-                    <div className="flex-1">
-                        <AdPlaceholder title="Advertisement" className="h-full" />
+                        <Accordion type="single" collapsible className="w-full">
+                        {/* FAQ Items */}
+                        <AccordionItem value="item-1" className="border-white/10">
+                            <AccordionTrigger className="text-white hover:text-teal-400 hover:no-underline">
+                            What companies can I find?
+                            </AccordionTrigger>
+                            <AccordionContent className="text-gray-400">
+                            You can find interview questions for top tech companies
+                            including Google, Amazon, Microsoft, Meta, Netflix, Apple,
+                            Uber, Airbnb, and many more.
+                            </AccordionContent>
+                        </AccordionItem>
+                        <AccordionItem value="item-2" className="border-white/10">
+                            <AccordionTrigger className="text-white hover:text-teal-400 hover:no-underline">
+                            Are the questions real?
+                            </AccordionTrigger>
+                            <AccordionContent className="text-gray-400">
+                            Yes, our questions are collected from recent interview
+                            experiences shared by candidates and verified for accuracy.
+                            </AccordionContent>
+                        </AccordionItem>
+                        <AccordionItem value="item-3" className="border-b-0 border-white/10">
+                            <AccordionTrigger className="text-white hover:text-teal-400 hover:no-underline">
+                            How do I prepare?
+                            </AccordionTrigger>
+                            <AccordionContent className="text-gray-400">
+                            Browse company pages, review common topics, and practice
+                            specific problems listed in our curated collections.
+                            </AccordionContent>
+                        </AccordionItem>
+                        </Accordion>
                     </div>
                 </div>
-            </aside>
-        </div>
+            </section>
+        )}
       </div>
+      
+      <Footer />
     </main>
   );
 }
