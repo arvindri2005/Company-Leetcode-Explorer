@@ -15,6 +15,8 @@ import { getLogoUrl, capitalizeWords } from "@/lib/utils";
 
 import StructuredData from "@/components/seo/structured-data";
 
+export const revalidate = 2592000; // 1 month
+
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 
 /**

@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 3600; // Revalidate every hour
+export const revalidate = 2592000; // 1 month
 
 const jsonLd = {
   "@context": "https://schema.org",

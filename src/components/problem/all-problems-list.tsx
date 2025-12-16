@@ -300,8 +300,9 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
 
     // A. Apply Global Statuses immediately if loaded
     if (areGlobalStatsLoaded) {
-        setDisplayedProblems((prev) => 
-            prev.map(p => {
+        setDisplayedProblems((prev) => {
+            let hasChanges = false;
+            const next = prev.map(p => {
                 // Determine status from sets
                 let newStatus: ProblemStatus = "none";
                 if (solvedProblemIds.has(p.id)) newStatus = "solved";
@@ -312,11 +313,13 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
                 // Only update if changed prevents loops? React state updates if object ref changes
                 // Optimization: Checked inside map
                  if (p.currentStatus !== newStatus || p.isBookmarked !== isBookmarked) {
+                     hasChanges = true;
                      return { ...p, currentStatus: newStatus, isBookmarked: isBookmarked };
                  }
                 return p;
-            })
-        );
+            });
+            return hasChanges ? next : prev;
+        });
     }
   }, [displayedProblems, user, areGlobalStatsLoaded, solvedProblemIds, attemptedProblemIds, bookmarkedProblemIds]);
 

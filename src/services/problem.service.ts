@@ -46,14 +46,16 @@ export class ProblemService {
         recencyCounts,
     } = params;
 
-    // Only cache the "default" view to prevent key explosion and redundant caching
-    const isDefaultQuery = 
-        !cursor && 
-        (!page || page === 1) && 
-        difficultyFilter.length === 0 && 
-        lastAskedFilter.length === 0 && 
-        (!searchTerm || searchTerm.trim() === "") && 
-        (sortKey === "title");
+    // Unified caching for all queries (default + filtered)
+    const cacheKey = `problems-public-${companyId}-${JSON.stringify({
+        cursor,
+        page,
+        pageSize,
+        difficultyFilter,
+        lastAskedFilter,
+        searchTerm,
+        sortKey,
+    })}`;
 
     const fetchProblems = async () => {
         return await problemRepository.getProblemsByCompany(companyId, {
@@ -71,45 +73,27 @@ export class ProblemService {
         });
     };
 
-    if (isDefaultQuery) {
-        const cacheKey = `problems-public-${companyId}-default`;
-        const getCachedProblems = unstable_cache(
-            fetchProblems,
-            [cacheKey],
-            {
-                revalidate: 3600, // 1 hour
-                tags: [`problems-company-${companyId}`],
-            }
-        );
-        
-        const { problems, totalProblems, hasMore, nextCursor, totalPages, currentPage } = await getCachedProblems();
-        const finalTotalPages = totalPages ?? Math.ceil((totalProblemCount || totalProblems || 0) / pageSize);
-        const finalCurrentPage = currentPage ?? (page || 1);
+    const getCachedProblems = unstable_cache(
+        fetchProblems,
+        [cacheKey],
+        {
+            revalidate: 2592000, // 30 days
+            tags: [`problems-company-${companyId}`],
+        }
+    );
+    
+    const { problems, totalProblems, hasMore, nextCursor, totalPages, currentPage } = await getCachedProblems();
+    const finalTotalPages = totalPages ?? Math.ceil((totalProblemCount || totalProblems || 0) / pageSize);
+    const finalCurrentPage = currentPage ?? (page || 1);
 
-        return {
-            problems,
-            totalProblems,
-            hasMore,
-            nextCursor,
-            totalPages: finalTotalPages,
-            currentPage: finalCurrentPage,
-        };
-    } else {
-        // Bypass cache for filtered/paginated queries
-        const { problems, totalProblems, hasMore, nextCursor, totalPages, currentPage } = await fetchProblems();
-        
-        const finalTotalPages = totalPages ?? Math.ceil((totalProblemCount || totalProblems || 0) / pageSize);
-        const finalCurrentPage = currentPage ?? (page || 1);
-
-        return {
-            problems,
-            totalProblems,
-            hasMore,
-            nextCursor,
-            totalPages: finalTotalPages,
-            currentPage: finalCurrentPage,
-        };
-    }
+    return {
+        problems,
+        totalProblems,
+        hasMore,
+        nextCursor,
+        totalPages: finalTotalPages,
+        currentPage: finalCurrentPage,
+    };
   }
 
   async getProblemsByCompanySlug(
@@ -188,7 +172,7 @@ export class ProblemService {
         },
         [cacheKey],
         {
-            revalidate: 3600, // 1 hour
+            revalidate: 2592000, // 30 days
             tags: ["all-problems-v3"],
         }
       );
@@ -237,7 +221,7 @@ export class ProblemService {
         async () => problemRepository.getAllProblems(),
         ["all-problems-list"],
         {
-            revalidate: 86400, // 24 hours
+            revalidate: 2592000, // 30 days
             tags: ["all-problems"],
         }
     );
@@ -250,7 +234,7 @@ export class ProblemService {
         async () => problemRepository.getProblemDetails(companyId, problemId),
         [`problem-details-${companyId}-${problemId}`],
         {
-            revalidate: 3600, // 1 hour
+            revalidate: 2592000, // 30 days
             tags: [`problem-${problemId}`, `company-${companyId}`],
         }
     );
@@ -265,7 +249,7 @@ export class ProblemService {
           async () => problemRepository.getProblemByCompanySlugAndProblemSlug(companySlug, problemSlug),
           [`problem-by-slugs-${companySlug}-${problemSlug}`],
           {
-              revalidate: 3600,
+              revalidate: 2592000, // 30 days
               tags: [`company-slug-${companySlug}`, `problem-${problemSlug}`],
           }
       );
@@ -279,7 +263,7 @@ export class ProblemService {
           async () => problemRepository.getAllProblemCompanyAndProblemSlugs(),
           ["all-problem-company-slugs"], // Cache Key
           {
-              revalidate: 86400, // 24 hours
+              revalidate: 2592000, // 30 days
               tags: ["problems-slugs"],
           }
       );
