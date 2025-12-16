@@ -1,7 +1,11 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { Company } from "@/types";
 import { DashboardHeader } from "@/components/company/dashboard-header";
 import { TechCompanyCard } from "@/components/company/tech-company-card";
 import { CompanyTable } from "@/components/company/company-table";
-import { companyService } from "@/services/company.service";
 import { Separator } from "@/components/ui/separator";
 import {
   Accordion,
@@ -13,69 +17,71 @@ import { Card, CardContent } from "@/components/ui/card";
 import { HelpCircle } from "lucide-react";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
+import { fetchCompaniesAction } from "@/app/actions/company.actions";
 
-// Constants
-const ITEMS_PER_PAGE = 30; // Matches data layer default
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
+const ITEMS_PER_PAGE = 30;
 
-interface CompaniesViewProps {
-  page: number;
-  searchParams?: { [key: string]: string | string[] | undefined };
+interface CompaniesPageContentProps {
+  initialCompanies: Company[];
+  initialTrendingCompanies: Company[];
+  initialTotalPages: number;
+  initialHasMore: boolean;
+  appUrl: string;
 }
 
-export async function CompaniesView({ page, searchParams }: CompaniesViewProps) {
-  const searchTerm = (searchParams?.search as string) || "";
-  const currentPage = page > 0 ? page : 1;
+export function CompaniesPageContent({
+  initialCompanies,
+  initialTrendingCompanies,
+  initialTotalPages,
+  initialHasMore,
+  appUrl,
+}: CompaniesPageContentProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
-  // Parallelize data fetching
-  const companiesPromise = companyService.getCompanies({
-    page: currentPage,
-    pageSize: ITEMS_PER_PAGE,
-    searchTerm,
-  });
+  // State
+  const [companies, setCompanies] = useState<Company[]>(initialCompanies);
+  const [totalPages, setTotalPages] = useState(initialTotalPages);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch trending companies (Google, Amazon, Microsoft)
-  // Only fetch if no search term, and on page 1
-  let trendingPromise: Promise<any[]> = Promise.resolve([]);
-  if (!searchTerm && currentPage === 1) {
-    const trendingSlugs = ["google", "amazon", "microsoft"];
-    const trendingPromises = trendingSlugs.map((slug) =>
-      companyService.getCompanyBySlug(slug)
-    );
-    trendingPromise = Promise.all(trendingPromises).then((results) =>
-      results.filter((c) => c !== undefined)
-    );
-  }
+  // Derived from URL
+  const pageParam = searchParams.get("page");
+  const currentPage = pageParam ? parseInt(pageParam) : 1;
+  const searchTerm = searchParams.get("search") || "";
+  
+  // Trending is static, only shown on page 1 with no search
+  const showTrending = currentPage === 1 && !searchTerm && initialTrendingCompanies.length > 0;
 
-  const [companiesResult, trendingCompaniesResult] = await Promise.all([
-    companiesPromise,
-    trendingPromise,
-  ]);
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      // Check if we are at default state (Page 1, no search)
+      // This matches the static props, so we can skip fetch and use initial
+      if (currentPage === 1 && !searchTerm) {
+        setCompanies(initialCompanies);
+        setTotalPages(initialTotalPages);
+        setHasMore(initialHasMore);
+        return;
+      }
 
-  const {
-    companies: initialCompanies,
-    totalPages,
-    totalCompanies,
-    hasMore,
-  } = companiesResult;
+      setIsLoading(true);
+      try {
+        const result = await fetchCompaniesAction(currentPage, ITEMS_PER_PAGE, searchTerm);
+        setCompanies(result.companies);
+        setTotalPages(result.totalPages);
+        setHasMore(result.hasMore);
+      } catch (error) {
+        console.error("Failed to fetch companies:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  let trendingCompanies = trendingCompaniesResult;
+    fetchCompanies();
+  }, [currentPage, searchTerm, initialCompanies, initialTotalPages, initialHasMore]);
 
-  console.log(`[CompaniesView] Page: ${currentPage}, Search: "${searchTerm}"`);
-  console.log(`[CompaniesView] Initial Companies: ${initialCompanies.length}`);
-  console.log(`[CompaniesView] Trending Companies: ${trendingCompanies.length}`);
-
-  // Fallback if specific companies aren't found (e.g. in dev env)
-  if (
-    !searchTerm &&
-    currentPage === 1 &&
-    trendingCompanies.length === 0 &&
-    initialCompanies.length > 0
-  ) {
-    trendingCompanies = initialCompanies.slice(0, 3);
-  }
-
-  // Structured Data (JSON-LD)
+  // JSON-LD Generation
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -84,13 +90,13 @@ export async function CompaniesView({ page, searchParams }: CompaniesViewProps) 
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: APP_URL,
+        item: appUrl,
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Companies",
-        item: `${APP_URL}/companies`,
+        item: `${appUrl}/companies`,
       },
     ],
   };
@@ -98,11 +104,11 @@ export async function CompaniesView({ page, searchParams }: CompaniesViewProps) 
   const itemListJsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    itemListElement: initialCompanies.map((company, index) => ({
+    itemListElement: companies.map((company, index) => ({
       "@type": "ListItem",
       position: (currentPage - 1) * ITEMS_PER_PAGE + index + 1,
       name: company.name,
-      url: `${APP_URL}/company/${company.slug}`,
+      url: `${appUrl}/company/${company.slug}`,
     })),
   };
 
@@ -118,7 +124,22 @@ export async function CompaniesView({ page, searchParams }: CompaniesViewProps) 
           text: "You can find interview questions for top tech companies including Google, Amazon, Microsoft, Meta, Netflix, Apple, Uber, Airbnb, and many more. We cover a wide range of companies from FAANG to startups.",
         },
       },
-      // ... (Rest of FAQ same as before)
+      {
+        "@type": "Question",
+        name: "Are the interview questions real?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes, our questions are collected from recent interview experiences shared by candidates. We verify and curate them to ensure they reflect the current interview patterns.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "How can I prepare for a specific company?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "You can browse our company-specific pages to find curated lists of questions, interview guides, and common topics asked by that company. We also provide difficulty breakdowns and trending tags.",
+        },
+      },
     ],
   };
 
@@ -145,11 +166,11 @@ export async function CompaniesView({ page, searchParams }: CompaniesViewProps) 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-3">
-                {!searchTerm && currentPage === 1 && trendingCompanies.length > 0 && (
+                {showTrending && (
                 <section className="mb-16 space-y-6">
                     <h2 className="text-2xl font-bold">Trending Companies</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {trendingCompanies.map((company) => (
+                    {initialTrendingCompanies.map((company) => (
                         <TechCompanyCard key={company.id} company={company} priority={true} />
                     ))}
                     </div>
@@ -159,16 +180,22 @@ export async function CompaniesView({ page, searchParams }: CompaniesViewProps) 
                 <section className="space-y-6">
                 <h2 className="text-2xl font-bold">All Companies</h2>
                 
-                {initialCompanies.length > 0 ? (
+                {isLoading ? (
                     <div className="space-y-8">
-                        <CompanyTable companies={initialCompanies} />
+                         {/* Simple loading skeleton or just verify loading behavior */}
+                         <div className="w-full h-96 bg-white/5 rounded-xl animate-pulse"></div>
+                    </div>
+                ) : companies.length > 0 ? (
+                    <div className="space-y-8">
+                        <CompanyTable companies={companies} />
                         
                         <PaginationControls 
                             currentPage={currentPage}
-                            totalPages={totalPages || -1} // Use -1 or valid total
+                            totalPages={totalPages || -1}
                             baseUrl="/companies"
                             hasNextPage={hasMore}
-                            searchParams={searchParams}
+                            // Pass empty object for searchParams to controls as we handle it via URL
+                            searchParams={{ search: searchTerm, page: currentPage.toString() }}
                         />
                     </div>
                 ) : (
@@ -184,7 +211,7 @@ export async function CompaniesView({ page, searchParams }: CompaniesViewProps) 
                 <Separator className="my-16 bg-white/10" />
                 
                 {/* Only show SEO content on page 1 */}
-                {currentPage === 1 && (
+                {currentPage === 1 && !searchTerm && (
                     <section className="space-y-8 max-w-4xl mx-auto">
                     <div className="space-y-4">
                         <h2 className="text-2xl font-bold">
@@ -242,7 +269,6 @@ export async function CompaniesView({ page, searchParams }: CompaniesViewProps) 
                                 and trending tags.
                                 </AccordionContent>
                             </AccordionItem>
-                            {/* ... other items if needed, keeping it concise ... */}
                             </Accordion>
                         </CardContent>
                         </Card>

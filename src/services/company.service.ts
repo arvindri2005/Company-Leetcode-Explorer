@@ -4,12 +4,25 @@ import { unstable_cache, revalidateTag } from "next/cache";
 
 export class CompanyService {
   async getCompanies(params: GetCompaniesParams = {}): Promise<PaginatedCompaniesResponse> {
-    // We don't typically cache search/pagination queries with unstable_cache due to key explosion
-    // unless we use specific page keys. getCompanies in original code wasn't cached, only slugs were.
-    // However, if we want to cache the "first page default", we could.
-    // Preserving original behavior: no generic cache for the list query itself except
-    // next fetch cache might kick in if configured.
-    return await companyRepository.getCompanies(params);
+    const { page, pageSize, searchTerm, cursor } = params;
+
+    const cacheKey = `companies-public-${JSON.stringify({
+      page,
+      pageSize,
+      searchTerm,
+      cursor,
+    })}`;
+
+    const getCachedCompanies = unstable_cache(
+      async () => await companyRepository.getCompanies(params),
+      [cacheKey],
+      {
+        revalidate: 2592000, // 30 days
+        tags: ["companies-collection-broad"],
+      }
+    );
+
+    return await getCachedCompanies();
   }
 
   async loadMoreCompanies(
@@ -42,7 +55,7 @@ export class CompanyService {
       async () => companyRepository.getCompanyById(id),
       [`company-${id}`],
       {
-        revalidate: 86400, // 24 hours
+        revalidate: 2592000, // 30 days
         tags: [`company-${id}-v2`],
       }
     );
@@ -64,7 +77,7 @@ export class CompanyService {
       async () => companyRepository.getCompanyBySlug(slug),
       [`company-slug-${slug}`],
       {
-        revalidate: 86400, // 24 hours
+        revalidate: 2592000, // 30 days
         tags: [`company-slug-${slug}-v2`],
       }
     );
