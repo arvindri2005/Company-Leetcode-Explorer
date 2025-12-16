@@ -42,9 +42,9 @@ export const metadata: Metadata = {
 };
 
 export default async function CompaniesPage() {
-  // Fetch initial non-filtered data (Page 1)
+  /* Fetch initial non-filtered data (Page 1) */
   const ITEMS_PER_PAGE = 30;
-  const { companies, totalPages, hasMore } = await companyService.getCompanies({
+  const { companies, totalPages, hasMore, nextCursor } = await companyService.getCompanies({
     page: 1,
     pageSize: ITEMS_PER_PAGE,
     searchTerm: "",
@@ -68,6 +68,7 @@ export default async function CompaniesPage() {
         initialTrendingCompanies={trendingCompanies}
         initialTotalPages={totalPages || 1}
         initialHasMore={hasMore || false}
+        initialNextCursor={nextCursor}
         appUrl={APP_URL}
       />
     </Suspense>

@@ -119,22 +119,25 @@ export async function fetchCompaniesAction(
   page: number,
   pageSize: number,
   searchTerm?: string,
+  cursor?: string,
 ): Promise<{
   companies: Company[];
   totalPages: number;
   totalCompanies: number;
   currentPage: number;
   hasMore: boolean;
+  nextCursor?: string;
   error?: string;
 }> {
   try {
-    const result = await companyService.getCompanies({ page, pageSize, searchTerm });
+    const result = await companyService.getCompanies({ page, pageSize, searchTerm, cursor });
     return {
       ...result,
       totalPages: result.totalPages ?? 0,
       totalCompanies: result.totalCompanies ?? 0,
       currentPage: result.currentPage ?? 1,
       hasMore: result.hasMore ?? false,
+      nextCursor: result.nextCursor,
     };
   } catch (error) {
     console.error("Error fetching companies in action:", error);

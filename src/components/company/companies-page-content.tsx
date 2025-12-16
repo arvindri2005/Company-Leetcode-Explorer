@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Company } from "@/types";
 import { DashboardHeader } from "@/components/company/dashboard-header";
 import { TechCompanyCard } from "@/components/company/tech-company-card";
@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
 import { HelpCircle } from "lucide-react";
-import { PaginationControls } from "@/components/ui/pagination-controls";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { fetchCompaniesAction } from "@/app/actions/company.actions";
 
@@ -26,6 +25,7 @@ interface CompaniesPageContentProps {
   initialTrendingCompanies: Company[];
   initialTotalPages: number;
   initialHasMore: boolean;
+  initialNextCursor?: string;
   appUrl: string;
 }
 
@@ -34,52 +34,102 @@ export function CompaniesPageContent({
   initialTrendingCompanies,
   initialTotalPages,
   initialHasMore,
+  initialNextCursor,
   appUrl,
 }: CompaniesPageContentProps) {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
-
+  const router = useRouter(); // Keep for navigation if needed, but we don't sync page to URL anymore
+  
   // State
   const [companies, setCompanies] = useState<Company[]>(initialCompanies);
-  const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [hasMore, setHasMore] = useState(initialHasMore);
+  const [nextCursor, setNextCursor] = useState<string | undefined>(initialNextCursor);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Derived from URL
-  const pageParam = searchParams.get("page");
-  const currentPage = pageParam ? parseInt(pageParam) : 1;
   const searchTerm = searchParams.get("search") || "";
   
-  // Trending is static, only shown on page 1 with no search
-  const showTrending = currentPage === 1 && !searchTerm && initialTrendingCompanies.length > 0;
+  // Trending is static, only shown when no search is active
+  const showTrending = !searchTerm && initialTrendingCompanies.length > 0;
 
+  // Refs for infinite scroll
+  const observerTarget = useRef<HTMLDivElement>(null);
+
+  // Reset state when search changes
   useEffect(() => {
-    const fetchCompanies = async () => {
-      // Check if we are at default state (Page 1, no search)
-      // This matches the static props, so we can skip fetch and use initial
-      if (currentPage === 1 && !searchTerm) {
-        setCompanies(initialCompanies);
-        setTotalPages(initialTotalPages);
-        setHasMore(initialHasMore);
-        return;
+    // If we are back to initial state (no search), and initialCompanies matches, we could reset.
+    // simpler: Fetch fresh list for new search term.
+    
+    // Define async fetch inside effect
+    const fetchSearchDetails = async () => {
+      if (!searchTerm && initialCompanies.length > 0) {
+          // Reset to initial props if search cleared
+          setCompanies(initialCompanies);
+          setHasMore(initialHasMore);
+          setNextCursor(initialNextCursor);
+          return;
       }
-
+      
       setIsLoading(true);
       try {
-        const result = await fetchCompaniesAction(currentPage, ITEMS_PER_PAGE, searchTerm);
+        // Fetch first page of search results
+        const result = await fetchCompaniesAction(1, ITEMS_PER_PAGE, searchTerm);
         setCompanies(result.companies);
-        setTotalPages(result.totalPages);
         setHasMore(result.hasMore);
+        setNextCursor(result.nextCursor);
       } catch (error) {
         console.error("Failed to fetch companies:", error);
       } finally {
         setIsLoading(false);
       }
     };
+    
+    fetchSearchDetails();
+  }, [searchTerm, initialCompanies, initialHasMore, initialNextCursor]);
 
-    fetchCompanies();
-  }, [currentPage, searchTerm, initialCompanies, initialTotalPages, initialHasMore]);
+  // Load More Function
+  const loadMore = async () => {
+      if (loadingMore || !hasMore || !nextCursor) return;
+      
+      setLoadingMore(true);
+      try {
+          // We use Page 1 but pass cursor. The action ignores page if cursor is present for fetching, 
+          // or we can pass proper page if we tracked it, but cursor is key. 
+          // Action signature: (page, pageSize, term, cursor)
+          const result = await fetchCompaniesAction(1, ITEMS_PER_PAGE, searchTerm, nextCursor);
+          
+          setCompanies(prev => [...prev, ...result.companies]);
+          setHasMore(result.hasMore);
+          setNextCursor(result.nextCursor);
+      } catch (error) {
+          console.error("Failed to load more companies:", error);
+      } finally {
+          setLoadingMore(false);
+      }
+  };
+
+  // Intersection Observer
+  useEffect(() => {
+      const observer = new IntersectionObserver(
+          (entries) => {
+              if (entries[0].isIntersecting && hasMore && !loadingMore && !isLoading) {
+                  loadMore();
+              }
+          },
+          { threshold: 0.1 } // Trigger when 10% visible
+      );
+
+      if (observerTarget.current) {
+          observer.observe(observerTarget.current);
+      }
+
+      return () => {
+          if (observerTarget.current) {
+              observer.unobserve(observerTarget.current);
+          }
+      };
+  }, [hasMore, loadingMore, isLoading, nextCursor, searchTerm]);
 
   // JSON-LD Generation
   const breadcrumbJsonLd = {
@@ -106,7 +156,7 @@ export function CompaniesPageContent({
     "@type": "ItemList",
     itemListElement: companies.map((company, index) => ({
       "@type": "ListItem",
-      position: (currentPage - 1) * ITEMS_PER_PAGE + index + 1,
+      position: index + 1,
       name: company.name,
       url: `${appUrl}/company/${company.slug}`,
     })),
@@ -151,9 +201,14 @@ export function CompaniesPageContent({
       />
       <script
         type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
       />
-      {currentPage === 1 && (
+      {/* Show FAQ SEO only on initial load / no search to avoid duplicates or issues */}
+      {!searchTerm && (
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
@@ -182,21 +237,26 @@ export function CompaniesPageContent({
                 
                 {isLoading ? (
                     <div className="space-y-8">
-                         {/* Simple loading skeleton or just verify loading behavior */}
+                         {/* Simple loading skeleton */}
                          <div className="w-full h-96 bg-white/5 rounded-xl animate-pulse"></div>
                     </div>
                 ) : companies.length > 0 ? (
                     <div className="space-y-8">
                         <CompanyTable companies={companies} />
                         
-                        <PaginationControls 
-                            currentPage={currentPage}
-                            totalPages={totalPages || -1}
-                            baseUrl="/companies"
-                            hasNextPage={hasMore}
-                            // Pass empty object for searchParams to controls as we handle it via URL
-                            searchParams={{ search: searchTerm, page: currentPage.toString() }}
-                        />
+                        {/* Loading trigger / Sentinel */}
+                        {hasMore && (
+                            <div 
+                                ref={observerTarget} 
+                                className="w-full py-8 flex justify-center items-center"
+                            >
+                                {loadingMore ? (
+                                    <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                ) : (
+                                    <div className="h-4 w-4"></div> /* Invisible target to trigger load */
+                                )}
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div className="text-center py-12">
@@ -210,8 +270,10 @@ export function CompaniesPageContent({
 
                 <Separator className="my-16 bg-white/10" />
                 
-                {/* Only show SEO content on page 1 */}
-                {currentPage === 1 && !searchTerm && (
+                <Separator className="my-16 bg-white/10" />
+                
+                {/* Only show SEO content on initial non-search view */}
+                {!searchTerm && (
                     <section className="space-y-8 max-w-4xl mx-auto">
                     <div className="space-y-4">
                         <h2 className="text-2xl font-bold">
