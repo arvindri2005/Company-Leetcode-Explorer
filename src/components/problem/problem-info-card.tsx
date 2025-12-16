@@ -145,7 +145,7 @@ const ProblemInfoCard: React.FC<ProblemInfoCardProps> = ({
               <Link
                 href={problem.link}
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="noopener noreferrer nofollow"
                 className="text-lg font-semibold leading-tight hover:text-primary transition-colors line-clamp-2"
               >
                 {problem.title}
@@ -214,10 +214,12 @@ const ProblemInfoCard: React.FC<ProblemInfoCardProps> = ({
             variant="outline"
             size="sm"
             className="w-full justify-start md:justify-center"
-            onClick={() => window.open(problem.link, "_blank", "noopener,noreferrer")}
+            asChild
           >
-            <ExternalLink className="h-4 w-4 mr-2" />
-            <span className="hidden md:inline">Solve</span>
+            <a href={problem.link} target="_blank" rel="noopener noreferrer nofollow">
+              <ExternalLink className="h-4 w-4 mr-2" />
+              <span className="hidden md:inline">Solve</span>
+            </a>
           </Button>
           
           <Button
