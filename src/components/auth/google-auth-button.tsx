@@ -72,7 +72,7 @@ export default function GoogleAuthButton() {
       ) : (
         <FcGoogle className="mr-2 h-5 w-5" />
       )}
-      Sign in with Google
+      Continue with Google
     </Button>
   );
 }

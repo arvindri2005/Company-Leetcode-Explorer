@@ -121,6 +121,19 @@ export default function LoginForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <GoogleAuthButton />
+
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">
+              Or continue with email
+            </span>
+          </div>
+        </div>
+
         <div className="space-y-4">
           <FormField
             control={form.control}
@@ -129,12 +142,13 @@ export default function LoginForm() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="you@example.com"
-                    {...field}
-                    className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
-                  />
+                    <Input
+                      type="email"
+                      placeholder="you@example.com"
+                      {...field}
+                      autoFocus
+                      className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                    />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -209,18 +223,7 @@ export default function LoginForm() {
           Login
         </Button>
 
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">
-              Or continue with
-            </span>
-          </div>
-        </div>
 
-        <GoogleAuthButton />
 
         <p className="text-center text-sm text-muted-foreground mt-6">
           Don&apos;t have an account?{" "}
