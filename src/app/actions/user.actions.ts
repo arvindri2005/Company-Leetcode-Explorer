@@ -10,6 +10,23 @@
  */
 "use server";
 
+// 🛡️ SENTINEL SECURITY WARNING:
+// This file contains Server Actions that accept `userId` as an argument.
+// Currently, the project uses the Firebase Client SDK (`firebase/app`) on the server side
+// without `firebase-admin`. As a result, we cannot securely verify the ID token of the
+// calling user to ensure `userId` matches the authenticated user.
+//
+// This presents a CRITICAL IDOR (Insecure Direct Object Reference) risk.
+// A malicious user could potentially call these actions with another user's ID.
+//
+// MITIGATION PLAN (TODO):
+// 1. Install `firebase-admin` to verify ID tokens on the server.
+// 2. Implement a `verifyUser(userId)` helper that checks the session cookie or Authorization header.
+// 3. Reject requests where the authenticated user ID does not match the target `userId`.
+//
+// Until then, these actions rely on client-side behavior and are vulnerable to direct API manipulation.
+// Security checks added below (like input validation) mitigate DoS but not unauthorized access.
+
 import type {
   BookmarkedProblemInfo,
   UserProblemStatusInfo,
@@ -80,6 +97,10 @@ export async function toggleBookmarkProblemAction(
     return { success: false, error: "Company slug is required." };
   if (!problemSlug)
     return { success: false, error: "Problem slug is required." };
+
+  if (companySlug.length > 100 || problemSlug.length > 100) {
+    return { success: false, error: "Invalid slug length." };
+  }
 
   try {
     const result = await userService.toggleBookmarkProblem(
@@ -163,6 +184,10 @@ export async function setProblemStatusAction(
   if (!problemSlug)
     return { success: false, error: "Problem slug is required." };
 
+  if (companySlug.length > 100 || problemSlug.length > 100) {
+    return { success: false, error: "Invalid slug length." };
+  }
+
   try {
     const result = await userService.setProblemStatus(
       userId,
@@ -239,6 +264,12 @@ export async function updateUserDisplayNameInFirestore(
     return {
       success: false,
       error: "Display name must be at least 2 characters.",
+    };
+  }
+  if (newDisplayName.length > 50) {
+    return {
+      success: false,
+      error: "Display name must be less than 50 characters.",
     };
   }
 
