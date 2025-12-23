@@ -18,6 +18,7 @@ import { companyService } from "@/services/company.service";
 import { revalidateTag, revalidatePath } from "next/cache";
 import { slugify } from "@/lib/utils";
 import type { ProblemListFilters } from "@/types";
+import { Logger } from "@/lib/logger";
 
 /**
  * Adds a new coding problem to the database or updates an existing one.
@@ -118,7 +119,7 @@ export async function addProblem(
       updated,
     };
   } catch (error) {
-    console.error("Error adding problem (action level):", error);
+    Logger.error("Error adding problem (action level):", error);
     if (error instanceof Error) return { success: false, error: error.message };
     return {
       success: false,
@@ -152,7 +153,7 @@ export async function getProblemDetailsBatchAction(
     );
     return problems.filter(Boolean) as LeetCodeProblem[];
   } catch (error) {
-    console.error("Error in getProblemDetailsBatchAction:", error);
+    Logger.error("Error in getProblemDetailsBatchAction:", error);
     return [];
   }
 }
@@ -171,7 +172,7 @@ export async function getProblemByCompanySlugAndProblemSlugAction(
   try {
     return await problemService.getProblemByCompanySlugAndProblemSlug(companySlug, problemSlug);
   } catch (error) {
-    console.error(
+    Logger.error(
       `Error fetching problem by company slug ${companySlug} and problem slug ${problemSlug}:`,
       error,
     );
@@ -206,7 +207,7 @@ export async function loadMoreProblemsAction(
       sortKey: filters.sortKey,
     });
   } catch (error) {
-    console.error("Error loading more problems:", error);
+    Logger.error("Error loading more problems:", error);
     const message = error instanceof Error ? error.message : "Failed to load more problems";
     throw new Error(message);
   }
@@ -235,7 +236,7 @@ export async function loadMoreAllProblemsAction(
       sortKey: filters.sortKey,
     });
   } catch (error) {
-    console.error("Error loading more all problems:", error);
+    Logger.error("Error loading more all problems:", error);
     throw new Error("Failed to load more all problems");
   }
 }
@@ -259,7 +260,7 @@ export async function fetchProblemsAction(
       sortKey: filters.sortKey,
     });
   } catch (error) {
-    console.error("Error fetching problems:", error);
+    Logger.error("Error fetching problems:", error);
     throw new Error("Failed to fetch problems");
   }
 }
