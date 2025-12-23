@@ -120,7 +120,7 @@ export class UserRepository {
     const statuses: Record<string, UserProblemStatusInfo> = {};
     
     // Chunking to avoid "IN supports up to 30 comparison values" error
-    const CHUNK_SIZE = 10;
+    const CHUNK_SIZE = 30;
     const chunks = [];
     for (let i = 0; i < problemIds.length; i += CHUNK_SIZE) {
         chunks.push(problemIds.slice(i, i + CHUNK_SIZE));
@@ -166,7 +166,7 @@ export class UserRepository {
     const bookmarkedIds = new Set<string>();
 
     // Chunking to avoid "IN supports up to 30 comparison values" error
-    const CHUNK_SIZE = 10;
+    const CHUNK_SIZE = 30;
     const chunks = [];
     for (let i = 0; i < problemIds.length; i += CHUNK_SIZE) {
         chunks.push(problemIds.slice(i, i + CHUNK_SIZE));
