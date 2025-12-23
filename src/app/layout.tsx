@@ -166,6 +166,12 @@ export default function RootLayout({
         className="font-sans antialiased"
         suppressHydrationWarning
       >
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:!fixed focus:top-4 focus:left-4 focus:z-[1000] focus:px-6 focus:py-4 focus:bg-background focus:text-foreground focus:shadow-xl focus:rounded-md focus:border focus:border-primary focus:font-bold focus:outline-none"
+        >
+          Skip to content
+        </a>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
@@ -176,7 +182,7 @@ export default function RootLayout({
             <CooldownStateProvider>
               <div className="flex flex-col min-h-screen w-full">
                 <Header />
-                <main className="flex-1 w-full">
+                <main id="main-content" tabIndex={-1} className="flex-1 w-full">
                   {children}
                   <SpeedInsights />
                   <Analytics />
