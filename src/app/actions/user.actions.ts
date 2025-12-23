@@ -21,6 +21,7 @@ import type {
 } from "@/types";
 import { userService } from "@/services/user.service";
 import { revalidateTag } from "next/cache";
+import { getErrorMessage } from "@/lib/utils";
 
 interface SyncUserProfileInput {
   uid: string;
@@ -95,10 +96,12 @@ export async function toggleBookmarkProblemAction(
     return { success: true, isBookmarked: result.isBookmarked };
   } catch (error) {
     console.error("Error in toggleBookmarkProblemAction:", error);
-    if (error instanceof Error) return { success: false, error: error.message };
     return {
       success: false,
-      error: "An unknown error occurred while toggling bookmark.",
+      error: getErrorMessage(
+        error,
+        "An unknown error occurred while toggling bookmark.",
+      ),
     };
   }
 }
@@ -124,8 +127,12 @@ export async function getUsersBookmarkedProblemsInfoAction(
     return await userService.getBookmarkedProblemsInfo(userId);
   } catch (error) {
     console.error("Error in getUsersBookmarkedProblemsInfoAction:", error);
-    if (error instanceof Error) return { error: error.message };
-    return { error: "An unknown error occurred while fetching bookmarks." };
+    return {
+      error: getErrorMessage(
+        error,
+        "An unknown error occurred while fetching bookmarks.",
+      ),
+    };
   }
 }
 
@@ -177,10 +184,10 @@ export async function setProblemStatusAction(
     }
     return result;
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to set problem status due to an unknown error.";
+    const message = getErrorMessage(
+      error,
+      "Failed to set problem status due to an unknown error.",
+    );
     console.error("Error in setProblemStatusAction:", error);
     return { success: false, error: message };
   }
@@ -205,10 +212,10 @@ export async function getAllUserProblemStatusesAction(
   try {
     return await userService.getAllUserProblemStatuses(userId);
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to fetch problem statuses due to an unknown error.";
+    const message = getErrorMessage(
+      error,
+      "Failed to fetch problem statuses due to an unknown error.",
+    );
     console.error("Error in getAllUserProblemStatusesAction:", error);
     return { error: message };
   }
@@ -249,10 +256,10 @@ export async function updateUserDisplayNameInFirestore(
     }
     return result;
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to update display name in Firestore due to an unknown error.";
+    const message = getErrorMessage(
+      error,
+      "Failed to update display name in Firestore due to an unknown error.",
+    );
     console.error("Error in updateUserDisplayNameInFirestore action:", error);
     return { success: false, error: message };
   }
@@ -289,10 +296,7 @@ export async function getUserEducationAction(
   try {
     return await userService.getUserEducation(userId);
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to fetch education history.";
+    const message = getErrorMessage(error, "Failed to fetch education history.");
     return { error: message };
   }
 }
@@ -328,10 +332,7 @@ export async function getUserWorkExperienceAction(
   try {
     return await userService.getUserWorkExperience(userId);
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to fetch work experience.";
+    const message = getErrorMessage(error, "Failed to fetch work experience.");
     return { error: message };
   }
 }
@@ -392,8 +393,7 @@ export async function saveStrategyTodoListAction(
     }
     return result;
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to save strategy.";
+    const message = getErrorMessage(error, "Failed to save strategy.");
     console.error("Error in saveStrategyTodoListAction:", error);
     return { success: false, error: message };
   }
@@ -417,10 +417,10 @@ export async function getUserStrategyTodoListsAction(
   try {
     return await userService.getUserStrategyTodoLists(userId);
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to fetch saved strategies due to an unknown error.";
+    const message = getErrorMessage(
+      error,
+      "Failed to fetch saved strategies due to an unknown error.",
+    );
     console.error("Error in getUserStrategyTodoListsAction:", error);
     return { error: message };
   }
@@ -446,10 +446,10 @@ export async function getStrategyTodoListForCompanyAction(
   try {
     return await userService.getStrategyTodoListForCompany(userId, companyId);
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to fetch strategy for company.";
+    const message = getErrorMessage(
+      error,
+      "Failed to fetch strategy for company.",
+    );
     console.error("Error in getStrategyTodoListForCompanyAction:", error);
     return { error: message };
   }
@@ -492,10 +492,10 @@ export async function updateStrategyTodoItemStatusAction(
     }
     return result;
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to update todo item status.";
+    const message = getErrorMessage(
+      error,
+      "Failed to update todo item status.",
+    );
     console.error("Error in updateStrategyTodoItemStatusAction:", error);
     return { success: false, error: message };
   }
@@ -544,10 +544,10 @@ export async function getUserProblemStatusesForIdsAction(
 
     return result;
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to fetch user problem statuses.";
+    const message = getErrorMessage(
+      error,
+      "Failed to fetch user problem statuses.",
+    );
     console.error("Error in getUserProblemStatusesForIdsAction:", error);
     return { error: message };
   }
@@ -572,10 +572,10 @@ export async function getUserGlobalProblemStatsAction(
   try {
     return await userService.getUserGlobalProblemStats(userId);
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to fetch global problem stats.";
+    const message = getErrorMessage(
+      error,
+      "Failed to fetch global problem stats.",
+    );
     console.error("Error in getUserGlobalProblemStatsAction:", error);
     return { error: message };
   }
@@ -603,8 +603,10 @@ export async function getUserBookmarksForIdsAction(
     });
     return result;
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to fetch user bookmarks.";
+    const message = getErrorMessage(
+      error,
+      "Failed to fetch user bookmarks.",
+    );
     console.error("Error in getUserBookmarksForIdsAction:", error);
     return { error: message };
   }

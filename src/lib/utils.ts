@@ -67,3 +67,20 @@ export function reloadPage() {
     window.location.reload();
   }
 }
+
+/**
+ * @function getErrorMessage
+ * @description Extracts the error message from an unknown error object.
+ * @param {unknown} error - The error object.
+ * @param {string} [defaultMessage="An unknown error occurred"] - The default message to return if the error is not an instance of Error.
+ * @returns {string} The error message.
+ */
+export function getErrorMessage(
+  error: unknown,
+  defaultMessage: string = "An unknown error occurred",
+): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return defaultMessage;
+}
