@@ -7,6 +7,8 @@ import { Metadata } from "next";
 // Removed unused import
 // BETTER: I'll use hardcoded values but structured properly, and add the JSON-LD script. This avoids dependency on siteConfig if it's missing.
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
+
 export const metadata: Metadata = {
   title: "Company Interview Problems | Byte to Offer",
   description:
@@ -14,7 +16,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Company Interview Problems | Byte to Offer",
     description: "Practice real interview questions from top tech companies. Filter by difficulty, company, and topic to ace your next technical interview.",
-    url: "https://bytetoffer.com/problems", // Assuming domain, will fix if wrong
+    url: `${APP_URL}/problems`,
     siteName: "Byte to Offer",
     type: "website",
   },
@@ -35,7 +37,7 @@ const jsonLd = {
   provider: {
     "@type": "Organization",
     name: "Byte to Offer",
-    url: "https://bytetooffer.com"
+    url: APP_URL
   }
 };
 
