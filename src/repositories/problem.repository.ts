@@ -27,6 +27,7 @@ import {
 import { slugify } from "@/lib/utils";
 import { companyRepository } from "./company.repository";
 import { userRepository } from "./user.repository";
+import { LeetCodeProblemSchema } from "@/types/schemas";
 
 function getFirestore(): Firestore {
   if (!db) {
@@ -418,7 +419,7 @@ export class ProblemRepository {
           const data = docSnap.data();
           const companySpecificData = data.companies?.[companyId] || {};
           
-          return {
+          const problem = {
             id: docSnap.id,
             title: data.title,
             slug: docSnap.id,
@@ -431,7 +432,26 @@ export class ProblemRepository {
             isBookmarked: false, // Will be filled by UI layer
             currentStatus: undefined, // Will be filled by UI layer
             link: data.link,
-          } as ProblemSummaryDTO;
+            // Add other fields required by LeetCodeProblemSchema for loose validation or use partial
+            normalizedTitle: data.normalizedTitle || "",
+            problemCompanyName: data.problemCompanyName
+          };
+
+          // Validate core fields using the schema (using safeParse to not break app)
+          // We pick only the fields present in ProblemSummaryDTO for this check effectively
+          const validation = LeetCodeProblemSchema.pick({
+            id: true,
+            title: true,
+            difficulty: true,
+            companyId: true,
+            companySlug: true
+          }).safeParse(problem);
+
+          if (!validation.success) {
+            console.warn(`[Data Integrity] Invalid problem summary data for ID ${docSnap.id}:`, validation.error.format());
+          }
+
+          return problem as ProblemSummaryDTO;
         });
 
         // Use cursor from the LAST item
@@ -464,7 +484,7 @@ export class ProblemRepository {
       const data = docSnap.data();
       const companySpecificData = data.companies?.[companyId] || {};
       
-      return {
+      const problem = {
         id: docSnap.id,
         title: data.title,
         slug: docSnap.id,
@@ -477,7 +497,22 @@ export class ProblemRepository {
         isBookmarked: false,
         currentStatus: undefined,
         link: data.link,
-      } as ProblemSummaryDTO;
+        normalizedTitle: data.normalizedTitle || "",
+      };
+
+      const validation = LeetCodeProblemSchema.pick({
+        id: true,
+        title: true,
+        difficulty: true,
+        companyId: true,
+        companySlug: true
+      }).safeParse(problem);
+
+      if (!validation.success) {
+        console.warn(`[Data Integrity] Invalid problem summary data (semi-optimized) for ID ${docSnap.id}:`, validation.error.format());
+      }
+
+      return problem as ProblemSummaryDTO;
     });
 
     if (!companySlug) {
@@ -750,13 +785,22 @@ export class ProblemRepository {
       const data = docSnap.data();
       const firstCompanyId = data.companyIds?.[0] || "unknown";
 
-      return {
+      const problem = {
         id: docSnap.id,
         companyId: firstCompanyId,
         companySlug: "unknown",
         slug: docSnap.id,
         ...data,
-      } as LeetCodeProblem;
+      };
+
+      const validation = LeetCodeProblemSchema.safeParse(problem);
+      if (!validation.success) {
+          // Log but don't spam if it's just optional fields missing that we don't care about for this view
+          // But here we return LeetCodeProblem, so we should care.
+          console.warn(`[Data Integrity] Invalid problem data (fetchAll) for ID ${docSnap.id}:`, validation.error.format());
+      }
+
+      return problem as LeetCodeProblem;
     });
 
     if (residualDifficultyFilter.length > 0) {

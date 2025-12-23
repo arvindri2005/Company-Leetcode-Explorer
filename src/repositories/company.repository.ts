@@ -19,6 +19,7 @@ import {
   documentId,
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
+import { CompanySchema } from "@/types/schemas";
 
 // Make sure db is initialized
 function getFirestore(): Firestore {
@@ -51,7 +52,7 @@ function mapFirestoreDocToCompany(
   docSnap: import("firebase/firestore").DocumentSnapshot,
 ): Company {
   const data = docSnap.data()!;
-  return {
+  const company = {
     id: docSnap.id,
     slug: data.slug || docSnap.id || slugify(data.name || ""),
     name: data.name || docSnap.id.charAt(0).toUpperCase() + docSnap.id.slice(1),
@@ -81,6 +82,13 @@ function mapFirestoreDocToCompany(
         ? data.statsLastUpdatedAt.toDate()
         : undefined,
   };
+
+  const validation = CompanySchema.safeParse(company);
+  if (!validation.success) {
+      console.warn(`[Data Integrity] Invalid company data for ID ${docSnap.id}:`, validation.error.format());
+  }
+
+  return company;
 }
 
 // Helper to encode cursor
