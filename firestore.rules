@@ -1,0 +1,36 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // User Data: Strictly owner-only access
+    match /users/{userId} {
+      // Allow users to read/write their own document
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Subcollections (e.g., bookmarkedProblems, problemProgress, etc.)
+      // Inherit the owner-only check
+      match /{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // Companies: Public Read, No Write (Admin only, but no admin currently)
+    match /companies/{companyId} {
+      allow read: if true;
+      allow write: if false; 
+    }
+
+    // Problems: Public Read, No Write
+    match /problems/{problemId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Contact Messages: Public Create, No Read/Update/Delete
+    match /contact-messages/{messageId} {
+      allow create: if true;
+      allow read, update, delete: if false;
+    }
+  }
+}

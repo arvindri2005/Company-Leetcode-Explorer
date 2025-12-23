@@ -28,6 +28,16 @@ const nextConfig: NextConfig = {
             },
         ],
     },
+    serverExternalPackages: [
+    'express', 
+    'import-in-the-middle', 
+    'require-in-the-middle',
+    '@genkit-ai/core',
+    '@genkit-ai/ai',
+    '@genkit-ai/googleai', 
+    '@genkit-ai/flow',
+    'genkit'
+    ],
 };
 
 export default nextConfig;
