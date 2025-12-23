@@ -19,6 +19,7 @@ import {
   documentId,
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
+import { Logger } from "@/lib/logger";
 
 // Make sure db is initialized
 function getFirestore(): Firestore {
@@ -95,7 +96,7 @@ function decodeCursor(
   try {
     return JSON.parse(Buffer.from(cursor, "base64").toString("utf-8"));
   } catch (e) {
-    console.error("Failed to decode cursor:", e);
+    Logger.error("Failed to decode cursor", e);
     return null;
   }
 }
@@ -188,7 +189,7 @@ export class CompanyRepository {
         nextCursor, // Return the generated cursor
       };
     } catch (error) {
-      console.error("Error in getCompanies:", error);
+      Logger.error("Error in getCompanies", error);
       return {
         companies: [],
         hasMore: false,
@@ -270,7 +271,7 @@ export class CompanyRepository {
       }
       return undefined;
     } catch (error) {
-       console.error(`Error fetching company by ID ${id}:`, error);
+       Logger.error(`Error fetching company by ID`, error, { id });
        return undefined;
     }
   }
@@ -285,7 +286,7 @@ export class CompanyRepository {
         }
         return undefined;
     } catch (error) {
-        console.error(`Error fetching company by slug ${slug}:`, error);
+        Logger.error(`Error fetching company by slug`, error, { slug });
         return undefined;
     }
   }
@@ -301,7 +302,7 @@ export class CompanyRepository {
         }
         return slugs;
     } catch (error) {
-        console.error("Error fetching all company slugs:", error);
+        Logger.error("Error fetching all company slugs", error);
         return [];
     }
   }
@@ -374,7 +375,7 @@ export class CompanyRepository {
         error instanceof Error
           ? error.message
           : "An unknown error occurred while adding company.";
-      console.error("Error in addCompany:", message, error);
+      Logger.error("Error in addCompany", error, { message });
       return { id: null, error: message };
     }
   }
@@ -417,7 +418,7 @@ export class CompanyRepository {
         error instanceof Error
           ? error.message
           : "An unknown error occurred while updating company.";
-      console.error(`Error in updateCompany for ${companyId}:`, message, error);
+      Logger.error(`Error in updateCompany`, error, { companyId, message });
       return { success: false, error: message };
     }
   }
@@ -451,7 +452,7 @@ export class CompanyRepository {
         error instanceof Error
           ? error.message
           : "An unknown error occurred while bulk deleting companies.";
-      console.error(`Error in bulkDeleteCompanies:`, message, error);
+      Logger.error(`Error in bulkDeleteCompanies`, error, { message });
       return { success: false, error: message };
     }
   }
@@ -473,7 +474,7 @@ export class CompanyRepository {
         error instanceof Error
           ? error.message
           : "An unknown error occurred while deleting company.";
-      console.error(`Error in deleteCompany for ${companyId}:`, message, error);
+      Logger.error(`Error in deleteCompany`, error, { companyId, message });
       return { success: false, error: message };
     }
   }
@@ -508,7 +509,7 @@ export class CompanyRepository {
         } as Pick<Company, "id" | "name" | "slug" | "logo">;
       });
     } catch (error) {
-      console.error("Error fetching company suggestions:", error);
+      Logger.error("Error fetching company suggestions", error);
       throw error;
     }
   }
