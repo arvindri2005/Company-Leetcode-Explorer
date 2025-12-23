@@ -55,15 +55,14 @@ Don't wait - start practicing with our cutting-edge platform today!
 
 ## 📚 Developer Guide
 
-New to the project? Check out our detailed **[Developer Guide](./Guide)** for everything you need to know!
+New to the project? Check out our detailed **[Developer Guide](./guide)** for everything you need to know!
 
--   **[Getting Started](./Guide/GettingStarted.md)**: Setup and installation.
--   **[Project Structure](./Guide/ProjectStructure.md)**: Architecture and directory layout.
--   **[Coding Standards](./Guide/CodingStandards.md)**: Naming conventions and style guide.
--   **[Adding Features](./Guide/FeatureWorkflow.md)**: Step-by-step workflow.
--   **[UI Guidelines](./Guide/UIGuidelines.md)**: Colors, typography, and component usage.
+-   **[Getting Started](./guide/getting-started.md)**: Setup and installation.
+-   **[Project Structure](./guide/project-structure.md)**: Architecture and directory layout.
+-   **[Coding Standards](./guide/coding-standards.md)**: Naming conventions and style guide.
+-   **[Adding Features](./guide/feature-workflow.md)**: Step-by-step workflow.
+-   **[UI Guidelines](./guide/ui-guidelines.md)**: Colors, typography, and component usage.
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please see our **[Contribution Guide](./Guide/Contribution.md)**.
-
+Contributions are welcome! Please see our **[Contribution Guide](./guide/contribution.md)**.
