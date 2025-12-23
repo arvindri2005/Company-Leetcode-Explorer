@@ -14,6 +14,7 @@
 
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
+import { unstable_cache } from "next/cache";
 
 const GroupQuestionsInputSchema = z.object({
   questions: z
@@ -85,6 +86,12 @@ const prompt = ai.definePrompt({
   1. "groupName": A string representing the name of the group (e.g., Arrays, Linked Lists, Dynamic Programming).
   2. "questions": An array of the LeetCode problem objects (including title, difficulty, link, and tags) that belong to this group.
 
+  **CRITICAL RULES:**
+  1. **Do NOT invent new questions.** Only use the questions provided in the input.
+  2. **Do NOT modify** the Title, Link, or Difficulty of any question.
+  3. **Exhaustive Grouping:** Ensure EVERY question from the input is assigned to a group. Do not leave any question out.
+  4. If a question fits multiple groups, place it in the most relevant one.
+
   Questions:
   {{#each questions}}
   - Title: {{this.title}}
@@ -95,6 +102,21 @@ const prompt = ai.definePrompt({
   `,
 });
 
+const getCachedGroupedQuestions = unstable_cache(
+  async (input: GroupQuestionsInput) => {
+    const { output } = await prompt(input);
+    if (!output) {
+      throw new Error("AI did not return an output for question grouping.");
+    }
+    return output;
+  },
+  ['group-questions-ai-response'],
+  {
+    revalidate: 3600, // Cache for 1 hour
+    tags: ['ai-grouping']
+  }
+);
+
 const groupQuestionsFlow = ai.defineFlow(
   {
     name: "groupQuestionsFlow",
@@ -102,10 +124,6 @@ const groupQuestionsFlow = ai.defineFlow(
     outputSchema: GroupQuestionsOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    if (!output) {
-      throw new Error("AI did not return an output for question grouping.");
-    }
-    return output;
+    return getCachedGroupedQuestions(input);
   },
 );
