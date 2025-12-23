@@ -11,7 +11,7 @@ interface CompanyTableProps {
 
 export function CompanyTable({ companies }: CompanyTableProps) {
   return (
-    <div className="w-full overflow-hidden rounded-xl border border-white/5 bg-[#1A1A1A]">
+    <div className="w-full overflow-hidden rounded-xl border border-white/5 bg-brand-surface">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead>
