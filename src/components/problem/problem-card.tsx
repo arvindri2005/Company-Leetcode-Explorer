@@ -8,7 +8,7 @@
 "use client";
 
 import type { LeetCodeProblem, ProblemStatus } from "@/types";
-import { useState, Suspense, useMemo } from "react";
+import React, { useState, Suspense, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +25,7 @@ import {
   ChevronDown,
   ListTodo,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getDeterministicRandom } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -116,16 +116,18 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
   const { displayTime } = useMemo(() => {
      let time = "";
     if (problem.lastAskedPeriod) {
+      // Use deterministic random based on problem ID to prevent hydration mismatch
+      const rand = getDeterministicRandom(problem.id);
       switch (problem.lastAskedPeriod) {
-        case "last_30_days": time = `${Math.floor(Math.random() * 30) + 1}d ago`; break;
-        case "within_3_months": time = `${Math.floor(Math.random() * 3) + 1}mo ago`; break;
-        case "within_6_months": time = `${Math.floor(Math.random() * 3) + 3}mo ago`; break;
-        case "older_than_6_months": time = `${Math.floor(Math.random() * 6) + 6}mo ago`; break;
+        case "last_30_days": time = `${Math.floor(rand * 30) + 1}d ago`; break;
+        case "within_3_months": time = `${Math.floor(rand * 3) + 1}mo ago`; break;
+        case "within_6_months": time = `${Math.floor(rand * 3) + 3}mo ago`; break;
+        case "older_than_6_months": time = `${Math.floor(rand * 6) + 6}mo ago`; break;
         default: time = "";
       }
     }
     return { displayTime: time };
-  }, [problem.lastAskedPeriod]);
+  }, [problem.lastAskedPeriod, problem.id]);
 
 
   const StatusIcon = statusIcons[currentStatus];
@@ -346,4 +348,4 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
   );
 };
 
-export default ProblemCard;
+export default React.memo(ProblemCard);

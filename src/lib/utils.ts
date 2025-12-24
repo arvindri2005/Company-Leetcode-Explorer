@@ -67,3 +67,20 @@ export function reloadPage() {
     window.location.reload();
   }
 }
+
+/**
+ * @function getDeterministicRandom
+ * @description Generates a deterministic pseudo-random number between 0 and 1 based on a string seed.
+ * Useful for consistent UI generation (e.g. random colors, dates) during SSR and client hydration.
+ * @param {string} seed - The seed string.
+ * @returns {number} A number between 0 (inclusive) and 1 (exclusive).
+ */
+export function getDeterministicRandom(seed: string): number {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    const char = seed.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash) / 2147483648; // Normalize to 0-1
+}
