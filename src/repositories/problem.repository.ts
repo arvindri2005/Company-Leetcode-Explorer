@@ -25,6 +25,7 @@ import {
   Firestore,
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
+import { Logger } from "@/lib/logger";
 import { companyRepository } from "./company.repository";
 import { userRepository } from "./user.repository";
 
@@ -178,7 +179,7 @@ export class ProblemRepository {
         } as LeetCodeProblem;
       });
     } catch (error) {
-      console.error("Error fetching all problems:", error);
+      Logger.error("Error fetching all problems", error);
       return [];
     }
   }
@@ -208,7 +209,7 @@ export class ProblemRepository {
       }
       return undefined;
     } catch (error) {
-       console.error(`Error fetching problem details for company ${companyId}, problem ${problemId}:`, error);
+       Logger.error(`Error fetching problem details`, error, { companyId, problemId });
        return undefined;
     }
   }
@@ -242,9 +243,10 @@ export class ProblemRepository {
       }
       return { company, problem: undefined };
     } catch (error) {
-      console.error(
-        `Error fetching problem by company slug ${companySlug} and problem slug ${problemSlug}:`,
+      Logger.error(
+        `Error fetching problem by company slug and problem slug`,
         error,
+        { companySlug, problemSlug }
       );
       return { company: undefined, problem: undefined };
     }
@@ -259,7 +261,7 @@ export class ProblemRepository {
             .map((p) => ({ companySlug: p.companySlug, problemSlug: p.slug }))
             .filter((s) => s.companySlug && s.problemSlug);
     } catch (error) {
-        console.error("Error fetching all problem company and problem slugs:", error);
+        Logger.error("Error fetching all problem company and problem slugs", error);
         return [];
     }
   }
@@ -718,7 +720,7 @@ export class ProblemRepository {
         let currentPage = page || 1;
         let nextCursor = hasMore ? problems[problems.length - 1]?.id : undefined;
 
-        console.log(`[OPTIMIZED FETCH - NO COUNT] Page: ${page}, Limit: ${limitCount}, Fetched: ${docs.length}, HasMore: ${hasMore}`);
+        Logger.info(`[OPTIMIZED FETCH - NO COUNT]`, { page, limitCount, fetched: docs.length, hasMore });
 
         return {
           problems,
@@ -733,7 +735,7 @@ export class ProblemRepository {
           error.code === "failed-precondition" ||
           error.message?.includes("index")
         ) {
-           console.warn("Optimized path failed, falling back to full fetch:", error.message);
+           Logger.warn("Optimized path failed, falling back to full fetch", undefined, { message: error.message });
           // Fall through to full fetch
         } else {
           throw error;
@@ -891,7 +893,7 @@ export class ProblemRepository {
         error instanceof Error
           ? error.message
           : "An unknown error occurred while saving problem.";
-      console.error("Error in addProblem:", message, error);
+      Logger.error("Error in addProblem", error, { message });
       return { id: null, updated: false, error: message };
     }
   }

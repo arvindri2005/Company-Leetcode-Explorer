@@ -29,6 +29,7 @@ import {
   arrayUnion,
   arrayRemove,
 } from "firebase/firestore";
+import { Logger } from "@/lib/logger";
 
 /**
  * Repository for User-related data access.
@@ -54,9 +55,10 @@ export class UserRepository {
         })
         .filter((info) => info.companySlug && info.problemSlug);
     } catch (error) {
-      console.error(
-        `Error fetching bookmarked problems info for user ${userId}:`,
+      Logger.error(
+        `Error fetching bookmarked problems info`,
         error,
+        { userId }
       );
       return [];
     }
@@ -78,7 +80,7 @@ export class UserRepository {
           }
           return { solvedProblemIds: [], attemptedProblemIds: [], bookmarkedProblemIds: [] };
       } catch (error) {
-          console.error(`Error fetching global problem stats for user ${userId}:`, error);
+          Logger.error(`Error fetching global problem stats`, error, { userId });
           return { solvedProblemIds: [], attemptedProblemIds: [], bookmarkedProblemIds: [] };
       }
   }
@@ -104,9 +106,10 @@ export class UserRepository {
       });
       return statuses;
     } catch (error) {
-      console.error(
-        `Error fetching all problem statuses for user ${userId}:`,
+      Logger.error(
+        `Error fetching all problem statuses`,
         error,
+        { userId }
       );
       return {};
     }
@@ -153,9 +156,10 @@ export class UserRepository {
 
       return statuses;
     } catch (error) {
-      console.error(
-        `Error fetching problem statuses for user ${userId}:`,
+      Logger.error(
+        `Error fetching problem statuses`,
         error,
+        { userId }
       );
       return {};
     }
@@ -195,9 +199,10 @@ export class UserRepository {
 
       return bookmarkedIds;
     } catch (error) {
-      console.error(
-        `Error fetching bookmarks for user ${userId}:`,
+      Logger.error(
+        `Error fetching bookmarks`,
         error,
+        { userId }
       );
       return new Set();
     }
@@ -217,9 +222,10 @@ export class UserRepository {
           }) as EducationExperience,
       );
     } catch (error) {
-      console.error(
-        `Error fetching education history for user ${userId}:`,
+      Logger.error(
+        `Error fetching education history`,
         error,
+        { userId }
       );
       return [];
     }
@@ -239,7 +245,7 @@ export class UserRepository {
           }) as WorkExperience,
       );
     } catch (error) {
-      console.error(`Error fetching work experience for user ${userId}:`, error);
+      Logger.error(`Error fetching work experience`, error, { userId });
       return [];
     }
   }
@@ -279,9 +285,10 @@ export class UserRepository {
         } as SavedStrategyTodoList;
       });
     } catch (error) {
-      console.error(
-        `Error fetching strategy todo lists for user ${userId}:`,
+      Logger.error(
+        `Error fetching strategy todo lists`,
         error,
+        { userId }
       );
       return [];
     }
@@ -326,9 +333,10 @@ export class UserRepository {
       }
       return null;
     } catch (error) {
-      console.error(
-        `Error fetching strategy for company ${companyId}, user ${userId}:`,
+      Logger.error(
+        `Error fetching strategy`,
         error,
+        { companyId, userId }
       );
       return null;
     }
@@ -384,7 +392,7 @@ export class UserRepository {
         error instanceof Error
           ? error.message
           : "An unknown error occurred while toggling bookmark.";
-      console.error("Error toggling bookmark in Firestore:", error);
+      Logger.error("Error toggling bookmark in Firestore", error);
       return { isBookmarked: false, error: message };
     }
   }
@@ -438,7 +446,7 @@ export class UserRepository {
         error instanceof Error
           ? error.message
           : "Failed to update problem status.";
-      console.error("Error setting problem status in Firestore:", error);
+      Logger.error("Error setting problem status in Firestore", error);
       return { success: false, error: message };
     }
   }
@@ -463,7 +471,7 @@ export class UserRepository {
         error instanceof Error
           ? error.message
           : "Failed to update display name in Firestore.";
-      console.error("Error updating user display name in Firestore:", error);
+      Logger.error("Error updating user display name in Firestore", error);
       return { success: false, error: message };
     }
   }
@@ -485,7 +493,7 @@ export class UserRepository {
         error instanceof Error
           ? error.message
           : "Failed to add education experience.";
-      console.error("Error adding education experience to Firestore:", error);
+      Logger.error("Error adding education experience to Firestore", error);
       return { id: null, error: message };
     }
   }
@@ -505,7 +513,7 @@ export class UserRepository {
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to add work experience.";
-      console.error("Error adding work experience to Firestore:", error);
+      Logger.error("Error adding work experience to Firestore", error);
       return { id: null, error: message };
     }
   }
@@ -544,7 +552,7 @@ export class UserRepository {
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to save strategy.";
-      console.error("Error saving strategy to Firestore:", error);
+      Logger.error("Error saving strategy to Firestore", error);
       return { success: false, error: message };
     }
   }
@@ -592,7 +600,7 @@ export class UserRepository {
         error instanceof Error
           ? error.message
           : "Failed to update todo item status.";
-      console.error("Error updating todo item status in Firestore:", error);
+      Logger.error("Error updating todo item status in Firestore", error);
       return { success: false, error: message };
     }
   }
@@ -633,7 +641,7 @@ export class UserRepository {
       }
       return { success: true };
     } catch (error) {
-      console.error("Error syncing user profile to Firestore:", error);
+      Logger.error("Error syncing user profile to Firestore", error);
       if (error instanceof Error) return { success: false, error: error.message };
       return {
         success: false,
