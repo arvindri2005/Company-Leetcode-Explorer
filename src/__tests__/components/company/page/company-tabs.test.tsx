@@ -1,11 +1,5 @@
 import { render, screen, waitFor, act } from '@testing-library/react';
 import CompanyTabs from '@/components/company/page/company-tabs';
-import { getAIProblems } from '@/app/actions/problem.actions';
-
-// Mock actions
-jest.mock('@/app/actions/problem.actions', () => ({
-  getAIProblems: jest.fn(),
-}));
 
 // Mock child components
 jest.mock('@/components/problem/problem-list', () => ({
@@ -66,14 +60,19 @@ describe('CompanyTabs', () => {
       sortKey: "title" as const,
     },
     itemsPerPage: 15,
+    totalPages: 1,
+    currentPage: 1,
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => [],
+    });
   });
 
   it('should render all tabs triggers', async () => {
-    (getAIProblems as jest.Mock).mockResolvedValue([]);
     render(<CompanyTabs {...defaultProps} />);
 
     expect(screen.getByText('Problems')).toBeInTheDocument();
@@ -82,7 +81,7 @@ describe('CompanyTabs', () => {
     expect(screen.getByText('Flashcards')).toBeInTheDocument();
     expect(screen.getByText('Strategy')).toBeInTheDocument();
     
-    await waitFor(() => expect(getAIProblems).toHaveBeenCalled());
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
     // Flush any pending state updates from the useEffect
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -90,7 +89,6 @@ describe('CompanyTabs', () => {
   });
 
   it('should render all content components (mocked tabs show all)', async () => {
-    (getAIProblems as jest.Mock).mockResolvedValue([]);
     render(<CompanyTabs {...defaultProps} />);
 
     // Since we mocked Tabs to render all children, we expect all contents to be present
@@ -103,7 +101,7 @@ describe('CompanyTabs', () => {
     expect(await screen.findByTestId('flashcard-generator')).toBeInTheDocument();
     expect(await screen.findByTestId('company-strategy-generator')).toBeInTheDocument();
 
-    await waitFor(() => expect(getAIProblems).toHaveBeenCalled());
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
     // Flush any pending state updates from the useEffect
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -111,11 +109,10 @@ describe('CompanyTabs', () => {
   });
 
   it('should fetch AI problems on mount', async () => {
-    (getAIProblems as jest.Mock).mockResolvedValue([]);
     render(<CompanyTabs {...defaultProps} />);
 
     await waitFor(() => {
-      expect(getAIProblems).toHaveBeenCalledWith(mockCompany.id);
+      expect(global.fetch).toHaveBeenCalledWith(`/api/companies/${mockCompany.id}/ai-problems`);
     });
     // Flush any pending state updates from the useEffect
     await act(async () => {
