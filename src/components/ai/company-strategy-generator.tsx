@@ -128,7 +128,6 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
           preparationStrategy: result.preparationStrategy,
           focusTopics: result.focusTopics,
           todoItems: result.items,
-          savedAt: result.savedAt, // Include savedAt if available
         };
         setStrategyData(loadedStrategy);
         setHasSavedStrategy(true);
