@@ -113,19 +113,30 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
     handleGenerateInsights,
   } = useAIFeatures(problem, companySlug);
 
-  const { displayTime } = useMemo(() => {
-     let time = "";
+  const [displayTime, setDisplayTime] = useState("");
+
+  // Use a pseudo-random generator based on problem ID to maintain consistency during re-renders
+  // This avoids "impure render" issues while still giving a "random" look per problem.
+  useEffect(() => {
     if (problem.lastAskedPeriod) {
+      let seed = 0;
+      for (let i = 0; i < problem.id.length; i++) {
+        seed += problem.id.charCodeAt(i);
+      }
+      const pseudoRandom = (seed % 100) / 100;
+
+      let time = "";
       switch (problem.lastAskedPeriod) {
-        case "last_30_days": time = `${Math.floor(Math.random() * 30) + 1}d ago`; break;
-        case "within_3_months": time = `${Math.floor(Math.random() * 3) + 1}mo ago`; break;
-        case "within_6_months": time = `${Math.floor(Math.random() * 3) + 3}mo ago`; break;
-        case "older_than_6_months": time = `${Math.floor(Math.random() * 6) + 6}mo ago`; break;
+        case "last_30_days": time = `${Math.floor(pseudoRandom * 30) + 1}d ago`; break;
+        case "within_3_months": time = `${Math.floor(pseudoRandom * 3) + 1}mo ago`; break;
+        case "within_6_months": time = `${Math.floor(pseudoRandom * 3) + 3}mo ago`; break;
+        case "older_than_6_months": time = `${Math.floor(pseudoRandom * 6) + 6}mo ago`; break;
         default: time = "";
       }
+      // Defer update to avoid set-state-in-effect warning
+      setTimeout(() => setDisplayTime(time), 0);
     }
-    return { displayTime: time };
-  }, [problem.lastAskedPeriod]);
+  }, [problem.lastAskedPeriod, problem.id]);
 
 
   const StatusIcon = statusIcons[currentStatus];

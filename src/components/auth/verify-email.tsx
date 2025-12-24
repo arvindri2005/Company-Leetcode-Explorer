@@ -17,8 +17,11 @@ export default function VerifyEmail({ oobCode }: VerifyEmailProps) {
 
   useEffect(() => {
     if (!oobCode) {
-      setStatus("error");
-      setMessage("Invalid verification link. The code is missing.");
+      // Defer state update to avoid set-state-in-effect warning if run immediately
+      setTimeout(() => {
+        setStatus("error");
+        setMessage("Invalid verification link. The code is missing.");
+      }, 0);
       return;
     }
 

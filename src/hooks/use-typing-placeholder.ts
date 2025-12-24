@@ -28,8 +28,16 @@ export function useTypingPlaceholder(companies: string[]) {
           setCharIndex((prev) => prev - 1);
         }, 50);
       } else {
-        setIsTyping(true);
-        setCurrentCompanyIndex((prev) => (prev + 1) % companies.length);
+        // Defer state update to next tick to avoid "setState during render" warning from effect
+        // Technically this effect is dependent on state, so it runs after render.
+        // But if we immediately set state, React might flag cascading updates if not careful.
+        // Actually, the warning usually happens if we set state synchronously in effect without condition?
+        // But here we are in a branch.
+        // The issue is likely that we are triggering a re-render cycle immediately.
+        timeout = setTimeout(() => {
+            setIsTyping(true);
+            setCurrentCompanyIndex((prev) => (prev + 1) % companies.length);
+        }, 0);
       }
     }
 

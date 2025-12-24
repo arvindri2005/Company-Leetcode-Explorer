@@ -43,7 +43,7 @@ export default function NoProblemsAvailable({
           No Problems Available for {companyName}
         </h2>
         <p className="text-muted-foreground text-sm mb-4 max-w-sm mx-auto">
-          We don't have coding problems for {companyName} yet. You can help by
+          We don&apos;t have coding problems for {companyName} yet. You can help by
           adding some!
         </p>
         <div className="flex flex-col sm:flex-row gap-2 justify-center max-w-xs mx-auto">

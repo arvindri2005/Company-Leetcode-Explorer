@@ -148,7 +148,7 @@ const SimilarProblemsContent = ({
         <AlertTriangle size={48} className="text-destructive" />
         <h3 className="text-xl font-semibold">No Similar Problems Found</h3>
         <p className="text-muted-foreground max-w-sm">
-          We couldn't find any significantly similar problems at this time. This
+          We couldn&apos;t find any significantly similar problems at this time. This
           might be a unique problem!
         </p>
       </div>
@@ -197,7 +197,7 @@ const SimilarProblemsDialog: React.FC<SimilarProblemsDialogProps> = ({
                 size={28}
                 className="mr-3 text-primary flex-shrink-0 mt-1"
               />
-              <span>Similar Problems to "{currentProblemTitle}"</span>
+              <span>Similar Problems to &quot;{currentProblemTitle}&quot;</span>
             </DialogTitle>
             <DialogDescription className="text-sm">
               These problems are conceptually similar based on AI analysis.
@@ -232,7 +232,7 @@ const SimilarProblemsDialog: React.FC<SimilarProblemsDialogProps> = ({
               size={24}
               className="mr-2 text-primary flex-shrink-0 mt-1"
             />
-            Similar Problems to "{currentProblemTitle}"
+            Similar Problems to &quot;{currentProblemTitle}&quot;
           </DrawerTitle>
           <DrawerDescription>
             These problems are conceptually similar based on AI analysis.

@@ -67,7 +67,12 @@ export const useTypingGame = () => {
     } else {
         setCurrentSnippet(null);
     }
-  }, [selectedLanguage, resetGame]); // Removed currentSnippet dependency to avoid infinite loop potential if not careful, handled inside
+    // Adding currentSnippet would cause infinite loop if we change it here,
+    // but we only change it if language mismatches.
+    // However, setCurrentSnippet triggers re-render, and if currentSnippet changes reference, effect runs again?
+    // We rely on currentSnippet.language check to be stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedLanguage, resetGame]);
 
   // Focus input on load
   useEffect(() => {

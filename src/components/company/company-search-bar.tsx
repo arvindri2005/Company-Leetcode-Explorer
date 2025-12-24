@@ -175,7 +175,7 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
           ) : (
             !isLoadingSuggestions && (
               <p className="p-4 text-base text-gray-custom-500">
-                No companies found matching "{searchTermInput}".
+                No companies found matching &quot;{searchTermInput}&quot;.
               </p>
             )
           )}

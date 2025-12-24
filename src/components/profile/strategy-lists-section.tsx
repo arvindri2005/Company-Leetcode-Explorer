@@ -86,8 +86,8 @@ const StrategyListsSection: React.FC<StrategyListsSectionProps> = ({
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-center py-6">
-            You haven't saved any AI-generated company strategies yet. Generate
-            one from a company's page to see it here!
+            You haven&apos;t saved any AI-generated company strategies yet.
+            Generate one from a company&apos;s page to see it here!
           </p>
         </CardContent>
       </Card>

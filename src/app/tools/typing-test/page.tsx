@@ -14,7 +14,7 @@ export default function TypingTestPage() {
           Speed Coder
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Don't just type random words. Practice with real syntax, algorithms, and data structures.
+          Don&apos;t just type random words. Practice with real syntax, algorithms, and data structures.
         </p>
       </div>
       

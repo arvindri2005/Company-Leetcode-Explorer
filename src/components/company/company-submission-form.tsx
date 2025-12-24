@@ -149,7 +149,7 @@ export default function CompanySubmissionForm() {
                 <Input placeholder="https://example.com/logo.png" {...field} />
               </FormControl>
               <FormDescription>
-                A direct URL to the company's logo. Leave blank if not
+                A direct URL to the company&apos;s logo. Leave blank if not
                 available.
               </FormDescription>
               <FormMessage />

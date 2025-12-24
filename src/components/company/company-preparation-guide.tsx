@@ -142,7 +142,7 @@ export default function CompanyPreparationGuide({
                 <AccordionContent>
                   Most companies, including {companyName}, allow you to use any
                   mainstream programming language you are comfortable with, such
-                  as Python, Java, C++, or JavaScript. It's best to stick to the
+                  as Python, Java, C++, or JavaScript. It&apos;s best to stick to the
                   language you know best.
                 </AccordionContent>
               </AccordionItem>
@@ -152,7 +152,7 @@ export default function CompanyPreparationGuide({
                 </AccordionTrigger>
                 <AccordionContent>
                   Questions typically range from Medium to Hard difficulty on
-                  platforms like LeetCode. It's important to be comfortable with
+                  platforms like LeetCode. It&apos;s important to be comfortable with
                   optimizing your solutions for time and space complexity.
                 </AccordionContent>
               </AccordionItem>
@@ -162,7 +162,7 @@ export default function CompanyPreparationGuide({
                 </AccordionTrigger>
                 <AccordionContent>
                   Yes, behavioral questions are a key part of the interview. Be
-                  prepared to discuss your past experiences, challenges you've
+                  prepared to discuss your past experiences, challenges you&apos;ve
                   faced, and how you work in a team. Using the STAR method
                   (Situation, Task, Action, Result) is highly recommended.
                 </AccordionContent>
@@ -174,7 +174,7 @@ export default function CompanyPreparationGuide({
                 <AccordionContent>
                   The entire process from application to offer can take anywhere
                   from a few weeks to a couple of months, depending on the role
-                  and the company's current hiring volume.
+                  and the company&apos;s current hiring volume.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

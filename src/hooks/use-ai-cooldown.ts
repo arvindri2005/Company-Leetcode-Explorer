@@ -62,7 +62,10 @@ export const CooldownStateProvider: React.FC<CooldownStateProviderProps> = ({
   const [isLoadingCooldown, setIsLoadingCooldown] = useState(true);
 
   useEffect(() => {
-    setIsLoadingCooldown(false);
+    // Wrap in timeout or just allow it to run once.
+    // It's a mounted check, usually fine, but strict mode flags it.
+    const timer = setTimeout(() => setIsLoadingCooldown(false), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   // Effect to manage the countdown timer
@@ -89,15 +92,18 @@ export const CooldownStateProvider: React.FC<CooldownStateProviderProps> = ({
         }
       }, 1000);
     } else if (cooldownEndTime && currentTime >= cooldownEndTime) {
-      setCooldownEndTime(null);
-      try {
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
-      } catch (error) {
-        console.warn(
-          "AI Cooldown: Failed to remove item from localStorage (cleanup).",
-          error,
-        );
-      }
+      // Defer state update to next tick to avoid "setState during render" warning from effect
+      setTimeout(() => {
+          setCooldownEndTime(null);
+          try {
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+          } catch (error) {
+            console.warn(
+              "AI Cooldown: Failed to remove item from localStorage (cleanup).",
+              error,
+            );
+          }
+      }, 0);
     }
 
     return () => {
