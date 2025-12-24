@@ -30,6 +30,7 @@ const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
   ({ className, variant, selected, ...props }, ref) => {
     return (
       <button
+        aria-pressed={selected}
         className={cn(
           chipVariants({ variant: selected ? "selected" : "default" }),
           className,
