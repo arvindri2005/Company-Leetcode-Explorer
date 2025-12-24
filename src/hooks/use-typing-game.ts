@@ -76,18 +76,24 @@ export const useTypingGame = () => {
     }
   }, [isFinished]);
 
+  // Ref to track user input length without triggering re-renders in the interval
+  const userInputLengthRef = useRef(userInput.length);
+  useEffect(() => {
+    userInputLengthRef.current = userInput.length;
+  }, [userInput.length]);
+
   // WPM History Timer
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (startTime && !isFinished) {
       interval = setInterval(() => {
         const timeElapsed = Math.round((Date.now() - startTime) / 1000);
-        const currentWpm = calculateWPM(startTime, Date.now(), userInput.length);
+        const currentWpm = calculateWPM(startTime, Date.now(), userInputLengthRef.current);
         setWpmHistory(prev => [...prev, { time: timeElapsed, wpm: currentWpm }]);
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [startTime, isFinished, userInput.length]);
+  }, [startTime, isFinished]);
 
   // Auto-scroll to cursor
   useEffect(() => {
