@@ -31,7 +31,6 @@ import {
   Pencil,
   ListTodo,
   FolderKanban,
-  GraduationCap,
   Briefcase,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -41,6 +40,7 @@ import {
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
+import { userService } from "@/services/user.service";
 
 import type {
   LeetCodeProblem,
@@ -54,18 +54,8 @@ import type {
 import { EducationExperienceSchema, WorkExperienceSchema } from "@/types"; // Schemas for forms
 
 import {
-  getUsersBookmarkedProblemsInfoAction,
-  getAllUserProblemStatusesAction,
-  updateUserDisplayNameInFirestore,
-  getUserStrategyTodoListsAction,
-  updateStrategyTodoItemStatusAction,
-  addUserEducationAction,
-  getUserEducationAction,
-  addUserWorkExperienceAction,
-  getUserWorkExperienceAction,
   getProblemByCompanySlugAndProblemSlugAction,
-} from "@/app/actions";
-// import { getProblemByCompanySlugAndProblemSlug } from "@/lib/data"; // Removed direct import
+} from "@/app/actions/problem.actions"; // Import from specific file
 
 /**
  * Extends the LeetCodeProblem type to include user-specific status information.
@@ -192,14 +182,17 @@ export default function ProfilePage() {
   const fetchEducation = async () => {
     if (user?.uid) {
       setIsLoadingEducation(true);
-      const result = await getUserEducationAction(user.uid);
-      if (Array.isArray(result)) setEducationHistory(result);
-      else
+      try {
+        const result = await userService.getUserEducation(user.uid);
+        setEducationHistory(result);
+      } catch (error) {
         toast({
           title: "Error",
           description: "Could not fetch education history.",
           variant: "destructive",
         });
+        setEducationHistory([]);
+      }
       setIsLoadingEducation(false);
     } else setEducationHistory([]);
   };
@@ -207,14 +200,17 @@ export default function ProfilePage() {
   const fetchWorkExperience = async () => {
     if (user?.uid) {
       setIsLoadingWorkExperience(true);
-      const result = await getUserWorkExperienceAction(user.uid);
-      if (Array.isArray(result)) setWorkExperience(result);
-      else
+      try {
+        const result = await userService.getUserWorkExperience(user.uid);
+        setWorkExperience(result);
+      } catch (error) {
         toast({
           title: "Error",
           description: "Could not fetch work experience.",
           variant: "destructive",
         });
+        setWorkExperience([]);
+      }
       setIsLoadingWorkExperience(false);
     } else setWorkExperience([]);
   };
@@ -222,10 +218,10 @@ export default function ProfilePage() {
   const fetchBookmarkedData = async () => {
     if (user?.uid) {
       setIsLoadingBookmarks(true);
-      const bookmarkInfosResult = await getUsersBookmarkedProblemsInfoAction(
-        user.uid,
-      );
-      if (Array.isArray(bookmarkInfosResult)) {
+      try {
+        const bookmarkInfosResult = await userService.getBookmarkedProblemsInfo(
+          user.uid,
+        );
         const detailedProblemsPromises = bookmarkInfosResult.map(
           async (info) => {
             if (!info.companySlug || !info.problemSlug) return null;
@@ -250,7 +246,7 @@ export default function ProfilePage() {
             Boolean,
           ) as ProblemWithDetails[],
         );
-      } else {
+      } catch (error) {
         toast({
           title: "Error",
           description: "Could not fetch bookmarked problems.",
@@ -265,18 +261,10 @@ export default function ProfilePage() {
   const fetchStatusData = async () => {
     if (user?.uid) {
       setIsLoadingStatuses(true);
-      const statusResult = await getAllUserProblemStatusesAction(user.uid);
-      if (
-        typeof statusResult === "object" &&
-        statusResult !== null &&
-        !("error" in statusResult)
-      ) {
-        setProblemStatuses(
-          statusResult as Record<string, UserProblemStatusInfo>,
-        );
-        const problemRefsWithStatus = Object.values(
-          statusResult as Record<string, UserProblemStatusInfo>,
-        ).filter(
+      try {
+        const statusResult = await userService.getAllUserProblemStatuses(user.uid);
+        setProblemStatuses(statusResult);
+        const problemRefsWithStatus = Object.values(statusResult).filter(
           (info) =>
             info &&
             info.status !== "none" &&
@@ -306,7 +294,7 @@ export default function ProfilePage() {
             Boolean,
           ) as ProblemWithDetails[],
         );
-      } else {
+      } catch (error) {
         toast({
           title: "Error",
           description: "Could not fetch problem statuses.",
@@ -324,14 +312,16 @@ export default function ProfilePage() {
   const fetchStrategyTodoLists = async () => {
     if (user?.uid) {
       setIsLoadingStrategyTodoLists(true);
-      const result = await getUserStrategyTodoListsAction(user.uid);
-      if (Array.isArray(result)) setStrategyTodoLists(result);
-      else
+      try {
+        const result = await userService.getUserStrategyTodoLists(user.uid);
+        setStrategyTodoLists(result);
+      } catch (error) {
         toast({
           title: "Error",
           description: "Could not fetch saved strategy todo lists.",
           variant: "destructive",
         });
+      }
       setIsLoadingStrategyTodoLists(false);
     } else setStrategyTodoLists([]);
   };
@@ -350,7 +340,7 @@ export default function ProfilePage() {
   const handleAddEducation = async (data: EducationFormValues) => {
     if (!user) return;
     educationForm.clearErrors(); // Clear previous errors
-    const result = await addUserEducationAction(user.uid, data);
+    const result = await userService.addUserEducation(user.uid, data);
     if (result.id) {
       toast({
         title: "Education Added",
@@ -371,7 +361,7 @@ export default function ProfilePage() {
   const handleAddWorkExperience = async (data: WorkExperienceFormValues) => {
     if (!user) return;
     workForm.clearErrors(); // Clear previous errors
-    const result = await addUserWorkExperienceAction(user.uid, data);
+    const result = await userService.addUserWorkExperience(user.uid, data);
     if (result.id) {
       toast({
         title: "Work Experience Added",
@@ -415,7 +405,7 @@ export default function ProfilePage() {
       ),
     );
 
-    const result = await updateStrategyTodoItemStatusAction(
+    const result = await userService.updateStrategyTodoItemStatus(
       user.uid,
       companyId,
       itemIndex,
@@ -431,7 +421,7 @@ export default function ProfilePage() {
       });
       setStrategyTodoLists(originalLists); // Rollback UI on failure
     } else {
-      fetchStrategyTodoLists(); // Re-fetch on success to ensure data consistency (e.g. savedAt timestamp)
+      fetchStrategyTodoLists(); // Re-fetch on success to ensure data consistency
     }
   };
 
@@ -500,9 +490,9 @@ export default function ProfilePage() {
         displayName: data.displayName,
       });
       // Update Firestore profile
-      const firestoreResult = await updateUserDisplayNameInFirestore(
+      const firestoreResult = await userService.updateUserDisplayName(
         user.uid,
-        data.displayName,
+        data.displayName.trim(),
       );
 
       if (firestoreResult.success) {

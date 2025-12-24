@@ -18,11 +18,8 @@ import type {
 import { targetRoleLevelOptions } from "@/types";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  generateCompanyStrategyAction,
-  saveStrategyTodoListAction,
-  getStrategyTodoListForCompanyAction,
-} from "@/app/actions";
+import { userService } from "@/services/user.service";
+import { generateCompanyStrategyAction } from "@/app/actions/ai.actions";
 import { useToast } from "@/hooks/use-toast";
 import {
   Card,
@@ -119,30 +116,33 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
     setStrategyData(null);
     setHasSavedStrategy(false);
 
-    const result = await getStrategyTodoListForCompanyAction(
-      user.uid,
-      companyId,
-    );
-    setIsLoadingSaved(false);
+    try {
+      const result = await userService.getStrategyTodoListForCompany(
+        user.uid,
+        companyId,
+      );
+      setIsLoadingSaved(false);
 
-    if (result && !("error" in result) && result !== null) {
-      const loadedStrategy: GenerateCompanyStrategyOutput = {
-        preparationStrategy: result.preparationStrategy,
-        focusTopics: result.focusTopics,
-        todoItems: result.items,
-      };
-      setStrategyData(loadedStrategy);
-      setHasSavedStrategy(true);
-    } else if (
-      result &&
-      "error" in result &&
-      result.error !== "Todo list not found."
-    ) {
-      toast({
-        title: "Error Loading Saved Strategy",
-        description: result.error,
-        variant: "destructive",
-      });
+      if (result) {
+        const loadedStrategy: GenerateCompanyStrategyOutput = {
+          preparationStrategy: result.preparationStrategy,
+          focusTopics: result.focusTopics,
+          todoItems: result.items,
+          savedAt: result.savedAt, // Include savedAt if available
+        };
+        setStrategyData(loadedStrategy);
+        setHasSavedStrategy(true);
+      }
+    } catch (error) {
+      setIsLoadingSaved(false);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+       if (errorMessage !== "Todo list not found.") {
+        toast({
+          title: "Error Loading Saved Strategy",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     }
   }, [user, companyId, toast]);
 
@@ -216,7 +216,7 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
     setIsSaving(true);
     toast({ title: "Saving Strategy...", description: "Please wait." });
 
-    const result = await saveStrategyTodoListAction(
+    const result = await userService.saveStrategyTodoList(
       user.uid,
       companyId,
       companyName,

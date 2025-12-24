@@ -15,7 +15,7 @@ import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { getUserGlobalProblemStatsAction } from "@/app/actions/user.actions";
+import { userService } from "@/services/user.service";
 
 const ProblemListControls = dynamic(() => import("./problem-list-controls"), {
   loading: () => (
@@ -276,14 +276,14 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
     }
 
     const fetchGlobalStats = async () => {
-        const result = await getUserGlobalProblemStatsAction(user.uid);
-        if ("error" in result) {
-            console.error("Error fetching global stats:", result.error);
-        } else {
+        try {
+            const result = await userService.getUserGlobalProblemStats(user.uid);
             setSolvedProblemIds(new Set(result.solvedProblemIds));
             setAttemptedProblemIds(new Set(result.attemptedProblemIds));
             setBookmarkedProblemIds(new Set(result.bookmarkedProblemIds));
             setAreGlobalStatsLoaded(true);
+        } catch (error) {
+            console.error("Error fetching global stats:", error);
         }
     };
 

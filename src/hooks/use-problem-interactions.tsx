@@ -3,10 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth-context";
-import {
-  toggleBookmarkProblemAction,
-  setProblemStatusAction,
-} from "@/app/actions";
+import { userService } from "@/services/user.service";
 import type { LeetCodeProblem, ProblemStatus } from "@/types";
 import { PROBLEM_STATUS_OPTIONS } from "@/types";
 import { useRouter, usePathname } from "next/navigation";
@@ -71,13 +68,13 @@ export function useProblemInteractions(
 
     try {
       const effectiveCompanySlug = problem.companySlug || companySlug;
-      const result = await toggleBookmarkProblemAction(
+      const result = await userService.toggleBookmarkProblem(
         user.uid,
         problem.id,
         effectiveCompanySlug,
         problem.slug,
       );
-      if (result.success) {
+      if (!result.error) {
         setIsBookmarked(result.isBookmarked ?? oldStatus);
         toast({
           title: result.isBookmarked ? "⭐ Bookmarked!" : "📖 Bookmark Removed",
@@ -118,7 +115,7 @@ export function useProblemInteractions(
 
     try {
       const effectiveCompanySlug = problem.companySlug || companySlug;
-      const result = await setProblemStatusAction(
+      const result = await userService.setProblemStatus(
         user.uid,
         problem.id,
         newStatus,
