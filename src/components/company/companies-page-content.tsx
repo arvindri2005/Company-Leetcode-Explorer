@@ -263,7 +263,7 @@ export function CompaniesPageContent({
                         )}
                     </div>
                 ) : (
-                    <div className="text-center py-12 bg-[#1A1A1A] rounded-xl border border-white/5">
+                    <div className="text-center py-12 bg-brand-surface rounded-xl border border-white/5">
                         <h2 className="text-lg font-semibold text-white mb-2">No Results</h2>
                         <p className="text-gray-400">
                         No companies found matching your criteria.

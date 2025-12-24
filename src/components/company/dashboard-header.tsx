@@ -50,7 +50,7 @@ export function DashboardHeader() {
       <div className="max-w-2xl mx-auto relative">
         <div className="relative group">
           <div className="absolute -inset-0.5 bg-gradient-to-r from-teal-500 to-blue-500 rounded-full opacity-30 group-hover:opacity-50 blur transition duration-200"></div>
-          <div className="relative flex items-center bg-[#1A1A1A] rounded-full border border-white/10 shadow-xl">
+          <div className="relative flex items-center bg-brand-surface rounded-full border border-white/10 shadow-xl">
             <Input
               type="text"
               placeholder={`Search for ${placeholder}|`}

@@ -13,7 +13,7 @@ export function TechCompanyCard({ company, priority = false }: TechCompanyCardPr
   const imgSrc = getLogoUrl(company.logo) || "/icon.png";
 
   return (
-    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-6 flex items-start gap-4 hover:border-white/10 transition-colors group">
+    <div className="bg-brand-surface border border-white/5 rounded-xl p-6 flex items-start gap-4 hover:border-white/10 transition-colors group">
       <div className="relative w-16 h-16 flex-shrink-0 bg-white rounded-xl p-2 flex items-center justify-center overflow-hidden">
         <Image
           src={imgSrc}

@@ -23,7 +23,7 @@ export function DashboardHeaderSkeleton() {
 
 export function TechCompanyCardSkeleton() {
   return (
-    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-6 flex items-start gap-4">
+    <div className="bg-brand-surface border border-white/5 rounded-xl p-6 flex items-start gap-4">
       <Skeleton className="w-16 h-16 rounded-xl flex-shrink-0" />
       <div className="flex-1 min-w-0 space-y-2">
         <div>
@@ -39,7 +39,7 @@ export function TechCompanyCardSkeleton() {
 
 export function CompanyTableSkeleton() {
   return (
-    <div className="w-full overflow-hidden rounded-xl border border-white/5 bg-[#1A1A1A]">
+    <div className="w-full overflow-hidden rounded-xl border border-white/5 bg-brand-surface">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead>

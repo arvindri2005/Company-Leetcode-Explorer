@@ -3,6 +3,13 @@ const COLORS = {
     teal: "#00d4aa",
     purple: "#7c3aed",
     yellow: "#F7BC2D",
+    yellowDark: "#201A13",
+    surface: "#1A1A1A",
+    deep: {
+      start: "#0f0c29",
+      middle: "#302b63",
+      end: "#24243e",
+    },
   },
   difficulty: {
     easy: "#22c55e",

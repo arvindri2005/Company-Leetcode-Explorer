@@ -73,7 +73,7 @@ h1, h2, h3, h4, h5, h6 {
     border-width: 0;
   }
   .animated-gradient-background {
-    background: linear-gradient(270deg, #0f0c29, #302b63, #24243e);
+    background: linear-gradient(270deg, theme('colors.brand.deep.start'), theme('colors.brand.deep.middle'), theme('colors.brand.deep.end'));
     background-size: 600% 600%;
     animation: Gradient 25s ease infinite;
   }
