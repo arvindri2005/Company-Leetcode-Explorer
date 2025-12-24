@@ -159,30 +159,6 @@ export class ProblemRepository {
     };
   }
 
-  async getAllProblems(): Promise<LeetCodeProblem[]> {
-    try {
-      const problemsCol = collection(getFirestore(), "problems");
-      const q = query(problemsCol, orderBy("normalizedTitle"));
-      const problemSnapshot = await getDocs(q);
-
-      return problemSnapshot.docs.map((docSnap) => {
-        const problemData = docSnap.data();
-        const firstCompanyId = problemData.companyIds?.[0] || "unknown";
-
-        return {
-          id: docSnap.id,
-          companyId: firstCompanyId,
-          companySlug: "unknown",
-          slug: docSnap.id,
-          ...problemData,
-        } as LeetCodeProblem;
-      });
-    } catch (error) {
-      console.error("Error fetching all problems:", error);
-      return [];
-    }
-  }
-
   async getProblemDetails(
     companyId: string,
     problemId: string,
@@ -247,20 +223,6 @@ export class ProblemRepository {
         error,
       );
       return { company: undefined, problem: undefined };
-    }
-  }
-
-  async getAllProblemCompanyAndProblemSlugs(): Promise<
-    Array<{ companySlug: string; problemSlug: string }>
-  > {
-    try {
-        const allProbs = await this.getAllProblems();
-        return allProbs
-            .map((p) => ({ companySlug: p.companySlug, problemSlug: p.slug }))
-            .filter((s) => s.companySlug && s.problemSlug);
-    } catch (error) {
-        console.error("Error fetching all problem company and problem slugs:", error);
-        return [];
     }
   }
 

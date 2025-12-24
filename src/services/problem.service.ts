@@ -216,18 +216,6 @@ export class ProblemService {
       };
   }
 
-  async getAllProblems(): Promise<LeetCodeProblem[]> {
-    const getCachedAllProblems = unstable_cache(
-        async () => problemRepository.getAllProblems(),
-        ["all-problems-list"],
-        {
-            revalidate: 2592000, // 30 days
-            tags: ["all-problems"],
-        }
-    );
-    return await getCachedAllProblems();
-  }
-
   async getProblemDetails(companyId: string, problemId: string): Promise<LeetCodeProblem | undefined> {
     // Problem ID is the slug
     const getCachedProblem = unstable_cache(
@@ -254,20 +242,6 @@ export class ProblemService {
           }
       );
       return await getCached();
-  }
-
-  async getAllProblemCompanyAndProblemSlugs(): Promise<
-    Array<{ companySlug: string; problemSlug: string }>
-  > {
-      const getCachedSlugs = unstable_cache(
-          async () => problemRepository.getAllProblemCompanyAndProblemSlugs(),
-          ["all-problem-company-slugs"], // Cache Key
-          {
-              revalidate: 2592000, // 30 days
-              tags: ["problems-slugs"],
-          }
-      );
-      return await getCachedSlugs();
   }
 
   async addProblem(
