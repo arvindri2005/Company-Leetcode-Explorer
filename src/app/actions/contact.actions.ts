@@ -7,11 +7,18 @@ import { contactService } from "@/services/contact.service";
  * Zod schema for validating the contact form data.
  *
  * Ensures that `name`, `email`, and `message` fields are present and correctly formatted.
+ * Adds length limits to prevent DoS/Resource Exhaustion.
  */
 const contactSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email address"),
-  message: z.string().min(1, "Message is required"),
+  name: z.string()
+    .min(1, "Name is required")
+    .max(100, "Name must be less than 100 characters"),
+  email: z.string()
+    .email("Invalid email address")
+    .max(255, "Email must be less than 255 characters"),
+  message: z.string()
+    .min(1, "Message is required")
+    .max(5000, "Message must be less than 5000 characters"),
 });
 
 /**
