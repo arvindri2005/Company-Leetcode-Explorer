@@ -80,6 +80,8 @@ function mapFirestoreDocToCompany(
       data.statsLastUpdatedAt instanceof Timestamp
         ? data.statsLastUpdatedAt.toDate()
         : undefined,
+    deletedAt:
+      data.deletedAt instanceof Timestamp ? data.deletedAt.toDate() : undefined,
   };
 }
 
@@ -165,8 +167,11 @@ export class CompanyRepository {
         // We take up to pageSize items starting from startIndex
         // The docs array might have up to (page * pageSize + 1) items
         const sliceEnd = Math.min(docs.length, startIndex + pageSize);
-        companies = docs.slice(startIndex, sliceEnd).map(mapFirestoreDocToCompany);
-        
+        companies = docs
+          .slice(startIndex, sliceEnd)
+          .map(mapFirestoreDocToCompany)
+          .filter((c) => !c.deletedAt); // In-memory filtering for safety
+
         // Generate cursor for the last item if we have more
         if (hasMore && companies.length > 0) {
             const lastCompany = companies[companies.length - 1];
@@ -240,7 +245,10 @@ export class CompanyRepository {
     const docs = querySnapshot.docs;
     const hasMore = docs.length > pageSize;
 
-    const companies = docs.slice(0, pageSize).map(mapFirestoreDocToCompany);
+    const companies = docs
+      .slice(0, pageSize)
+      .map(mapFirestoreDocToCompany)
+      .filter((c) => !c.deletedAt);
 
     let nextCursor: string | undefined;
     if (hasMore && companies.length > 0) {
@@ -266,43 +274,67 @@ export class CompanyRepository {
       const companyDocRef = doc(getFirestore(), "companies", id);
       const companySnap = await getDoc(companyDocRef);
       if (companySnap.exists()) {
-        return mapFirestoreDocToCompany(companySnap);
+        const company = mapFirestoreDocToCompany(companySnap);
+        if (company.deletedAt) {
+          return undefined;
+        }
+        return company;
       }
       return undefined;
     } catch (error) {
-       console.error(`Error fetching company by ID ${id}:`, error);
-       return undefined;
+      console.error(`Error fetching company by ID ${id}:`, error);
+      return undefined;
     }
   }
 
   async getCompanyBySlug(slug: string): Promise<Company | undefined> {
     if (!slug) return undefined;
     try {
-        const companyDocRef = doc(getFirestore(), "companies", slug);
-        const companySnap = await getDoc(companyDocRef);
-        if (companySnap.exists()) {
-            return mapFirestoreDocToCompany(companySnap);
+      const companyDocRef = doc(getFirestore(), "companies", slug);
+      const companySnap = await getDoc(companyDocRef);
+      if (companySnap.exists()) {
+        const company = mapFirestoreDocToCompany(companySnap);
+        if (company.deletedAt) {
+          return undefined;
         }
-        return undefined;
+        return company;
+      }
+      return undefined;
     } catch (error) {
-        console.error(`Error fetching company by slug ${slug}:`, error);
-        return undefined;
+      console.error(`Error fetching company by slug ${slug}:`, error);
+      return undefined;
     }
   }
 
   async getAllCompanySlugs(sorted: boolean = true): Promise<string[]> {
     try {
-        const companiesCol = collection(getFirestore(), "companies");
-        const q = query(companiesCol);
-        const companiesSnapshot = await getDocs(q);
-        const slugs = companiesSnapshot.docs.map((docSnap) => docSnap.id);
-        if (sorted) {
-            slugs.sort();
-        }
-        return slugs;
+      const companiesCol = collection(getFirestore(), "companies");
+      // For getAllCompanySlugs, we can fetch all and filter in memory, OR
+      // if we don't need deletedAt check for slugs (e.g. for static paths), maybe keep it?
+      // Better to filter to avoid 404s.
+      const q = query(companiesCol);
+      const companiesSnapshot = await getDocs(q);
+      const slugs = companiesSnapshot.docs
+        .map((docSnap) => {
+          const data = docSnap.data();
+          if (
+            data.deletedAt &&
+            data.deletedAt instanceof Timestamp &&
+            data.deletedAt.toMillis() <= Date.now()
+          ) {
+            return null;
+          }
+          return docSnap.id;
+        })
+        .filter((id): id is string => id !== null);
+
+      if (sorted) {
+        slugs.sort();
+      }
+      return slugs;
     } catch (error) {
-        console.error("Error fetching all company slugs:", error);
-        return [];
+      console.error("Error fetching all company slugs:", error);
+      return [];
     }
   }
 
@@ -353,6 +385,7 @@ export class CompanyRepository {
         commonTags: [],
         relatedCompanies: companyData.relatedCompanies || [],
         statsLastUpdatedAt: undefined,
+        deletedAt: null as any, // Initialize as null for new records
       };
 
       // Clean up undefined values
@@ -439,7 +472,7 @@ export class CompanyRepository {
 
         chunk.forEach((id) => {
           const docRef = doc(db, "companies", id);
-          currentBatch.delete(docRef);
+          currentBatch.update(docRef, { deletedAt: new Date() });
         });
 
         await currentBatch.commit();
@@ -465,7 +498,7 @@ export class CompanyRepository {
       }
 
       const companyDocRef = doc(getFirestore(), "companies", companyId);
-      await deleteDoc(companyDocRef);
+      await updateDoc(companyDocRef, { deletedAt: new Date() });
 
       return { success: true };
     } catch (error) {
@@ -498,15 +531,20 @@ export class CompanyRepository {
       );
 
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map((docSnap) => {
-        const data = docSnap.data();
-        return {
-          id: docSnap.id,
-          name: data.name,
-          slug: data.slug || slugify(data.name),
-          logo: data.logo,
-        } as Pick<Company, "id" | "name" | "slug" | "logo">;
-      });
+      return querySnapshot.docs
+        .map((docSnap) => {
+          const data = docSnap.data();
+          // Manual filtering for deletedAt
+          if (data.deletedAt) return null;
+
+          return {
+            id: docSnap.id,
+            name: data.name,
+            slug: data.slug || slugify(data.name),
+            logo: data.logo,
+          } as Pick<Company, "id" | "name" | "slug" | "logo">;
+        })
+        .filter((item): item is Pick<Company, "id" | "name" | "slug" | "logo"> => item !== null);
     } catch (error) {
       console.error("Error fetching company suggestions:", error);
       throw error;
