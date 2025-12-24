@@ -1,4 +1,4 @@
-import { Company } from "@/types";
+import { Company, CompanySchema } from "@/types";
 import { db } from "@/lib/firebase";
 import {
   collection,
@@ -52,7 +52,7 @@ function mapFirestoreDocToCompany(
   docSnap: import("firebase/firestore").DocumentSnapshot,
 ): Company {
   const data = docSnap.data()!;
-  return {
+  const company: Company = {
     id: docSnap.id,
     slug: data.slug || docSnap.id || slugify(data.name || ""),
     name: data.name || docSnap.id.charAt(0).toUpperCase() + docSnap.id.slice(1),
@@ -82,6 +82,18 @@ function mapFirestoreDocToCompany(
         ? data.statsLastUpdatedAt.toDate()
         : undefined,
   };
+
+  // Validate at the edge
+  const result = CompanySchema.safeParse(company);
+  if (!result.success) {
+    Logger.warn(
+      `Data integrity issue in Company (ID: ${company.id}): ${result.error.issues
+        .map((i) => `${i.path.join(".")}: ${i.message}`)
+        .join(", ")}`,
+    );
+  }
+
+  return company;
 }
 
 // Helper to encode cursor
@@ -322,6 +334,20 @@ export class CompanyRepository {
     try {
       if (!companyData.name?.trim()) {
         return { id: null, error: "Company name is required" };
+      }
+
+      // Pre-validate input using Zod (partial schema since some fields are auto-generated)
+      const PartialCompanySchema = CompanySchema.pick({
+        name: true,
+        logo: true,
+        description: true,
+        website: true,
+        relatedCompanies: true,
+      });
+
+      const validation = PartialCompanySchema.safeParse(companyData);
+      if (!validation.success) {
+           return { id: null, error: validation.error.issues[0].message };
       }
 
       const companySlug = slugify(companyData.name);
