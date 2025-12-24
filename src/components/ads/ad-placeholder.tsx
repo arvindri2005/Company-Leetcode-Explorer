@@ -100,7 +100,7 @@ export default function AdPlaceholder({
     >
       {title && (
         <div className="w-full text-center mb-1">
-          <span className="text-[10px] uppercase tracking-widest text-muted-foreground/60">
+          <span className="text-xxs uppercase tracking-widest text-muted-foreground/60">
             {title}
           </span>
         </div>

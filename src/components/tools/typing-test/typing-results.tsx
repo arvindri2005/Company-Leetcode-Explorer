@@ -71,14 +71,14 @@ export default function TypingResults({
                         <div className="bg-muted/30 p-5 rounded-2xl border border-white/5 hover:border-primary/20 transition-all group">
                             <div className="flex items-center gap-2 text-muted-foreground mb-2">
                                 <Zap className="w-4 h-4 group-hover:text-amber-500 transition-colors" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">WPM</span>
+                                <span className="text-xxs font-bold uppercase tracking-wider">WPM</span>
                             </div>
                             <div className="text-4xl font-black text-foreground tracking-tighter group-hover:scale-105 origin-left transition-transform">{wpm}</div>
                         </div>
                         <div className="bg-muted/30 p-5 rounded-2xl border border-white/5 hover:border-primary/20 transition-all group">
                             <div className="flex items-center gap-2 text-muted-foreground mb-2">
                                 <Target className="w-4 h-4 group-hover:text-blue-500 transition-colors" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">Accuracy</span>
+                                <span className="text-xxs font-bold uppercase tracking-wider">Accuracy</span>
                             </div>
                             <div className={`text-4xl font-black tracking-tighter group-hover:scale-105 origin-left transition-transform ${accuracy >= 95 ? 'text-green-500' : accuracy >= 90 ? 'text-yellow-500' : 'text-red-500'}`}>
                                 {accuracy}%
@@ -87,14 +87,14 @@ export default function TypingResults({
                         <div className="bg-muted/30 p-4 rounded-xl border border-white/5">
                             <div className="flex items-center gap-2 text-muted-foreground mb-1">
                                 <Clock className="w-3.5 h-3.5" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">Time</span>
+                                <span className="text-xxs font-bold uppercase tracking-wider">Time</span>
                             </div>
                             <div className="text-xl font-bold text-foreground">{totalTime}s</div>
                         </div>
                          <div className="bg-muted/30 p-4 rounded-xl border border-white/5">
                             <div className="flex items-center gap-2 text-muted-foreground mb-1">
                                 <AlertCircle className="w-3.5 h-3.5" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">Mistakes</span>
+                                <span className="text-xxs font-bold uppercase tracking-wider">Mistakes</span>
                             </div>
                             <div className={`text-xl font-bold ${mistakes > 0 ? 'text-red-500' : 'text-muted-foreground'}`}>{mistakes}</div>
                         </div>
