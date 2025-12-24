@@ -30,6 +30,7 @@ import { AIProblemInput, LeetCodeProblem } from "@/types";
 import { companyService } from "@/services/company.service";
 import { problemService } from "@/services/problem.service";
 import { userService } from "@/services/user.service";
+import { unstable_cache } from "next/cache";
 
 export class AIService {
   async groupQuestions(
@@ -174,15 +175,27 @@ export class AIService {
           "Problem details including company and problem slugs are required.",
       };
 
-    const problemDescriptionForAI = `Problem Title: "${problem.title}" (Difficulty: ${problem.difficulty}). Tags: ${problem.tags.join(", ")}. Link (for context only): ${problem.link}. Analyze this problem to provide key concepts, common data structures, common algorithms, and a high-level hint.`;
+    const cacheKey = `problem-insights-${problem.companySlug}-${problem.slug}`;
+    const generate = unstable_cache(
+      async () => {
+        const problemDescriptionForAI = `Problem Title: "${problem.title}" (Difficulty: ${problem.difficulty}). Tags: ${problem.tags.join(", ")}. Link (for context only): ${problem.link}. Analyze this problem to provide key concepts, common data structures, common algorithms, and a high-level hint.`;
 
-    const input: GenerateProblemInsightsInput = {
-      title: problem.title,
-      difficulty: problem.difficulty,
-      tags: problem.tags,
-      problemDescription: problemDescriptionForAI,
-    };
-    return await generateProblemInsightsFlow(input);
+        const input: GenerateProblemInsightsInput = {
+          title: problem.title,
+          difficulty: problem.difficulty,
+          tags: problem.tags,
+          problemDescription: problemDescriptionForAI,
+        };
+        return await generateProblemInsightsFlow(input);
+      },
+      [cacheKey],
+      {
+        revalidate: 60 * 60 * 24 * 30, // 30 days
+        tags: [`problem-insights-${problem.slug}`],
+      }
+    );
+
+    return await generate();
   }
 }
 

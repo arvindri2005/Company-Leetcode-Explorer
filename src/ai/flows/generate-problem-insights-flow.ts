@@ -97,6 +97,8 @@ Provide the following in the specified JSON format:
 3.  "commonAlgorithms": List 1 to 3 algorithms or general techniques that are often applicable (e.g., "Binary Search on Answer", "Backtracking with Pruning", "BFS for Shortest Path").
 4.  "highLevelHint": Craft a single, concise (1-2 sentences) high-level conceptual hint. This hint should guide the user's thinking process or suggest a perspective to consider. **Crucially, DO NOT reveal any part of the actual solution, specific implementation steps, or pseudo-code.** For example, instead of "Iterate through the array and store elements in a hash map", a better hint might be "Consider how you can efficiently check for previously seen elements." or "How can you systematically explore all possibilities while avoiding redundant computations?".
 
+Important: Do not use Markdown formatting (like bold, italics, or code blocks) in any of the output strings. Return plain text only.
+
 Be insightful and focus on the underlying principles.
 `,
 });
