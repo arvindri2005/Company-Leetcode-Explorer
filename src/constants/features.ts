@@ -1,11 +1,11 @@
 import {
-  FaSearch,
-  FaLightbulb,
-  FaChartLine,
-  FaUsers,
-  FaMobileAlt,
-  FaClock,
-} from "react-icons/fa";
+  Search,
+  Lightbulb,
+  LineChart,
+  Users,
+  Smartphone,
+  Clock,
+} from "lucide-react";
 import { Feature, Stat } from "@/types";
 
 /**
@@ -16,37 +16,37 @@ import { Feature, Stat } from "@/types";
  */
 export const FEATURES: Feature[] = [
   {
-    icon: FaSearch,
+    icon: Search,
     title: "Smart Search",
     description:
       "Find problems by difficulty, topic, company, or keywords. Our intelligent search helps you focus on what matters most.",
   },
   {
-    icon: FaLightbulb,
+    icon: Lightbulb,
     title: "Detailed Solutions",
     description:
       "Step-by-step explanations with multiple approaches, time complexity analysis, and optimization tips.",
   },
   {
-    icon: FaChartLine,
+    icon: LineChart,
     title: "Progress Tracking",
     description:
       "Monitor your learning journey with detailed analytics and personalized recommendations.",
   },
   {
-    icon: FaUsers,
+    icon: Users,
     title: "Community Driven",
     description:
       "Learn from thousands of developers sharing their solutions and interview experiences.",
   },
   {
-    icon: FaMobileAlt,
+    icon: Smartphone,
     title: "Mobile Friendly",
     description:
       "Practice anywhere, anytime with our responsive design that works perfectly on all devices.",
   },
   {
-    icon: FaClock,
+    icon: Clock,
     title: "Regular Updates",
     description:
       "Stay current with the latest problems and solutions added weekly from top tech companies.",

@@ -6,9 +6,8 @@
  * component, with its state managed by a parent component.
  */
 import React from "react";
-import { Loader2, Building2 } from "lucide-react";
+import { Loader2, Building2, Search } from "lucide-react";
 import Image from "next/image";
-import { FaSearch } from "react-icons/fa";
 import { getLogoUrl } from "@/lib/utils";
 import { useTypingPlaceholder } from "@/hooks/use-typing-placeholder";
 
@@ -117,7 +116,7 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
             aria-label="Submit company search"
             className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-brand-teal to-brand-purple border-none rounded-full w-12 h-12 text-white cursor-pointer transition-all duration-300 hover:scale-110 flex items-center justify-center"
           >
-            <FaSearch />
+            <Search />
           </button>
         </form>
       </div>
