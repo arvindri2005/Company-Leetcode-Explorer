@@ -7,7 +7,7 @@
  */
 "use client";
 
-import { FaRocket, FaPlay } from "react-icons/fa";
+import { Rocket, Play } from "lucide-react";
 import { FloatingShapes } from "@/components/ui/floating-shapes";
 import { useRouter } from "next/navigation";
 
@@ -49,11 +49,11 @@ export default function HeroSection() {
             className="px-8 py-4 border-none rounded-full text-lg font-semibold cursor-pointer transition-all duration-300 no-underline inline-flex items-center gap-2 bg-gradient-to-r from-brand-teal to-brand-purple text-white hover:transform hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,212,170,0.3)]"
             onClick={handleClick}
           >
-            <FaRocket />
+            <Rocket />
             Start Exploring
           </button>
           {/* <button className="px-8 py-4 bg-transparent text-gray-custom-200 border-2 border-gray-custom-700 rounded-full text-lg font-semibold cursor-pointer transition-all duration-300 no-underline inline-flex items-center gap-2 hover:border-brand-teal hover:text-brand-teal">
-            <FaPlay />
+            <Play />
             Watch Demo
           </button> */}
         </div>

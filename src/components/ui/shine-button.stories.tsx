@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import ShineButton from "./shine-button";
-import { FaRocket, FaHeart, FaStar } from "react-icons/fa";
+import { Rocket, Heart, Star } from "lucide-react";
 
 const meta = {
   title: "UI/ShineButton",
@@ -14,9 +14,9 @@ const meta = {
       control: "select",
       options: ["Rocket", "Heart", "Star", "None"],
       mapping: {
-        Rocket: FaRocket,
-        Heart: FaHeart,
-        Star: FaStar,
+        Rocket: Rocket,
+        Heart: Heart,
+        Star: Star,
         None: undefined,
       },
     },
@@ -33,7 +33,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    icon: FaRocket,
+    icon: Rocket,
   },
 };
 
@@ -46,7 +46,7 @@ export const NoIcon: Story = {
 
 export const CustomText: Story = {
   args: {
-    icon: FaStar,
+    icon: Star,
     children: "Star This Project",
   },
 };

@@ -6,9 +6,9 @@ import { auth } from "@/lib/firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { FcGoogle } from "react-icons/fc";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
+import { GoogleIcon } from "../icons/google-icon";
 
 export default function GoogleAuthButton() {
   const { toast } = useToast();
@@ -70,7 +70,7 @@ export default function GoogleAuthButton() {
       {isLoading ? (
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
       ) : (
-        <FcGoogle className="mr-2 h-5 w-5" />
+        <GoogleIcon className="mr-2 h-5 w-5" />
       )}
       Continue with Google
     </Button>

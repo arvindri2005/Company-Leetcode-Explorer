@@ -2,7 +2,7 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
-import { FaRocket } from "react-icons/fa";
+import { Rocket } from "lucide-react";
 
 /**
  * @interface ShineButtonProps
@@ -25,7 +25,7 @@ interface ShineButtonProps
  * @returns {JSX.Element} The rendered shine button component.
  */
 const ShineButton = React.forwardRef<HTMLButtonElement, ShineButtonProps>(
-  ({ children, className, icon: Icon = FaRocket, ...props }, ref) => {
+  ({ children, className, icon: Icon = Rocket, ...props }, ref) => {
     return (
       <button
         ref={ref}
