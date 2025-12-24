@@ -14,6 +14,7 @@ import { Toaster } from "@/components/ui/toaster";
 import Header from "@/components/layout/header";
 import Footer from "@/components/landing/footer";
 import { AuthProvider } from "@/contexts/auth-context";
+import { NavigationProvider } from "@/contexts/navigation-context";
 import { ThemeProvider } from "@/components/shared/theme-provider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
@@ -173,19 +174,21 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <CooldownStateProvider>
-              <div className="flex flex-col min-h-screen w-full">
-                <Header />
-                <main className="flex-1 w-full">
-                  {children}
-                  <SpeedInsights />
-                  <Analytics />
-                </main>
-                <Footer />
-                <Toaster />
-              </div>
-            </CooldownStateProvider>
-            <StructuredData data={organizationStructuredData} />
+            <NavigationProvider>
+              <CooldownStateProvider>
+                <div className="flex flex-col min-h-screen w-full">
+                  <Header />
+                  <main className="flex-1 w-full">
+                    {children}
+                    <SpeedInsights />
+                    <Analytics />
+                  </main>
+                  <Footer />
+                  <Toaster />
+                </div>
+              </CooldownStateProvider>
+              <StructuredData data={organizationStructuredData} />
+            </NavigationProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

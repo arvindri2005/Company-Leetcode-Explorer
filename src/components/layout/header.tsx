@@ -11,6 +11,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Menu } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
+import { useNavigation } from "@/contexts/navigation-context";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -37,6 +38,7 @@ import React, { useState, useCallback, useMemo } from "react";
  */
 const Header = React.memo(function Header() {
   const { user, loading: authLoading } = useAuth();
+  const { links } = useNavigation();
   const { toast } = useToast();
   const router = useRouter();
   const pathname = usePathname();
@@ -72,37 +74,29 @@ const Header = React.memo(function Header() {
     () =>
       function CommonNavLinks(isMobile = false) {
         return (
-        <>
-          <Link
-            href="/companies"
-            className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${
-              isMobile
-                ? `block py-4 border-b border-gray-200/10 font-bold ${
-                    pathname === "/companies" ? "text-teal-400" : ""
-                  }`
-                : ""
-            }`}
-            onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
-          >
-            Explore Companies
-          </Link>
-
-          <Link
-            href="/problems"
-            className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${
-              isMobile
-                ? `block py-4 border-b border-gray-200/10 font-bold ${
-                    pathname === "/problems" ? "text-teal-400" : ""
-                  }`
-                : ""
-            }`}
-            onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
-          >
-            Problems
-          </Link>
-        </>
-      )},
-    [pathname],
+          <>
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${
+                  isMobile
+                    ? `block py-4 border-b border-gray-200/10 font-bold ${
+                        pathname === link.href ? "text-teal-400" : ""
+                      }`
+                    : ""
+                }`}
+                onClick={
+                  isMobile ? () => setIsMobileMenuOpen(false) : undefined
+                }
+              >
+                {link.label}
+              </Link>
+            ))}
+          </>
+        );
+      },
+    [pathname, links],
   );
 
   const authLinks = useMemo(
