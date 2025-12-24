@@ -31,6 +31,45 @@ src/
 
 ## Architectural Layers
 
+```mermaid
+graph TD
+    User((User))
+
+    subgraph Presentation ["Presentation Layer (src/app, src/components)"]
+        Page["Page (Server Component)"]
+        Component["Client Component"]
+    end
+
+    subgraph Action ["Action Layer (src/actions)"]
+        ServerAction["Server Action"]
+    end
+
+    subgraph Service ["Service Layer (src/services)"]
+        BusinessLogic["Business Logic Service"]
+    end
+
+    subgraph Repository ["Repository Layer (src/repositories)"]
+        DataAccess["Data Access Repository"]
+    end
+
+    subgraph AI_Layer ["AI Layer (src/ai)"]
+        GenkitFlow["Genkit Flow"]
+    end
+
+    subgraph Data ["Data Source"]
+        DB[(Firestore)]
+    end
+
+    User --> Page
+    User --> Component
+    Page --> Service
+    Component --> ServerAction
+    ServerAction --> Service
+    Service --> DataAccess
+    Service --> GenkitFlow
+    DataAccess --> DB
+```
+
 1.  **Presentation Layer (`src/app`, `src/components`)**:
     *   **Pages (`src/app`)**: Server Components by default. Responsible for initial data fetching and layout.
     *   **Components (`src/components`)**: Reusable UI blocks. Organized by feature (e.g., `company`, `ai`) or generic type (`ui`).
@@ -41,7 +80,7 @@ src/
 
 3.  **Service Layer (`src/services`)**:
     *   **Encapsulation**: dependent Logic & Orchestration.
-    *   **Responsibility**: Contains business rules, validates complex logic, and calls the **Repository Layer**.
+    *   **Responsibility**: Contains business rules, validates complex logic, and calls the **Repository Layer** or **AI Layer**.
     *   **Pattern**: Export singleton instances or classes (e.g., `aiService`, `companyService`).
 
 4.  **Repository Layer (`src/repositories`)**:
