@@ -17,6 +17,7 @@ import { problemService } from "@/services/problem.service";
 import { companyService } from "@/services/company.service";
 import { revalidateTag, revalidatePath } from "next/cache";
 import { slugify } from "@/lib/utils";
+import { handleServerActionError } from "@/lib/error-handler";
 import type { ProblemListFilters } from "@/types";
 
 /**
@@ -118,12 +119,11 @@ export async function addProblem(
       updated,
     };
   } catch (error) {
-    console.error("Error adding problem (action level):", error);
-    if (error instanceof Error) return { success: false, error: error.message };
-    return {
-      success: false,
-      error: "An unknown error occurred while adding the problem.",
-    };
+    const errorMessage = handleServerActionError(error, "addProblem", {
+      companyId: problemDataInput.companyId,
+      problemTitle: problemDataInput.title,
+    });
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -152,7 +152,9 @@ export async function getProblemDetailsBatchAction(
     );
     return problems.filter(Boolean) as LeetCodeProblem[];
   } catch (error) {
-    console.error("Error in getProblemDetailsBatchAction:", error);
+    handleServerActionError(error, "getProblemDetailsBatchAction", {
+      count: problemRefs.length,
+    });
     return [];
   }
 }
@@ -171,9 +173,10 @@ export async function getProblemByCompanySlugAndProblemSlugAction(
   try {
     return await problemService.getProblemByCompanySlugAndProblemSlug(companySlug, problemSlug);
   } catch (error) {
-    console.error(
-      `Error fetching problem by company slug ${companySlug} and problem slug ${problemSlug}:`,
+    handleServerActionError(
       error,
+      "getProblemByCompanySlugAndProblemSlugAction",
+      { companySlug, problemSlug },
     );
     return { company: undefined, problem: undefined };
   }
@@ -206,8 +209,11 @@ export async function loadMoreProblemsAction(
       sortKey: filters.sortKey,
     });
   } catch (error) {
-    console.error("Error loading more problems:", error);
-    const message = error instanceof Error ? error.message : "Failed to load more problems";
+    const message = handleServerActionError(error, "loadMoreProblemsAction", {
+      companyId,
+      filters,
+      cursor,
+    });
     throw new Error(message);
   }
 }
@@ -235,7 +241,10 @@ export async function loadMoreAllProblemsAction(
       sortKey: filters.sortKey,
     });
   } catch (error) {
-    console.error("Error loading more all problems:", error);
+    handleServerActionError(error, "loadMoreAllProblemsAction", {
+      filters,
+      cursor,
+    });
     throw new Error("Failed to load more all problems");
   }
 }
@@ -259,7 +268,7 @@ export async function fetchProblemsAction(
       sortKey: filters.sortKey,
     });
   } catch (error) {
-    console.error("Error fetching problems:", error);
+    handleServerActionError(error, "fetchProblemsAction", { filters, cursor });
     throw new Error("Failed to fetch problems");
   }
 }
