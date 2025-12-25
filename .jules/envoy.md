@@ -1,0 +1,1 @@
+## 2025-12-25 - Centralized Config **Risk:** Scattered process.env calls and hardcoded defaults led to implicit behavior and missing validation. **Protocol:** Use src/env.ts with Zod validation for all config.

@@ -10,6 +10,7 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { env } from "@/env";
 import { Toaster } from "@/components/ui/toaster";
 import Header from "@/components/layout/header";
 import Footer from "@/components/landing/footer";
@@ -27,7 +28,7 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
+const APP_URL = env.NEXT_PUBLIC_APP_URL;
 
 const organizationStructuredData = {
   "@context": "https://schema.org",
@@ -158,7 +159,7 @@ export default function RootLayout({
         <script async src="https://cdn.ampproject.org/v0.js"></script>
         <script
           async
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID || "ca-pub-6342943619826199"}`}
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID || "ca-pub-6342943619826199"}`}
           crossOrigin="anonymous"
         ></script>
       </head>

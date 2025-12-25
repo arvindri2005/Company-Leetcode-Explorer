@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { env } from "@/env";
 
 /**
  * @function cn
@@ -41,10 +42,10 @@ export function slugify(text: string): string {
  */
 export function getLogoUrl(url: string | undefined): string | undefined {
   if (!url) return url;
-  if (!process.env.LOGO_API) return url;
+  if (!env.LOGO_API) return url;
 
   const separator = url.includes("?") ? "&" : "?";
-  return `${url}${separator}token=${process.env.LOGO_API}`;
+  return `${url}${separator}token=${env.LOGO_API}`;
 }
 
 /**
