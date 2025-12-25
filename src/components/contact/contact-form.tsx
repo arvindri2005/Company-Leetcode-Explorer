@@ -53,11 +53,17 @@ export function ContactForm() {
             type="text"
             name="name"
             id="name"
+            autoComplete="name"
+            required
+            aria-invalid={!!state?.errors?.name}
+            aria-describedby={state?.errors?.name ? "name-error" : undefined}
             className="block w-full rounded-md border-gray-600 bg-gray-800 py-3 px-4 text-white shadow-sm focus:border-primary focus:ring-primary"
           />
         </div>
         {state?.errors?.name && (
-          <p className="text-red-500 text-sm mt-1">{state.errors.name}</p>
+          <p id="name-error" role="alert" className="text-red-500 text-sm mt-1">
+            {state.errors.name}
+          </p>
         )}
       </div>
       <div>
@@ -73,11 +79,16 @@ export function ContactForm() {
             name="email"
             type="email"
             autoComplete="email"
+            required
+            aria-invalid={!!state?.errors?.email}
+            aria-describedby={state?.errors?.email ? "email-error" : undefined}
             className="block w-full rounded-md border-gray-600 bg-gray-800 py-3 px-4 text-white shadow-sm focus:border-primary focus:ring-primary"
           />
         </div>
         {state?.errors?.email && (
-          <p className="text-red-500 text-sm mt-1">{state.errors.email}</p>
+          <p id="email-error" role="alert" className="text-red-500 text-sm mt-1">
+            {state.errors.email}
+          </p>
         )}
       </div>
       <div>
@@ -92,11 +103,14 @@ export function ContactForm() {
             id="message"
             name="message"
             rows={4}
+            required
+            aria-invalid={!!state?.errors?.message}
+            aria-describedby={state?.errors?.message ? "message-error" : undefined}
             className="block w-full rounded-md border-gray-600 bg-gray-800 py-3 px-4 text-white shadow-sm focus:border-primary focus:ring-primary"
           />
         </div>
         {state?.errors?.message && (
-          <p className="text-red-500 text-sm mt-1">
+          <p id="message-error" role="alert" className="text-red-500 text-sm mt-1">
             {state.errors.message}
           </p>
         )}
