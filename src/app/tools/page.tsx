@@ -81,7 +81,7 @@ export default function ToolsPage() {
                     <tool.icon className="w-6 h-6" />
                  </div>
                  {tool.status === "Coming Soon" && (
-                     <span className="text-[10px] uppercase font-bold px-2.5 py-1 rounded-full bg-muted text-muted-foreground tracking-wide">
+                     <span className="text-xxs uppercase font-bold px-2.5 py-1 rounded-full bg-muted text-muted-foreground tracking-wide">
                        Coming Soon
                      </span>
                  )}
