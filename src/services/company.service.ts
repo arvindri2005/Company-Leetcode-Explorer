@@ -174,6 +174,16 @@ export class CompanyService {
       return result;
   }
 
+  async restoreCompany(
+    companyId: string,
+  ): Promise<{ success: boolean; error?: string }> {
+      const result = await companyRepository.restoreCompany(companyId);
+      if (result.success) {
+          await this.revalidateCompaniesPage(companyId);
+      }
+      return result;
+  }
+
   async revalidateCompaniesPage(companyId?: string, companySlug?: string) {
     try {
       revalidateTag("companies-list", 'max');

@@ -86,6 +86,7 @@ export interface Company {
   commonTags?: Array<{ tag: string; count: number }>;
   relatedCompanies?: string[]; // List of related company names
   statsLastUpdatedAt?: Date; // Timestamp of when these stats were last updated
+  deletedAt?: Date; // Timestamp of when the company was soft-deleted
 }
 
 /**
