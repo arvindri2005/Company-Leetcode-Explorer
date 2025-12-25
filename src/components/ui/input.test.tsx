@@ -1,5 +1,6 @@
 
 import { render, screen, fireEvent } from "@testing-library/react";
+import React, { createRef } from "react";
 import { Input } from "./input";
 
 describe("Input", () => {
@@ -26,5 +27,13 @@ describe("Input", () => {
     render(<Input disabled placeholder="Disabled" />);
     const input = screen.getByPlaceholderText("Disabled");
     expect(input).toBeDisabled();
+  });
+
+  it("forwards ref correctly", () => {
+    const ref = createRef<HTMLInputElement>();
+    render(<Input ref={ref} placeholder="Ref test" />);
+    
+    expect(ref.current).toBeInstanceOf(HTMLInputElement);
+    expect(ref.current).toHaveAttribute("placeholder", "Ref test");
   });
 });
