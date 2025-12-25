@@ -181,7 +181,7 @@ const ProblemInfoCard: React.FC<ProblemInfoCardProps> = ({
                     <Tag className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                     <div className="flex flex-wrap gap-1.5">
                         {problemTags.slice(0, 5).map(tag => (
-                            <TagBadge key={tag} tag={tag} className="text-[10px] px-1.5 py-0 h-5" />
+                            <TagBadge key={tag} tag={tag} className="text-xxs px-1.5 py-0 h-5" />
                         ))}
                         {problemTags.length > 5 && (
                             <span className="text-xs text-muted-foreground">+{problemTags.length - 5} more</span>
@@ -195,7 +195,7 @@ const ProblemInfoCard: React.FC<ProblemInfoCardProps> = ({
                     <Building2 className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                     <div className="flex flex-wrap gap-1.5">
                         {companyIds.slice(0, 3).map(companyId => (
-                            <Badge key={companyId} variant="secondary" className="text-[10px] px-1.5 py-0 h-5 font-normal">
+                            <Badge key={companyId} variant="secondary" className="text-xxs px-1.5 py-0 h-5 font-normal">
                                 {companyId}
                             </Badge>
                         ))}

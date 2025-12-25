@@ -171,8 +171,8 @@ export default function TypingArea({
                    </div>
                    <div className="flex gap-2">
                          <div className="text-xs text-muted-foreground flex flex-col items-end justify-center px-4 border-r border-border/50 font-mono">
-                             <kbd className="bg-muted px-1.5 py-0.5 rounded text-[10px] border shadow-sm">ESC</kbd> 
-                             <span className="text-[10px] opacity-70 mt-1">to restart</span>
+                             <kbd className="bg-muted px-1.5 py-0.5 rounded text-xxs border shadow-sm">ESC</kbd> 
+                             <span className="text-xxs opacity-70 mt-1">to restart</span>
                          </div>
                        <Button variant="ghost" size="icon" onClick={resetGame} className="text-muted-foreground hover:text-foreground hover:bg-muted/20">
                            <RotateCcw className="w-4 h-4" />
@@ -211,7 +211,7 @@ export default function TypingArea({
            
            <CardFooter className="border-t border-white/5 bg-muted/5 py-3 px-6 text-xs text-muted-foreground flex justify-between items-center select-none backdrop-blur-sm">
               <div className="flex gap-4">
-                  <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 border border-white/10 rounded bg-background/50 shadow-sm text-[10px] font-mono">TAB</kbd> for indent</span>
+                  <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 border border-white/10 rounded bg-background/50 shadow-sm text-xxs font-mono">TAB</kbd> for indent</span>
               </div>
               <div className="flex items-center gap-2 font-mono opacity-60">
                 <span>{userInput.length}</span>
