@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import CompanyStrategyGenerator from '@/components/ai/company-strategy-generator';
-import { getStrategyTodoListForCompanyAction } from '@/app/actions';
+import { generateCompanyStrategyAction } from '@/app/actions';
+import { userService } from '@/services/user.service';
 
 jest.mock('react-markdown', () => ({
   __esModule: true,
@@ -32,7 +33,14 @@ jest.mock('@/app/actions', () => ({
     focusTopics: [],
     todoItems: [],
   }),
-  getStrategyTodoListForCompanyAction: jest.fn().mockResolvedValue(null),
+}));
+
+// Mock user service
+jest.mock('@/services/user.service', () => ({
+  userService: {
+    getStrategyTodoListForCompany: jest.fn().mockResolvedValue(null),
+    saveStrategyTodoList: jest.fn(),
+  },
 }));
 
 // Mock hooks
@@ -67,6 +75,6 @@ describe('CompanyStrategyGenerator', () => {
   it('should render initial state', async () => {
     render(<CompanyStrategyGenerator {...defaultProps} />);
     expect(screen.getByText(/AI-Powered Interview Strategy/i)).toBeInTheDocument();
-    await waitFor(() => expect(getStrategyTodoListForCompanyAction).toHaveBeenCalled());
+    await waitFor(() => expect(userService.getStrategyTodoListForCompany).toHaveBeenCalled());
   });
 });
