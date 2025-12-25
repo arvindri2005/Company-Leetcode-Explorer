@@ -11,6 +11,8 @@
 import type { Company } from "@/types";
 import { useState, useEffect, useRef, useCallback } from "react";
 import CompanyCard from "./company-card";
+import ErrorBoundary from "@/components/ui/error-boundary";
+import CompanyCardErrorFallback from "./company-card-error-fallback";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useDebounce } from "@/hooks/use-debounce";
 import { fetchCompanySuggestionsAction } from "@/app/actions";
@@ -240,7 +242,9 @@ const CompanyList: React.FC<CompanyListProps> = ({
           >
             {displayedCompanies.map((company) => (
               <li key={company.id} className="list-none">
-                <CompanyCard company={company} />
+                <ErrorBoundary fallback={<CompanyCardErrorFallback />}>
+                  <CompanyCard company={company} />
+                </ErrorBoundary>
               </li>
             ))}
           </ul>
