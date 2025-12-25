@@ -44,40 +44,35 @@ jest.mock("@/repositories/company.repository", () => ({
 import { companyRepository } from "@/repositories/company.repository";
 
 import { userRepository } from "@/repositories/user.repository";
+import { createMockProblem, createMockCompany } from "../factories/data-factories";
 
 describe("ProblemRepository.getProblemsByCompany", () => {
+  const mockProblemData = createMockProblem({
+    companyIds: ["1"],
+  });
+
   const mockProblems = [
     {
-      id: "problem-1",
-      title: "Problem 1",
-      difficulty: "Easy",
-      companyIds: ["1"],
-      normalizedTitle: "problem 1",
-      data: () => ({
-          title: "Problem 1",
-          difficulty: "Easy",
-          companyIds: ["1"],
-          normalizedTitle: "problem 1",
-      })
+      id: mockProblemData.id,
+      data: () => mockProblemData,
     },
   ];
+
+  const mockCompany = createMockCompany({
+    id: "1",
+    slug: "google",
+    name: "Google",
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
     (getCountFromServer as jest.Mock).mockResolvedValue({
       data: () => ({ count: 1 }),
     });
-    (getCountFromServer as jest.Mock).mockResolvedValue({
-      data: () => ({ count: 1 }),
-    });
     (getDocs as jest.Mock).mockResolvedValue({
       docs: mockProblems,
     });
-    (companyRepository.getCompanyById as jest.Mock).mockResolvedValue({
-      id: "1",
-      slug: "google",
-      name: "Google",
-    });
+    (companyRepository.getCompanyById as jest.Mock).mockResolvedValue(mockCompany);
   });
 
   it("should return problems (without user data)", async () => {
