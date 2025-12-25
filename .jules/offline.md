@@ -1,0 +1,1 @@
+## 2025-05-24 - Offline Indicator **Disconnect:** Users have no way of knowing when they've lost their internet connection until an action fails. **Link:** Implemented a global `OfflineIndicator` toast powered by a `useOnlineStatus` hook to provide immediate visual feedback.

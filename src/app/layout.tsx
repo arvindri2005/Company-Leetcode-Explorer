@@ -11,6 +11,7 @@ import Script from "next/script";
 import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { OfflineIndicator } from "@/components/ui/offline-indicator";
 import Header from "@/components/layout/header";
 import Footer from "@/components/landing/footer";
 import { AuthProvider } from "@/contexts/auth-context";
@@ -189,6 +190,7 @@ export default function RootLayout({
                 </main>
                 <Footer />
                 <Toaster />
+                <OfflineIndicator />
               </div>
             </CooldownStateProvider>
             <StructuredData data={organizationStructuredData} />
