@@ -427,10 +427,12 @@ export class ProblemRepository {
 
     // Semi-Optimized Path
     // Added safety limit of 200
-    const q = query(problemsColRef, ...constraints, limit(200));
-    const problemSnapshot = await getDocs(q);
+    const startTime = Date.now();
+    try {
+      const q = query(problemsColRef, ...constraints, limit(200));
+      const problemSnapshot = await getDocs(q);
 
-    let processedProblems = problemSnapshot.docs.map((docSnap) => {
+      let processedProblems = problemSnapshot.docs.map((docSnap) => {
       const data = docSnap.data();
       const companySpecificData = data.companies?.[companyId] || {};
       
@@ -531,12 +533,30 @@ export class ProblemRepository {
       ? paginatedProblems[paginatedProblems.length - 1]?.id
       : undefined;
 
-    return {
-      problems: paginatedProblems,
-      totalProblems,
-      hasMore,
-      nextCursor,
-    };
+      Logger.info("Problem Fetch (Semi-Optimized)", {
+        companyId,
+        fetchedCount: problemSnapshot.size,
+        resultCount: paginatedProblems.length,
+        durationMs: Date.now() - startTime,
+        filters: {
+          difficulty: residualDifficultyFilter.length > 0,
+          lastAsked: residualLastAskedFilter.length > 0,
+          search: !!searchTerm,
+        },
+      });
+
+      return {
+        problems: paginatedProblems,
+        totalProblems,
+        hasMore,
+        nextCursor,
+      };
+    } catch (error) {
+      Logger.error("Error in Semi-Optimized Problem Fetch", error, {
+        companyId,
+      });
+      throw error;
+    }
   }
   
   private async fetchAllProblemsCore(params: {
