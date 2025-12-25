@@ -58,7 +58,7 @@ if (!_clientEnv.success && !isTest) {
 const clientData = _clientEnv.success ? _clientEnv.data : (clientEnv as unknown as z.infer<typeof clientSchema>);
 
 
-let _serverEnv = { success: true, data: {} as z.infer<typeof serverSchema> };
+let _serverEnv: ReturnType<typeof serverSchema.safeParse> = { success: true, data: {} as z.infer<typeof serverSchema> };
 
 if (typeof window === "undefined") {
    const serverEnv = {
