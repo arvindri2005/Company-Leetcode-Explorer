@@ -23,6 +23,7 @@ import {
   updateDoc,
   setDoc,
   Firestore,
+  QueryConstraint,
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
 import { Logger } from "@/lib/logger";
@@ -288,21 +289,11 @@ export class ProblemRepository {
     },
   ) {
     const {
-      cursor,
-      page,
-      pageSize = 10,
       difficultyFilter = [],
       lastAskedFilter = [],
       searchTerm = "",
       sortKey = "title",
-      companySlug,
-      totalProblemCount,
-      difficultyCounts,
-      recencyCounts,
     } = params;
-
-    let dbReads = 0;
-    const problemsColRef = collection(getFirestore(), "problems");
 
     // Base constraints
     const constraints: any[] = [
@@ -347,120 +338,174 @@ export class ProblemRepository {
 
     if (!hasResidualFilters && isSupportedSort) {
       try {
-        // Fully Optimized Path
-        let totalProblems = 0;
-
-        if (constraints.length === 1 && totalProblemCount !== undefined) {
-          totalProblems = totalProblemCount;
-        } else if (
-          difficultyCounts &&
-          lastAskedFilter.length === 0 &&
-          difficultyFilter.length > 0 &&
-          residualDifficultyFilter.length === 0
-        ) {
-          totalProblems = difficultyFilter.reduce(
-            (acc, diff) => acc + (difficultyCounts[diff] || 0),
-            0,
-          );
-        } else if (
-          recencyCounts &&
-          difficultyFilter.length === 0 &&
-          lastAskedFilter.length > 0 &&
-          residualLastAskedFilter.length === 0
-        ) {
-          totalProblems = lastAskedFilter.reduce(
-            (acc, period) => acc + (recencyCounts[period] || 0),
-            0,
-          );
-        } else {
-          const countQuery = query(problemsColRef, ...constraints);
-          const countSnapshot = await getCountFromServer(countQuery);
-          totalProblems = countSnapshot.data().count;
-        }
-
-        const sortField =
-          sortKey === "difficulty" ? "difficulty" : "normalizedTitle";
-
-        let queryConstraints = [...constraints, orderBy(sortField, "asc")];
-        
-        // Ensure deterministic ordering for cursor pagination
-        if (sortKey === "difficulty") {
-             queryConstraints.push(orderBy("normalizedTitle", "asc"));
-        } else if (sortField === "normalizedTitle") {
-             // Normalized title is unique-ish, but ID is best for tie breaking if needed
-             // But usually normalizedTitle + ID is good practice
-        }
-
-        queryConstraints.push(limit(pageSize + 1));
-
-        if (cursor) {
-           const cursorDocRef = doc(getFirestore(), "problems", cursor);
-           const cursorDocSnap = await getDoc(cursorDocRef);
-           if (cursorDocSnap.exists()) {
-             queryConstraints.push(startAfter(cursorDocSnap));
-           }
-        }
-
-        let q = query(problemsColRef, ...queryConstraints);
-
-        const problemSnapshot = await getDocs(q);
-        const docs = problemSnapshot.docs;
-        const hasMore = docs.length > pageSize;
-
-        const resultDocs = hasMore ? docs.slice(0, pageSize) : docs;
-
-        let finalCompanySlug = companySlug;
-        if (!finalCompanySlug) {
-          const company = await companyRepository.getCompanyById(companyId);
-          finalCompanySlug =
-            company?.slug || slugify(company?.name || "unknown");
-        }
-
-        const problems = resultDocs.map((docSnap) => {
-          const data = docSnap.data();
-          const companySpecificData = data.companies?.[companyId] || {};
-          
-          return {
-            id: docSnap.id,
-            title: data.title,
-            slug: docSnap.id,
-            difficulty: data.difficulty,
-            companyId: companyId,
-            companySlug: finalCompanySlug!,
-            lastAskedPeriod: companySpecificData.lastAskedPeriod || data.lastAskedPeriod || undefined,
-            tags: data.tags || [],
-            acceptanceRate: data.acceptanceRate,
-            isBookmarked: false, // Will be filled by UI layer
-            currentStatus: undefined, // Will be filled by UI layer
-            link: data.link,
-          } as ProblemSummaryDTO;
-        });
-
-        // Use cursor from the LAST item
-        const nextCursor = hasMore ? problems[problems.length - 1].id : undefined;
-
-        return {
-          problems,
-          totalProblems,
-          hasMore,
-          nextCursor,
-        };
+        return await this.fetchProblemsByCompanyOptimized(
+          companyId,
+          params,
+          constraints,
+          residualDifficultyFilter,
+          residualLastAskedFilter
+        );
       } catch (error: any) {
         if (
           error.code === "failed-precondition" ||
           error.message?.includes("index")
         ) {
-          // Fall through
+          // Fall through to semi-optimized path
         } else {
           throw error;
         }
       }
     }
 
+    return await this.fetchProblemsByCompanyInMemory(
+      companyId,
+      params,
+      constraints,
+      residualDifficultyFilter,
+      residualLastAskedFilter
+    );
+  }
+
+  private async fetchProblemsByCompanyOptimized(
+    companyId: string,
+    params: any,
+    constraints: any[],
+    residualDifficultyFilter: DifficultyFilter[],
+    residualLastAskedFilter: LastAskedFilter[]
+  ): Promise<PaginatedProblemsResponse> {
+    const {
+        cursor,
+        pageSize = 10,
+        difficultyFilter = [],
+        lastAskedFilter = [],
+        sortKey = "title",
+        companySlug,
+        totalProblemCount,
+        difficultyCounts,
+        recencyCounts,
+    } = params;
+
+    const problemsColRef = collection(getFirestore(), "problems");
+
+    // Fully Optimized Path
+    let totalProblems = 0;
+
+    if (constraints.length === 1 && totalProblemCount !== undefined) {
+      totalProblems = totalProblemCount;
+    } else if (
+      difficultyCounts &&
+      lastAskedFilter.length === 0 &&
+      difficultyFilter.length > 0 &&
+      residualDifficultyFilter.length === 0
+    ) {
+      totalProblems = difficultyFilter.reduce(
+        (acc: number, diff: DifficultyFilter) => acc + (difficultyCounts[diff] || 0),
+        0,
+      );
+    } else if (
+      recencyCounts &&
+      difficultyFilter.length === 0 &&
+      lastAskedFilter.length > 0 &&
+      residualLastAskedFilter.length === 0
+    ) {
+      totalProblems = lastAskedFilter.reduce(
+        (acc: number, period: LastAskedPeriod) => acc + (recencyCounts[period] || 0),
+        0,
+      );
+    } else {
+      const countQuery = query(problemsColRef, ...constraints);
+      const countSnapshot = await getCountFromServer(countQuery);
+      totalProblems = countSnapshot.data().count;
+    }
+
+    const sortField =
+      sortKey === "difficulty" ? "difficulty" : "normalizedTitle";
+
+    let queryConstraints = [...constraints, orderBy(sortField, "asc")];
+
+    // Ensure deterministic ordering for cursor pagination
+    if (sortKey === "difficulty") {
+         queryConstraints.push(orderBy("normalizedTitle", "asc"));
+    }
+
+    queryConstraints.push(limit(pageSize + 1));
+
+    if (cursor) {
+       const cursorDocRef = doc(getFirestore(), "problems", cursor);
+       const cursorDocSnap = await getDoc(cursorDocRef);
+       if (cursorDocSnap.exists()) {
+         queryConstraints.push(startAfter(cursorDocSnap));
+       }
+    }
+
+    let queryRef = query(problemsColRef, ...queryConstraints);
+
+    const problemSnapshot = await getDocs(queryRef);
+    const docs = problemSnapshot.docs;
+    const hasMore = docs.length > pageSize;
+
+    const resultDocs = hasMore ? docs.slice(0, pageSize) : docs;
+
+    let finalCompanySlug = companySlug;
+    if (!finalCompanySlug) {
+      const company = await companyRepository.getCompanyById(companyId);
+      finalCompanySlug =
+        company?.slug || slugify(company?.name || "unknown");
+    }
+
+    const problems = resultDocs.map((docSnap) => {
+      const data = docSnap.data();
+      const companySpecificData = data.companies?.[companyId] || {};
+
+      return {
+        id: docSnap.id,
+        title: data.title,
+        slug: docSnap.id,
+        difficulty: data.difficulty,
+        companyId: companyId,
+        companySlug: finalCompanySlug!,
+        lastAskedPeriod: companySpecificData.lastAskedPeriod || data.lastAskedPeriod || undefined,
+        tags: data.tags || [],
+        acceptanceRate: data.acceptanceRate,
+        isBookmarked: false, // Will be filled by UI layer
+        currentStatus: undefined, // Will be filled by UI layer
+        link: data.link,
+      } as ProblemSummaryDTO;
+    });
+
+    // Use cursor from the LAST item
+    const nextCursor = hasMore ? problems[problems.length - 1].id : undefined;
+
+    return {
+      problems,
+      totalProblems,
+      hasMore,
+      nextCursor,
+    };
+  }
+
+  private async fetchProblemsByCompanyInMemory(
+    companyId: string,
+    params: any,
+    constraints: any[],
+    residualDifficultyFilter: DifficultyFilter[],
+    residualLastAskedFilter: LastAskedFilter[]
+  ): Promise<PaginatedProblemsResponse> {
+    const {
+        cursor,
+        page,
+        pageSize = 10,
+        searchTerm = "",
+        sortKey = "title",
+        companySlug
+    } = params;
+
+    const problemsColRef = collection(getFirestore(), "problems");
+
     // Semi-Optimized Path
     // Added safety limit of 200
-    const q = query(problemsColRef, ...constraints, limit(200));
-    const problemSnapshot = await getDocs(q);
+    const queryRef = query(problemsColRef, ...constraints, limit(200));
+    const problemSnapshot = await getDocs(queryRef);
 
     let processedProblems = problemSnapshot.docs.map((docSnap) => {
       const data = docSnap.data();

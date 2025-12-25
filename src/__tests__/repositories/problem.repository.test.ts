@@ -67,9 +67,6 @@ describe("ProblemRepository.getProblemsByCompany", () => {
     (getCountFromServer as jest.Mock).mockResolvedValue({
       data: () => ({ count: 1 }),
     });
-    (getCountFromServer as jest.Mock).mockResolvedValue({
-      data: () => ({ count: 1 }),
-    });
     (getDocs as jest.Mock).mockResolvedValue({
       docs: mockProblems,
     });
@@ -107,5 +104,38 @@ describe("ProblemRepository.getProblemsByCompany", () => {
     });
 
     expect(getCountFromServer).not.toHaveBeenCalled();
+  });
+
+  it("should use semi-optimized path (in-memory filtering) when search term is provided", async () => {
+    const companyId = "1";
+
+    // Mock getDocs to return a problem that matches the search
+    (getDocs as jest.Mock).mockResolvedValue({
+      docs: [
+        {
+          id: "problem-1",
+          data: () => ({
+            title: "Searchable Problem",
+            difficulty: "Medium",
+            companyIds: ["1"],
+          })
+        },
+        {
+          id: "problem-2",
+          data: () => ({
+            title: "Other Problem",
+            difficulty: "Easy",
+            companyIds: ["1"],
+          })
+        }
+      ]
+    });
+
+    const result = await problemRepository.getProblemsByCompany(companyId, {
+      searchTerm: "Searchable"
+    });
+
+    expect(result.problems).toHaveLength(1);
+    expect(result.problems[0].title).toBe("Searchable Problem");
   });
 });
