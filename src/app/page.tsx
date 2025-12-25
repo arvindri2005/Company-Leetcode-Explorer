@@ -11,6 +11,7 @@ import HeroSection from "@/components/landing/hero-section";
 import FeaturesSection from "@/components/landing/feature-section";
 import StatsSection from "@/components/landing/stats-section";
 import SearchSection from "@/components/landing/search-section";
+import StructuredData from "@/components/seo/structured-data";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
 
@@ -24,7 +25,7 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
  * @type {Metadata}
  */
 export const metadata: Metadata = {
-  title: "Byte to offer",
+  title: "Byte to Offer",
   description:
     "Master coding interviews with AI-driven tools. Explore company-specific interview questions (Google, Amazon, Meta), get personalized strategies, and practice for top tech companies. Your ultimate resource for software engineering interview preparation.",
   keywords: [
@@ -57,32 +58,31 @@ export const metadata: Metadata = {
   alternates: {
     canonical: APP_URL,
   },
-  other: {
-    'script[type="application/ld+json"]': JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      url: APP_URL,
-      name: "Byte to Offer",
-      description:
-        "Master coding interviews with AI-driven tools. Explore company-specific interview problems, generate flashcards, and get personalized prep strategies.",
-      potentialAction: {
-        "@type": "SearchAction",
-        target: {
-          "@type": "EntryPoint",
-          urlTemplate: `${APP_URL}/companies?search={search_term_string}`,
-        },
-        "query-input": "required name=search_term_string",
-      },
-      publisher: {
-        // Added publisher
-        "@type": "Organization",
-        name: "Byte to Offer",
-        logo: {
-          "@type": "ImageObject",
-          url: `${APP_URL}/icon.png`,
-        },
-      },
-    }),
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  url: APP_URL,
+  name: "Byte to Offer",
+  description:
+    "Master coding interviews with AI-driven tools. Explore company-specific interview problems, generate flashcards, and get personalized prep strategies.",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: `${APP_URL}/companies?search={search_term_string}`,
+    },
+    "query-input": "required name=search_term_string",
+  },
+  publisher: {
+    // Added publisher
+    "@type": "Organization",
+    name: "Byte to Offer",
+    logo: {
+      "@type": "ImageObject",
+      url: `${APP_URL}/icon.png`,
+    },
   },
 };
 
@@ -101,6 +101,7 @@ export default function ShowcasePage() {
       <FeaturesSection />
       <StatsSection />
       <SearchSection />
+      <StructuredData data={jsonLd} />
     </div>
   );
 }
