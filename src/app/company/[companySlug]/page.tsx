@@ -12,6 +12,7 @@ import type { Metadata } from "next";
 import CompanyNotFound from "@/components/company/page/company-not-found";
 import CompanyPage from "@/components/company/page/company-page";
 import { getLogoUrl, capitalizeWords } from "@/lib/utils";
+import { Company } from "@/types";
 
 import StructuredData from "@/components/seo/structured-data";
 
@@ -26,7 +27,7 @@ interface CompanyPageProps {
   params: Promise<{ companySlug: string }>;
 }
 
-function getStructuredData(company: any) {
+function getStructuredData(company: Company): Array<Record<string, any>> {
   const breadcrumbList = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -201,9 +202,6 @@ export async function generateMetadata(
  * @param {CompanyPageProps} props - The props containing the dynamic route parameters.
  * @returns {Promise<JSX.Element>} The rendered company page or a not-found component.
  */
-// Update props interface at the top first? No, modify usage here.
-// But we need to update CompanyPageProps definition too.
-
 export default async function CompanyPageWrapper(props: CompanyPageProps) {
   const params = await props.params;
   
