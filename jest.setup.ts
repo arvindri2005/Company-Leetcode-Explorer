@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom'
 import { TextEncoder, TextDecoder } from 'util';
+import React from 'react';
 
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder as any;
@@ -37,3 +38,18 @@ if (typeof global.Headers === 'undefined') {
   } as any;
 }
 
+// Global mock for framer-motion to simplify testing components with animations
+// We need to return a proper React component from the mock
+jest.mock("framer-motion", () => {
+  return {
+    motion: {
+      div: ({ children, whileHover, whileTap, layout, transition, initial, animate, exit, variants, ...props }: any) => {
+        return React.createElement('div', props, children);
+      },
+      // Add other HTML elements as needed (span, ul, li, etc.)
+      span: ({ children, ...props }: any) => React.createElement('span', props, children),
+      button: ({ children, ...props }: any) => React.createElement('button', props, children),
+    },
+    AnimatePresence: ({ children }: any) => React.createElement(React.Fragment, null, children),
+  };
+});

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import ProblemCard from "./problem-card";
 import { LeetCodeProblem } from "@/types";
 
@@ -37,8 +37,7 @@ jest.mock("@/hooks/use-ai-features", () => ({
   }),
 }));
 
-// Mock Lucide icons to avoid rendering issues in tests if any (usually fine, but safe)
-// Mocking dynamic imports
+// Mock dynamic imports
 jest.mock("@/components/ai/similar-problems-dialog", () => ({
   default: () => <div data-testid="similar-problems-dialog">Similar Dialog</div>,
 }));
@@ -46,6 +45,18 @@ jest.mock("@/components/ai/problem-insights-dialog", () => ({
   default: () => <div data-testid="problem-insights-dialog">Insights Dialog</div>,
 }));
 
+// Mock Framer Motion to render children immediately
+jest.mock("framer-motion", () => {
+  const MockDiv = ({ children, whileHover, whileTap, layout, transition, initial, animate, exit, variants, ...props }: any) => {
+    return <div {...props}>{children}</div>;
+  };
+  return {
+    motion: {
+      div: MockDiv,
+    },
+    AnimatePresence: ({ children }: any) => <>{children}</>,
+  };
+});
 
 const mockProblem: LeetCodeProblem = {
   id: "1",
@@ -69,16 +80,21 @@ describe("ProblemCard", () => {
     expect(screen.getByText("Easy")).toBeInTheDocument();
   });
 
-  it("renders tags when expanded", () => {
+  it("renders tags when expanded", async () => {
     render(<ProblemCard problem={mockProblem} companySlug="google" />);
     // Initial state not expaned, but let's check if we can toggle
     // The component structure puts click handler on the container or chevron
     const card = screen.getByText("Two Sum").closest(".group"); // or simply clicking the chevron
     // Assuming the chevron button is accessible, let's try finding the collapse trigger
-    // Actually the click handler is on the main div and chevron button
-    fireEvent.click(screen.getByText("Two Sum"));
-    
-    expect(screen.getByText("Array")).toBeInTheDocument();
+    // Click the expand button to toggle visibility
+    fireEvent.click(screen.getByLabelText("Expand"));
+
+    // Wait for the animation frame or effect to settle
+    await waitFor(() => {
+      expect(screen.getByText("Array")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Array")).toBeVisible();
     expect(screen.getByText("Hash Table")).toBeInTheDocument();
   });
 

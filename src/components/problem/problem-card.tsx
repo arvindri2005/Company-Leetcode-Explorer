@@ -38,6 +38,7 @@ import { useAIFeatures } from "@/hooks/use-ai-features";
 import { useAuth } from "@/contexts/auth-context";
 import dynamic from "next/dynamic";
 import { useToast } from "@/hooks/use-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 const SimilarProblemsDialog = dynamic(
   () => import("@/components/ai/similar-problems-dialog"),
@@ -151,9 +152,15 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
 
   return (
       <>
-          <div 
-            className="group relative flex flex-col bg-card hover:bg-muted/40 border border-border/40 hover:border-border/80 rounded-lg transition-all duration-200 overflow-hidden cursor-pointer"
+          <motion.div
+            className="group relative flex flex-col bg-card hover:bg-muted/40 border border-border/40 hover:border-border/80 rounded-lg overflow-hidden cursor-pointer"
             onClick={() => setIsExpanded(!isExpanded)}
+            whileHover={{
+              scale: 1.01,
+            }}
+            whileTap={{ scale: 0.99 }}
+            layout
+            transition={{ duration: 0.2 }}
           >
               <div className="flex items-center gap-3 p-3 md:p-4">
                     {/* Status Toggle */}
@@ -249,6 +256,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                                 e.stopPropagation();
                                 setIsExpanded(!isExpanded);
                             }}
+                            aria-label="Expand"
                             className={cn("h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-transform duration-200", isExpanded && "rotate-180")}
                         >
                             <ChevronDown className="h-4 w-4" />
@@ -257,13 +265,15 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
               </div>
 
                {/* Expanded Content */}
-              <div
-                  className={cn(
-                      "grid transition-[grid-template-rows] duration-200 ease-out bg-muted/20",
-                      isExpanded ? "grid-rows-[1fr] border-t border-border/40" : "grid-rows-[0fr]"
-                  )}
-              >
-                   <div className="overflow-hidden">
+              <AnimatePresence>
+                {isExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden bg-muted/20 border-t border-border/40"
+                  >
                        <div className="p-3 pt-2 flex flex-col gap-3">
                            {/* Tags */}
                            {problemTags.length > 0 && (
@@ -317,9 +327,10 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                                 </Button>
                            </div>
                        </div>
-                   </div>
-              </div>
-          </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+          </motion.div>
 
           {/* Dialogs */}
           <Suspense fallback={null}>
