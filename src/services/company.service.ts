@@ -94,9 +94,6 @@ export class CompanyService {
     if (!useCache) {
         return await companyRepository.getAllCompanySlugs(true);
     }
-    // We can use a simple cache variable like in the original code, or use unstable_cache?
-    // Original used a module-level variable. 
-    // unstable_cache is better for serverless/consistent caching.
     
     const getCachedSlugs = unstable_cache(
         async () => companyRepository.getAllCompanySlugs(true),
@@ -129,9 +126,6 @@ export class CompanyService {
   ): Promise<{ id: string | null; error?: string; alreadyExists?: boolean }> {
       const result = await companyRepository.addCompany(companyData);
       if (result.id) {
-          // Invalidate caches
-          // We don't have the slug easily available if we only have result.id (which is the slug actually in repo)
-          // Repo returns { id: companySlug }.
           await this.revalidateCompaniesPage(result.id, result.id);
       }
       return result;
@@ -143,43 +137,9 @@ export class CompanyService {
   ): Promise<{ success: boolean; error?: string }> {
       const result = await companyRepository.updateCompany(companyId, companyData);
       if (result.success) {
-          // We need slug for proper invalidation.
-          const company = await this.getCompanyById(companyId, false); // Get fresh
+          const company = await this.getCompanyById(companyId, false);
           const slug = company?.slug;
           await this.revalidateCompaniesPage(companyId, slug);
-      }
-      return result;
-  }
-
-  async bulkDeleteCompanies(
-    companyIds: string[],
-  ): Promise<{ success: boolean; error?: string; deletedCount?: number }> {
-      const result = await companyRepository.bulkDeleteCompanies(companyIds);
-      if (result.success) {
-          await this.revalidateCompaniesPage();
-          for (const id of companyIds) {
-              revalidateTag(`company-${id}-v2`, 'max');
-          }
-      }
-      return result;
-  }
-
-  async deleteCompany(
-    companyId: string,
-  ): Promise<{ success: boolean; error?: string }> {
-      const result = await companyRepository.deleteCompany(companyId);
-      if (result.success) {
-          await this.revalidateCompaniesPage(companyId);
-      }
-      return result;
-  }
-
-  async restoreCompany(
-    companyId: string,
-  ): Promise<{ success: boolean; error?: string }> {
-      const result = await companyRepository.restoreCompany(companyId);
-      if (result.success) {
-          await this.revalidateCompaniesPage(companyId);
       }
       return result;
   }
