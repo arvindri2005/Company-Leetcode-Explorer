@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import CompanyStrategyGenerator from '@/components/ai/company-strategy-generator';
-import { getStrategyTodoListForCompanyAction } from '@/app/actions';
+import { userService } from '@/services/user.service';
 
 jest.mock('react-markdown', () => ({
   __esModule: true,
@@ -26,13 +26,19 @@ jest.mock('@/components/ui/button', () => ({
 }));
 
 // Mock AI actions
-jest.mock('@/app/actions', () => ({
+jest.mock('@/app/actions/ai.actions', () => ({
   generateCompanyStrategyAction: jest.fn().mockResolvedValue({
     preparationStrategy: 'Strategy',
     focusTopics: [],
     todoItems: [],
   }),
-  getStrategyTodoListForCompanyAction: jest.fn().mockResolvedValue(null),
+}));
+
+// Mock UserService
+jest.mock('@/services/user.service', () => ({
+  userService: {
+    getStrategyTodoListForCompany: jest.fn().mockResolvedValue(null),
+  },
 }));
 
 // Mock hooks
@@ -67,6 +73,8 @@ describe('CompanyStrategyGenerator', () => {
   it('should render initial state', async () => {
     render(<CompanyStrategyGenerator {...defaultProps} />);
     expect(screen.getByText(/AI-Powered Interview Strategy/i)).toBeInTheDocument();
-    await waitFor(() => expect(getStrategyTodoListForCompanyAction).toHaveBeenCalled());
+    
+    // Verify that userService.getStrategyTodoListForCompany is called instead of the action
+    await waitFor(() => expect(userService.getStrategyTodoListForCompany).toHaveBeenCalledWith('123', '1'));
   });
 });
