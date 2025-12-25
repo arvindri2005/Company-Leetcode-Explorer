@@ -1,96 +1,120 @@
-# AI Layer Documentation 🤖
+# AI Layer Documentation (Genkit)
 
-This directory (`src/ai`) contains the logic for the AI-powered features of the application, built using **[Genkit](https://firebase.google.com/docs/genkit)** and **Google Gemini**.
+This directory (`src/ai`) contains the application's AI logic, powered by [Genkit](https://firebase.google.com/docs/genkit) and Google Gemini models.
 
-## Architecture
+## 🧠 Overview
 
-The AI layer is designed to be modular and type-safe. It consists of:
+The AI layer is structured around **Flows**. A "Flow" is a strongly-typed, deployable unit of AI logic that:
+1.  Accepts specific inputs (validated by Zod).
+2.  Interacts with an AI model via a **Prompt**.
+3.  Returns structured output (validated by Zod).
 
-*   **Configuration (`src/ai/genkit.ts`)**: Initializes the Genkit instance with the Google AI plugin and default model (`gemini-flash-lite-latest`).
-*   **Flows (`src/ai/flows/`)**: Self-contained modules that define specific AI tasks (e.g., "Generate Flashcards", "Group Questions").
-*   **Development Tools (`src/ai/dev.ts`)**: Utilities for the local Genkit development server.
+This architecture ensures that AI interactions are reliable, type-safe, and easy to test.
 
-## Key Concepts
-
-### 1. Flows
-A "Flow" is the fundamental unit of work in Genkit. It encapsulates a specific AI operation. Each flow in this project typically:
-1.  Defines an **Input Schema** (using Zod) to validate data sent to the AI.
-2.  Defines an **Output Schema** (using Zod) to enforce the structure of the AI's response (Structured Output).
-3.  Defines a **Prompt** template using `ai.definePrompt`.
-4.  Exports a TypeScript function that invokes the flow.
-
-### 2. Structured Output
-We use Zod schemas to force the AI models to return JSON data that matches our strict type definitions. This prevents "hallucinated" structures and ensures the frontend can safely render the results.
-
-## Directory Structure
+## 📂 Directory Structure
 
 ```
 src/ai/
-├── flows/                  # Individual AI operation definitions
+├── flows/             # Individual AI Flows (The core logic)
 │   ├── find-similar-questions-flow.ts
 │   ├── generate-company-strategy-flow.ts
-│   ├── generate-flashcards-flow.ts
-│   ├── generate-problem-insights-flow.ts
-│   └── group-questions.ts
-├── dev.ts                  # Local development config
-├── genkit.ts               # Genkit instance initialization
-└── README.md               # This documentation
+│   └── ...
+├── dev.ts             # Entry point for the local Genkit Developer UI
+├── genkit.ts          # Genkit instance configuration (Model selection)
+└── README.md          # You are here
 ```
 
-## How to Add a New AI Feature
+## 🌊 The "Flow" Pattern
 
-To add a new AI capability (e.g., "Summarize Problem Description"):
+All AI features follow a consistent pattern. To add a new AI feature, you typically create a single file in `flows/` that contains:
 
-1.  **Create a new file** in `src/ai/flows/`, e.g., `summarize-problem.ts`.
-2.  **Define Zod Schemas**:
-    ```typescript
-    import { z } from "genkit";
+1.  **Input Schema**: A Zod schema defining what data the AI needs.
+2.  **Output Schema**: A Zod schema defining exactly what the AI must return (JSON).
+3.  **Prompt Definition**: A template string (using Handlebars syntax) that instructs the AI.
+4.  **Flow Definition**: The executable function that ties it all together.
 
-    const InputSchema = z.object({
-      text: z.string(),
-    });
+### Example Template
 
-    const OutputSchema = z.object({
-      summary: z.string(),
-      keyPoints: z.array(z.string()),
-    });
-    ```
-3.  **Define the Prompt**:
-    ```typescript
-    import { ai } from "@/ai/genkit";
+```typescript
+import { ai } from "@/ai/genkit";
+import { z } from "genkit";
 
-    const prompt = ai.definePrompt({
-      name: "summarizeProblem",
-      input: { schema: InputSchema },
-      output: { schema: OutputSchema },
-      prompt: `Summarize this text: {{text}}`,
-    });
-    ```
-4.  **Define and Export the Flow**:
-    ```typescript
-    export const summarizeFlow = ai.defineFlow({
-      name: "summarizeFlow",
-      inputSchema: InputSchema,
-      outputSchema: OutputSchema,
-    }, async (input) => {
-      const { output } = await prompt(input);
-      return output;
-    });
-    ```
+// 1. Define Input
+export const MyInputSchema = z.object({
+  topic: z.string(),
+});
 
-## Local Development
+// 2. Define Output
+export const MyOutputSchema = z.object({
+  summary: z.string(),
+  tags: z.array(z.string()),
+});
 
-You can debug prompts and flows using the Genkit Developer UI without running the full Next.js app.
+// 3. Define Prompt
+const myPrompt = ai.definePrompt({
+  name: "myFeaturePrompt",
+  input: { schema: MyInputSchema },
+  output: { schema: MyOutputSchema },
+  prompt: `
+    You are a helpful assistant.
+    Analyze the topic: {{topic}}
+    Return a summary and relevant tags.
+  `,
+});
 
-1.  Start the Genkit UI:
-    ```bash
-    npm run genkit:dev
-    ```
-2.  Open `http://localhost:4000`.
-3.  You can select any defined flow (e.g., `generateProblemInsightsFlow`), provide JSON input, and see the model's output, token usage, and latency.
+// 4. Define Flow
+export const myFeatureFlow = ai.defineFlow(
+  {
+    name: "myFeatureFlow",
+    inputSchema: MyInputSchema,
+    outputSchema: MyOutputSchema,
+  },
+  async (input) => {
+    // Execute the prompt
+    const { output } = await myPrompt(input);
 
-## Best Practices
+    if (!output) {
+      throw new Error("AI failed to generate response");
+    }
 
-*   **Defensive Prompting**: Always include instructions like "Do NOT invent new questions" or "Return empty array if none found" in your prompts.
-*   **Validation**: Use `z.describe()` in your Zod schemas. Genkit passes these descriptions to the model to help it understand the expected format.
-*   **Error Handling**: AI calls can fail. Ensure the consuming Service (`src/services/ai.service.ts`) handles errors gracefully.
+    return output;
+  }
+);
+```
+
+## 🛠️ Development
+
+We use the Genkit Developer UI to test and debug prompts without running the full Next.js app.
+
+### 1. Start the Genkit UI
+```bash
+pnpm genkit:dev
+```
+This runs `src/ai/dev.ts` and opens the developer tool at `http://localhost:4000`.
+
+### 2. Registering New Flows
+If you add a new flow file, **you must import it in `src/ai/dev.ts`** for it to appear in the Genkit UI.
+
+```typescript
+// src/ai/dev.ts
+import "@/ai/flows/my-new-flow.ts"; // Add this line
+```
+
+## 📦 Integration
+
+To use a flow in the application (e.g., in a Server Action), simply import the flow function and call it like a normal async function.
+
+```typescript
+// src/app/actions/some-action.ts
+import { myFeatureFlow } from "@/ai/flows/my-new-flow";
+
+export async function generateSummary(topic: string) {
+  const result = await myFeatureFlow({ topic });
+  return result;
+}
+```
+
+## 🔍 Key Configuration
+
+- **Model**: Configured in `src/ai/genkit.ts`. Currently defaults to `googleai/gemini-flash-lite-latest`.
+- **Plugins**: Uses `@genkit-ai/googleai`.
