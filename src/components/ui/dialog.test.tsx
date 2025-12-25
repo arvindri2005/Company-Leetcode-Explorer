@@ -47,5 +47,8 @@ describe("Dialog", () => {
         expect(screen.getByText("Dialog Title")).toBeInTheDocument();
         expect(screen.getByText("Dialog Description")).toBeInTheDocument();
     });
+
+    // Verify close button is present
+    expect(screen.getByRole("button", { name: "Close" })).toBeInTheDocument();
   });
 });
