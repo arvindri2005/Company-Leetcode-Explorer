@@ -1,5 +1,6 @@
 import {
   LeetCodeProblem,
+  LeetCodeProblemSchema,
   ProblemSummaryDTO,
   PaginatedProblemsResponse,
   DifficultyFilter,
@@ -166,18 +167,7 @@ export class ProblemRepository {
       const q = query(problemsCol, orderBy("normalizedTitle"));
       const problemSnapshot = await getDocs(q);
 
-      return problemSnapshot.docs.map((docSnap) => {
-        const problemData = docSnap.data();
-        const firstCompanyId = problemData.companyIds?.[0] || "unknown";
-
-        return {
-          id: docSnap.id,
-          companyId: firstCompanyId,
-          companySlug: "unknown",
-          slug: docSnap.id,
-          ...problemData,
-        } as LeetCodeProblem;
-      });
+      return problemSnapshot.docs.map((docSnap) => this.mapDocToProblem(docSnap));
     } catch (error) {
       Logger.error("Error fetching all problems", error);
       return [];
@@ -194,18 +184,8 @@ export class ProblemRepository {
       const problemSnap = await getDoc(problemDocRef);
 
       if (problemSnap.exists()) {
-        const data = problemSnap.data();
         const company = await companyRepository.getCompanyById(companyId);
-        const companySpecificData = data.companies?.[companyId] || {};
-
-        return {
-          id: problemSnap.id,
-          companyId: companyId,
-          companySlug: company?.slug || slugify(company?.name || "unknown"),
-          slug: problemSnap.id,
-          ...data,
-          ...companySpecificData,
-        } as LeetCodeProblem;
+        return this.mapDocToProblem(problemSnap, company);
       }
       return undefined;
     } catch (error) {
@@ -226,20 +206,8 @@ export class ProblemRepository {
       const problemSnap = await getDoc(problemDocRef);
 
       if (problemSnap.exists()) {
-        const problemData = problemSnap.data();
-        const companySpecificData = problemData.companies?.[company.id] || {};
-
-        return {
-          company,
-          problem: {
-            id: problemSnap.id,
-            companyId: company.id,
-            companySlug: company.slug,
-            slug: problemSnap.id,
-            ...problemData,
-            ...companySpecificData,
-          } as LeetCodeProblem,
-        };
+        const problem = this.mapDocToProblem(problemSnap, company);
+        return { company, problem };
       }
       return { company, problem: undefined };
     } catch (error) {
@@ -703,16 +671,7 @@ export class ProblemRepository {
              }
         }
 
-        let problems = resultDocs.map((docSnap) => {
-          const data = docSnap.data();
-          return {
-            id: docSnap.id,
-            companyId: data.companyIds?.[0] || "unknown",
-            companySlug: "unknown",
-            slug: docSnap.id,
-            ...data,
-          } as LeetCodeProblem;
-        });
+        let problems = resultDocs.map((docSnap) => this.mapDocToProblem(docSnap));
 
         // Calculate pagination metadata
         // totalPages is unknown (-1)
@@ -748,18 +707,7 @@ export class ProblemRepository {
     const q = query(problemsColRef, ...constraints);
     const problemSnapshot = await getDocs(q);
     
-    let processedProblems = problemSnapshot.docs.map((docSnap) => {
-      const data = docSnap.data();
-      const firstCompanyId = data.companyIds?.[0] || "unknown";
-
-      return {
-        id: docSnap.id,
-        companyId: firstCompanyId,
-        companySlug: "unknown",
-        slug: docSnap.id,
-        ...data,
-      } as LeetCodeProblem;
-    });
+    let processedProblems = problemSnapshot.docs.map((docSnap) => this.mapDocToProblem(docSnap));
 
     if (residualDifficultyFilter.length > 0) {
       processedProblems = processedProblems.filter((p) =>
@@ -840,6 +788,44 @@ export class ProblemRepository {
       totalPages,
       currentPage
     };
+  }
+
+  private mapDocToProblem(
+    docSnap: import("firebase/firestore").DocumentSnapshot,
+    company?: Company
+  ): LeetCodeProblem {
+    const data = docSnap.data()!;
+    const companyId = company?.id || data.companyIds?.[0] || "unknown";
+    
+    // Determine companySlug:
+    // 1. If company object is passed, use its slug.
+    // 2. Else use "unknown" or try to infer (not possible without company lookup)
+    const companySlug = company?.slug || "unknown";
+
+    // Overlay company-specific data if available
+    const companySpecificData = company ? (data.companies?.[company.id] || {}) : {};
+
+    const problem: LeetCodeProblem = {
+        id: docSnap.id,
+        companyId: companyId,
+        companySlug: companySlug,
+        slug: docSnap.id,
+        ...data,
+        ...companySpecificData,
+    } as LeetCodeProblem;
+
+    // Validate at the edge
+    const result = LeetCodeProblemSchema.safeParse(problem);
+    if (!result.success) {
+        // We log but still return the object to avoid crashing UI for partial data issues
+        Logger.warn(
+            `Data integrity issue in Problem (ID: ${problem.id}): ${result.error.issues
+            .map((i) => `${i.path.join(".")}: ${i.message}`)
+            .join(", ")}`
+        );
+    }
+
+    return problem;
   }
 
   async addProblem(
