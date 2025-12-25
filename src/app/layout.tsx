@@ -45,7 +45,7 @@ const organizationStructuredData = {
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: "Byte To offer",
+    default: "Byte to Offer",
     template: "%s",
   },
   description:
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     "Data Structures",
     "Algorithms",
   ],
-  authors: [{ name: "Bite to Offer", url: APP_URL }], // Link to your site or author page
+  authors: [{ name: "Byte to Offer", url: APP_URL }], // Link to your site or author page
   manifest: "/site.webmanifest",
   openGraph: {
     title: "Byte to Offer",
