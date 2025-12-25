@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { Company } from "@/types";
 
 interface CompaniesResponse {
@@ -11,18 +11,36 @@ interface CompaniesResponse {
 /**
  * @function useCursorPagination
  * @description A custom hook that provides a function for fetching paginated company data using a cursor-based approach.
- * This is primarily used for infinite scrolling features.
+ * This is primarily used for infinite scrolling features. It includes cleanup logic to abort pending requests on unmount.
  * @returns {{
  *   fetchCompaniesWithCursor: (cursor?: string, pageSize?: number, searchTerm?: string) => Promise<CompaniesResponse>;
  * }} An object containing the `fetchCompaniesWithCursor` function.
  */
 export const useCursorPagination = () => {
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
   const fetchCompaniesWithCursor = useCallback(
     async (
       cursor?: string,
       pageSize: number = 9,
       searchTerm?: string,
     ): Promise<CompaniesResponse> => {
+      // Abort any pending request before starting a new one
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       try {
         const params = new URLSearchParams();
         if (cursor) params.append("cursor", cursor);
@@ -34,6 +52,7 @@ export const useCursorPagination = () => {
           headers: {
             "Content-Type": "application/json",
           },
+          signal: controller.signal,
         });
 
         if (!response.ok) {
@@ -45,7 +64,14 @@ export const useCursorPagination = () => {
 
         const result = await response.json();
         return result;
-      } catch (error) {
+      } catch (error: any) {
+        if (error.name === "AbortError") {
+          // Return a neutral response for aborted requests
+          return {
+            companies: [],
+            hasMore: false, // or keep previous state logic in consumer
+          };
+        }
         console.error("Error fetching companies:", error);
         return {
           companies: [],
@@ -53,6 +79,10 @@ export const useCursorPagination = () => {
           nextCursor: undefined,
           error: error instanceof Error ? error.message : "Unknown error",
         };
+      } finally {
+        if (abortControllerRef.current === controller) {
+          abortControllerRef.current = null;
+        }
       }
     },
     [],
