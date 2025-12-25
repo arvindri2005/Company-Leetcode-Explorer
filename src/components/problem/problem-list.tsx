@@ -8,7 +8,7 @@ import type {
   ProblemStatus,
   SortKey,
 } from "@/types";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import ProblemCard from "./problem-card";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
@@ -243,30 +243,32 @@ const ProblemList: React.FC<ProblemListProps> = ({
     fetchGlobalStats();
   }, [user]);
 
-  // 2. Apply Global Statuses immediately if loaded
-  useEffect(() => {
-    if (!user) return;
+  // 2. Derive merged problems (Global Stats + Local Data)
+  // This replaces the previous useEffect to avoid double-renders
+  const mergedProblems = useMemo(() => {
+    if (!areGlobalStatsLoaded) return displayedProblems;
 
-    if (areGlobalStatsLoaded) {
-        setDisplayedProblems((prev) => {
-            let hasChanges = false;
-            const next = prev.map(p => {
-                let newStatus: ProblemStatus = "none";
-                if (solvedProblemIds.has(p.id)) newStatus = "solved";
-                else if (attemptedProblemIds.has(p.id)) newStatus = "attempted";
+    return displayedProblems.map((p) => {
+      let newStatus: ProblemStatus = "none";
+      if (solvedProblemIds.has(p.id)) newStatus = "solved";
+      else if (attemptedProblemIds.has(p.id)) newStatus = "attempted";
 
-                const isBookmarked = bookmarkedProblemIds.has(p.id);
+      const isBookmarked = bookmarkedProblemIds.has(p.id);
 
-                 if (p.currentStatus !== newStatus || p.isBookmarked !== isBookmarked) {
-                     hasChanges = true;
-                     return { ...p, currentStatus: newStatus, isBookmarked: isBookmarked };
-                 }
-                return p;
-            });
-            return hasChanges ? next : prev;
-        });
-    }
-  }, [displayedProblems, user, areGlobalStatsLoaded, solvedProblemIds, attemptedProblemIds, bookmarkedProblemIds]);
+      // Preserve referential identity if nothing changed
+      if (p.currentStatus === newStatus && p.isBookmarked === isBookmarked) {
+        return p;
+      }
+
+      return { ...p, currentStatus: newStatus, isBookmarked: isBookmarked };
+    });
+  }, [
+    displayedProblems,
+    areGlobalStatsLoaded,
+    solvedProblemIds,
+    attemptedProblemIds,
+    bookmarkedProblemIds,
+  ]);
 
   const handleProblemBookmarkChange = useCallback(
     (problemId: string, newIsBookmarked: boolean) => {
@@ -426,9 +428,9 @@ const ProblemList: React.FC<ProblemListProps> = ({
         showStatusFilter={!!user}
       />
 
-      {displayedProblems.length > 0 ? (
+      {mergedProblems.length > 0 ? (
         <div className="space-y-4">
-          {displayedProblems.map((problem, index) => (
+          {mergedProblems.map((problem, index) => (
             <div key={problem.id}>
               <ProblemCard
                 problem={problem}
