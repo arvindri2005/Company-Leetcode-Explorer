@@ -22,6 +22,7 @@ import WorkExperienceSection from "@/components/profile/work-experience-section"
 import ProgressStats from "@/components/profile/progress-stats";
 import ProfileProblemList from "@/components/profile/profile-problem-list";
 import StrategyListsSection from "@/components/profile/strategy-lists-section";
+import { JobApplicationsSection } from "@/components/profile/job-applications-section";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,6 +33,7 @@ import {
   ListTodo,
   FolderKanban,
   Briefcase,
+  Building2,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
@@ -593,6 +595,10 @@ export default function ProfilePage() {
                 <FolderKanban className="mr-2 h-4 w-4" />
                 Strategies ({strategyTodoLists.length})
               </TabsTrigger>
+              <TabsTrigger value="applications">
+                <Building2 className="mr-2 h-4 w-4" />
+                Applications
+              </TabsTrigger>
               <TabsTrigger value="background">
                 <Briefcase className="mr-2 h-4 w-4" />
                 Background
@@ -684,6 +690,10 @@ export default function ProfilePage() {
                 updatingTodoItemId={updatingTodoItemId}
                 handleToggleTodoItem={handleToggleTodoItem}
               />
+            </TabsContent>
+
+            <TabsContent value="applications">
+              <JobApplicationsSection userId={user.uid} />
             </TabsContent>
 
             <TabsContent value="background">
