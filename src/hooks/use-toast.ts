@@ -152,7 +152,7 @@ type Toast = Omit<ToasterToast, "id">;
  * @param {Toast} props - The properties of the toast to be displayed.
  * @returns {{ id: string; dismiss: () => void; update: (props: ToasterToast) => void; }} An object containing the ID of the new toast, and functions to dismiss or update it.
  */
-function toast({ ...props }: Toast) {
+function toastMain({ ...props }: Toast) {
   const id = genId();
 
   const update = (props: ToasterToast) =>
@@ -180,6 +180,27 @@ function toast({ ...props }: Toast) {
     update,
   };
 }
+
+type ToastFunction = typeof toastMain & {
+  success: (title: string, description?: React.ReactNode) => ReturnType<typeof toastMain>;
+  error: (title: string, description?: React.ReactNode) => ReturnType<typeof toastMain>;
+  warning: (title: string, description?: React.ReactNode) => ReturnType<typeof toastMain>;
+  info: (title: string, description?: React.ReactNode) => ReturnType<typeof toastMain>;
+};
+
+const toast = toastMain as ToastFunction;
+
+toast.success = (title, description) =>
+  toastMain({ title, description, variant: "success" });
+
+toast.error = (title, description) =>
+  toastMain({ title, description, variant: "destructive" });
+
+toast.warning = (title, description) =>
+  toastMain({ title, description, variant: "warning" });
+
+toast.info = (title, description) =>
+  toastMain({ title, description, variant: "info" });
 
 /**
  * @function useToast
