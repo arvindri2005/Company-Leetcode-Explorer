@@ -32,10 +32,12 @@ interface SyncUserProfileInput {
  * @param {SyncUserProfileInput} userData - An object containing the user's UID, email, and display name from Firebase Auth.
  * @returns {Promise<{ success: boolean; error?: string }>} A promise that resolves to an object
  * indicating the success or failure of the synchronization operation.
+ * @deprecated This action uses the Client SDK which is not authenticated on the server. Use `userService.syncUserProfile` on the client side instead.
  */
 export async function syncUserProfile(
   userData: SyncUserProfileInput,
 ): Promise<{ success: boolean; error?: string }> {
+  console.warn("syncUserProfile Server Action is deprecated. Use userService.syncUserProfile on the client side.");
   return await userService.syncUserProfile(userData.uid, userData.email, userData.displayName);
 }
 

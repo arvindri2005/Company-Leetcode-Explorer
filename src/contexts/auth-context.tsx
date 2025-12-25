@@ -11,7 +11,7 @@ import React, {
 } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { syncUserProfile as syncUserProfileAction } from "@/app/actions"; // Server action
+import { userService } from "@/services/user.service";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -38,11 +38,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // This is a basic check; more robust logic might be needed depending on session handling
     if (firebaseUser && !isUserProfileSynced) {
       try {
-        const result = await syncUserProfileAction({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName,
-        });
+        const result = await userService.syncUserProfile(
+          firebaseUser.uid,
+          firebaseUser.email,
+          firebaseUser.displayName,
+        );
         if (result.success) {
           // User profile synced successfully
           setIsUserProfileSynced(true);
