@@ -15,6 +15,7 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useDebounce } from "@/hooks/use-debounce";
 import { fetchCompanySuggestionsAction } from "@/app/actions";
 import CompanySearchBar from "./company-search-bar";
+import { useCursorPagination } from "@/hooks/use-cursor-pagination";
 
 /**
  * Props for the CompanyList component.
@@ -74,6 +75,8 @@ const CompanyList: React.FC<CompanyListProps> = ({
     initialNextCursor,
   );
 
+  const { fetchCompaniesWithCursor } = useCursorPagination();
+
   interface Suggestion extends Pick<Company, "id" | "name" | "slug" | "logo"> {}
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -108,29 +111,6 @@ const CompanyList: React.FC<CompanyListProps> = ({
     params.delete("page");
     router.push(`${pathname}?${params.toString()}`);
   };
-
-  // Load more companies
-  const fetchCompaniesWithCursor = useCallback(
-    async (cursor?: string, pageSize: number = 9, searchTerm?: string) => {
-      try {
-        const params = new URLSearchParams();
-        if (cursor) params.append("cursor", cursor);
-        if (pageSize) params.append("pageSize", pageSize.toString());
-        if (searchTerm?.trim()) params.append("searchTerm", searchTerm.trim());
-
-        const response = await fetch(`/api/companies?${params.toString()}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-        if (!response.ok)
-          throw new Error(`HTTP error! status: ${response.status}`);
-        return await response.json();
-      } catch (error) {
-        return { companies: [], hasMore: false, nextCursor: undefined };
-      }
-    },
-    [],
-  );
 
   const loadMoreCompanies = useCallback(async () => {
     if (isLoadingMore || !hasMore || !nextCursor) return;
