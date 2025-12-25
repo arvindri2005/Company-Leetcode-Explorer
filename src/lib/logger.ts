@@ -1,6 +1,6 @@
-type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
+export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
 
-interface LogEntry {
+export interface LogEntry {
   timestamp: string;
   level: LogLevel;
   message: string;
@@ -8,7 +8,45 @@ interface LogEntry {
   error?: Error | unknown;
 }
 
+export interface LogTransport {
+  log(entry: LogEntry): void;
+}
+
+export class ConsoleTransport implements LogTransport {
+  log(entry: LogEntry) {
+    const logOutput = JSON.stringify(entry);
+    switch (entry.level) {
+      case "ERROR":
+        console.error(logOutput);
+        break;
+      case "WARN":
+        console.warn(logOutput);
+        break;
+      case "INFO":
+      case "DEBUG":
+      default:
+        console.log(logOutput);
+        break;
+    }
+  }
+}
+
 class Logger {
+  private static transports: LogTransport[] = [new ConsoleTransport()];
+
+  static addTransport(transport: LogTransport) {
+    this.transports.push(transport);
+  }
+
+  static clearTransports() {
+    this.transports = [];
+  }
+
+  // Reset to default configuration (mostly for tests)
+  static resetTransports() {
+    this.transports = [new ConsoleTransport()];
+  }
+
   private static formatError(error: unknown): Record<string, any> | undefined {
     if (error instanceof Error) {
       return {
@@ -40,23 +78,13 @@ class Logger {
       entry.error = this.formatError(error);
     }
 
-    // In a real production environment, we might send this to an external service.
-    // For now, we print structured JSON to stdout/stderr.
-    const logOutput = JSON.stringify(entry);
-
-    switch (level) {
-      case "ERROR":
-        console.error(logOutput);
-        break;
-      case "WARN":
-        console.warn(logOutput);
-        break;
-      case "INFO":
-      case "DEBUG":
-      default:
-        console.log(logOutput);
-        break;
-    }
+    this.transports.forEach((transport) => {
+      try {
+        transport.log(entry);
+      } catch (err) {
+        console.error("Failed to write to log transport:", err);
+      }
+    });
   }
 
   static debug(message: string, context?: Record<string, any>) {
