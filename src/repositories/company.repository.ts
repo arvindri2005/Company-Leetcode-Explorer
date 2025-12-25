@@ -155,8 +155,6 @@ export class CompanyRepository {
       if (!searchTerm) {
           queryConstraints.push(orderBy(documentId(), "asc"));
       } else {
-          // search query already has orderBy id implicitly added? 
-          // No, we must add it explicitely if we want to rely on it for cursor
           queryConstraints.push(orderBy(documentId(), "asc"));
       }
 
@@ -445,62 +443,6 @@ export class CompanyRepository {
           ? error.message
           : "An unknown error occurred while updating company.";
       Logger.error(`Error in updateCompany`, error, { companyId, message });
-      return { success: false, error: message };
-    }
-  }
-
-  async bulkDeleteCompanies(
-    companyIds: string[],
-  ): Promise<{ success: boolean; error?: string; deletedCount?: number }> {
-    try {
-      if (!companyIds || companyIds.length === 0) {
-        return { success: true, deletedCount: 0 };
-      }
-
-      const db = getFirestore(); // Use local var to avoid closure issues if any
-      const CHUNK_SIZE = 500;
-
-      for (let i = 0; i < companyIds.length; i += CHUNK_SIZE) {
-        const chunk = companyIds.slice(i, i + CHUNK_SIZE);
-        const currentBatch = writeBatch(db);
-
-        chunk.forEach((id) => {
-          const docRef = doc(db, "companies", id);
-          currentBatch.delete(docRef);
-        });
-
-        await currentBatch.commit();
-      }
-
-      return { success: true, deletedCount: companyIds.length };
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "An unknown error occurred while bulk deleting companies.";
-      Logger.error(`Error in bulkDeleteCompanies`, error, { message });
-      return { success: false, error: message };
-    }
-  }
-
-  async deleteCompany(
-    companyId: string,
-  ): Promise<{ success: boolean; error?: string }> {
-    try {
-      if (!companyId) {
-        return { success: false, error: "Company ID is required" };
-      }
-
-      const companyDocRef = doc(getFirestore(), "companies", companyId);
-      await deleteDoc(companyDocRef);
-
-      return { success: true };
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "An unknown error occurred while deleting company.";
-      Logger.error(`Error in deleteCompany`, error, { companyId, message });
       return { success: false, error: message };
     }
   }
