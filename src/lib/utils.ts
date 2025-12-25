@@ -85,3 +85,17 @@ export function getDeterministicRandom(seed: string): number {
   }
   return Math.abs(hash) / 2147483648; // Normalize to 0-1
 }
+
+/**
+ * @function safeJsonLd
+ * @description Safely stringifies data for use in JSON-LD script tags, preventing XSS by escaping HTML characters.
+ * This is crucial because standard JSON.stringify does not escape '<' or '>', which allows attackers to close the script tag.
+ * @param {any} data - The data to stringify.
+ * @returns {string} The escaped JSON string.
+ */
+export function safeJsonLd(data: any): string {
+  return JSON.stringify(data)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
+}
