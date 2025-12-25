@@ -1,4 +1,5 @@
 import type { User as FirebaseUser } from "firebase/auth";
+import type { ElementType } from "react";
 import { z } from "zod"; // Import Zod
 
 /**
@@ -518,7 +519,7 @@ export interface PaginatedProblemsResponse {
  * @description Props for the FeatureCard component.
  */
 export interface FeatureCardProps {
-  icon: any; // Accept any to allow passing icon component type
+  icon: ElementType;
   title: string;
   description: string;
 }
@@ -535,7 +536,7 @@ export interface StatItemProps {
  * @description Represents a feature of the application.
  */
 export interface Feature {
-  icon: any; // Accept any to allow passing icon component type
+  icon: ElementType;
   title: string;
   description: string;
 }
