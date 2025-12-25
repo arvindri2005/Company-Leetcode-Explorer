@@ -164,6 +164,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                                     variant="ghost"
                                     size="icon"
                                     className="h-8 w-8 hover:bg-primary/5 rounded-full"
+                                    aria-label={`Change status. Current status: ${currentStatus}`}
                                 >
                                     <StatusIcon className={cn("h-5 w-5 transition-colors", statusColor)} />
                                 </Button>
@@ -191,6 +192,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                                 rel="noopener noreferrer"
                                 className="text-base md:text-lg font-medium text-foreground hover:text-primary transition-colors truncate"
                                 onClick={(e) => e.stopPropagation()}
+                                aria-label={`${problem.title} (opens in a new tab)`}
                             >
                                 {problem.title}
                             </Link>
@@ -235,6 +237,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                             }}
                             disabled={isTogglingBookmark}
                             className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/5"
+                            aria-label={isBookmarked ? "Remove from bookmarks" : "Add to bookmarks"}
                         >
                             {isTogglingBookmark ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -250,6 +253,8 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                                 setIsExpanded(!isExpanded);
                             }}
                             className={cn("h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-transform duration-200", isExpanded && "rotate-180")}
+                            aria-label={isExpanded ? "Collapse details" : "Expand details"}
+                            aria-expanded={isExpanded}
                         >
                             <ChevronDown className="h-4 w-4" />
                         </Button>
