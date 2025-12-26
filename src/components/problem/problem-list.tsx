@@ -10,6 +10,8 @@ import type {
 } from "@/types";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import ProblemCard from "./problem-card";
+import ErrorBoundary from "@/components/ui/error-boundary";
+import ProblemCardErrorFallback from "./problem-card-error-fallback";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import dynamic from "next/dynamic";
@@ -432,14 +434,16 @@ const ProblemList: React.FC<ProblemListProps> = ({
         <div className="space-y-4">
           {mergedProblems.map((problem, index) => (
             <div key={problem.id}>
-              <ProblemCard
-                problem={problem}
-                companySlug={problem.companySlug || companySlug}
-                initialIsBookmarked={problem.isBookmarked}
-                onBookmarkChanged={handleProblemBookmarkChange}
-                problemStatus={problem.currentStatus || "none"}
-                onProblemStatusChange={handleProblemStatusChange}
-              />
+              <ErrorBoundary fallback={<ProblemCardErrorFallback />}>
+                <ProblemCard
+                  problem={problem}
+                  companySlug={problem.companySlug || companySlug}
+                  initialIsBookmarked={problem.isBookmarked}
+                  onBookmarkChanged={handleProblemBookmarkChange}
+                  problemStatus={problem.currentStatus || "none"}
+                  onProblemStatusChange={handleProblemStatusChange}
+                />
+              </ErrorBoundary>
               {(index + 1) % 20 === 0 && (
                 <AdPlaceholder className="my-4 h-32" title="Sponsored" />
               )}
