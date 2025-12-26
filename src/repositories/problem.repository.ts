@@ -24,6 +24,7 @@ import {
   updateDoc,
   setDoc,
   Firestore,
+  QueryConstraint,
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
 import { Logger } from "@/lib/logger";
@@ -273,7 +274,7 @@ export class ProblemRepository {
     const problemsColRef = collection(getFirestore(), "problems");
 
     // Base constraints
-    const constraints: any[] = [
+    const constraints: QueryConstraint[] = [
       where("companyIds", "array-contains", companyId),
     ];
 
@@ -559,7 +560,7 @@ export class ProblemRepository {
     } = params;
 
     const problemsColRef = collection(getFirestore(), "problems");
-    const constraints: any[] = [];
+    const constraints: QueryConstraint[] = [];
 
     let usedInOperator = false;
     let residualDifficultyFilter: DifficultyFilter[] = [];
