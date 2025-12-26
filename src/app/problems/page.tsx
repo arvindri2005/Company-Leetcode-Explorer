@@ -53,7 +53,7 @@ import {
 
 export default async function AllProblemsPage() {
   
-  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+
   const { problems, totalProblems, totalPages, currentPage, hasMore, nextCursor } =
     await problemService.getAllProblemsPaginated({
       page: 1,
