@@ -86,7 +86,7 @@ describe('ProblemCard', () => {
   it('should render external link to LeetCode and action buttons', () => {
     render(<ProblemCard {...defaultProps} />);
 
-    const titleLink = screen.getByRole('link', { name: 'Two Sum' });
+    const titleLink = screen.getByRole('link', { name: /two sum/i });
     expect(titleLink).toHaveAttribute('href', 'https://leetcode.com/problems/two-sum/');
 
     // Simulate clicking the card (e.g., via the difficulty badge) to expand it
