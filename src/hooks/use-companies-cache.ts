@@ -1,132 +1,112 @@
-import { useState, useEffect } from "react";
-import type { Company } from "@/types";
 import { fetchCompaniesAction } from "@/app/actions/company.actions";
+import type { Company } from "@/types";
+import { useCallback } from "react";
 
-// Cache structure
-interface CompaniesCache {
-  [key: string]: {
-    data: {
-      companies: Company[];
-      totalPages: number;
-      totalCompanies: number;
-      currentPage: number;
-    };
-    timestamp: number;
-  };
+// The shape of data returned by fetchCompaniesAction
+type FetchCompaniesResult = {
+  companies: Company[];
+  totalPages: number;
+  totalCompanies: number;
+  currentPage: number;
+  hasMore: boolean;
+  nextCursor?: string;
+  error?: string;
+};
+
+interface CacheEntry {
+  data: FetchCompaniesResult;
+  timestamp: number;
 }
 
-// Cache expiry time (30 minutes)
-const CACHE_EXPIRY = 30 * 60 * 1000;
-// Cleanup interval (10 minutes)
-const CLEANUP_INTERVAL = 10 * 60 * 1000;
+// Module-level Singleton Cache (persists across unmounts/navigation)
+const globalCache = new Map<string, CacheEntry>();
+
+const MAX_CACHE_SIZE = 20;
+const CACHE_EXPIRY = 30 * 60 * 1000; // 30 minutes
+
+// Helper function outside hook scope
+const getCacheKey = (
+  page: number,
+  pageSize: number,
+  searchTerm: string = "",
+  cursor: string = ""
+) => {
+  return `${page}-${pageSize}-${searchTerm}-${cursor}`;
+};
 
 /**
  * @function useCompaniesCache
- * @description A custom hook that provides a caching layer for fetching company data.
- * It manages an in-memory cache with an expiry time, automatically clears stale entries,
- * and provides a function to fetch data that intelligently uses the cache.
+ * @description A custom hook that provides a Global, LRU-based caching layer for fetching company data.
+ * The cache persists across component unmounts (navigation) but is bounded in size to prevent memory leaks.
+ *
+ * Flow's Improvements:
+ * - Moved cache to module scope (Singleton) to persist across navigation.
+ * - Implemented LRU eviction with MAX_CACHE_SIZE=20 to prevent unbounded growth ("Infinite Cache").
+ * - Removed `useState` and `setInterval` to eliminate unnecessary re-renders and "Zombie Timers".
+ * - Used `useCallback` to ensure stable function reference and prevent infinite loops in effects.
+ *
  * @returns {{
- *   fetchCompaniesWithCache: (page: number, pageSize: number, searchTerm?: string) => Promise<{
- *     companies: Company[];
- *     totalPages: number;
- *     totalCompanies: number;
- *     currentPage: number;
- *   } | { error: string; }>;
+ *   fetchCompaniesWithCache: (page: number, pageSize: number, searchTerm?: string, cursor?: string) => Promise<FetchCompaniesResult>;
  *   clearCache: () => void;
- * }} An object containing the cached fetch function and a function to clear the cache.
+ * }}
  */
 export function useCompaniesCache() {
-  const [cache, setCache] = useState<CompaniesCache>({});
-
-  // Clear expired cache entries
-  useEffect(() => {
-    const clearExpiredCache = () => {
-      const now = Date.now();
-      setCache((prevCache) => {
-        const newCache = { ...prevCache };
-        let hasChanges = false;
-
-        Object.keys(newCache).forEach((key) => {
-          if (now - newCache[key].timestamp > CACHE_EXPIRY) {
-            delete newCache[key];
-            hasChanges = true;
-          }
-        });
-
-        return hasChanges ? newCache : prevCache;
-      });
-    };
-
-    // Run cleanup every 10 minutes
-    const interval = setInterval(clearExpiredCache, CLEANUP_INTERVAL);
-    return () => clearInterval(interval);
-  }, []);
-
-  const getCacheKey = (
+  const fetchCompaniesWithCache = useCallback(async (
     page: number,
     pageSize: number,
     searchTerm: string = "",
-  ) => {
-    return `${page}-${pageSize}-${searchTerm}`;
-  };
+    cursor: string = ""
+  ): Promise<FetchCompaniesResult> => {
+    const key = getCacheKey(page, pageSize, searchTerm, cursor);
+    const now = Date.now();
 
-  const getCachedData = (
-    page: number,
-    pageSize: number,
-    searchTerm: string = "",
-  ) => {
-    const key = getCacheKey(page, pageSize, searchTerm);
-    const cacheEntry = cache[key];
+    // 1. Check Cache
+    if (globalCache.has(key)) {
+      const entry = globalCache.get(key)!;
 
-    if (cacheEntry && Date.now() - cacheEntry.timestamp <= CACHE_EXPIRY) {
-      return cacheEntry.data;
+      // Check Expiry
+      if (now - entry.timestamp <= CACHE_EXPIRY) {
+        // LRU Update: Delete and Re-add to move to end (Most Recently Used)
+        globalCache.delete(key);
+        globalCache.set(key, entry);
+        return entry.data;
+      } else {
+        // Expired
+        globalCache.delete(key);
+      }
     }
 
-    return null;
-  };
+    // 2. Fetch from Network (Server Action)
+    const data = await fetchCompaniesAction(page, pageSize, searchTerm, cursor);
 
-  const setCachedData = (
-    page: number,
-    pageSize: number,
-    searchTerm: string = "",
-    data: {
-      companies: Company[];
-      totalPages: number;
-      totalCompanies: number;
-      currentPage: number;
-    },
-  ) => {
-    const key = getCacheKey(page, pageSize, searchTerm);
-    setCache((prev) => ({
-      ...prev,
-      [key]: {
+    // 3. Store in Cache (if valid)
+    if (data && !data.error) {
+      // Enforce Max Size (LRU Policy)
+      if (globalCache.size >= MAX_CACHE_SIZE) {
+        // The Map iterator yields keys in insertion order.
+        // The first key is the Oldest (Least Recently Used/Added).
+        const oldestKey = globalCache.keys().next().value;
+        if (oldestKey) {
+          globalCache.delete(oldestKey);
+        }
+      }
+
+      globalCache.set(key, {
         data,
-        timestamp: Date.now(),
-      },
-    }));
-  };
-
-  const fetchCompaniesWithCache = async (
-    page: number,
-    pageSize: number,
-    searchTerm: string = "",
-  ) => {
-    // Try to get from cache first
-    const cachedData = getCachedData(page, pageSize, searchTerm);
-    if (cachedData) {
-      return cachedData;
+        timestamp: now,
+      });
     }
 
-    // If not in cache, fetch from API
-    const data = await fetchCompaniesAction(page, pageSize, searchTerm);
-    if (!("error" in data)) {
-      setCachedData(page, pageSize, searchTerm, data);
-    }
     return data;
-  };
+  }, []); // No dependencies as it uses module-level variables
+
+  // Utility to manually clear cache (e.g., on logout or refresh)
+  const clearCache = useCallback(() => {
+    globalCache.clear();
+  }, []);
 
   return {
     fetchCompaniesWithCache,
-    clearCache: () => setCache({}),
+    clearCache,
   };
 }

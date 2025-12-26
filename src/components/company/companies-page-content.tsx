@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Company } from "@/types";
+import { useMounted } from "@/hooks/use-mounted";
 import { DashboardHeader } from "@/components/company/dashboard-header";
 import { TechCompanyCard } from "@/components/company/tech-company-card";
 import { CompanyTable } from "@/components/company/company-table";
@@ -16,7 +17,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { HelpCircle } from "lucide-react";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
-import { fetchCompaniesAction } from "@/app/actions/company.actions";
+import { useCompaniesCache } from "@/hooks/use-companies-cache";
 import Footer from "@/components/landing/footer";
 
 const ITEMS_PER_PAGE = 30;
@@ -56,9 +57,13 @@ export function CompaniesPageContent({
 
   // Refs for infinite scroll
   const observerTarget = useRef<HTMLDivElement>(null);
+  const { fetchCompaniesWithCache } = useCompaniesCache();
+  const mounted = useMounted();
 
   // Reset state when search changes
   useEffect(() => {
+    let cancelled = false;
+
     // If we are back to initial state (no search), and initialCompanies matches, we could reset.
     // simpler: Fetch fresh list for new search term.
     
@@ -74,20 +79,31 @@ export function CompaniesPageContent({
       
       setIsLoading(true);
       try {
-        // Fetch first page of search results
-        const result = await fetchCompaniesAction(1, ITEMS_PER_PAGE, searchTerm);
-        setCompanies(result.companies);
-        setHasMore(result.hasMore);
-        setNextCursor(result.nextCursor);
+        // Fetch first page of search results (cached)
+        const result = await fetchCompaniesWithCache(1, ITEMS_PER_PAGE, searchTerm);
+
+        if (!cancelled) {
+          setCompanies(result.companies);
+          setHasMore(result.hasMore);
+          setNextCursor(result.nextCursor);
+        }
       } catch (error) {
-        console.error("Failed to fetch companies:", error);
+        if (!cancelled) {
+          console.error("Failed to fetch companies:", error);
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     };
     
     fetchSearchDetails();
-  }, [searchTerm, initialCompanies, initialHasMore, initialNextCursor]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchTerm, initialCompanies, initialHasMore, initialNextCursor, fetchCompaniesWithCache]);
 
   // Load More Function
   const loadMore = async () => {
@@ -98,15 +114,21 @@ export function CompaniesPageContent({
           // We use Page 1 but pass cursor. The action ignores page if cursor is present for fetching, 
           // or we can pass proper page if we tracked it, but cursor is key. 
           // Action signature: (page, pageSize, term, cursor)
-          const result = await fetchCompaniesAction(1, ITEMS_PER_PAGE, searchTerm, nextCursor);
+          const result = await fetchCompaniesWithCache(1, ITEMS_PER_PAGE, searchTerm, nextCursor);
           
-          setCompanies(prev => [...prev, ...result.companies]);
-          setHasMore(result.hasMore);
-          setNextCursor(result.nextCursor);
+          if (mounted) {
+            setCompanies(prev => [...prev, ...result.companies]);
+            setHasMore(result.hasMore);
+            setNextCursor(result.nextCursor);
+          }
       } catch (error) {
-          console.error("Failed to load more companies:", error);
+          if (mounted) {
+            console.error("Failed to load more companies:", error);
+          }
       } finally {
-          setLoadingMore(false);
+          if (mounted) {
+            setLoadingMore(false);
+          }
       }
   };
 
