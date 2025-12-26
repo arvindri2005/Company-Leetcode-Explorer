@@ -119,6 +119,7 @@ export default function ForgotPasswordForm() {
                   type="email"
                   placeholder="you@example.com"
                   {...field}
+                  autoComplete="email"
                   className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
                 />
               </FormControl>

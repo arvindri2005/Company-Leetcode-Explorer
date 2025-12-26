@@ -210,6 +210,7 @@ export default function SignupForm() {
                       placeholder="Your Name"
                       {...field}
                       autoFocus
+                      autoComplete="name"
                       className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
                     />
                      {field.value && !form.getFieldState("displayName").invalid && (
@@ -237,6 +238,7 @@ export default function SignupForm() {
                       type="email"
                       placeholder="you@example.com"
                       {...field}
+                      autoComplete="email"
                       className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
                     />
                     {field.value && !form.getFieldState("email").invalid && (
@@ -264,6 +266,7 @@ export default function SignupForm() {
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
                       {...field}
+                      autoComplete="new-password"
                       className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50 pr-10"
                     />
                     <Button
