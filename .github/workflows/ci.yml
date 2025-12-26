@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        # Continuing on error because of existing technical debt (unescaped entities, hooks warnings)
+        # Pilot: "We visualize the debt so we can pay it down later."
+        run: pnpm lint
+        continue-on-error: true
+
+      - name: Typecheck
+        # Continuing on error because of existing technical debt (test types, missing definitions)
+        run: pnpm typecheck
+        continue-on-error: true
+
+      - name: Run Tests
+        # We only run unit tests here.
+        # NOTE: Integration tests that require real Firebase connection are skipped or mocked.
+        # Ideally, we should enforce this to be green.
+        run: pnpm test
