@@ -19,6 +19,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { userService } from "@/services/user.service";
 import { loadMoreProblemsAction } from "@/app/actions/problem.actions";
 import { Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const ProblemListControls = dynamic(() => import("./problem-list-controls"), {
   loading: () => (
@@ -427,23 +428,45 @@ const ProblemList: React.FC<ProblemListProps> = ({
       />
 
       {displayedProblems.length > 0 ? (
-        <div className="space-y-4">
-          {displayedProblems.map((problem, index) => (
-            <div key={problem.id}>
-              <ProblemCard
-                problem={problem}
-                companySlug={problem.companySlug || companySlug}
-                initialIsBookmarked={problem.isBookmarked}
-                onBookmarkChanged={handleProblemBookmarkChange}
-                problemStatus={problem.currentStatus || "none"}
-                onProblemStatusChange={handleProblemStatusChange}
-              />
-              {(index + 1) % 20 === 0 && (
-                <AdPlaceholder className="my-4 h-32" title="Sponsored" />
-              )}
-            </div>
-          ))}
-        </div>
+        <motion.div
+          className="space-y-4"
+          initial="hidden"
+          animate="show"
+          variants={{
+            hidden: { opacity: 0 },
+            show: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.05
+              }
+            }
+          }}
+        >
+          <AnimatePresence mode="popLayout">
+            {displayedProblems.map((problem, index) => (
+              <motion.div
+                key={problem.id}
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+                }}
+                layout
+              >
+                <ProblemCard
+                  problem={problem}
+                  companySlug={problem.companySlug || companySlug}
+                  initialIsBookmarked={problem.isBookmarked}
+                  onBookmarkChanged={handleProblemBookmarkChange}
+                  problemStatus={problem.currentStatus || "none"}
+                  onProblemStatusChange={handleProblemStatusChange}
+                />
+                {(index + 1) % 20 === 0 && (
+                  <AdPlaceholder className="my-4 h-32" title="Sponsored" />
+                )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
       ) : (
         <p className="text-center text-muted-foreground py-10">
           No problems match the current filters or search term for this company.
