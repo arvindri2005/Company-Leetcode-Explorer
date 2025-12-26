@@ -44,9 +44,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
           width={48}
           height={48}
           className="rounded-full border-2 border-white/20 object-contain"
-          priority
           onError={() => setImgSrc("/icon.png")}
-          unoptimized
         />
         <div className="flex-1 min-w-0">
           <h2 className="text-base font-bold text-white truncate">
