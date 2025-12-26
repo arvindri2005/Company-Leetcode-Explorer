@@ -147,6 +147,7 @@ export default function LoginForm() {
                       placeholder="you@example.com"
                       {...field}
                       autoFocus
+                      autoComplete="email"
                       className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
                     />
                 </FormControl>
@@ -166,6 +167,7 @@ export default function LoginForm() {
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
                       {...field}
+                      autoComplete="current-password"
                       className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50 pr-10"
                     />
                     <Button

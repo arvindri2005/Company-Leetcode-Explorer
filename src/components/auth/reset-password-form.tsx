@@ -179,6 +179,7 @@ export default function ResetPasswordForm({ oobCode }: ResetPasswordFormProps) {
                         type={showPassword ? "text" : "password"}
                         placeholder="••••••••"
                         {...field}
+                         autoComplete="new-password"
                          className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50 pr-10"
                     />
                     <Button
@@ -216,6 +217,7 @@ export default function ResetPasswordForm({ oobCode }: ResetPasswordFormProps) {
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder="••••••••"
                         {...field}
+                         autoComplete="new-password"
                          className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50 pr-10"
                     />
                     <Button

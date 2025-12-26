@@ -1,5 +1,5 @@
-# Form's Ledger
+# Form's Ledger - Critical Input/Validation Learnings
 
-## 2025-05-18 - [Accessibility Hooks] **Input:** Server Actions & ARIA **Output:** Manual ID Mapping
-**Input:** `useFormState` returns error objects, but standard inputs lack a direct way to associate these server-side errors with client-side ARIA attributes automatically.
-**Output:** Must manually construct `id`s for error message containers (e.g., `id="name-error"`) and explicitly bind them using `aria-describedby` and `aria-invalid` on the input, ensuring screen readers announce the error immediately upon focus or submission failure.
+## 2025-05-23 - Fix Autocomplete in Auth Flows
+**Input:** Missing `autoComplete` attributes on auth forms caused friction for password managers and manual typing.
+**Output:** Added standard `autoComplete` attributes (`email`, `current-password`, `new-password`, `name`) to Login, Signup, Forgot Password, and Reset Password forms to enable browser autofill and password manager integration.
