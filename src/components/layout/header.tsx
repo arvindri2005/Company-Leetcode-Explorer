@@ -18,11 +18,10 @@ import { useRouter, usePathname } from "next/navigation";
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import React, { useState, useCallback, useMemo } from "react";
+import { navigationRegistry, NavigationItem } from "@/lib/navigation-registry";
 
 /**
  * Renders the main application header and navigation bar.
@@ -68,41 +67,57 @@ const Header = React.memo(function Header() {
     }
   }, [toast, router]);
 
+  // Render a navigation item
+  const renderNavItem = (item: NavigationItem, isMobile: boolean) => {
+    const isActive = item.href && pathname === item.href;
+    const baseClasses = `text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${item.className || ''}`;
+    const mobileClasses = `block py-4 border-b border-gray-200/10 font-bold ${isActive ? "text-teal-400" : ""}`;
+
+    const className = isMobile ? `${baseClasses} ${mobileClasses}` : baseClasses;
+
+    if (item.href) {
+      return (
+        <Link
+          key={item.key}
+          href={item.href}
+          className={className}
+          onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
+        >
+          {item.label}
+        </Link>
+      );
+    }
+    
+    // If no href, maybe it's a button with onClick?
+    // Not currently used by standard registry items, but good for extensibility.
+    if (item.onClick) {
+        return (
+            <button
+                key={item.key}
+                onClick={() => {
+                   item.onClick!(router);
+                   if (isMobile) setIsMobileMenuOpen(false);
+                }}
+                className={className}
+            >
+                {item.label}
+            </button>
+        )
+    }
+
+    return null;
+  };
+
   const commonNavLinks = useMemo(
     () =>
       function CommonNavLinks(isMobile = false) {
+        const items = navigationRegistry.getItems('main', { user, isLoading: authLoading });
         return (
         <>
-          <Link
-            href="/companies"
-            className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${
-              isMobile
-                ? `block py-4 border-b border-gray-200/10 font-bold ${
-                    pathname === "/companies" ? "text-teal-400" : ""
-                  }`
-                : ""
-            }`}
-            onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
-          >
-            Explore Companies
-          </Link>
-
-          <Link
-            href="/problems"
-            className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${
-              isMobile
-                ? `block py-4 border-b border-gray-200/10 font-bold ${
-                    pathname === "/problems" ? "text-teal-400" : ""
-                  }`
-                : ""
-            }`}
-            onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
-          >
-            Problems
-          </Link>
+            {items.map(item => renderNavItem(item, isMobile))}
         </>
       )},
-    [pathname],
+    [pathname, user, authLoading],
   );
 
   const authLinks = useMemo(
@@ -112,25 +127,20 @@ const Header = React.memo(function Header() {
           return <span className="text-gray-200">Loading...</span>;
         }
 
-        if (user) {
-          return (
-            <>
-              <Link
-                href="/profile"
-                className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${
-                  isMobile
-                    ? `block py-4 border-b border-gray-200/10 font-bold ${
-                        pathname === "/profile" ? "text-teal-400" : ""
-                      }`
-                    : ""
-                }`}
-                onClick={
-                  isMobile ? () => setIsMobileMenuOpen(false) : undefined
-                }
-              >
-                Profile
-              </Link>
-              
+        const items = navigationRegistry.getItems('auth', { user, isLoading: authLoading });
+
+        return (
+          <>
+            {items.map(item => renderNavItem(item, isMobile))}
+            
+            {/* 
+              Logout is handled separately because it requires specific local state/context 
+              that is hard to inject into the static registry (router, toast).
+              Ideally, we would register a "Logout" action that delegates to this component,
+              but for now, hardcoding the logout button alongside dynamic auth links is acceptable.
+              It appears only when user is logged in.
+             */}
+            {user && (
               <button
                 onClick={() => {
                   handleLogout();
@@ -144,38 +154,7 @@ const Header = React.memo(function Header() {
               >
                 Logout
               </button>
-            </>
-          );
-        }
-
-        return (
-          <>
-            <Link
-              href="/login"
-              className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${
-                isMobile
-                  ? `block py-4 border-b border-gray-200/10 font-bold ${
-                      pathname === "/login" ? "text-teal-400" : ""
-                    }`
-                  : ""
-              }`}
-              onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
-            >
-              Login
-            </Link>
-            <Link
-              href="/signup"
-              className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${
-                isMobile
-                  ? `block py-4 border-b border-gray-200/10 font-bold ${
-                      pathname === "/signup" ? "text-teal-400" : ""
-                    }`
-                  : ""
-              }`}
-              onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
-            >
-              Sign Up
-            </Link>
+            )}
           </>
         );
       },
