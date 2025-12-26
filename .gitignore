@@ -35,3 +35,8 @@ lerna-debug.log*
 .vercel
 
 *storybook.log
+
+# Serwist
+public/sw.js
+public/sw.js.map
+public/swe-worker-*
