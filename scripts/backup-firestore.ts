@@ -11,6 +11,7 @@ import {
 } from "firebase/firestore";
 import * as fs from "fs";
 import * as path from "path";
+import * as crypto from "crypto";
 
 // Define known collections and subcollections
 const SCHEMA = {
@@ -23,9 +24,22 @@ const SCHEMA = {
       "workExperience",
       "strategyTodoLists",
     ],
-    companies: ["problems"], // Based on hasData check, though main problems seem to be at root
+    companies: ["problems"],
   },
 };
+
+interface BackupMetadata {
+  timestamp: string;
+  version: string;
+  counts: Record<string, number>;
+  checksum: string;
+  environment: string;
+}
+
+interface BackupFile {
+  metadata: BackupMetadata;
+  data: BackupData;
+}
 
 interface BackupData {
   [collectionName: string]: {
@@ -52,63 +66,108 @@ async function backupFirestore() {
   }
 
   console.log("Starting Firestore backup...");
-  const backup: BackupData = {};
+  const backupData: BackupData = {};
+  const counts: Record<string, number> = {};
 
   for (const colName of SCHEMA.root) {
     console.log(`Backing up collection: ${colName}`);
-    backup[colName] = {};
-    const colRef = collection(db, colName);
-    const snapshot = await getDocs(colRef);
+    backupData[colName] = {};
+    counts[colName] = 0;
 
-    for (const docSnap of snapshot.docs) {
-      const docId = docSnap.id;
-      const docData = docSnap.data();
-      
-      // Convert Timestamps to dates or strings for JSON serialization
-      const serializedData = serializeData(docData);
+    try {
+      const colRef = collection(db, colName);
+      const snapshot = await getDocs(colRef);
 
-      backup[colName][docId] = {
-        data: serializedData,
-      };
+      for (const docSnap of snapshot.docs) {
+        const docId = docSnap.id;
+        const docData = docSnap.data();
 
-      // Check for subcollections
-      if (colName in SCHEMA.subcollections) {
-        const subCols = SCHEMA.subcollections[colName as keyof typeof SCHEMA.subcollections];
-        if (subCols) {
-          backup[colName][docId].subcollections = {};
-          
-          for (const subColName of subCols) {
-            const subColRef = collection(db, colName, docId, subColName);
-            const subSnapshot = await getDocs(subColRef);
+        // Convert Timestamps to dates or strings for JSON serialization
+        const serializedData = serializeData(docData);
+
+        backupData[colName][docId] = {
+          data: serializedData,
+        };
+        counts[colName]++;
+
+        // Check for subcollections
+        if (colName in SCHEMA.subcollections) {
+          const subCols = SCHEMA.subcollections[colName as keyof typeof SCHEMA.subcollections];
+          if (subCols) {
             
-            if (!subSnapshot.empty) {
-               console.log(`  Found subcollection ${subColName} for doc ${docId} (${subSnapshot.size} docs)`);
-               backup[colName][docId].subcollections![subColName] = {};
-               
-               for (const subDocSnap of subSnapshot.docs) {
-                 backup[colName][docId].subcollections![subColName][subDocSnap.id] = {
-                   data: serializeData(subDocSnap.data())
-                 };
-               }
+            for (const subColName of subCols) {
+              const subColRef = collection(db, colName, docId, subColName);
+              const subSnapshot = await getDocs(subColRef);
+
+              if (!subSnapshot.empty) {
+                 if (!backupData[colName][docId].subcollections) {
+                    backupData[colName][docId].subcollections = {};
+                 }
+
+                 console.log(`  Found subcollection ${subColName} for doc ${docId} (${subSnapshot.size} docs)`);
+                 backupData[colName][docId].subcollections![subColName] = {};
+
+                 for (const subDocSnap of subSnapshot.docs) {
+                   backupData[colName][docId].subcollections![subColName][subDocSnap.id] = {
+                     data: serializeData(subDocSnap.data())
+                   };
+                 }
+              }
             }
-          }
-          
-          // Clean up empty subcollections object if no data found
-          if (Object.keys(backup[colName][docId].subcollections!).length === 0) {
-            delete backup[colName][docId].subcollections;
           }
         }
       }
+      console.log(`Finished collection: ${colName} (${snapshot.size} docs)`);
+    } catch (error: any) {
+      if (error.code === 'permission-denied') {
+        console.warn(`Skipping collection ${colName}: Permission denied.`);
+      } else {
+        console.error(`Error backing up collection ${colName}:`, error);
+      }
     }
-    console.log(`Finished collection: ${colName} (${snapshot.size} docs)`);
   }
+
+  // Calculate Checksum
+  console.log("Calculating checksum...");
+  const dataString = JSON.stringify(backupData); // Consistent serialization needed? JSON.stringify is usually consistent enough for this if keys order is not guaranteed but here we just read it back.
+  // Actually, for verification we just need to match what we write.
+  const checksum = crypto.createHash("sha256").update(dataString).digest("hex");
+
+  const metadata: BackupMetadata = {
+    timestamp: new Date().toISOString(),
+    version: "1.1.0",
+    counts,
+    checksum,
+    environment: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "unknown",
+  };
+
+  const backupFile: BackupFile = {
+    metadata,
+    data: backupData, // In a real scenario, we might want to keep data as a separate string to avoid double serialization cost, but memory is cheap here.
+  };
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const filename = `firestore-backup-${timestamp}.json`;
   const outputPath = path.join(process.cwd(), filename);
 
-  fs.writeFileSync(outputPath, JSON.stringify(backup, null, 2));
-  console.log(`Backup saved to ${outputPath}`);
+  console.log(`Writing backup to ${outputPath}...`);
+  fs.writeFileSync(outputPath, JSON.stringify(backupFile, null, 2));
+
+  // Verify
+  console.log("Verifying backup integrity...");
+  const fileContent = fs.readFileSync(outputPath, "utf-8");
+  const loadedBackup = JSON.parse(fileContent);
+  const loadedDataString = JSON.stringify(loadedBackup.data);
+  const loadedChecksum = crypto.createHash("sha256").update(loadedDataString).digest("hex");
+
+  if (loadedChecksum === checksum) {
+      console.log("✅ Backup verified successfully: Checksum matches.");
+  } else {
+      console.error("❌ Backup verification FAILED: Checksum mismatch!");
+      console.error(`Expected: ${checksum}`);
+      console.error(`Actual:   ${loadedChecksum}`);
+      // Don't delete, but warn loudly
+  }
 }
 
 function serializeData(data: any): any {
@@ -117,8 +176,6 @@ function serializeData(data: any): any {
   if (typeof data === 'object') {
     // Handle Firestore Timestamp
     if (data.seconds !== undefined && data.nanoseconds !== undefined && Object.keys(data).length === 2) {
-       // It's likely a Timestamp object from the SDK (or similar structure)
-       // We can convert to ISO string for JSON
        return new Date(data.seconds * 1000 + data.nanoseconds / 1000000).toISOString();
     }
     
@@ -132,7 +189,13 @@ function serializeData(data: any): any {
     }
 
     const newData: any = {};
-    for (const key in data) {
+    const sortedKeys = Object.keys(data).sort(); // Sort keys for consistent serialization if needed, though JSON.stringify(obj) order is not guaranteed.
+    // However, since we verify by reading back the JSON, exact byte match of 'data' part depends on how we stringify it.
+    // We used JSON.stringify(backupData) for checksum.
+    // When we read back `loadedBackup.data` and `JSON.stringify` it, it must match.
+    // Node's JSON.stringify is deterministic for same object structure.
+
+    for (const key of sortedKeys) {
       newData[key] = serializeData(data[key]);
     }
     return newData;

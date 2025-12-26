@@ -11,6 +11,7 @@ import {
 } from "firebase/firestore";
 import * as fs from "fs";
 import * as path from "path";
+import * as crypto from "crypto";
 
 async function restoreFirestore() {
   // Dynamic import to ensure env vars are loaded first
@@ -23,8 +24,9 @@ async function restoreFirestore() {
 
   const args = process.argv.slice(2);
   let backupFile = args[0];
+  const force = args.includes("--force");
 
-  if (!backupFile) {
+  if (!backupFile || backupFile.startsWith("--")) {
     // Find the latest backup file
     const files = fs.readdirSync(process.cwd())
       .filter(f => f.startsWith("firestore-backup-") && f.endsWith(".json"))
@@ -36,7 +38,7 @@ async function restoreFirestore() {
       console.log(`No backup file specified. Using latest: ${backupFile}`);
     } else {
       console.error("No backup file specified and no backups found in current directory.");
-      console.error("Usage: npx tsx scripts/restore-firestore.ts <backup-file.json>");
+      console.error("Usage: npx tsx scripts/restore-firestore.ts <backup-file.json> [--force]");
       return;
     }
   }
@@ -48,7 +50,53 @@ async function restoreFirestore() {
   }
 
   console.log(`Reading backup from ${backupPath}...`);
-  const backupData = JSON.parse(fs.readFileSync(backupPath, "utf-8"));
+  const fileContent = fs.readFileSync(backupPath, "utf-8");
+  let backupJson;
+
+  try {
+      backupJson = JSON.parse(fileContent);
+  } catch (e) {
+      console.error("Failed to parse backup file. Is it valid JSON?");
+      return;
+  }
+
+  // Detect format (Legacy vs New with Metadata)
+  let backupData;
+  let metadata;
+
+  if (backupJson.metadata && backupJson.data) {
+      console.log("Detected v1.1.0+ backup format with metadata.");
+      metadata = backupJson.metadata;
+      backupData = backupJson.data;
+
+      // Verify Checksum
+      console.log("Verifying checksum...");
+      const dataString = JSON.stringify(backupData);
+      const calculatedChecksum = crypto.createHash("sha256").update(dataString).digest("hex");
+
+      if (calculatedChecksum !== metadata.checksum) {
+          console.error("❌ CRITICAL: Checksum verification failed!");
+          console.error(`Expected: ${metadata.checksum}`);
+          console.error(`Calculated: ${calculatedChecksum}`);
+
+          if (!force) {
+              console.error("Restore aborted. Use --force to override.");
+              return;
+          } else {
+              console.warn("⚠️ Forcing restore despite checksum mismatch...");
+          }
+      } else {
+          console.log("✅ Checksum verified.");
+      }
+
+      console.log(`Backup Timestamp: ${metadata.timestamp}`);
+      console.log(`Environment: ${metadata.environment}`);
+
+  } else {
+      console.log("Detected legacy backup format.");
+      backupData = backupJson;
+      console.warn("⚠️ No checksum verification available for legacy backups.");
+  }
 
   console.log("Starting Firestore restore...");
 
@@ -75,11 +123,7 @@ async function restoreFirestore() {
       console.log(`  Committed batch of ${chunk.length} docs to ${colName}`);
     }
 
-    // Handle subcollections separately (cannot be batched with parent easily if we want to keep structure simple)
-    // Actually we can batch them too, but let's iterate again to keep logic clean or do it inline.
-    // Doing it inline is better but we need to manage batch size across multiple collections.
-    // For simplicity, let's just iterate again for subcollections.
-    
+    // Handle subcollections
     for (const [docId, docEntry] of docs) {
       const entry = docEntry as any;
       if (entry.subcollections) {
