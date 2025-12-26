@@ -50,7 +50,6 @@ export class ProblemRepository {
       lastAskedFilter?: LastAskedFilter[];
       searchTerm?: string;
       sortKey?: SortKey;
-      // userId removed as per hollow caching strategy
       companySlug?: string;
       totalProblemCount?: number;
       difficultyCounts?: { Easy: number; Medium: number; Hard: number };
@@ -256,55 +255,17 @@ export class ProblemRepository {
     },
   ) {
     const {
-      cursor,
-      page,
-      pageSize = 10,
       difficultyFilter = [],
       lastAskedFilter = [],
       searchTerm = "",
       sortKey = "title",
-      companySlug,
-      totalProblemCount,
-      difficultyCounts,
-      recencyCounts,
     } = params;
 
-    let dbReads = 0;
-    const problemsColRef = collection(getFirestore(), "problems");
-
-    // Base constraints
-    const constraints: any[] = [
-      where("companyIds", "array-contains", companyId),
-    ];
-
-    let usedInOperator = false;
-    let residualDifficultyFilter: DifficultyFilter[] = [];
-    let residualLastAskedFilter: LastAskedFilter[] = [];
-
-    // Apply Difficulty Filter
-    if (difficultyFilter.length > 0) {
-      if (difficultyFilter.length === 1) {
-        constraints.push(where("difficulty", "==", difficultyFilter[0]));
-      } else if (!usedInOperator) {
-        constraints.push(where("difficulty", "in", difficultyFilter));
-        usedInOperator = true;
-      } else {
-        residualDifficultyFilter = difficultyFilter;
-      }
-    }
-
-    // Apply LastAsked Filter
-    if (lastAskedFilter.length > 0) {
-      const fieldPath = `companies.${companyId}.lastAskedPeriod`;
-      if (lastAskedFilter.length === 1) {
-        constraints.push(where(fieldPath, "==", lastAskedFilter[0]));
-      } else if (!usedInOperator) {
-        constraints.push(where(fieldPath, "in", lastAskedFilter));
-        usedInOperator = true;
-      } else {
-        residualLastAskedFilter = lastAskedFilter;
-      }
-    }
+    const {
+        constraints,
+        residualDifficultyFilter,
+        residualLastAskedFilter
+    } = this.buildCompanyProblemConstraints(companyId, difficultyFilter, lastAskedFilter);
 
     const hasResidualFilters =
       residualDifficultyFilter.length > 0 ||
@@ -315,115 +276,155 @@ export class ProblemRepository {
 
     if (!hasResidualFilters && isSupportedSort) {
       try {
-        // Fully Optimized Path
-        let totalProblems = 0;
-
-        if (constraints.length === 1 && totalProblemCount !== undefined) {
-          totalProblems = totalProblemCount;
-        } else if (
-          difficultyCounts &&
-          lastAskedFilter.length === 0 &&
-          difficultyFilter.length > 0 &&
-          residualDifficultyFilter.length === 0
-        ) {
-          totalProblems = difficultyFilter.reduce(
-            (acc, diff) => acc + (difficultyCounts[diff] || 0),
-            0,
-          );
-        } else if (
-          recencyCounts &&
-          difficultyFilter.length === 0 &&
-          lastAskedFilter.length > 0 &&
-          residualLastAskedFilter.length === 0
-        ) {
-          totalProblems = lastAskedFilter.reduce(
-            (acc, period) => acc + (recencyCounts[period] || 0),
-            0,
-          );
-        } else {
-          const countQuery = query(problemsColRef, ...constraints);
-          const countSnapshot = await getCountFromServer(countQuery);
-          totalProblems = countSnapshot.data().count;
-        }
-
-        const sortField =
-          sortKey === "difficulty" ? "difficulty" : "normalizedTitle";
-
-        let queryConstraints = [...constraints, orderBy(sortField, "asc")];
-        
-        // Ensure deterministic ordering for cursor pagination
-        if (sortKey === "difficulty") {
-             queryConstraints.push(orderBy("normalizedTitle", "asc"));
-        } else if (sortField === "normalizedTitle") {
-             // Normalized title is unique-ish, but ID is best for tie breaking if needed
-             // But usually normalizedTitle + ID is good practice
-        }
-
-        queryConstraints.push(limit(pageSize + 1));
-
-        if (cursor) {
-           const cursorDocRef = doc(getFirestore(), "problems", cursor);
-           const cursorDocSnap = await getDoc(cursorDocRef);
-           if (cursorDocSnap.exists()) {
-             queryConstraints.push(startAfter(cursorDocSnap));
-           }
-        }
-
-        let q = query(problemsColRef, ...queryConstraints);
-
-        const problemSnapshot = await getDocs(q);
-        const docs = problemSnapshot.docs;
-        const hasMore = docs.length > pageSize;
-
-        const resultDocs = hasMore ? docs.slice(0, pageSize) : docs;
-
-        let finalCompanySlug = companySlug;
-        if (!finalCompanySlug) {
-          const company = await companyRepository.getCompanyById(companyId);
-          finalCompanySlug =
-            company?.slug || slugify(company?.name || "unknown");
-        }
-
-        const problems = resultDocs.map((docSnap) => {
-          const data = docSnap.data();
-          const companySpecificData = data.companies?.[companyId] || {};
-          
-          return {
-            id: docSnap.id,
-            title: data.title,
-            slug: docSnap.id,
-            difficulty: data.difficulty,
-            companyId: companyId,
-            companySlug: finalCompanySlug!,
-            lastAskedPeriod: companySpecificData.lastAskedPeriod || data.lastAskedPeriod || undefined,
-            tags: data.tags || [],
-            acceptanceRate: data.acceptanceRate,
-            isBookmarked: false, // Will be filled by UI layer
-            currentStatus: undefined, // Will be filled by UI layer
-            link: data.link,
-          } as ProblemSummaryDTO;
-        });
-
-        // Use cursor from the LAST item
-        const nextCursor = hasMore ? problems[problems.length - 1].id : undefined;
-
-        return {
-          problems,
-          totalProblems,
-          hasMore,
-          nextCursor,
-        };
+        return await this.fetchProblemsByCompanyOptimized(companyId, params, constraints, residualDifficultyFilter, residualLastAskedFilter);
       } catch (error: any) {
         if (
           error.code === "failed-precondition" ||
           error.message?.includes("index")
         ) {
-          // Fall through
+          // Fall through to in-memory
         } else {
           throw error;
         }
       }
     }
+
+    return await this.fetchProblemsByCompanyInMemory(companyId, params, constraints, residualDifficultyFilter, residualLastAskedFilter);
+  }
+
+  private async fetchProblemsByCompanyOptimized(
+    companyId: string,
+    params: any, // Using any for brevity/avoiding duplication, but should match caller
+    constraints: any[],
+    residualDifficultyFilter: DifficultyFilter[],
+    residualLastAskedFilter: LastAskedFilter[]
+  ) {
+    const {
+        cursor,
+        pageSize = 10,
+        sortKey = "title",
+        companySlug,
+        totalProblemCount,
+        difficultyCounts,
+        recencyCounts,
+        difficultyFilter = [],
+        lastAskedFilter = [],
+    } = params;
+
+    const problemsColRef = collection(getFirestore(), "problems");
+    let totalProblems = 0;
+
+    if (constraints.length === 1 && totalProblemCount !== undefined) {
+      totalProblems = totalProblemCount;
+    } else if (
+      difficultyCounts &&
+      lastAskedFilter.length === 0 &&
+      difficultyFilter.length > 0 &&
+      residualDifficultyFilter.length === 0
+    ) {
+      totalProblems = difficultyFilter.reduce(
+        (acc: number, diff: "Easy" | "Medium" | "Hard") => acc + (difficultyCounts[diff] || 0),
+        0,
+      );
+    } else if (
+      recencyCounts &&
+      difficultyFilter.length === 0 &&
+      lastAskedFilter.length > 0 &&
+      residualLastAskedFilter.length === 0
+    ) {
+      totalProblems = lastAskedFilter.reduce(
+        (acc: number, period: LastAskedPeriod) => acc + (recencyCounts[period] || 0),
+        0,
+      );
+    } else {
+      const countQuery = query(problemsColRef, ...constraints);
+      const countSnapshot = await getCountFromServer(countQuery);
+      totalProblems = countSnapshot.data().count;
+    }
+
+    const sortField =
+      sortKey === "difficulty" ? "difficulty" : "normalizedTitle";
+
+    let queryConstraints = [...constraints, orderBy(sortField, "asc")];
+
+    // Ensure deterministic ordering for cursor pagination
+    if (sortKey === "difficulty") {
+         queryConstraints.push(orderBy("normalizedTitle", "asc"));
+    }
+
+    queryConstraints.push(limit(pageSize + 1));
+
+    if (cursor) {
+       const cursorDocRef = doc(getFirestore(), "problems", cursor);
+       const cursorDocSnap = await getDoc(cursorDocRef);
+       if (cursorDocSnap.exists()) {
+         queryConstraints.push(startAfter(cursorDocSnap));
+       }
+    }
+
+    let q = query(problemsColRef, ...queryConstraints);
+
+    const problemSnapshot = await getDocs(q);
+    const docs = problemSnapshot.docs;
+    const hasMore = docs.length > pageSize;
+
+    const resultDocs = hasMore ? docs.slice(0, pageSize) : docs;
+
+    let finalCompanySlug = companySlug;
+    if (!finalCompanySlug) {
+      const company = await companyRepository.getCompanyById(companyId);
+      finalCompanySlug =
+        company?.slug || slugify(company?.name || "unknown");
+    }
+
+    const problems = resultDocs.map((docSnap) => {
+      const data = docSnap.data();
+      const companySpecificData = data.companies?.[companyId] || {};
+
+      return {
+        id: docSnap.id,
+        title: data.title,
+        slug: docSnap.id,
+        difficulty: data.difficulty,
+        companyId: companyId,
+        companySlug: finalCompanySlug!,
+        lastAskedPeriod: companySpecificData.lastAskedPeriod || data.lastAskedPeriod || undefined,
+        tags: data.tags || [],
+        acceptanceRate: data.acceptanceRate,
+        isBookmarked: false, // Will be filled by UI layer
+        currentStatus: undefined, // Will be filled by UI layer
+        link: data.link,
+      } as ProblemSummaryDTO;
+    });
+
+    // Use cursor from the LAST item
+    const nextCursor = hasMore ? problems[problems.length - 1].id : undefined;
+
+    return {
+      problems,
+      totalProblems,
+      hasMore,
+      nextCursor,
+    };
+  }
+
+  private async fetchProblemsByCompanyInMemory(
+    companyId: string,
+    params: any,
+    constraints: any[],
+    residualDifficultyFilter: DifficultyFilter[],
+    residualLastAskedFilter: LastAskedFilter[]
+  ) {
+    const {
+        cursor,
+        page,
+        pageSize = 10,
+        searchTerm = "",
+        sortKey = "title",
+        companySlug,
+    } = params;
+
+    const problemsColRef = collection(getFirestore(), "problems");
 
     // Semi-Optimized Path
     // Added safety limit of 200
@@ -538,32 +539,21 @@ export class ProblemRepository {
       nextCursor,
     };
   }
-  
-  private async fetchAllProblemsCore(params: {
-    cursor?: string;
-    page?: number;
-    pageSize?: number;
-    difficultyFilter?: DifficultyFilter[];
-    lastAskedFilter?: LastAskedFilter[];
-    searchTerm?: string;
-    sortKey?: SortKey;
-  }) {
-    const {
-      cursor,
-      page,
-      pageSize = 10,
-      difficultyFilter = [],
-      lastAskedFilter = [],
-      searchTerm = "",
-      sortKey = "title",
-    } = params;
 
-    const problemsColRef = collection(getFirestore(), "problems");
-    const constraints: any[] = [];
+  private buildCompanyProblemConstraints(
+    companyId: string,
+    difficultyFilter: DifficultyFilter[],
+    lastAskedFilter: LastAskedFilter[]
+  ) {
+    const constraints: any[] = [
+      where("companyIds", "array-contains", companyId),
+    ];
 
     let usedInOperator = false;
     let residualDifficultyFilter: DifficultyFilter[] = [];
+    let residualLastAskedFilter: LastAskedFilter[] = [];
 
+    // Apply Difficulty Filter
     if (difficultyFilter.length > 0) {
       if (difficultyFilter.length === 1) {
         constraints.push(where("difficulty", "==", difficultyFilter[0]));
@@ -575,7 +565,44 @@ export class ProblemRepository {
       }
     }
 
-    const residualLastAskedFilter = lastAskedFilter;
+    // Apply LastAsked Filter
+    if (lastAskedFilter.length > 0) {
+      const fieldPath = `companies.${companyId}.lastAskedPeriod`;
+      if (lastAskedFilter.length === 1) {
+        constraints.push(where(fieldPath, "==", lastAskedFilter[0]));
+      } else if (!usedInOperator) {
+        constraints.push(where(fieldPath, "in", lastAskedFilter));
+        usedInOperator = true;
+      } else {
+        residualLastAskedFilter = lastAskedFilter;
+      }
+    }
+
+    return {
+      constraints,
+      residualDifficultyFilter,
+      residualLastAskedFilter,
+    };
+  }
+
+  private async fetchAllProblemsCore(params: {
+    cursor?: string;
+    page?: number;
+    pageSize?: number;
+    difficultyFilter?: DifficultyFilter[];
+    lastAskedFilter?: LastAskedFilter[];
+    searchTerm?: string;
+    sortKey?: SortKey;
+  }) {
+    const {
+      difficultyFilter = [],
+      lastAskedFilter = [],
+      searchTerm = "",
+      sortKey = "title",
+    } = params;
+
+    const { constraints, residualDifficultyFilter } = this.buildAllProblemsConstraints(difficultyFilter);
+    const residualLastAskedFilter = lastAskedFilter; // lastAskedFilter is always residual in getAllProblemsCore
 
     const hasResidualFilters =
       residualDifficultyFilter.length > 0 ||
@@ -583,127 +610,124 @@ export class ProblemRepository {
       searchTerm.trim() !== "";
 
     const isDefaultSort = sortKey === "title";
-
-    // Optimized Path: Use DB Limits if possible
-    // We can use this path if:
-    // 1. No text search (requires in-memory filtering or dedicated search service)
-    // 2. Filters are compatible with Firestore composite indexes (usually handled, but 'in' operator has limits)
-    // 3. Sorting is standard
-    
-    // Check if we can use the optimized path
     const canUseOptimizedPath = 
         !hasResidualFilters && 
         (isDefaultSort || sortKey === "difficulty"); 
-        // Note: Sort by difficulty is supported in optimized path logic below
 
     if (canUseOptimizedPath) {
       try {
-        let totalProblems = -1; // -1 indicates unknown
-        
-        // REMOVED: getCountFromServer to save reads
-        // const countQuery = query(problemsColRef, ...constraints);
-        // const countSnapshot = await getCountFromServer(countQuery);
-        // totalProblems = countSnapshot.data().count;
-
-        // 2. Prepare Query for Data
-        const sortField = sortKey === "difficulty" ? "difficulty" : "normalizedTitle";
-        let queryConstraints = [...constraints, orderBy(sortField, "asc")];
-        
-        if (sortKey === "difficulty") {
-             queryConstraints.push(orderBy("normalizedTitle", "asc"));
-        }
-
-        let limitCount = pageSize;
-        let startIndex = 0;
-
-        // PAGINATION STRATEGY
-        if (page) {
-             // Fetch limit = (page * pageSize) + 1 to detect hasMore
-             limitCount = (page * pageSize) + 1;
-             startIndex = (page - 1) * pageSize;
-             queryConstraints.push(limit(limitCount));
-        } else {
-             // Cursor based (existing logic)
-             // Fetch pageSize + 1 to detect hasMore easily without total count?
-             // Existing logic was consistent with matching pageSize.
-             // We'll keep it simple for cursor or bump it too?
-             // Let's bump it to be consistent with "cheaper" checks.
-             queryConstraints.push(limit(pageSize + 1));
-             if (cursor) {
-                const cursorDocRef = doc(getFirestore(), "problems", cursor);
-                const cursorDocSnap = await getDoc(cursorDocRef);
-                if (cursorDocSnap.exists()) {
-                    queryConstraints.push(startAfter(cursorDocSnap));
-                }
-             }
-        }
-
-        let q = query(problemsColRef, ...queryConstraints);
-        const snap = await getDocs(q);
-        const docs = snap.docs;
-
-        // Process results
-        let resultDocs = docs;
-        let hasMore = false;
-
-        if (page) {
-            // Check if we got more than needed (indicating next page exists)
-            // We wanted 'page * pageSize' items effectively to fill up to this page.
-            // Actually 'limitCount' is 'page * pageSize + 1'.
-            // If docs.length == limitCount, then we have at least one more item after this current page set.
-            const targetSize = page * pageSize;
-            hasMore = docs.length > targetSize;
-
-            if (docs.length <= startIndex) {
-                resultDocs = [];
-            } else {
-                // Slice the relevant window: [startIndex, startIndex + pageSize]
-                // But we must stop before the extra item if fetched.
-                // The 'docs' array contains 0..N items.
-                // We want items at indices [startIndex, startIndex + pageSize).
-                resultDocs = docs.slice(startIndex, startIndex + pageSize);
-            }
-        } else {
-             // Cursor logic
-             hasMore = docs.length > pageSize;
-             if (hasMore) {
-                 resultDocs = docs.slice(0, pageSize);
-             }
-        }
-
-        let problems = resultDocs.map((docSnap) => this.mapDocToProblem(docSnap));
-
-        // Calculate pagination metadata
-        // totalPages is unknown (-1)
-        let totalPages = -1; 
-        let currentPage = page || 1;
-        let nextCursor = hasMore ? problems[problems.length - 1]?.id : undefined;
-
-        Logger.info(`[OPTIMIZED FETCH - NO COUNT]`, { page, limitCount, fetched: docs.length, hasMore });
-
-        return {
-          problems,
-          totalProblems,
-          hasMore,
-          nextCursor,
-          totalPages,
-          currentPage
-        };
+        return await this.fetchAllProblemsOptimized(params, constraints);
       } catch (error: any) {
         if (
           error.code === "failed-precondition" ||
           error.message?.includes("index")
         ) {
            Logger.warn("Optimized path failed, falling back to full fetch", undefined, { message: error.message });
-          // Fall through to full fetch
+           // Fall through
         } else {
           throw error;
         }
       }
     }
 
-    // Semi-Optimized Path (Fetch All + In-Memory Slice)
-    // Used for: Complex filters OR Page-based pagination
+    return await this.fetchAllProblemsInMemory(params, constraints, residualDifficultyFilter, residualLastAskedFilter);
+  }
+
+  private async fetchAllProblemsOptimized(params: any, constraints: any[]) {
+      const {
+        cursor,
+        page,
+        pageSize = 10,
+        sortKey = "title",
+      } = params;
+
+      const problemsColRef = collection(getFirestore(), "problems");
+      let totalProblems = -1; // -1 indicates unknown
+
+      const sortField = sortKey === "difficulty" ? "difficulty" : "normalizedTitle";
+      let queryConstraints = [...constraints, orderBy(sortField, "asc")];
+
+      if (sortKey === "difficulty") {
+           queryConstraints.push(orderBy("normalizedTitle", "asc"));
+      }
+
+      let limitCount = pageSize;
+      let startIndex = 0;
+
+      // PAGINATION STRATEGY
+      if (page) {
+           limitCount = (page * pageSize) + 1;
+           startIndex = (page - 1) * pageSize;
+           queryConstraints.push(limit(limitCount));
+      } else {
+           queryConstraints.push(limit(pageSize + 1));
+           if (cursor) {
+              const cursorDocRef = doc(getFirestore(), "problems", cursor);
+              const cursorDocSnap = await getDoc(cursorDocRef);
+              if (cursorDocSnap.exists()) {
+                  queryConstraints.push(startAfter(cursorDocSnap));
+              }
+           }
+      }
+
+      let q = query(problemsColRef, ...queryConstraints);
+      const snap = await getDocs(q);
+      const docs = snap.docs;
+
+      // Process results
+      let resultDocs = docs;
+      let hasMore = false;
+
+      if (page) {
+          const targetSize = page * pageSize;
+          hasMore = docs.length > targetSize;
+
+          if (docs.length <= startIndex) {
+              resultDocs = [];
+          } else {
+              resultDocs = docs.slice(startIndex, startIndex + pageSize);
+          }
+      } else {
+           // Cursor logic
+           hasMore = docs.length > pageSize;
+           if (hasMore) {
+               resultDocs = docs.slice(0, pageSize);
+           }
+      }
+
+      let problems = resultDocs.map((docSnap) => this.mapDocToProblem(docSnap));
+
+      let totalPages = -1;
+      let currentPage = page || 1;
+      let nextCursor = hasMore ? problems[problems.length - 1]?.id : undefined;
+
+      Logger.info(`[OPTIMIZED FETCH - NO COUNT]`, { page, limitCount, fetched: docs.length, hasMore });
+
+      return {
+        problems,
+        totalProblems,
+        hasMore,
+        nextCursor,
+        totalPages,
+        currentPage
+      };
+  }
+
+  private async fetchAllProblemsInMemory(
+    params: any,
+    constraints: any[],
+    residualDifficultyFilter: DifficultyFilter[],
+    residualLastAskedFilter: LastAskedFilter[]
+  ) {
+    const {
+      cursor,
+      page,
+      pageSize = 10,
+      searchTerm = "",
+      sortKey = "title",
+    } = params;
+
+    const problemsColRef = collection(getFirestore(), "problems");
     const q = query(problemsColRef, ...constraints);
     const problemSnapshot = await getDocs(q);
     
@@ -788,6 +812,24 @@ export class ProblemRepository {
       totalPages,
       currentPage
     };
+  }
+
+  private buildAllProblemsConstraints(difficultyFilter: DifficultyFilter[]) {
+    const constraints: any[] = [];
+    let usedInOperator = false;
+    let residualDifficultyFilter: DifficultyFilter[] = [];
+
+    if (difficultyFilter.length > 0) {
+      if (difficultyFilter.length === 1) {
+        constraints.push(where("difficulty", "==", difficultyFilter[0]));
+      } else if (!usedInOperator) {
+        constraints.push(where("difficulty", "in", difficultyFilter));
+        usedInOperator = true;
+      } else {
+        residualDifficultyFilter = difficultyFilter;
+      }
+    }
+    return { constraints, residualDifficultyFilter };
   }
 
   private mapDocToProblem(

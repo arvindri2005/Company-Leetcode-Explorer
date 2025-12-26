@@ -1,0 +1,1 @@
+## 2024-05-24 - Repository Complexity in Query Builders **Discord:** Query building and execution logic mixed with complex branching (Optimized vs InMemory) created deep nesting in repository methods. **Harmony:** Extracted dedicated "Query Builder" methods and split execution strategies (Optimized vs InMemory) into distinct private methods, flattening the main public interface.
