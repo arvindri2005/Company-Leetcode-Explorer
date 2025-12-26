@@ -3,6 +3,7 @@ import { problemService } from "@/services/problem.service"; // Import service
 import AllProblemsList from "@/components/problem/all-problems-list";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { Metadata } from "next";
+import { safeJsonLd } from "@/lib/utils";
 
 // Removed unused import
 // BETTER: I'll use hardcoded values but structured properly, and add the JSON-LD script. This avoids dependency on siteConfig if it's missing.
@@ -110,7 +111,7 @@ export default async function AllProblemsPage() {
       </div>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
     </div>
   );
