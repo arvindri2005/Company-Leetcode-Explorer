@@ -1,7 +1,6 @@
 "use client";
 
 import { ReactNode } from "react";
-import { motion } from "framer-motion";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -22,11 +21,8 @@ export default function AuthLayout({
         <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-secondary/20 rounded-full blur-3xl opacity-30 animate-pulse delay-1000" />
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full max-w-md border border-border/50 bg-card/60 backdrop-blur-xl rounded-3xl mb-8 shadow-2xl relative z-10 overflow-hidden"
+      <div
+        className="w-full max-w-md border border-border/50 bg-card/60 backdrop-blur-xl rounded-3xl mb-8 shadow-2xl relative z-10 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out"
       >
         <div className="p-6 md:p-8 space-y-2 text-center">
              <div className="mx-auto w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-6">
@@ -51,7 +47,7 @@ export default function AuthLayout({
           <p className="text-muted-foreground text-lg">{description}</p>
         </div>
         <div className="p-6 md:p-8 pt-0">{children}</div>
-      </motion.div>
+      </div>
     </section>
   );
 }

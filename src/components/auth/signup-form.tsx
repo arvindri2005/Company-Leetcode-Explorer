@@ -32,7 +32,6 @@ import Link from "next/link";
 import GoogleAuthButton from "./google-auth-button";
 import { useAuth } from "@/contexts/auth-context";
 import { PasswordStrengthIndicator } from "./password-strength-indicator"; // [NEW]
-import { motion } from "framer-motion"; // [NEW]
 import { Check } from "lucide-react"; // [NEW]
 import { useEffect } from "react"; // [NEW]
 
@@ -99,22 +98,6 @@ export default function SignupForm() {
     setPasswordScore(score);
   }, [password]);
 
-  // Animation variants
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 },
-  };
-
   async function onSubmit(data: SignupFormValues) {
     setIsSubmitting(true);
     try {
@@ -175,18 +158,15 @@ export default function SignupForm() {
 
   return (
     <Form {...form}>
-      <motion.form
-        variants={container}
-        initial="hidden"
-        animate="show"
+      <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-6"
+        className="space-y-6 animate-in fade-in zoom-in-95 duration-500"
       >
-        <motion.div variants={item}>
+        <div className="animate-in slide-in-from-bottom-4 fade-in duration-500 delay-100 fill-mode-both">
           <GoogleAuthButton />
-        </motion.div>
+        </div>
 
-        <motion.div variants={item} className="relative my-6">
+        <div className="relative my-6 animate-in slide-in-from-bottom-4 fade-in duration-500 delay-150 fill-mode-both">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
           </div>
@@ -195,13 +175,13 @@ export default function SignupForm() {
               Or continue with email
             </span>
           </div>
-        </motion.div>
+        </div>
 
         <FormField
           control={form.control}
           name="displayName"
           render={({ field }) => (
-            <motion.div variants={item}>
+            <div className="animate-in slide-in-from-bottom-4 fade-in duration-500 delay-200 fill-mode-both">
               <FormItem>
                 <FormLabel>Display Name</FormLabel>
                 <FormControl>
@@ -222,14 +202,14 @@ export default function SignupForm() {
                 </FormControl>
                 <FormMessage />
               </FormItem>
-            </motion.div>
+            </div>
           )}
         />
         <FormField
           control={form.control}
           name="email"
           render={({ field }) => (
-            <motion.div variants={item}>
+            <div className="animate-in slide-in-from-bottom-4 fade-in duration-500 delay-300 fill-mode-both">
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
@@ -250,14 +230,14 @@ export default function SignupForm() {
                 </FormControl>
                 <FormMessage />
               </FormItem>
-            </motion.div>
+            </div>
           )}
         />
         <FormField
           control={form.control}
           name="password"
           render={({ field }) => (
-            <motion.div variants={item}>
+            <div className="animate-in slide-in-from-bottom-4 fade-in duration-500 delay-500 fill-mode-both">
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
@@ -290,10 +270,10 @@ export default function SignupForm() {
                 <PasswordStrengthIndicator score={passwordScore} />
                 <FormMessage />
               </FormItem>
-            </motion.div>
+            </div>
           )}
         />
-        <motion.div variants={item}>
+        <div className="animate-in slide-in-from-bottom-4 fade-in duration-500 delay-700 fill-mode-both">
           <Button
             type="submit"
             disabled={isSubmitting}
@@ -306,9 +286,9 @@ export default function SignupForm() {
             )}
             Sign Up
           </Button>
-        </motion.div>
+        </div>
 
-        <motion.p variants={item} className="text-center text-sm text-muted-foreground mt-6">
+        <p className="text-center text-sm text-muted-foreground mt-6 animate-in slide-in-from-bottom-4 fade-in duration-500 delay-1000 fill-mode-both">
           Already have an account?{" "}
           <Link
             href={`/login${
@@ -322,8 +302,8 @@ export default function SignupForm() {
           >
             Log in
           </Link>
-        </motion.p>
-      </motion.form>
+        </p>
+      </form>
     </Form>
   );
 }

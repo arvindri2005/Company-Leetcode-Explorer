@@ -77,6 +77,9 @@ h1, h2, h3, h4, h5, h6 {
     background-size: 600% 600%;
     animation: Gradient 25s ease infinite;
   }
+  .fill-mode-both {
+    animation-fill-mode: both;
+  }
 }
 
 @keyframes Gradient {
