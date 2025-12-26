@@ -17,6 +17,7 @@ import {
   deleteDoc,
   Firestore,
   documentId,
+  QueryConstraint,
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
 import { Logger } from "@/lib/logger";
@@ -134,7 +135,7 @@ export class CompanyRepository {
 
       // Strategy: Standard Page-based Pagination (Optimized)
       const companiesCol = collection(getFirestore(), "companies");
-      let queryConstraints: any[] = [
+      let queryConstraints: QueryConstraint[] = [
         orderBy("normalizedName", "asc"),
       ];
 
@@ -222,7 +223,7 @@ export class CompanyRepository {
     hasPrev: boolean;
   }> {
     const companiesCol = collection(getFirestore(), "companies");
-    let queryConstraints: any[] = [
+    let queryConstraints: QueryConstraint[] = [
       orderBy("normalizedName", "asc"),
       orderBy(documentId(), "asc"),
       limit(pageSize + 1),
