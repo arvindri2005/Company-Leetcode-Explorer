@@ -7,8 +7,9 @@
  */
 import Footer from "@/components/landing/footer";
 import type { Metadata } from "next";
+import { env } from "@/env";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
+const APP_URL = env.NEXT_PUBLIC_APP_URL;
 
 /**
  * Metadata for the Blog page.

@@ -3,12 +3,13 @@ import { problemService } from "@/services/problem.service"; // Import service
 import AllProblemsList from "@/components/problem/all-problems-list";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { Metadata } from "next";
+import { env } from "@/env";
 import { safeJsonLd } from "@/lib/utils";
 
 // Removed unused import
 // BETTER: I'll use hardcoded values but structured properly, and add the JSON-LD script. This avoids dependency on siteConfig if it's missing.
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
+const APP_URL = env.NEXT_PUBLIC_APP_URL;
 
 export const metadata: Metadata = {
   title: "Company Interview Problems | Byte to Offer",

@@ -8,7 +8,7 @@ const serverSchema = z.object({
 });
 
 const clientSchema = z.object({
-  NEXT_PUBLIC_APP_URL: z.string().url(),
+  NEXT_PUBLIC_APP_URL: z.string().url().default("https://bytetooffer.com"),
   NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID: z.string().optional(),
   NEXT_PUBLIC_GOOGLE_ADSENSE_SLOT_ID: z.string().optional(),
   NEXT_PUBLIC_FIREBASE_API_KEY: z.string().min(1),

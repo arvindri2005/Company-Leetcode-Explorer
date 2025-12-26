@@ -2,10 +2,11 @@ import { Suspense } from "react";
 import { CompaniesPageContent } from "@/components/company/companies-page-content";
 import { companyService } from "@/services/company.service";
 import type { Metadata } from "next";
+import { env } from "@/env";
 
 export const revalidate = 2592000; // 1 month
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
+const APP_URL = env.NEXT_PUBLIC_APP_URL;
 
 export const metadata: Metadata = {
   title: "Top Tech Companies Interview Questions & Prep | Byte to Offer",
