@@ -30,6 +30,7 @@ import {
   writeBatch,
   arrayUnion,
   arrayRemove,
+  deleteField,
 } from "firebase/firestore";
 import { Logger } from "@/lib/logger";
 
@@ -48,6 +49,7 @@ export class UserRepository {
       return querySnapshot.docs
         .map((docSnap) => {
           const data = docSnap.data();
+          if (data.deletedAt) return null; // Filter out soft-deleted
           return {
             problemId: docSnap.id,
             companySlug: data.companySlug,
@@ -55,7 +57,9 @@ export class UserRepository {
             bookmarkedAt: data.bookmarkedAt?.toDate(),
           } as BookmarkedProblemInfo;
         })
-        .filter((info) => info.companySlug && info.problemSlug);
+        .filter((info): info is BookmarkedProblemInfo =>
+          info !== null && !!info.companySlug && !!info.problemSlug
+        );
     } catch (error) {
       Logger.error(
         `Error fetching bookmarked problems info`,
@@ -195,6 +199,7 @@ export class UserRepository {
 
       querySnapshots.forEach(snap => {
           snap.forEach((docSnap) => {
+            if (docSnap.data().deletedAt) return; // Filter out soft-deleted
             bookmarkedIds.add(docSnap.id);
           });
       });
@@ -369,18 +374,35 @@ export class UserRepository {
       const batch = writeBatch(db);
       let isBookmarked = false;
 
-      if (docSnap.exists()) {
-        batch.delete(bookmarkDocRef);
+      if (docSnap.exists() && !docSnap.data().deletedAt) {
+        // Exists and is active -> Soft Delete
+        batch.update(bookmarkDocRef, {
+            deletedAt: serverTimestamp(),
+        });
+        // Remove from aggregate list (to keep it fast for stats)
         batch.set(aggregateDocRef, {
             bookmarkedProblemIds: arrayRemove(problemId)
         }, { merge: true });
         isBookmarked = false;
       } else {
-        batch.set(bookmarkDocRef, {
-          bookmarkedAt: serverTimestamp(),
-          companySlug: companySlug,
-          problemSlug: problemSlug,
-        });
+        // Does not exist OR is soft deleted -> Create or Restore
+        if (docSnap.exists()) {
+            // Restore
+            batch.update(bookmarkDocRef, {
+                deletedAt: deleteField(),
+                bookmarkedAt: serverTimestamp(), // Update timestamp on restore to bring it to top
+                companySlug: companySlug, // Ensure consistent data
+                problemSlug: problemSlug,
+            });
+        } else {
+            // Create New
+            batch.set(bookmarkDocRef, {
+                bookmarkedAt: serverTimestamp(),
+                companySlug: companySlug,
+                problemSlug: problemSlug,
+            });
+        }
+
         batch.set(aggregateDocRef, {
             bookmarkedProblemIds: arrayUnion(problemId)
         }, { merge: true });
