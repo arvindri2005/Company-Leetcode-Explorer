@@ -16,6 +16,8 @@ import type {
 } from "@/types";
 import { userService } from "@/services/user.service";
 import { revalidateTag } from "next/cache";
+import { Logger } from "@/lib/logger";
+import { handleServerActionError } from "@/lib/error-handler";
 
 interface SyncUserProfileInput {
   uid: string;
@@ -37,8 +39,14 @@ interface SyncUserProfileInput {
 export async function syncUserProfile(
   userData: SyncUserProfileInput,
 ): Promise<{ success: boolean; error?: string }> {
-  console.warn("syncUserProfile Server Action is deprecated. Use userService.syncUserProfile on the client side.");
-  return await userService.syncUserProfile(userData.uid, userData.email, userData.displayName);
+  Logger.warn(
+    "syncUserProfile Server Action is deprecated. Use userService.syncUserProfile on the client side.",
+  );
+  return await userService.syncUserProfile(
+    userData.uid,
+    userData.email,
+    userData.displayName,
+  );
 }
 
 /**
@@ -91,11 +99,14 @@ export async function toggleBookmarkProblemAction(
     revalidateTag(`user-profile-${userId}`, "max");
     return { success: true, isBookmarked: result.isBookmarked };
   } catch (error) {
-    console.error("Error in toggleBookmarkProblemAction:", error);
-    if (error instanceof Error) return { success: false, error: error.message };
+    const errorMessage = handleServerActionError(
+      error,
+      "toggleBookmarkProblemAction",
+      { userId, problemId, companySlug, problemSlug },
+    );
     return {
       success: false,
-      error: "An unknown error occurred while toggling bookmark.",
+      error: errorMessage,
     };
   }
 }
@@ -148,11 +159,13 @@ export async function setProblemStatusAction(
     }
     return result;
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to set problem status due to an unknown error.";
-    console.error("Error in setProblemStatusAction:", error);
+    const message = handleServerActionError(error, "setProblemStatusAction", {
+      userId,
+      problemId,
+      status,
+      companySlug,
+      problemSlug,
+    });
     return { success: false, error: message };
   }
 }
@@ -199,11 +212,11 @@ export async function getUserProblemStatusesForIdsAction(
 
     return result;
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to fetch user problem statuses.";
-    console.error("Error in getUserProblemStatusesForIdsAction:", error);
+    const message = handleServerActionError(
+      error,
+      "getUserProblemStatusesForIdsAction",
+      { userId, count: problemIds.length },
+    );
     return { error: message };
   }
 }
