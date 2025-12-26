@@ -47,14 +47,6 @@ export const metadata: Metadata = {
       "Your ultimate hub for targeted coding interview preparation. AI mock interviews, problem insights, company-specific interview questions, and more.",
     type: "website",
     url: APP_URL,
-    images: [
-      {
-        url: `${APP_URL}/og-image.png`,
-        width: 1200,
-        height: 630,
-        alt: "Byte to Offer - AI-Powered Interview Prep",
-      },
-    ],
   },
   alternates: {
     canonical: APP_URL,

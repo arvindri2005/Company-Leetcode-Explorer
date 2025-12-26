@@ -27,6 +27,16 @@ jest.mock("@/app/actions/problem.actions", () => ({
   loadMoreAllProblemsAction: jest.fn(),
 }));
 
+jest.mock("./problem-list-controls", () => ({
+  __esModule: true,
+  default: () => <div data-testid="problem-list-controls">Controls</div>,
+}));
+
+jest.mock("@/components/ads/ad-placeholder", () => ({
+  __esModule: true,
+  default: () => <div data-testid="ad-placeholder">Ad</div>,
+}));
+
 // Mock auth
 jest.mock("@/contexts/auth-context", () => ({
   useAuth: () => ({ user: { uid: "test-user" } }),
@@ -57,15 +67,13 @@ const mockProblems: LeetCodeProblem[] = [
     id: "1",
     title: "Two Sum",
     difficulty: "Easy",
-    acceptanceRate: 49.2,
-    frequency: 5,
-    url: "https://leetcode.com/problems/two-sum",
     tags: ["Array", "Hash Table"],
     companyIds: ["google"],
     link: "https://leetcode.com/problems/two-sum",
-    questionId: "1",
-    isPaidOnly: false,
+    companyId: "google",
     companySlug: "unknown",
+    slug: "two-sum",
+    normalizedTitle: "Two Sum",
   },
 ];
 

@@ -9,6 +9,8 @@ import {
   WorkExperience,
   GenerateCompanyStrategyOutput,
   UserProfile,
+  EducationExperienceSchema,
+  WorkExperienceSchema,
 } from "@/types";
 import { db } from "@/lib/firebase";
 import {
@@ -481,10 +483,27 @@ export class UserRepository {
     educationData: Omit<EducationExperience, "id">,
   ): Promise<{ id: string | null; error?: string }> {
     if (!userId) return { id: null, error: "User ID is required." };
+
+    // Validate data using Zod schema
+    const validationResult = EducationExperienceSchema.omit({
+      id: true,
+    }).safeParse(educationData);
+
+    if (!validationResult.success) {
+      const errorMessage = validationResult.error.issues
+        .map((e) => e.message)
+        .join(", ");
+      Logger.warn("Invalid education data provided", {
+        userId,
+        errors: errorMessage,
+      });
+      return { id: null, error: errorMessage };
+    }
+
     try {
       const educationColRef = collection(db, "users", userId, "educationHistory");
       const docRef = await addDoc(educationColRef, {
-        ...educationData,
+        ...validationResult.data,
         createdAt: serverTimestamp(),
       });
       return { id: docRef.id };
@@ -503,10 +522,27 @@ export class UserRepository {
     workData: Omit<WorkExperience, "id">,
   ): Promise<{ id: string | null; error?: string }> {
     if (!userId) return { id: null, error: "User ID is required." };
+
+    // Validate data using Zod schema
+    const validationResult = WorkExperienceSchema.omit({ id: true }).safeParse(
+      workData,
+    );
+
+    if (!validationResult.success) {
+      const errorMessage = validationResult.error.issues
+        .map((e) => e.message)
+        .join(", ");
+      Logger.warn("Invalid work experience data provided", {
+        userId,
+        errors: errorMessage,
+      });
+      return { id: null, error: errorMessage };
+    }
+
     try {
       const workColRef = collection(db, "users", userId, "workExperience");
       const docRef = await addDoc(workColRef, {
-        ...workData,
+        ...validationResult.data,
         createdAt: serverTimestamp(),
       });
       return { id: docRef.id };

@@ -18,6 +18,7 @@ import { HelpCircle } from "lucide-react";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { fetchCompaniesAction } from "@/app/actions/company.actions";
 import Footer from "@/components/landing/footer";
+import { safeJsonLd } from "@/lib/utils";
 
 const ITEMS_PER_PAGE = 30;
 
@@ -198,17 +199,17 @@ export function CompaniesPageContent({
     <main className="min-h-screen w-full text-white flex flex-col">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(itemListJsonLd) }}
       />
       {/* Show FAQ SEO only on initial load / no search to avoid duplicates or issues */}
       {!searchTerm && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }}
         />
       )}
 
