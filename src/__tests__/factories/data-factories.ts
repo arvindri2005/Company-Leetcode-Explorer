@@ -1,29 +1,55 @@
 import type { Company, LeetCodeProblem, PaginatedProblemsResponse } from "@/types";
 
+// Seedable PRNG (Mulberry32)
+class RandomGenerator {
+  private seedValue: number;
+
+  constructor(seed: number = Date.now()) {
+    this.seedValue = seed;
+  }
+
+  // Set seed for deterministic results
+  public seed(seed: number) {
+    this.seedValue = seed;
+  }
+
+  // Returns a number between 0 (inclusive) and 1 (exclusive)
+  public next(): number {
+    let t = this.seedValue += 0x6D2B79F5;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+}
+
+// Global random generator instance
+const prng = new RandomGenerator();
+
 // Simple custom "faker" implementation to avoid ESM issues
-const simpleFaker = {
+export const simpleFaker = {
+  seed: (value: number) => prng.seed(value),
   string: {
-    // Simple UUID v4-like generator using Math.random
+    // Simple UUID v4-like generator using seeded random
     uuid: () => {
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        var r = prng.next() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
       });
     },
     alphanumeric: (length = 10) => {
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-      return Array.from({ length }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
+      return Array.from({ length }, () => chars.charAt(Math.floor(prng.next() * chars.length))).join('');
     },
   },
   number: {
-    int: ({ min = 0, max = 100 } = {}) => Math.floor(Math.random() * (max - min + 1)) + min,
+    int: ({ min = 0, max = 100 } = {}) => Math.floor(prng.next() * (max - min + 1)) + min,
   },
   date: {
-    recent: () => new Date(Date.now() - Math.floor(Math.random() * 1000000000)),
+    recent: () => new Date(Date.now() - Math.floor(prng.next() * 1000000000)),
   },
   helpers: {
     slugify: (str: string) => str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''),
-    arrayElement: <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)],
+    arrayElement: <T>(arr: T[]): T => arr[Math.floor(prng.next() * arr.length)],
   },
   lorem: {
     paragraph: () => "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
@@ -32,17 +58,17 @@ const simpleFaker = {
   company: {
     name: () => {
       const names = ["Acme Corp", "Globex", "Soylent Corp", "Initech", "Umbrella Corp", "Stark Industries", "Wayne Enterprises"];
-      return names[Math.floor(Math.random() * names.length)] + " " + Math.floor(Math.random() * 1000);
+      return names[Math.floor(prng.next() * names.length)] + " " + Math.floor(prng.next() * 1000);
     }
   },
   internet: {
-    email: () => `user${Math.floor(Math.random() * 10000)}@example.com`,
-    url: () => `https://example.com/${Math.random().toString(36).substring(7)}`,
+    email: () => `user${Math.floor(prng.next() * 10000)}@example.com`,
+    url: () => `https://example.com/${prng.next().toString(36).substring(7)}`,
   },
   word: {
     noun: () => {
       const nouns = ["algorithm", "data", "structure", "tree", "graph", "array", "string", "dynamic", "programming", "greedy"];
-      return nouns[Math.floor(Math.random() * nouns.length)];
+      return nouns[Math.floor(prng.next() * nouns.length)];
     }
   }
 };
