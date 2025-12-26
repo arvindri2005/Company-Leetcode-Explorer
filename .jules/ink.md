@@ -1,0 +1,1 @@
+## 2024-05-24 - Standardizing on Inter **Legibility:** Inconsistent system font rendering across devices. **Typesetting:** Implemented Inter as primary sans-serif font via `next/font/google`, removed `!important` font overrides in CSS to allow proper cascading.

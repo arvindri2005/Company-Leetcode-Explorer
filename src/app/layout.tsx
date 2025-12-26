@@ -8,7 +8,7 @@
  */
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { Geist_Mono } from "next/font/google";
+import { Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { env } from "@/env";
 import { Toaster } from "@/components/ui/toaster";
@@ -21,6 +21,12 @@ import { Analytics } from "@vercel/analytics/next";
 import { CooldownStateProvider } from "@/hooks/use-ai-cooldown";
 import StructuredData from "@/components/seo/structured-data";
 import { COLORS } from "@/constants/colors";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -149,7 +155,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${geistMono.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${geistMono.variable}`}>
       <head>
         <script
           async
