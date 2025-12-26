@@ -12,8 +12,9 @@ import FeaturesSection from "@/components/landing/feature-section";
 import StatsSection from "@/components/landing/stats-section";
 import SearchSection from "@/components/landing/search-section";
 import StructuredData from "@/components/seo/structured-data";
+import { env } from "@/env";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
+const APP_URL = env.NEXT_PUBLIC_APP_URL;
 
 /**
  * Metadata for the landing page.

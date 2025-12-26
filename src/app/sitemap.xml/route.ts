@@ -1,6 +1,7 @@
 import { companyService } from "@/services/company.service";
+import { env } from "@/env";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
+const APP_URL = env.NEXT_PUBLIC_APP_URL;
 
 export async function GET() {
   const companySlugs = await companyService.getAllCompanySlugs();

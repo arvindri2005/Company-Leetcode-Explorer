@@ -13,12 +13,13 @@ import CompanyNotFound from "@/components/company/page/company-not-found";
 import CompanyPage from "@/components/company/page/company-page";
 import { getLogoUrl, capitalizeWords } from "@/lib/utils";
 import { Company } from "@/types";
+import { env } from "@/env";
 
 import StructuredData from "@/components/seo/structured-data";
 
 export const revalidate = 2592000; // 1 month
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bytetooffer.com";
+const APP_URL = env.NEXT_PUBLIC_APP_URL;
 
 /**
  * Defines the props structure for the CompanyPage, including the dynamic route parameters.
