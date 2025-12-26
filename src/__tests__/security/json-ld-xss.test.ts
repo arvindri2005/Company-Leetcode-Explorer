@@ -1,5 +1,5 @@
 
-import { describe, expect, it } from 'vitest';
+
 
 /**
  * Reproduction test for JSON-LD XSS vulnerability.
@@ -18,7 +18,7 @@ describe('JSON-LD XSS Vulnerability', () => {
     const jsonString = JSON.stringify(maliciousInput);
 
     // Verify that the dangerous tag exists as-is in the stringified output
-    expect(jsonString).toContain('</script><script>alert("XSS")</script>');
+    expect(jsonString).toContain('</script><script>alert(\\"XSS\\")</script>');
     
     // This confirms that simply putting this into dangerouslySetInnerHTML is unsafe
     // if the input data (name) is untrusted.
