@@ -3,6 +3,7 @@ import { CompaniesPageContent } from "@/components/company/companies-page-conten
 import { companyService } from "@/services/company.service";
 import type { Metadata } from "next";
 import { env } from "@/env";
+import StructuredData from "@/components/seo/structured-data";
 
 export const revalidate = 2592000; // 1 month
 
@@ -85,15 +86,77 @@ export default async function CompaniesPage() {
 
   const trendingCompanies = Array.from(distinctTrending.values()).slice(0, 3);
 
+  // JSON-LD Construction
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: APP_URL,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Companies",
+        item: `${APP_URL}/companies`,
+      },
+    ],
+  };
+
+  const itemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: companies.map((company, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: company.name,
+      url: `${APP_URL}/company/${company.slug}`,
+    })),
+  };
+
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "What companies can I find interview questions for?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "You can find interview questions for top tech companies including Google, Amazon, Microsoft, Meta, Netflix, Apple, Uber, Airbnb, and many more. We cover a wide range of companies from FAANG to startups.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Are the interview questions real?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes, our questions are collected from recent interview experiences shared by candidates. We verify and curate them to ensure they reflect the current interview patterns.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "How can I prepare for a specific company?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "You can browse our company-specific pages to find curated lists of questions, interview guides, and common topics asked by that company. We also provide difficulty breakdowns and trending tags.",
+        },
+      },
+    ],
+  };
+
   return (
     <Suspense fallback={<div className="container mx-auto px-4 py-8 text-center text-gray-400">Loading companies...</div>}>
+      <StructuredData data={[breadcrumbJsonLd, itemListJsonLd, faqJsonLd]} />
       <CompaniesPageContent
         initialCompanies={companies}
         initialTrendingCompanies={trendingCompanies}
         initialTotalPages={totalPages || 1}
         initialHasMore={hasMore || false}
         initialNextCursor={nextCursor}
-        appUrl={APP_URL}
       />
     </Suspense>
   );

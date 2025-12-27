@@ -13,12 +13,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Card, CardContent } from "@/components/ui/card";
 import { HelpCircle } from "lucide-react";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { fetchCompaniesAction } from "@/app/actions/company.actions";
 import Footer from "@/components/landing/footer";
-import { safeJsonLd } from "@/lib/utils";
 
 const ITEMS_PER_PAGE = 30;
 
@@ -28,7 +26,6 @@ interface CompaniesPageContentProps {
   initialTotalPages: number;
   initialHasMore: boolean;
   initialNextCursor?: string;
-  appUrl: string;
 }
 
 export function CompaniesPageContent({
@@ -37,7 +34,6 @@ export function CompaniesPageContent({
   initialTotalPages,
   initialHasMore,
   initialNextCursor,
-  appUrl,
 }: CompaniesPageContentProps) {
   const searchParams = useSearchParams();
   const router = useRouter(); // Keep for navigation if needed, but we don't sync page to URL anymore
@@ -133,86 +129,8 @@ export function CompaniesPageContent({
       };
   }, [hasMore, loadingMore, isLoading, nextCursor, searchTerm]);
 
-  // JSON-LD Generation
-  const breadcrumbJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Home",
-        item: appUrl,
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "Companies",
-        item: `${appUrl}/companies`,
-      },
-    ],
-  };
-
-  const itemListJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    itemListElement: companies.map((company, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      name: company.name,
-      url: `${appUrl}/company/${company.slug}`,
-    })),
-  };
-
-  const faqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: "What companies can I find interview questions for?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "You can find interview questions for top tech companies including Google, Amazon, Microsoft, Meta, Netflix, Apple, Uber, Airbnb, and many more. We cover a wide range of companies from FAANG to startups.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Are the interview questions real?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Yes, our questions are collected from recent interview experiences shared by candidates. We verify and curate them to ensure they reflect the current interview patterns.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "How can I prepare for a specific company?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "You can browse our company-specific pages to find curated lists of questions, interview guides, and common topics asked by that company. We also provide difficulty breakdowns and trending tags.",
-        },
-      },
-    ],
-  };
-
   return (
     <main className="min-h-screen w-full text-white flex flex-col">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(itemListJsonLd) }}
-      />
-      {/* Show FAQ SEO only on initial load / no search to avoid duplicates or issues */}
-      {!searchTerm && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }}
-        />
-      )}
-
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex-1 pb-12">
         <DashboardHeader />
 
