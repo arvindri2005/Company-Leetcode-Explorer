@@ -5,8 +5,8 @@
  * a list of company suggestions as the user types. It is designed to be a controlled
  * component, with its state managed by a parent component.
  */
-import React, { useState, useEffect } from "react";
-import { Loader2, Building2, Search } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Loader2, Building2, Search, X } from "lucide-react";
 import Image from "next/image";
 import { getLogoUrl, cn } from "@/lib/utils";
 import { useTypingPlaceholder } from "@/hooks/use-typing-placeholder";
@@ -59,6 +59,7 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
   onSearch,
 }) => {
   const [activeIndex, setActiveIndex] = useState(-1);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Use useEffect to reset index when suggestions change
   useEffect(() => {
@@ -139,8 +140,9 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
                 ? `suggestion-${activeIndex}`
                 : undefined
             }
+            ref={inputRef}
             data-testid="search-input"
-            className="w-full p-5 text-lg border border-white/10 rounded-full bg-white/5 text-white backdrop-blur-lg transition-all duration-300 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/30 placeholder:text-white/50"
+            className="w-full p-5 pr-24 text-lg border border-white/10 rounded-full bg-white/5 text-white backdrop-blur-lg transition-all duration-300 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/30 placeholder:text-white/50"
             placeholder={`Search for ${placeholder}|`}
             value={searchTermInput}
             onChange={(e) => setSearchTermInput(e.target.value)}
@@ -150,6 +152,24 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
             }}
             aria-label="Search for companies"
           />
+          {searchTermInput && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchTermInput("");
+                inputRef.current?.focus();
+                // We rely on the parent logic or user pressing enter after clear if they want to 'search for empty string'
+                // But usually clearing just clears the input.
+                // If we want to reset the search results immediately, we would need to trigger onSearch,
+                // but onSearch uses the current state which might not be updated yet.
+                // Since this is a controlled input, the parent will update the state.
+              }}
+              className="absolute right-16 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white transition-colors p-2"
+              aria-label="Clear search"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
           <button
             type="submit"
             aria-label="Submit company search"
