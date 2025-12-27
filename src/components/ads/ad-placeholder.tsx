@@ -8,6 +8,7 @@
 
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
+import { env } from "@/env";
 
 /**
  * Props for the AdPlaceholder (AdUnit) component.
@@ -55,9 +56,8 @@ export default function AdPlaceholder({
 
   const adClient =
     client ||
-    process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID ||
-    "ca-pub-6342943619826199";
-  const adSlot = slotId || process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_SLOT_ID;
+    env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID;
+  const adSlot = slotId || env.NEXT_PUBLIC_GOOGLE_ADSENSE_SLOT_ID;
 
   useEffect(() => {
     // Avoid double pushing in React strict mode or re-renders

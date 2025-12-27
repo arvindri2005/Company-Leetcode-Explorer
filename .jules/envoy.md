@@ -1,7 +1,3 @@
-## 2025-12-25 - Centralized Config
-Risk: Scattered process.env calls and hardcoded defaults led to implicit behavior and missing validation.
-Protocol: Use src/env.ts with Zod validation for all config.
-
-## 2025-12-25 - AdSense Configuration Gaps
-Risk: Public IDs like AdSense Client IDs were hardcoded as fallbacks in multiple files, creating duplication and bypassing central config.
-Protocol: Document even non-secret keys in .env.example and set strict defaults in schema if they are safe/public.
+## 2024-05-23 - [Unified Env Configuration]
+Risk: [Config/Security insight] Scattered `process.env` usage and redundant fallbacks/magic strings created risk of inconsistency and hidden failures. `LOG_LEVEL` was missing from validation.
+Protocol: [Safety measure for next time] Always use `src/env.ts` for all environment variables. Audit `process.env` usage periodically. Ensure `LOG_LEVEL` is documented and validated.
