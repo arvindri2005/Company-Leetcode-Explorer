@@ -56,16 +56,24 @@ export const useCursorPagination = () => {
         });
 
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(
-            errorData.error || `HTTP error! status: ${response.status}`,
-          );
+          const errorData: unknown = await response.json();
+          const errorMessage =
+            typeof errorData === "object" &&
+            errorData !== null &&
+            "error" in errorData &&
+            typeof (errorData as { error: unknown }).error === "string"
+              ? (errorData as { error: string }).error
+              : `HTTP error! status: ${response.status}`;
+          throw new Error(errorMessage);
         }
 
-        const result = await response.json();
+        const result = (await response.json()) as CompaniesResponse;
         return result;
-      } catch (error: any) {
-        if (error.name === "AbortError") {
+      } catch (error: unknown) {
+        if (
+          error instanceof Error &&
+          error.name === "AbortError"
+        ) {
           // Return a neutral response for aborted requests
           return {
             companies: [],

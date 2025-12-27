@@ -39,6 +39,8 @@ interface CompanyListProps {
   totalPages: number;
 }
 
+interface Suggestion extends Pick<Company, "id" | "name" | "slug" | "logo"> {}
+
 /**
  * Renders an interactive, searchable, and infinitely scrolling list of companies.
  *
@@ -79,7 +81,6 @@ const CompanyList: React.FC<CompanyListProps> = ({
 
   const { fetchCompaniesWithCursor } = useCursorPagination();
 
-  interface Suggestion extends Pick<Company, "id" | "name" | "slug" | "logo"> {}
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
@@ -95,7 +96,7 @@ const CompanyList: React.FC<CompanyListProps> = ({
   }, [initialCompanies, initialHasMore, initialNextCursor]);
 
   // Handle suggestion click
-  const handleSuggestionClick = (suggestion: any) => {
+  const handleSuggestionClick = (suggestion: Suggestion) => {
     setSearchTermInput(suggestion.name);
     setShowSuggestions(false);
     router.push(`/company/${suggestion.slug}`);
