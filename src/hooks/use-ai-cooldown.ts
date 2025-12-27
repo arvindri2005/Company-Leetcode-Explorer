@@ -11,7 +11,7 @@ import React, {
 } from "react";
 
 // --- Constants ---
-const COOLDOWN_DURATION_MS = 0 * 60 * 1000; // 5 minutes
+const COOLDOWN_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 const LOCAL_STORAGE_KEY = "aiFeatureCooldownEndTime";
 
 // --- Context Type Definition ---

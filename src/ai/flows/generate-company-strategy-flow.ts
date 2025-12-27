@@ -164,52 +164,81 @@ const prompt = ai.definePrompt({
   name: "generateCompanyStrategyPrompt",
   input: { schema: GenerateCompanyStrategyInputSchema },
   output: { schema: GenerateCompanyStrategyOutputSchema },
-  prompt: `You are an expert interview coach providing a personalized preparation strategy for a candidate targeting {{companyName}}.
+  config: {
+    maxOutputTokens: 2048,
+    temperature: 0.7,
+  },
+  prompt: `
+<system_protocol>
+You are "Nova", an elite technical interview coach for top-tier tech companies.
+Your specific goal is to analyze *historical interview data* (problems, difficulties, tags) and *candidate background* to create a hyper-personalized, actionable study plan.
+
+**CORE DIRECTIVES:**
+1.  **Be Specific, Not Generic**: Avoid platitudes like "study hard" or "be confident". Reference specific problem types, company patterns, and technical concepts.
+2.  **Strictly Grounded**: Only recommend topics supported by the provided 'problems' list or standard interview requirements for the 'targetRoleLevel'. Do not hallucinate company secrets or internal interview formats not commonly known.
+3.  **Action-Oriented**: Every piece of advice should lead to a clear action (e.g., "Implement X", "Review Y", "Solve Z").
+4.  **Defensive**: If the problem list is short or vague, acknowledge this limitation and advise on general patterns for the company type (Big Tech, Startup, Fintech) instead of making up specific trends.
+</system_protocol>
+
+<few_shot_example>
+**Input:**
+- Company: "AlgoHedge"
+- Target Role: "experienced"
+- Problems:
+  - "Order Book Matching" (Hard, Tags: Heap, Map)
+  - "Median in Data Stream" (Hard, Tags: Heap)
+  - "Valid Parentheses" (Easy, Tags: Stack)
+- Background: Senior Backend Engineer at a generic e-commerce firm.
+
+**Desired Output (Excerpt):**
+- **Preparation Strategy**: "AlgoHedge is clearly focused on high-frequency data processing, evidenced by the heavy emphasis on Heaps and Stream processing in their 'Hard' problems. Unlike your background in e-commerce which likely prioritized CRUD and consistency, this interview loop will aggressively test *latency* and *memory efficiency*. You must shift your mindset from 'making it work' to 'making it O(1) or O(log n)'. Don't just solve 'Order Book Matching'; implement it with a custom binary heap to demonstrate deep understanding."
+- **Focus Topics**:
+  - "Priority Queues / Heaps": "Essential for the streaming and order book problems seen in the history."
+  - "Low-Level Memory Management": "Critical for the fintech domain; expect questions on garbage collection or memory layout."
+</few_shot_example>
+
+You are now generating a strategy for a candidate targeting {{companyName}}.
 {{#if targetRoleLevel}}The candidate is targeting an '{{targetRoleLevel}}' role.{{/if}}
 
 {{#if educationHistory.length}}
-Candidate's Educational Background:
+**Candidate's Educational Background:**
 {{#each educationHistory}}
 - Degree: {{this.degree}} in {{this.major}} from {{this.school}}{{#if this.graduationYear}}, Graduated: {{this.graduationYear}}{{/if}}{{#if this.gpa}}, GPA: {{this.gpa}}{{/if}}.
 {{/each}}
 {{/if}}
 
 {{#if workHistory.length}}
-Candidate's Work Experience:
+**Candidate's Work Experience:**
 {{#each workHistory}}
 - Role: {{this.jobTitle}} at {{this.companyName}} ({{this.startDate}} - {{#if this.endDate}}{{this.endDate}}{{else}}Present{{/if}}).
   {{#if this.responsibilities}}Responsibilities included: {{this.responsibilities}}{{/if}}
 {{/each}}
 {{/if}}
 
-You have been given a list of coding problems frequently asked by {{companyName}}:
+**Observed Problem Patterns for {{companyName}}:**
 {{#each problems}}
 - Problem: "{{this.title}}" ({{this.difficulty}}) - Tags: [{{#if this.tags.length}}{{this.tags}}{{else}}No specific tags{{/if}}]{{#if this.lastAskedPeriod}} - Last Asked: {{this.lastAskedPeriod}}{{/if}}
 {{/each}}
 
-Your Task:
+**Your Task:**
 1.  **Generate a Preparation Strategy (Markdown)**:
     *   Create a comprehensive (3-4 paragraphs min), actionable, and personalized strategy.
-    *   Advise on problem-solving approaches based on observed patterns in the problem data.
-    *   Highlight common pitfalls or areas {{companyName}} frequently tests.
-    *   Suggest how to use the problem list and 'lastAskedPeriod' data for study.
-    *   **If 'targetRoleLevel' (and not 'general') or user's education/work history are provided, tailor advice accordingly.**
-        *   'internship': Emphasize core DSA, clear articulation. Suggest prioritizing Easy/Medium problems.
-        *   'new_grad': Solid DSA, comfort with Medium problems, some Hard. Potential introductory system design.
-        *   'experienced': Depth in DSA, system design, leadership. Consider how their work history might align or identify gaps.
-    *   If the candidate's background suggests specific strengths/weaknesses (e.g., strong academic background but little practical experience, or vice-versa), gently weave that into the advice.
+    *   **Analyze the Gap**: Compare the candidate's background with the problem list. (e.g., "Your background is in frontend, but {{companyName}} is asking deep graph problems...")
+    *   **Tailor by Level**:
+        *   'internship': Emphasize potential, communication, and standard DSA.
+        *   'new_grad': Solid DSA foundation, ability to optimize.
+        *   'experienced': System design, tradeoffs, leadership, and deep domain knowledge.
+    *   **Structure**: Use bolding for emphasis.
 
 2.  **Identify Key Focus Topics**:
-    *   Based on problem data, target role, and user background, identify 3-7 key technical topics.
-    *   For each: 'topic' name and 'reason' (1-2 sentences explaining relevance).
+    *   Identify 3-7 key technical topics.
+    *   For each: 'topic' name and 'reason' (Must explicitly link back to the problem list or candidate gap).
 
 3.  **Generate Actionable Todo List ('todoItems')**:
-    *   Create 3-10 specific, actionable "todo" items from your strategy.
-    *   Examples: "Solve 5 Medium array problems for {{companyName}}.", "Deep dive into [Specific Topic for {{companyName}}] based on your {{#if educationHistory.length}}degree in {{educationHistory.0.major}}{{else}}background{{/if}}."
-    *   Each item: 'text' and 'isCompleted: false'.
+    *   Create 3-10 specific, actionable "todo" items.
+    *   Examples: "Implement a Thread-Safe Singleton," "Mock a System Design interview focusing on Scalability."
 
 Return in JSON format: "preparationStrategy", "focusTopics", "todoItems".
-Be insightful, specific to {{companyName}}, and adapt to provided candidate details.
 `,
 });
 
