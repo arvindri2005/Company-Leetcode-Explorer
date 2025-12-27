@@ -3,7 +3,6 @@ import { Snippet } from "@/types/typing-test";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RotateCcw, Keyboard as KeyboardIcon, MousePointerClick } from "lucide-react";
-import { motion } from "framer-motion";
 
 interface TypingAreaProps {
   currentSnippet: Snippet | null;
@@ -80,23 +79,8 @@ export default function TypingArea({
         >
           {char}
           {isCursor && isFocused && (
-            <motion.div
-                layoutId="cursor"
-                className="absolute -left-[1px] -top-0.5 -bottom-0.5 w-[2px] bg-primary z-10"
-                animate={{ opacity: [1, 1, 0, 0] }}
-                transition={{
-                    opacity: {
-                        duration: 1,
-                        repeat: Infinity,
-                        times: [0, 0.5, 0.5, 1],
-                        ease: "linear"
-                    },
-                    layout: {
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 28
-                    }
-                }}
+            <div
+                className="absolute -left-[1px] -top-0.5 -bottom-0.5 w-[2px] bg-primary z-10 animate-blink"
             />
           )}
         </span>
@@ -108,23 +92,8 @@ export default function TypingArea({
          result.push(
             <span key="end" ref={cursorRef} className="relative inline-block align-middle ml-[1px] h-6 w-2">
                 {isFocused && (
-                     <motion.div
-                        layoutId="cursor"
-                        className="absolute left-0 top-0 bottom-0 w-[2px] bg-primary z-10"
-                        animate={{ opacity: [1, 1, 0, 0] }}
-                        transition={{
-                            opacity: {
-                                duration: 1,
-                                repeat: Infinity,
-                                times: [0, 0.5, 0.5, 1],
-                                ease: "linear"
-                            },
-                             layout: {
-                                type: "spring",
-                                stiffness: 500,
-                                damping: 28
-                            }
-                        }}
+                     <div
+                        className="absolute left-0 top-0 bottom-0 w-[2px] bg-primary z-10 animate-blink"
                     />
                 )}
             </span>
@@ -135,9 +104,8 @@ export default function TypingArea({
   };
 
   return (
-    <motion.div
-        animate={shake ? { x: [-5, 5, -5, 5, 0] } : {}}
-        transition={{ duration: 0.4 }}
+    <div
+        className={shake ? "animate-shake" : ""}
     >
       <Card className={`relative overflow-hidden border-0 shadow-2xl min-h-[450px] flex flex-col transition-all duration-300 bg-background/50 backdrop-blur-xl ${shake ? 'ring-2 ring-red-500/50' : isFocused ? 'ring-1 ring-primary/50' : 'ring-1 ring-border/50'}`}>
            {/* Focus Overlay */}
@@ -226,6 +194,6 @@ export default function TypingArea({
               </div>
            </CardFooter>
         </Card>
-      </motion.div>
+      </div>
   );
 }
