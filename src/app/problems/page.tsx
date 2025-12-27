@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { problemService } from "@/services/problem.service"; // Import service
 import AllProblemsList from "@/components/problem/all-problems-list";
+import { ProblemsPageSkeleton } from "@/components/skeletons/problem-skeletons";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { Metadata } from "next";
 import { env } from "@/env";
@@ -79,7 +80,7 @@ export default async function AllProblemsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Main Content */}
         <div className="lg:col-span-3">
-          <Suspense fallback={<div>Loading problems...</div>}>
+          <Suspense fallback={<ProblemsPageSkeleton />}>
             <AllProblemsList
               initialProblems={problems}
               itemsPerPage={50}
