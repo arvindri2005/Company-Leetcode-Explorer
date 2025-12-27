@@ -8,13 +8,13 @@ import {
   WorkExperience,
   GenerateCompanyStrategyOutput,
 } from "@/types";
-import { appEvents, EventKey, EventHandler } from "@/lib/events";
+import { appEvents, AppEventKey, AppEventHandler } from "@/services/event-bus";
 
 export class UserService {
   /**
    * Subscribe to user-related events.
    */
-  subscribe<K extends EventKey>(event: K, handler: EventHandler<K>) {
+  subscribe<K extends AppEventKey>(event: K, handler: AppEventHandler<K>) {
     return appEvents.subscribe(event, handler);
   }
 
