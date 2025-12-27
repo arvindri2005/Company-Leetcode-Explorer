@@ -174,7 +174,13 @@ export default function TypingArea({
                              <kbd className="bg-muted px-1.5 py-0.5 rounded text-xxs border shadow-sm">ESC</kbd> 
                              <span className="text-xxs opacity-70 mt-1">to restart</span>
                          </div>
-                       <Button variant="ghost" size="icon" onClick={resetGame} className="text-muted-foreground hover:text-foreground hover:bg-muted/20">
+                       <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={resetGame} 
+                          className="text-muted-foreground hover:text-foreground hover:bg-muted/20"
+                          aria-label="Reset typing test"
+                       >
                            <RotateCcw className="w-4 h-4" />
                        </Button>
                    </div>
