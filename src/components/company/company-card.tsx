@@ -17,6 +17,8 @@ import { getLogoUrl } from "@/lib/utils";
 interface CompanyCardProps {
   /** The company data to display. */
   company: Company;
+  /** Whether to prioritize loading the image (for above-the-fold content). */
+  priority?: boolean;
 }
 
 /**
@@ -30,7 +32,7 @@ interface CompanyCardProps {
  * @param {CompanyCardProps} props - The props for the component.
  * @returns {JSX.Element} The rendered company card.
  */
-const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
+const CompanyCard: React.FC<CompanyCardProps> = ({ company, priority = false }) => {
   const [imgSrc, setImgSrc] = useState(
     getLogoUrl(company.logo) || "/icon.png"
   );
@@ -44,7 +46,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
           width={48}
           height={48}
           className="rounded-full border-2 border-white/20 object-contain"
-          priority
+          priority={priority}
           onError={() => setImgSrc("/icon.png")}
           unoptimized
         />
