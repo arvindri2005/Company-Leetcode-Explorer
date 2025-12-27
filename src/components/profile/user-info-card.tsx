@@ -3,13 +3,11 @@
 import React from "react";
 import { useFormContext, FormProvider } from "react-hook-form";
 import { z } from "zod";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  User,
   Mail,
   CalendarDays,
-  ShieldCheck,
   Loader2,
   Edit,
   Save,
@@ -72,23 +70,32 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
 }) => {
   const displayNameForm = useFormContext<DisplayNameFormValues>();
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+    });
+  };
+
   return (
-    <Card className="bg-card border border-border rounded-xl mb-8 shadow-sm">
-      <CardHeader className="bg-muted/30 p-6 border-b">
-        <div className="flex items-center space-x-4">
-          <Avatar className="h-16 w-16">
+    <Card className="bg-card border border-border rounded-xl mb-8 shadow-sm overflow-hidden">
+      <CardHeader className="p-6 pb-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <Avatar className="h-24 w-24 ring-4 ring-background shadow-lg shrink-0">
             <AvatarImage
               src={user.photoURL || undefined}
               data-ai-hint="profile avatar"
+              className="object-cover"
             />
-            <AvatarFallback className="text-xl bg-primary text-primary-foreground">
+            <AvatarFallback className="text-3xl bg-primary/10 text-primary font-bold">
               {getInitials(user.displayName)}
             </AvatarFallback>
           </Avatar>
-          <div className="flex-grow">
+
+          <div className="flex-grow space-y-1.5 w-full">
             {!isEditingDisplayName ? (
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-semibold">
+              <div className="flex items-center justify-between sm:justify-start gap-4">
+                <h2 className="text-2xl font-bold tracking-tight text-foreground">
                   {user.displayName || "Anonymous User"}
                 </h2>
                 <Button
@@ -101,7 +108,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                       user.displayName || "",
                     );
                   }}
-                  className="h-7 w-7 text-muted-foreground hover:text-foreground transition-opacity"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors rounded-full"
                   aria-label="Edit display name"
                 >
                   <Edit size={16} />
@@ -112,7 +119,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                 <Form {...displayNameForm}>
                   <form
                     onSubmit={displayNameForm.handleSubmit(onSubmitDisplayName)}
-                    className="space-y-2"
+                    className="space-y-3 max-w-md"
                   >
                     <FormField
                       control={displayNameForm.control}
@@ -123,7 +130,8 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                             <Input
                               {...field}
                               placeholder="Enter display name"
-                              className="text-base"
+                              className="text-lg font-medium h-10"
+                              autoFocus
                             />
                           </FormControl>
                           <FormMessage />
@@ -137,62 +145,59 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                         disabled={isSubmittingDisplayName}
                       >
                         {isSubmittingDisplayName ? (
-                          <Loader2 className="animate-spin h-4 w-4" />
+                          <Loader2 className="animate-spin h-3.5 w-3.5 mr-2" />
                         ) : (
-                          <Save size={16} />
-                        )}{" "}
+                          <Save className="h-3.5 w-3.5 mr-2" />
+                        )}
                         Save
                       </Button>
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => setIsEditingDisplayName(false)}
                         disabled={isSubmittingDisplayName}
                       >
-                        <X size={16} /> Cancel
+                        <X className="h-3.5 w-3.5 mr-2" /> Cancel
                       </Button>
                     </div>
                   </form>
                 </Form>
               </FormProvider>
             )}
-            <p className="text-sm text-muted-foreground">{user.email}</p>
+
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Mail className="h-3.5 w-3.5" />
+                <span className="truncate">{user.email}</span>
+                {user.emailVerified && (
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400 border border-green-200 dark:border-green-500/30">
+                    Verified
+                  </span>
+                )}
+              </div>
+
+              {user.metadata.creationTime && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground/80">
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  <span>Member since {formatDate(user.metadata.creationTime)}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-6 space-y-4">
-        <div className="space-y-3">
-          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-            Account Information
-          </h3>
-          <div className="flex items-center text-sm">
-            <User className="mr-3 h-4 w-4 text-primary" />
-            <span>UID: {user.uid}</span>
-          </div>
-          {user.emailVerified && (
-            <div className="flex items-center text-sm text-green-600">
-              <ShieldCheck className="mr-3 h-4 w-4" />
-              <span>Email Verified</span>
-            </div>
-          )}
-          {user.metadata.creationTime && (
-            <div className="flex items-center text-sm">
-              <CalendarDays className="mr-3 h-4 w-4 text-primary" />
-              <span>
-                Joined:{" "}
-                {new Date(user.metadata.creationTime).toLocaleDateString()}
-              </span>
-            </div>
-          )}
+
+      <CardContent className="p-6 pt-4">
+        <div className="flex justify-start">
+          <Button
+            onClick={handleLogout}
+            variant="outline"
+            className="w-full sm:w-auto text-muted-foreground hover:text-foreground border-dashed"
+          >
+            Log Out
+          </Button>
         </div>
-        <Button
-          onClick={handleLogout}
-          variant="outline"
-          className="w-full mt-4"
-        >
-          Log Out
-        </Button>
       </CardContent>
     </Card>
   );
