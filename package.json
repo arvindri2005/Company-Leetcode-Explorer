@@ -14,6 +14,9 @@
     "prepare": "husky",
     "typecheck": "tsc --noEmit",
     "test": "jest --verbose",
+    "test:watch": "jest --watch",
+    "db:backup": "tsx scripts/backup-firestore.ts",
+    "db:restore": "tsx scripts/restore-firestore.ts",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
