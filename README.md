@@ -61,6 +61,7 @@ New to the project? Check out our detailed **[Developer Guide](./guide)** for ev
 -   **[Project Structure](./guide/project-structure.md)**: Architecture and directory layout.
 -   **[Coding Standards](./guide/coding-standards.md)**: Naming conventions and style guide.
 -   **[Adding Features](./guide/feature-workflow.md)**: Step-by-step workflow.
+-   **[Data Layer Patterns](./guide/data-layer.md)**: Repositories, validation, and persistence.
 -   **[UI Guidelines](./guide/ui-guidelines.md)**: Colors, typography, and component usage.
 
 ## 🤝 Contributing
