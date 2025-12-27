@@ -1,11 +1,15 @@
 "use client";
 
 import React from "react";
+import dynamic from "next/dynamic";
 import { useTypingGame } from "@/hooks/use-typing-game";
 import TypingArea from "./typing-area";
 import TypingStats from "./typing-stats";
-import TypingResults from "./typing-results";
 import TypingControls from "./typing-controls";
+
+const TypingResults = dynamic(() => import("./typing-results"), {
+  loading: () => null,
+});
 
 export default function TypingTestGame() {
   const {
