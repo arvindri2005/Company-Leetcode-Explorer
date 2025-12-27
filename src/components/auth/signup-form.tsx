@@ -31,10 +31,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import GoogleAuthButton from "./google-auth-button";
 import { useAuth } from "@/contexts/auth-context";
-import { PasswordStrengthIndicator } from "./password-strength-indicator"; // [NEW]
-import { motion } from "framer-motion"; // [NEW]
-import { Check } from "lucide-react"; // [NEW]
-import { useEffect } from "react"; // [NEW]
+import { PasswordStrengthIndicator } from "./password-strength-indicator";
+import { Check } from "lucide-react";
+import { useEffect } from "react";
 
 /**
  * Zod schema for validating the sign-up form fields.
@@ -74,7 +73,7 @@ export default function SignupForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { syncUserProfileIfNeeded } = useAuth();
-  const [passwordScore, setPasswordScore] = useState(0); // [NEW]
+  const [passwordScore, setPasswordScore] = useState(0);
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupFormSchema),
@@ -98,22 +97,6 @@ export default function SignupForm() {
     if (/[^A-Za-z0-9]/.test(password)) score += 1;
     setPasswordScore(score);
   }, [password]);
-
-  // Animation variants
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 },
-  };
 
   async function onSubmit(data: SignupFormValues) {
     setIsSubmitting(true);
@@ -173,20 +156,20 @@ export default function SignupForm() {
     }
   }
 
+  // NOTE: Removed opacity-0 to prevent visibility issues after animation.
+  // Using animationFillMode: 'both' ensures initial state (opacity 0 from fade-in) applies during delay.
+
   return (
     <Form {...form}>
-      <motion.form
-        variants={container}
-        initial="hidden"
-        animate="show"
+      <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-6"
+        className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500"
       >
-        <motion.div variants={item}>
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100" style={{ animationFillMode: 'both' }}>
           <GoogleAuthButton />
-        </motion.div>
+        </div>
 
-        <motion.div variants={item} className="relative my-6">
+        <div className="relative my-6 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-150" style={{ animationFillMode: 'both' }}>
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
           </div>
@@ -195,13 +178,13 @@ export default function SignupForm() {
               Or continue with email
             </span>
           </div>
-        </motion.div>
+        </div>
 
         <FormField
           control={form.control}
           name="displayName"
           render={({ field }) => (
-            <motion.div variants={item}>
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-200" style={{ animationFillMode: 'both' }}>
               <FormItem>
                 <FormLabel>Display Name</FormLabel>
                 <FormControl>
@@ -222,14 +205,14 @@ export default function SignupForm() {
                 </FormControl>
                 <FormMessage />
               </FormItem>
-            </motion.div>
+            </div>
           )}
         />
         <FormField
           control={form.control}
           name="email"
           render={({ field }) => (
-            <motion.div variants={item}>
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-300" style={{ animationFillMode: 'both' }}>
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
@@ -250,14 +233,14 @@ export default function SignupForm() {
                 </FormControl>
                 <FormMessage />
               </FormItem>
-            </motion.div>
+            </div>
           )}
         />
         <FormField
           control={form.control}
           name="password"
           render={({ field }) => (
-            <motion.div variants={item}>
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-400" style={{ animationFillMode: 'both' }}>
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
@@ -290,14 +273,14 @@ export default function SignupForm() {
                 <PasswordStrengthIndicator score={passwordScore} />
                 <FormMessage />
               </FormItem>
-            </motion.div>
+            </div>
           )}
         />
-        <motion.div variants={item}>
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-500" style={{ animationFillMode: 'both' }}>
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full h-11 text-base transition-all duration-200 hover:scale-[1.02] shadow-lg hover:shadow-primary/25"
+            className="w-full h-11 text-base transition-all duration-200 hover:scale-102 shadow-lg hover:shadow-primary/25"
           >
             {isSubmitting ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -306,9 +289,9 @@ export default function SignupForm() {
             )}
             Sign Up
           </Button>
-        </motion.div>
+        </div>
 
-        <motion.p variants={item} className="text-center text-sm text-muted-foreground mt-6">
+        <p className="text-center text-sm text-muted-foreground mt-6 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-600" style={{ animationFillMode: 'both' }}>
           Already have an account?{" "}
           <Link
             href={`/login${
@@ -322,8 +305,8 @@ export default function SignupForm() {
           >
             Log in
           </Link>
-        </motion.p>
-      </motion.form>
+        </p>
+      </form>
     </Form>
   );
 }

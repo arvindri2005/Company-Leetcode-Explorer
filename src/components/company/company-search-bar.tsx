@@ -5,10 +5,10 @@
  * a list of company suggestions as the user types. It is designed to be a controlled
  * component, with its state managed by a parent component.
  */
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Loader2, Building2, Search } from "lucide-react";
 import Image from "next/image";
-import { getLogoUrl } from "@/lib/utils";
+import { getLogoUrl, cn } from "@/lib/utils";
 import { useTypingPlaceholder } from "@/hooks/use-typing-placeholder";
 
 /**
@@ -58,9 +58,38 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
   suggestionsRef,
   onSearch,
 }) => {
+  const [activeIndex, setActiveIndex] = useState(-1);
+
+  // Use useEffect to reset index when suggestions change
+  useEffect(() => {
+    setActiveIndex(-1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [suggestions]);
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      onSearch?.();
+    if (!showSuggestions || suggestions.length === 0) {
+      if (e.key === "Enter") {
+        e.preventDefault(); // Prevent form submission to allow custom onSearch
+        onSearch?.();
+      }
+      return;
+    }
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev + 1) % suggestions.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (activeIndex >= 0) {
+        handleSuggestionClick(suggestions[activeIndex]);
+      } else {
+        onSearch?.();
+      }
+    } else if (e.key === "Escape") {
+      setShowSuggestions(false);
     }
   };
 
@@ -88,6 +117,7 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
           aria-label="Search for companies"
           onSubmit={(e) => {
             e.preventDefault();
+            // onSearch is handled by onKeyDown for Enter, but if triggered by other means:
             onSearch?.();
           }}
         >
@@ -100,6 +130,15 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
             name="company-search"
             type="search"
             autoComplete="off"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={showSuggestions}
+            aria-controls="company-suggestions-list"
+            aria-activedescendant={
+              showSuggestions && activeIndex >= 0
+                ? `suggestion-${activeIndex}`
+                : undefined
+            }
             data-testid="search-input"
             className="w-full p-5 text-lg border border-white/10 rounded-full bg-white/5 text-white backdrop-blur-lg transition-all duration-300 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/30 placeholder:text-white/50"
             placeholder={`Search for ${placeholder}|`}
@@ -130,6 +169,7 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
 
       {showSuggestions && searchTermInput.trim().length > 0 && (
         <div
+          id="company-suggestions-list"
           ref={suggestionsRef}
           className="absolute z-20 mt-2 w-full rounded-2xl bg-white/10 backdrop-blur-[10px] shadow-[0_4px_32px_rgba(0,212,170,0.15)] border border-white/10 overflow-hidden animate-fade-in"
           role="listbox"
@@ -143,19 +183,20 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
             suggestions.map((suggestion, idx) => (
               <div
                 key={suggestion.id}
+                id={`suggestion-${idx}`}
                 onMouseDown={(e) => {
                   e.preventDefault();
                   handleSuggestionClick(suggestion);
                 }}
                 role="option"
-                aria-selected="false"
-                className={
-                  `flex items-center gap-3 px-5 py-4 cursor-pointer transition-all duration-200 text-gray-custom-200 ` +
-                  `hover:bg-gradient-to-r hover:from-brand-teal/30 hover:to-brand-purple/30 hover:text-white ` +
-                  (idx !== suggestions.length - 1
-                    ? "border-b border-white/10"
-                    : "")
-                }
+                aria-selected={idx === activeIndex}
+                className={cn(
+                  "flex items-center gap-3 px-5 py-4 cursor-pointer transition-all duration-200 text-gray-custom-200",
+                  "hover:bg-gradient-to-r hover:from-brand-teal/30 hover:to-brand-purple/30 hover:text-white",
+                  idx === activeIndex &&
+                    "bg-gradient-to-r from-brand-teal/30 to-brand-purple/30 text-white",
+                  idx !== suggestions.length - 1 && "border-b border-white/10",
+                )}
               >
                 {suggestion.logo ? (
                   <Image
@@ -174,7 +215,7 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
           ) : (
             !isLoadingSuggestions && (
               <p className="p-4 text-base text-gray-custom-500">
-                No companies found matching "{searchTermInput}".
+                No companies found matching &quot;{searchTermInput}&quot;.
               </p>
             )
           )}

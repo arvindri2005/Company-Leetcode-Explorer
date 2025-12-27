@@ -108,6 +108,9 @@ module.exports = {
             fontSize: {
                 xxs: "0.625rem",
             },
+            scale: {
+                102: "1.02",
+            },
             keyframes: {
                 "accordion-down": {
                     from: {

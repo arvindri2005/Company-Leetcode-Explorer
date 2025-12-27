@@ -17,7 +17,7 @@ import type {
 export function useAIFeatures(problem: LeetCodeProblem, companySlug: string) {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { canUseAI, startCooldown, formattedRemainingTime, isLoadingCooldown } =
+  const { canUseAI, startCooldown, getFormattedRemainingTime, isLoadingCooldown } =
     useAICooldown();
 
   const [isLoadingSimilar, setIsLoadingSimilar] = useState(false);
@@ -32,14 +32,12 @@ export function useAIFeatures(problem: LeetCodeProblem, companySlug: string) {
     useState<GenerateProblemInsightsOutput | null>(null);
   const [isInsightsDialogOpen, setIsInsightsDialogOpen] = useState(false);
 
-  const cooldownToastMessage = `AI features are on cooldown. Please wait ${formattedRemainingTime} before using another AI feature.`;
-
   const handleFindSimilar = async () => {
     if (!user) return;
     if (isLoadingCooldown || !canUseAI) {
       toast({
         title: "AI Feature on Cooldown",
-        description: cooldownToastMessage,
+        description: `AI features are on cooldown. Please wait ${getFormattedRemainingTime()} before using another AI feature.`,
         variant: "default",
       });
       return;
@@ -82,7 +80,7 @@ export function useAIFeatures(problem: LeetCodeProblem, companySlug: string) {
     if (isLoadingCooldown || !canUseAI) {
       toast({
         title: "AI Feature on Cooldown",
-        description: cooldownToastMessage,
+        description: `AI features are on cooldown. Please wait ${getFormattedRemainingTime()} before using another AI feature.`,
         variant: "default",
       });
       return;

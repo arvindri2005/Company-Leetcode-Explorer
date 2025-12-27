@@ -11,3 +11,4 @@
 
 ## Daily Map-Points
 - **[2024-XX-XX]** 🗺️ `src/ai/README.md`: Documented the Genkit AI architecture, "Flow" pattern, and development commands.
+- **[2024-XX-XX]** 🗺️ `guide/data-layer.md`: Documented the Repository pattern, Zod validation at the edge, Firestore type safety, and pagination strategies.

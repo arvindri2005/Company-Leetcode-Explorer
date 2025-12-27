@@ -40,6 +40,10 @@ jobs:
         run: pnpm typecheck
         continue-on-error: true
 
+      - name: Build Storybook
+        # Ensures UI components and their dependencies are buildable in isolation.
+        run: pnpm build-storybook
+
       - name: Run Tests
         # We only run unit tests here.
         # NOTE: Integration tests that require real Firebase connection are skipped or mocked.

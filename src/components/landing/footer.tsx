@@ -8,7 +8,7 @@
 export default function Footer() {
   return (
     <footer className="bg-black/50 py-12 px-8 text-center border-t border-white/10">
-      <div className="max-w-[1200px] mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="flex justify-center gap-8 mb-8 flex-wrap">
           <a
             href="/privacy-policy"

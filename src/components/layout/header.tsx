@@ -20,6 +20,7 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import React, { useState, useCallback, useMemo } from "react";
 import { navigationRegistry, NavigationItem } from "@/lib/navigation-registry";
 
@@ -191,9 +192,14 @@ const Header = React.memo(function Header() {
             modal={false}
           >
             <SheetTrigger asChild>
-              <button className="md:hidden bg-transparent border-none text-gray-200 cursor-pointer p-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden text-gray-200 hover:text-white hover:bg-white/10"
+                aria-label="Open menu"
+              >
                 <Menu className="w-6 h-6" />
-              </button>
+              </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-80">
               <div className="flex flex-col mt-6">

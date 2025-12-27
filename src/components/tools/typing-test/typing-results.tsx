@@ -153,7 +153,7 @@ export default function TypingResults({
                      </div>
 
                      <div className="flex gap-4">
-                        <Button size="lg" className="flex-1 h-14 text-base font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform active:scale-95" onClick={onNextSnippet}>
+                        <Button size="lg" className="flex-1 h-14 text-base font-bold shadow-xl shadow-primary/20 hover:scale-102 transition-transform active:scale-95" onClick={onNextSnippet}>
                             <Play className="w-5 h-5 mr-2 fill-current" />
                             Next Challenge
                         </Button>

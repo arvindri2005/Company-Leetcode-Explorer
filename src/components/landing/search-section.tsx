@@ -94,7 +94,7 @@ export default function SearchSection() {
 
   return (
     <section className="py-20 px-8">
-      <div className="max-w-[800px] mx-auto text-center">
+      <div className="max-w-3xl mx-auto text-center">
         <h2 className="text-4xl mb-4 text-gray-custom-200">Start Your Journey</h2>
         <p className="text-xl mb-8 text-gray-custom-400">
           Search for problems by name, topic, or difficulty level
