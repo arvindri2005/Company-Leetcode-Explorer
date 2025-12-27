@@ -19,6 +19,9 @@ import {
   Sheet,
   SheetContent,
   SheetTrigger,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import React, { useState, useCallback, useMemo } from "react";
@@ -147,7 +150,7 @@ const Header = React.memo(function Header() {
                   handleLogout();
                   if (isMobile) setIsMobileMenuOpen(false);
                 }}
-                className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${
+                className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base focus-visible:ring-2 focus-visible:ring-teal-400 focus:outline-none rounded-md ${
                   isMobile
                     ? "block py-4 border-b border-gray-200/10 font-bold"
                     : ""
@@ -189,7 +192,6 @@ const Header = React.memo(function Header() {
           <Sheet
             open={isMobileMenuOpen}
             onOpenChange={setIsMobileMenuOpen}
-            modal={false}
           >
             <SheetTrigger asChild>
               <Button
@@ -202,6 +204,12 @@ const Header = React.memo(function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-80">
+              <SheetHeader>
+                <SheetTitle className="sr-only">Mobile Navigation</SheetTitle>
+                <SheetDescription className="sr-only">
+                  Navigation menu for accessing app features and authentication.
+                </SheetDescription>
+              </SheetHeader>
               <div className="flex flex-col mt-6">
                 <div className="mobile-nav-section">{commonNavLinks(true)}</div>
                 <hr className="my-4 border-gray-200/10" />
