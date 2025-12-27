@@ -51,6 +51,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         disabled={isLoading || props.disabled}
+        aria-disabled={isLoading || props.disabled}
+        aria-busy={isLoading}
         data-loading={isLoading}
         {...props}
       >
@@ -59,9 +61,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ) : (
           <>
             {isLoading && (
-              <Loader2 className={cn("h-4 w-4 animate-spin", !isIcon && children ? "mr-2" : "")} />
+              <Loader2 aria-hidden="true" className={cn("h-4 w-4 animate-spin", !isIcon && children ? "mr-2" : "")} />
             )}
             {(!isLoading || !isIcon) ? children : null}
+            {/* Ensure screen readers have context if content is hidden during loading */}
+            {isLoading && isIcon && !props["aria-label"] && (
+              <span className="sr-only">Loading</span>
+            )}
           </>
         )}
       </Comp>

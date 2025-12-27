@@ -40,6 +40,13 @@ export const metadata: Metadata = {
   alternates: {
     canonical: `${APP_URL}/companies`,
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Top Tech Companies Interview Questions & Prep | Byte to Offer",
+    description:
+      "Prepare for your next software engineering interview with real questions from top tech companies like Google, Amazon, Microsoft, Meta, and more.",
+    images: [`${APP_URL}/og-image.png`],
+  },
 };
 
 export default async function CompaniesPage() {

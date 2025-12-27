@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- User Activity Event System for tracking actions (3d9e6b4).
+- Soft delete support for User Bookmarks (3976dbc).
+- Twitter card metadata to company pages for better sharing (3f8e312).
+- Unit tests for User Server Actions (85e3e3d).
 - Job Application Tracker MVP and RFC (2684409).
 - GitHub Actions CI workflow (af0d7f5).
 - Native `isLoading` prop to `Button` component (8aada6b).
@@ -21,6 +25,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI layer README and Genkit flow documentation (d41a37e).
 
 ### Changed
+- Replaced `framer-motion` with native CSS and Tailwind animations to reduce bundle size (f35c907, 459eb7d).
+- Refactored `ProblemRepository` to reduce cyclomatic complexity (2a1b07b).
+- Split `types/index.ts` into domain-specific modules (6dd1f92).
+- Improved mobile touch targets for Input and Select components (bd52a4d).
+- Centralized AdSense configuration and cleaned up `.env.example` (5b5f661).
+- Optimized `CompanyList` resource usage (5f5ec8a).
+- Hardened `WorkExperienceSchema` date validation (f2ab737).
+- Removed deprecated `syncUserProfile` server action and added IDOR warnings (f59eef4).
+- Improved accessibility of icon-only buttons (2c350b1).
+- Improved `Button` accessibility during loading states (8079764).
+- Optimized AI cooldown timer to prevent re-renders (1a8087c).
+- Hardened company strategy generation flow (9ef49b9).
+- Standardized hover scale tokens (3002eab).
+- Enforced strict types for contact server action (234a16c).
+- Updated Vercel configuration (06ae7d1).
 - Refactored `ProblemRepository` to reduce complexity and improve maintainability (7cc7951).
 - Refactored `Header` navigation to use `NavigationRegistry` for decoupled menu management (beb7598).
 - Centralized `NEXT_PUBLIC_APP_URL` configuration handling (d737faf).

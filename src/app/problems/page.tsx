@@ -1,14 +1,12 @@
 import { Suspense } from "react";
-import { problemService } from "@/services/problem.service"; // Import service
-import AllProblemsList from "@/components/problem/all-problems-list";
-import { ProblemsPageSkeleton } from "@/components/skeletons/problem-skeletons";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { Metadata } from "next";
 import { env } from "@/env";
 import { safeJsonLd } from "@/lib/utils";
-
-// Removed unused import
-// BETTER: I'll use hardcoded values but structured properly, and add the JSON-LD script. This avoids dependency on siteConfig if it's missing.
+import ErrorBoundary from "@/components/ui/error-boundary";
+import ProblemListContainer from "./problem-list-container";
+import ProblemListErrorFallback from "@/components/problem/problem-list-error-fallback";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const APP_URL = env.NEXT_PUBLIC_APP_URL;
 
@@ -44,27 +42,7 @@ const jsonLd = {
   }
 };
 
-import {
-  DifficultyFilter,
-  LastAskedFilter,
-  SortKey,
-  ProblemStatus,
-} from "@/types";
-
-
-export default async function AllProblemsPage() {
-  
-
-  const { problems, totalProblems, totalPages, currentPage, hasMore, nextCursor } =
-    await problemService.getAllProblemsPaginated({
-      page: 1,
-      pageSize: 50,
-      difficultyFilter: [],
-      lastAskedFilter: [],
-      searchTerm: "",
-      sortKey: "title",
-    });
-
+export default function AllProblemsPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -80,23 +58,18 @@ export default async function AllProblemsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Main Content */}
         <div className="lg:col-span-3">
-          <Suspense fallback={<ProblemsPageSkeleton />}>
-            <AllProblemsList
-              initialProblems={problems}
-              itemsPerPage={50}
-              totalPages={totalPages || 1}
-              currentPage={currentPage || 1}
-              hasMore={hasMore}
-              initialNextCursor={nextCursor}
-              initialFilters={{
-                difficultyFilter: [],
-                lastAskedFilter: [],
-                statusFilter: [],
-                searchTerm: "",
-                sortKey: "title",
-              }}
-            />
-          </Suspense>
+          <ErrorBoundary fallback={<ProblemListErrorFallback />}>
+            <Suspense fallback={<div className="space-y-4">
+              <Skeleton className="h-10 w-full" />
+              <div className="space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <Skeleton key={i} className="h-24 w-full" />
+                ))}
+              </div>
+            </div>}>
+              <ProblemListContainer />
+            </Suspense>
+          </ErrorBoundary>
         </div>
 
         {/* Sidebar */}

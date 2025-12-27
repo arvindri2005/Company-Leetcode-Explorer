@@ -1,7 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
-
 interface PasswordStrengthIndicatorProps {
   score: number; // 0 to 4
 }
@@ -51,15 +49,13 @@ export function PasswordStrengthIndicator({
       </div>
       <div className="flex gap-1 h-1.5 overflow-hidden rounded-full bg-secondary/30">
         {[1, 2, 3, 4].map((level) => (
-          <motion.div
+          <div
             key={level}
-            initial={false}
-            animate={{
-              backgroundColor:
-                score >= level ? getStrengthColor(score).replace("bg-", "") : "",
-              opacity: score >= level ? 1 : 0.2,
+            style={{
+                backgroundColor: score >= level ? undefined : undefined,
+                opacity: score >= level ? 1 : 0.2,
             }}
-            className={`flex-1 h-full rounded-full transition-colors duration-300 ${
+            className={`flex-1 h-full rounded-full transition-all duration-300 ${
               score >= level ? getStrengthColor(score) : "bg-muted"
             }`}
           />

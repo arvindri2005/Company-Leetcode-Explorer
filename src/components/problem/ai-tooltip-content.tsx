@@ -8,7 +8,7 @@ const AITooltipContentComponent: React.FC<{
   defaultText: string;
   user: FirebaseUser | null;
 }> = ({ defaultText, user }) => {
-  const { canUseAI, isLoadingCooldown, formattedRemainingTime } =
+  const { canUseAI, isLoadingCooldown, getFormattedRemainingTime } =
     useAICooldown();
   const isAIButtonCurrentlyDisabled = isLoadingCooldown || !canUseAI;
 
@@ -16,7 +16,7 @@ const AITooltipContentComponent: React.FC<{
   if (!user) {
     content = "Login to use AI features";
   } else if (isAIButtonCurrentlyDisabled && !isLoadingCooldown) {
-    content = `AI on cooldown: ${formattedRemainingTime}`;
+    content = `AI on cooldown: ${getFormattedRemainingTime()}`;
   }
   return <p>{content}</p>;
 };

@@ -20,7 +20,7 @@ import { FEATURES } from "@/constants/features";
 export default function FeaturesSection() {
   return (
     <section id="features" className="py-20 px-8">
-      <div className="max-w-[1200px] mx-auto">
+      <div className="max-w-7xl mx-auto">
         <h2 className="text-center text-4xl mb-12 text-gray-custom-200">
           Why Choose Byte to Offer?
         </h2>

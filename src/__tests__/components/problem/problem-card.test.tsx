@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import ProblemCard from '@/components/problem/problem-card';
-import { LeetCodeProblem } from '@/types';
+import { createMockProblem } from '@/__tests__/factories/data-factories';
 
 // Mock child components
 jest.mock('@/components/problem/difficulty-badge', () => ({
@@ -54,7 +54,7 @@ jest.mock('@/hooks/use-toast', () => ({
 }));
 
 describe('ProblemCard', () => {
-  const mockProblem: LeetCodeProblem = {
+  const mockProblem = createMockProblem({
     id: '1',
     title: 'Two Sum',
     difficulty: 'Easy',
@@ -64,7 +64,7 @@ describe('ProblemCard', () => {
     companySlug: 'google',
     normalizedTitle: 'two sum',
     tags: ['Array'],
-  };
+  });
 
   const defaultProps = {
     problem: mockProblem,

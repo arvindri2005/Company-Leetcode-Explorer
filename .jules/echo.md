@@ -1,22 +1,25 @@
-# Echo's Journal
+# Echo's Journal 🔊
 
 ## Critical Discoveries
 
-### [2024-05-22] Missing "Skip to Content" Link
-- **Discovery**: The application lacked a mechanism for keyboard users to bypass the main navigation and jump directly to the primary content area.
-- **Impact**: Keyboard users were forced to tab through all navigation links on every page load to access the main content, creating significant friction and fatigue.
-- **Fix**: Implemented a "Skip to Content" link as the first focusable element in the `<body>`.
-- **Implementation**:
-  - Added an anchor tag pointing to `#main-content`.
-  - Used `sr-only` class to hide it visually by default.
-  - Used `focus:not-sr-only` and positioning utilities to make it visible when focused.
-  - Added `id="main-content"` and `tabIndex={-1}` to the `<main>` element to ensure focus is correctly managed.
+### Unique UI Patterns
+- **Hybrid Interaction Pattern in `ProblemCard`**: Uses an outer `div` with `onClick` for mouse users (convenience) but delegates keyboard focus/action to specific internal buttons (like the expand chevron). This prevents invalid HTML (nested interactive elements) but requires careful testing to ensure keyboard users have equivalent access to all functionality.
 
-### [2025-05-27] Missing Close Button in DialogContent
-- **Discovery**: The `DialogContent` component in `src/components/ui/dialog.tsx` lacked a built-in visual Close button, unlike `SheetContent`.
-- **Impact**: Users relying on visual cues (mouse users who don't know Escape closes modals) or those requiring explicit controls might find it difficult to dismiss the dialog.
-- **Fix**: Added a `DialogPrimitive.Close` button inside `DialogContent`.
-- **Implementation**:
-  - Inserted `<DialogPrimitive.Close>` with `X` icon from `lucide-react`.
-  - Added `sr-only` text "Close" for screen readers.
-  - Styled consistently with other accessible close buttons (hover states, focus rings).
+### Keyboard Traps
+- **Company Search Bar Suggestions**: The autocomplete dropdown in `CompanySearchBar` (`src/components/company/company-search-bar.tsx`) displays suggestions but does not allow keyboard users to navigate them with Arrow keys. They can only continue typing or press Enter to submit the search term, effectively making the suggestions inaccessible to keyboard-only users.
+### Hybrid Interaction Pattern in Cards
+Complex interactive cards (e.g., `ProblemCard`) use a hybrid interaction pattern:
+- The outer container (`div`) handles `onClick` for mouse users but lacks a button role to avoid invalid nesting of interactive elements.
+- Keyboard accessibility and focus management are delegated to specific child buttons (e.g., an expand chevron).
+- **Lesson:** This avoids "nested interactive controls" (invalid HTML) but requires ensuring all mouse-available actions are also available via keyboard-focusable children.
+
+### Button Loading State
+The `Button` component suppresses children content when `isLoading` is true and `size="icon"`.
+- **Issue:** If the button relies on the icon for meaning and lacks an `aria-label`, it becomes nameless during loading.
+- **Fix:** Added `aria-busy="true"` and a fallback screen-reader-only "Loading" text if `aria-label` is missing.
+- **Lesson:** Always ensure accessible names persist during state changes.
+
+### Typing Test Accessibility
+The typing test (`TypingArea`) uses a transparent textarea over a visual code display.
+- **Issue:** The textarea lacks a label, and the visual code is `aria-hidden` (or not associated). Screen reader users might hear what they type but not what they *should* type.
+- **Future Opportunity:** Associate the code display with the textarea using `aria-describedby` or providing a hidden instruction block.

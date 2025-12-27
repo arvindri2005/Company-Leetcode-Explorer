@@ -106,7 +106,7 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
     useState<TargetRoleLevel>("general");
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
-  const { canUseAI, startCooldown, formattedRemainingTime, isLoadingCooldown } =
+  const { canUseAI, startCooldown, getFormattedRemainingTime, isLoadingCooldown } =
     useAICooldown(); // Cooldown hook
   const pathname = usePathname();
 
@@ -156,7 +156,7 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
     if (isLoadingCooldown || !canUseAI) {
       toast({
         title: "AI Feature on Cooldown",
-        description: `Please wait ${formattedRemainingTime} before using another AI feature.`,
+        description: `Please wait ${getFormattedRemainingTime()} before using another AI feature.`,
         variant: "default",
       });
       return;
@@ -347,7 +347,7 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
             (!hasSavedStrategy || isAILoading) && ( // Show cooldown if trying to generate new and cooldown active
               <p className="text-xs text-destructive flex items-center">
                 <AlertCircle size={14} className="mr-1" />
-                AI on cooldown. Available in: {formattedRemainingTime}
+                AI on cooldown. Available in: {getFormattedRemainingTime()}
               </p>
             )}
         </div>

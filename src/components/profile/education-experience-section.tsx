@@ -107,7 +107,7 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
                       <FormItem>
                         <FormLabel>School/University</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} autoComplete="organization" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -120,7 +120,7 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
                       <FormItem>
                         <FormLabel>Degree</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} autoComplete="off" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -133,7 +133,7 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
                       <FormItem>
                         <FormLabel>Major/Field of Study</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} autoComplete="off" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -146,7 +146,13 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
                       <FormItem>
                         <FormLabel>Graduation Year (YYYY, Optional)</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input
+                            {...field}
+                            inputMode="numeric"
+                            maxLength={4}
+                            placeholder="YYYY"
+                            autoComplete="off"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -159,7 +165,13 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
                       <FormItem>
                         <FormLabel>GPA (Optional)</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input
+                            {...field}
+                            inputMode="decimal"
+                            maxLength={5}
+                            placeholder="4.0"
+                            autoComplete="off"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
