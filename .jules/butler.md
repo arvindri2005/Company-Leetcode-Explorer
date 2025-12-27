@@ -1,0 +1,7 @@
+## 2024-05-24 - [Broken Type Checks]
+Friction: `pnpm typecheck` was failing consistently due to missing `acceptanceRate` in `LeetCodeProblem` type and missing `@testing-library/user-event` dependency.
+Service: Added `acceptanceRate` to `LeetCodeProblem` interface and installed `@testing-library/user-event`. This unblocked the type checking process.
+
+## 2024-05-24 - [Database Backup Friction]
+Friction: Developers had to manually run `tsx scripts/backup-firestore.ts` with no easy reference to the script path.
+Service: Added `db:backup` and `db:restore` scripts to `package.json` to standardize database maintenance operations.
