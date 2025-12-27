@@ -8,8 +8,16 @@ import {
   WorkExperience,
   GenerateCompanyStrategyOutput,
 } from "@/types";
+import { appEvents, EventKey, EventHandler } from "@/lib/events";
 
 export class UserService {
+  /**
+   * Subscribe to user-related events.
+   */
+  subscribe<K extends EventKey>(event: K, handler: EventHandler<K>) {
+    return appEvents.subscribe(event, handler);
+  }
+
   async getBookmarkedProblemsInfo(userId: string): Promise<BookmarkedProblemInfo[]> {
     return await userRepository.getBookmarkedProblemsInfo(userId);
   }
@@ -64,12 +72,25 @@ export class UserService {
     companySlug: string,
     problemSlug: string,
   ): Promise<{ isBookmarked: boolean; error?: string }> {
-    return await userRepository.toggleBookmarkProblem(
+    const result = await userRepository.toggleBookmarkProblem(
       userId,
       problemId,
       companySlug,
       problemSlug,
     );
+
+    if (!result.error) {
+      await appEvents.emit("user:bookmark_toggled", {
+        userId,
+        problemId,
+        isBookmarked: result.isBookmarked,
+        companySlug,
+        problemSlug,
+        timestamp: new Date(),
+      });
+    }
+
+    return result;
   }
 
   async setProblemStatus(
@@ -79,13 +100,26 @@ export class UserService {
     companySlug: string,
     problemSlug: string,
   ): Promise<{ success: boolean; error?: string }> {
-    return await userRepository.setProblemStatus(
+    const result = await userRepository.setProblemStatus(
       userId,
       problemId,
       status,
       companySlug,
       problemSlug,
     );
+
+    if (result.success) {
+      await appEvents.emit("user:problem_status_changed", {
+        userId,
+        problemId,
+        status,
+        companySlug,
+        problemSlug,
+        timestamp: new Date(),
+      });
+    }
+
+    return result;
   }
 
   async updateUserDisplayName(
