@@ -12,7 +12,7 @@ import {
   EducationExperienceSchema,
   WorkExperienceSchema,
 } from "@/types";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 import {
   collection,
   getDocs,
@@ -642,39 +642,33 @@ export class UserRepository {
   }
 
   async syncUserProfile(
-    uid: string,
     email: string | null,
     displayName: string | null,
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      if (!uid) {
-        return { success: false, error: "User ID is required for profile sync." };
+      // Security: Always derive UID from the authenticated session
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        return { success: false, error: "User is not authenticated." };
       }
+      const uid = currentUser.uid;
 
       const userDocRef = doc(db, "users", uid);
-      const userDocSnap = await getDoc(userDocRef);
+      
+      // Optimistic Update: Use setDoc with merge: true
+      // This works even if the client is offline (writes are queued)
+      // and doesn't require a prior 'read' (getDoc) which fails offline.
+      const updates: Partial<UserProfile> = {
+        uid,
+        lastSyncedAt: serverTimestamp(),
+      };
 
-      if (!userDocSnap.exists()) {
-        await setDoc(userDocRef, {
-          uid,
-          email,
-          displayName,
-          createdAt: serverTimestamp(),
-        });
-      } else {
-        const existingData = userDocSnap.data() as UserProfile;
-        const updates: Partial<UserProfile> = {};
-        if (displayName !== existingData.displayName) {
-          updates.displayName = displayName;
-        }
-        if (email !== existingData.email) {
-          updates.email = email;
-        }
+      if (email) updates.email = email;
+      if (displayName) updates.displayName = displayName;
 
-        if (Object.keys(updates).length > 0) {
-          await updateDoc(userDocRef, updates);
-        }
-      }
+      // We use setDoc with merge: true which creates if not exists, or updates if exists.
+      await setDoc(userDocRef, updates, { merge: true });
+
       return { success: true };
     } catch (error) {
       Logger.error("Error syncing user profile to Firestore", error);

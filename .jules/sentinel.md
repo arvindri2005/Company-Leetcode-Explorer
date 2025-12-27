@@ -1,0 +1,4 @@
+## 2024-05-22 - Deprecated Server Action Vulnerability
+**Vulnerability:** The `syncUserProfile` Server Action was exposed as a public endpoint, accepting a `uid` parameter without server-side authentication verification. While Firestore Rules currently prevent exploitation (by blocking unauthenticated server writes), this pattern represents a dormant IDOR vulnerability that could become critical if the backend environment privileges were escalated.
+**Learning:** Deprecated code that remains exported creates an unnecessary attack surface. Reliance on client-side SDK limitations for server-side security is fragile; Server Actions should always verify authentication explicitly or use an Admin SDK with proper checks.
+**Prevention:** Remove deprecated, unused Server Actions immediately. Ensure all Server Actions dealing with user data verify the session/token before processing input, rather than blindly trusting the provided `userId`.

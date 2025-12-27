@@ -141,11 +141,10 @@ export class UserService {
   }
 
   async syncUserProfile(
-    uid: string,
     email: string | null,
     displayName: string | null,
   ): Promise<{ success: boolean; error?: string }> {
-    return await userRepository.syncUserProfile(uid, email, displayName);
+    return await userRepository.syncUserProfile(email, displayName);
   }
 }
 
