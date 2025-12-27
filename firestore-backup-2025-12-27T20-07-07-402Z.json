@@ -1,0 +1,5294 @@
+{
+  "metadata": {
+    "timestamp": "2025-12-27T20:07:07.402Z",
+    "version": "1.1.0",
+    "counts": {
+      "companies": 1,
+      "problems": 217,
+      "users": 0,
+      "contact-messages": 0
+    },
+    "checksum": "9d759688df7bd71396cf9ab3d2124652da8d846508eae2333276e50b6b5bf77b",
+    "environment": "job-application-tracker-e20a6"
+  },
+  "data": {
+    "companies": {
+      "1kosmos": {
+        "data": {
+          "commonTags": [],
+          "difficultyCounts": {
+            "Easy": 0,
+            "Hard": 0,
+            "Medium": 0
+          },
+          "id": "1kosmos",
+          "logo": "https://img.logo.dev/1kosmos.com",
+          "name": "1kosmos",
+          "normalizedName": "1kosmos",
+          "problemCount": 0,
+          "recencyCounts": {
+            "last_30_days": 0,
+            "older_than_6_months": 0,
+            "within_3_months": 0,
+            "within_6_months": 0
+          },
+          "relatedCompanies": [
+            "postmates",
+            "mobisy",
+            "tomtom",
+            "zemoso",
+            "zomato"
+          ],
+          "slug": "1kosmos",
+          "website": "https://1kosmos.com"
+        }
+      }
+    },
+    "problems": {
+      "3sum": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "agoda",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/3sum",
+          "normalizedTitle": "3sum",
+          "slug": "3sum",
+          "tags": [
+            "Array",
+            "Two Pointers",
+            "Sorting"
+          ],
+          "title": "3Sum"
+        }
+      },
+      "3sum-closest": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/3sum-closest",
+          "normalizedTitle": "3sum closest",
+          "slug": "3sum-closest",
+          "tags": [
+            "Array",
+            "Two Pointers",
+            "Sorting"
+          ],
+          "title": "3Sum Closest"
+        }
+      },
+      "4sum": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/4sum",
+          "normalizedTitle": "4sum",
+          "slug": "4sum",
+          "tags": [
+            "Array",
+            "Two Pointers",
+            "Sorting"
+          ],
+          "title": "4Sum"
+        }
+      },
+      "add-binary": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/add-binary",
+          "normalizedTitle": "add binary",
+          "slug": "add-binary",
+          "tags": [
+            "Math",
+            "String",
+            "Bit Manipulation",
+            "Simulation"
+          ],
+          "title": "Add Binary"
+        }
+      },
+      "add-two-numbers": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/add-two-numbers",
+          "normalizedTitle": "add two numbers",
+          "slug": "add-two-numbers",
+          "tags": [
+            "Linked List",
+            "Math",
+            "Recursion"
+          ],
+          "title": "Add Two Numbers"
+        }
+      },
+      "ant-on-the-boundary": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/ant-on-the-boundary",
+          "normalizedTitle": "ant on the boundary",
+          "slug": "ant-on-the-boundary",
+          "tags": [
+            "Array",
+            "Simulation",
+            "Prefix Sum"
+          ],
+          "title": "Ant on the Boundary"
+        }
+      },
+      "assign-cookies": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/assign-cookies",
+          "normalizedTitle": "assign cookies",
+          "slug": "assign-cookies",
+          "tags": [
+            "Array",
+            "Two Pointers",
+            "Greedy",
+            "Sorting"
+          ],
+          "title": "Assign Cookies"
+        }
+      },
+      "average-value-of-even-numbers-that-are-divisible-by-three": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/average-value-of-even-numbers-that-are-divisible-by-three",
+          "normalizedTitle": "average value of even numbers that are divisible by three",
+          "slug": "average-value-of-even-numbers-that-are-divisible-by-three",
+          "tags": [
+            "Array",
+            "Math"
+          ],
+          "title": "Average Value of Even Numbers That Are Divisible by Three"
+        }
+      },
+      "balanced-binary-tree": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/balanced-binary-tree",
+          "normalizedTitle": "balanced binary tree",
+          "slug": "balanced-binary-tree",
+          "tags": [
+            "Tree",
+            "Depth-First Search",
+            "Binary Tree"
+          ],
+          "title": "Balanced Binary Tree"
+        }
+      },
+      "basic-calculator-ii": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/basic-calculator-ii",
+          "normalizedTitle": "basic calculator ii",
+          "slug": "basic-calculator-ii",
+          "tags": [
+            "Math",
+            "String",
+            "Stack"
+          ],
+          "title": "Basic Calculator II"
+        }
+      },
+      "best-time-to-buy-and-sell-stock": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "agoda"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock",
+          "normalizedTitle": "best time to buy and sell stock",
+          "slug": "best-time-to-buy-and-sell-stock",
+          "tags": [
+            "Array",
+            "Dynamic Programming"
+          ],
+          "title": "Best Time to Buy and Sell Stock"
+        }
+      },
+      "binary-search": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/binary-search",
+          "normalizedTitle": "binary search",
+          "slug": "binary-search",
+          "tags": [
+            "Array",
+            "Binary Search"
+          ],
+          "title": "Binary Search"
+        }
+      },
+      "binary-tree-inorder-traversal": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/binary-tree-inorder-traversal",
+          "normalizedTitle": "binary tree inorder traversal",
+          "slug": "binary-tree-inorder-traversal",
+          "tags": [
+            "Stack",
+            "Tree",
+            "Depth-First Search",
+            "Binary Tree"
+          ],
+          "title": "Binary Tree Inorder Traversal"
+        }
+      },
+      "binary-tree-right-side-view": {
+        "data": {
+          "companies": {
+            "accolite": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accolite"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/binary-tree-right-side-view",
+          "normalizedTitle": "binary tree right side view",
+          "slug": "binary-tree-right-side-view",
+          "tags": [
+            "Tree",
+            "Depth-First Search",
+            "Breadth-First Search",
+            "Binary Tree"
+          ],
+          "title": "Binary Tree Right Side View"
+        }
+      },
+      "binary-tree-zigzag-level-order-traversal": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/binary-tree-zigzag-level-order-traversal",
+          "normalizedTitle": "binary tree zigzag level order traversal",
+          "slug": "binary-tree-zigzag-level-order-traversal",
+          "tags": [
+            "Tree",
+            "Breadth-First Search",
+            "Binary Tree"
+          ],
+          "title": "Binary Tree Zigzag Level Order Traversal"
+        }
+      },
+      "brick-wall": {
+        "data": {
+          "companies": {
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/brick-wall",
+          "normalizedTitle": "brick wall",
+          "slug": "brick-wall",
+          "tags": [
+            "Array",
+            "Hash Table"
+          ],
+          "title": "Brick Wall"
+        }
+      },
+      "bulb-switcher": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/bulb-switcher",
+          "normalizedTitle": "bulb switcher",
+          "slug": "bulb-switcher",
+          "tags": [
+            "Math",
+            "Brainteaser"
+          ],
+          "title": "Bulb Switcher"
+        }
+      },
+      "can-place-flowers": {
+        "data": {
+          "companies": {
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/can-place-flowers",
+          "normalizedTitle": "can place flowers",
+          "slug": "can-place-flowers",
+          "tags": [
+            "Array",
+            "Greedy"
+          ],
+          "title": "Can Place Flowers"
+        }
+      },
+      "candy": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/candy",
+          "normalizedTitle": "candy",
+          "slug": "candy",
+          "tags": [
+            "Array",
+            "Greedy"
+          ],
+          "title": "Candy"
+        }
+      },
+      "capacity-to-ship-packages-within-d-days": {
+        "data": {
+          "companies": {
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/capacity-to-ship-packages-within-d-days",
+          "normalizedTitle": "capacity to ship packages within d days",
+          "slug": "capacity-to-ship-packages-within-d-days",
+          "tags": [
+            "Array",
+            "Binary Search"
+          ],
+          "title": "Capacity To Ship Packages Within D Days"
+        }
+      },
+      "climbing-stairs": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "accolite": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe",
+            "accolite"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/climbing-stairs",
+          "normalizedTitle": "climbing stairs",
+          "slug": "climbing-stairs",
+          "tags": [
+            "Math",
+            "Dynamic Programming",
+            "Memoization"
+          ],
+          "title": "Climbing Stairs"
+        }
+      },
+      "coin-change": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "affirm": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "agoda",
+            "affirm"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/coin-change",
+          "normalizedTitle": "coin change",
+          "slug": "coin-change",
+          "tags": [
+            "Array",
+            "Dynamic Programming",
+            "Breadth-First Search"
+          ],
+          "title": "Coin Change"
+        }
+      },
+      "combination-sum": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/combination-sum",
+          "normalizedTitle": "combination sum",
+          "slug": "combination-sum",
+          "tags": [
+            "Array",
+            "Backtracking"
+          ],
+          "title": "Combination Sum"
+        }
+      },
+      "combination-sum-ii": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/combination-sum-ii",
+          "normalizedTitle": "combination sum ii",
+          "slug": "combination-sum-ii",
+          "tags": [
+            "Array",
+            "Backtracking"
+          ],
+          "title": "Combination Sum II"
+        }
+      },
+      "combinations": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/combinations",
+          "normalizedTitle": "combinations",
+          "slug": "combinations",
+          "tags": [
+            "Backtracking"
+          ],
+          "title": "Combinations"
+        }
+      },
+      "construct-binary-tree-from-inorder-and-postorder-traversal": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/construct-binary-tree-from-inorder-and-postorder-traversal",
+          "normalizedTitle": "construct binary tree from inorder and postorder traversal",
+          "slug": "construct-binary-tree-from-inorder-and-postorder-traversal",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "Divide and Conquer",
+            "Tree",
+            "Binary Tree"
+          ],
+          "title": "Construct Binary Tree from Inorder and Postorder Traversal"
+        }
+      },
+      "construct-binary-tree-from-preorder-and-inorder-traversal": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal",
+          "normalizedTitle": "construct binary tree from preorder and inorder traversal",
+          "slug": "construct-binary-tree-from-preorder-and-inorder-traversal",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "Divide and Conquer",
+            "Tree",
+            "Binary Tree"
+          ],
+          "title": "Construct Binary Tree from Preorder and Inorder Traversal"
+        }
+      },
+      "container-with-most-water": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/container-with-most-water",
+          "normalizedTitle": "container with most water",
+          "slug": "container-with-most-water",
+          "tags": [
+            "Array",
+            "Two Pointers",
+            "Greedy"
+          ],
+          "title": "Container With Most Water"
+        }
+      },
+      "contains-duplicate": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/contains-duplicate",
+          "normalizedTitle": "contains duplicate",
+          "slug": "contains-duplicate",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "Sorting"
+          ],
+          "title": "Contains Duplicate"
+        }
+      },
+      "convert-sorted-array-to-binary-search-tree": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/convert-sorted-array-to-binary-search-tree",
+          "normalizedTitle": "convert sorted array to binary search tree",
+          "slug": "convert-sorted-array-to-binary-search-tree",
+          "tags": [
+            "Array",
+            "Divide and Conquer",
+            "Tree",
+            "Binary Search Tree",
+            "Binary Tree"
+          ],
+          "title": "Convert Sorted Array to Binary Search Tree"
+        }
+      },
+      "count-all-valid-pickup-and-delivery-options": {
+        "data": {
+          "companies": {
+            "acko": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "acko"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/count-all-valid-pickup-and-delivery-options",
+          "normalizedTitle": "count all valid pickup and delivery options",
+          "slug": "count-all-valid-pickup-and-delivery-options",
+          "tags": [
+            "Math",
+            "Dynamic Programming",
+            "Combinatorics"
+          ],
+          "title": "Count All Valid Pickup and Delivery Options"
+        }
+      },
+      "count-and-say": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/count-and-say",
+          "normalizedTitle": "count and say",
+          "slug": "count-and-say",
+          "tags": [
+            "String"
+          ],
+          "title": "Count and Say"
+        }
+      },
+      "count-operations-to-obtain-zero": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/count-operations-to-obtain-zero",
+          "normalizedTitle": "count operations to obtain zero",
+          "slug": "count-operations-to-obtain-zero",
+          "tags": [
+            "Math",
+            "Simulation"
+          ],
+          "title": "Count Operations to Obtain Zero"
+        }
+      },
+      "count-pairs-whose-sum-is-less-than-target": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/count-pairs-whose-sum-is-less-than-target",
+          "normalizedTitle": "count pairs whose sum is less than target",
+          "slug": "count-pairs-whose-sum-is-less-than-target",
+          "tags": [
+            "Array",
+            "Two Pointers",
+            "Binary Search",
+            "Sorting"
+          ],
+          "title": "Count Pairs Whose Sum is Less than Target"
+        }
+      },
+      "count-primes": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/count-primes",
+          "normalizedTitle": "count primes",
+          "slug": "count-primes",
+          "tags": [
+            "Array",
+            "Math",
+            "Enumeration",
+            "Number Theory"
+          ],
+          "title": "Count Primes"
+        }
+      },
+      "count-tested-devices-after-test-operations": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/count-tested-devices-after-test-operations",
+          "normalizedTitle": "count tested devices after test operations",
+          "slug": "count-tested-devices-after-test-operations",
+          "tags": [
+            "Array",
+            "Simulation",
+            "Counting"
+          ],
+          "title": "Count Tested Devices After Test Operations"
+        }
+      },
+      "course-schedule": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/course-schedule",
+          "normalizedTitle": "course schedule",
+          "slug": "course-schedule",
+          "tags": [
+            "Depth-First Search",
+            "Breadth-First Search",
+            "Graph",
+            "Topological Sort"
+          ],
+          "title": "Course Schedule"
+        }
+      },
+      "create-hello-world-function": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/create-hello-world-function",
+          "normalizedTitle": "create hello world function",
+          "slug": "create-hello-world-function",
+          "tags": [],
+          "title": "Create Hello World Function"
+        }
+      },
+      "daily-temperatures": {
+        "data": {
+          "companies": {
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/daily-temperatures",
+          "normalizedTitle": "daily temperatures",
+          "slug": "daily-temperatures",
+          "tags": [
+            "Array",
+            "Stack",
+            "Monotonic Stack"
+          ],
+          "title": "Daily Temperatures"
+        }
+      },
+      "decode-string": {
+        "data": {
+          "companies": {
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/decode-string",
+          "normalizedTitle": "decode string",
+          "slug": "decode-string",
+          "tags": [
+            "String",
+            "Stack",
+            "Recursion"
+          ],
+          "title": "Decode String"
+        }
+      },
+      "decode-ways": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/decode-ways",
+          "normalizedTitle": "decode ways",
+          "slug": "decode-ways",
+          "tags": [
+            "String",
+            "Dynamic Programming"
+          ],
+          "title": "Decode Ways"
+        }
+      },
+      "delete-and-earn": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/delete-and-earn",
+          "normalizedTitle": "delete and earn",
+          "slug": "delete-and-earn",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "Dynamic Programming"
+          ],
+          "title": "Delete and Earn"
+        }
+      },
+      "design-browser-history": {
+        "data": {
+          "companies": {
+            "activision": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "activision"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/design-browser-history",
+          "normalizedTitle": "design browser history",
+          "slug": "design-browser-history",
+          "tags": [
+            "Array",
+            "Linked List",
+            "Stack",
+            "Design",
+            "Doubly-Linked List",
+            "Data Stream"
+          ],
+          "title": "Design Browser History"
+        }
+      },
+      "design-hit-counter": {
+        "data": {
+          "companies": {
+            "affirm": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "affirm"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/design-hit-counter",
+          "normalizedTitle": "design hit counter",
+          "slug": "design-hit-counter",
+          "tags": [
+            "Array",
+            "Binary Search",
+            "Design",
+            "Queue",
+            "Data Stream"
+          ],
+          "title": "Design Hit Counter"
+        }
+      },
+      "divide-nodes-into-the-maximum-number-of-groups": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/divide-nodes-into-the-maximum-number-of-groups",
+          "normalizedTitle": "divide nodes into the maximum number of groups",
+          "slug": "divide-nodes-into-the-maximum-number-of-groups",
+          "tags": [
+            "Depth-First Search",
+            "Breadth-First Search",
+            "Union Find",
+            "Graph"
+          ],
+          "title": "Divide Nodes Into the Maximum Number of Groups"
+        }
+      },
+      "divide-two-integers": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/divide-two-integers",
+          "normalizedTitle": "divide two integers",
+          "slug": "divide-two-integers",
+          "tags": [
+            "Math",
+            "Bit Manipulation"
+          ],
+          "title": "Divide Two Integers"
+        }
+      },
+      "edit-distance": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/edit-distance",
+          "normalizedTitle": "edit distance",
+          "slug": "edit-distance",
+          "tags": [
+            "String",
+            "Dynamic Programming"
+          ],
+          "title": "Edit Distance"
+        }
+      },
+      "excel-sheet-column-title": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/excel-sheet-column-title",
+          "normalizedTitle": "excel sheet column title",
+          "slug": "excel-sheet-column-title",
+          "tags": [
+            "Math",
+            "String"
+          ],
+          "title": "Excel Sheet Column Title"
+        }
+      },
+      "fibonacci-number": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/fibonacci-number",
+          "normalizedTitle": "fibonacci number",
+          "slug": "fibonacci-number",
+          "tags": [
+            "Math",
+            "Dynamic Programming",
+            "Recursion",
+            "Memoization"
+          ],
+          "title": "Fibonacci Number"
+        }
+      },
+      "fill-missing-data": {
+        "data": {
+          "companies": {
+            "acko": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "acko"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/fill-missing-data",
+          "normalizedTitle": "fill missing data",
+          "slug": "fill-missing-data",
+          "tags": [],
+          "title": "Fill Missing Data"
+        }
+      },
+      "find-first-and-last-position-of-element-in-sorted-array": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array",
+          "normalizedTitle": "find first and last position of element in sorted array",
+          "slug": "find-first-and-last-position-of-element-in-sorted-array",
+          "tags": [
+            "Array",
+            "Binary Search"
+          ],
+          "title": "Find First and Last Position of Element in Sorted Array"
+        }
+      },
+      "find-median-from-data-stream": {
+        "data": {
+          "companies": {
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/find-median-from-data-stream",
+          "normalizedTitle": "find median from data stream",
+          "slug": "find-median-from-data-stream",
+          "tags": [
+            "Two Pointers",
+            "Design",
+            "Sorting",
+            "Heap (Priority Queue)",
+            "Data Stream"
+          ],
+          "title": "Find Median from Data Stream"
+        }
+      },
+      "find-original-array-from-doubled-array": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/find-original-array-from-doubled-array",
+          "normalizedTitle": "find original array from doubled array",
+          "slug": "find-original-array-from-doubled-array",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "Greedy",
+            "Sorting"
+          ],
+          "title": "Find Original Array From Doubled Array"
+        }
+      },
+      "find-peak-element": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/find-peak-element",
+          "normalizedTitle": "find peak element",
+          "slug": "find-peak-element",
+          "tags": [
+            "Array",
+            "Binary Search"
+          ],
+          "title": "Find Peak Element"
+        }
+      },
+      "find-subsequence-of-length-k-with-the-largest-sum": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/find-subsequence-of-length-k-with-the-largest-sum",
+          "normalizedTitle": "find subsequence of length k with the largest sum",
+          "slug": "find-subsequence-of-length-k-with-the-largest-sum",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "Sorting",
+            "Heap (Priority Queue)"
+          ],
+          "title": "Find Subsequence of Length K With the Largest Sum"
+        }
+      },
+      "find-the-child-who-has-the-ball-after-k-seconds": {
+        "data": {
+          "companies": {
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/find-the-child-who-has-the-ball-after-k-seconds",
+          "normalizedTitle": "find the child who has the ball after k seconds",
+          "slug": "find-the-child-who-has-the-ball-after-k-seconds",
+          "tags": [
+            "Math",
+            "Simulation"
+          ],
+          "title": "Find the Child Who Has the Ball After K Seconds"
+        }
+      },
+      "find-the-index-of-the-first-occurrence-in-a-string": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string",
+          "normalizedTitle": "find the index of the first occurrence in a string",
+          "slug": "find-the-index-of-the-first-occurrence-in-a-string",
+          "tags": [
+            "Two Pointers",
+            "String",
+            "String Matching"
+          ],
+          "title": "Find the Index of the First Occurrence in a String"
+        }
+      },
+      "find-the-winner-of-the-circular-game": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/find-the-winner-of-the-circular-game",
+          "normalizedTitle": "find the winner of the circular game",
+          "slug": "find-the-winner-of-the-circular-game",
+          "tags": [
+            "Array",
+            "Math",
+            "Recursion",
+            "Queue",
+            "Simulation"
+          ],
+          "title": "Find the Winner of the Circular Game"
+        }
+      },
+      "find-unique-binary-string": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/find-unique-binary-string",
+          "normalizedTitle": "find unique binary string",
+          "slug": "find-unique-binary-string",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "String",
+            "Backtracking"
+          ],
+          "title": "Find Unique Binary String"
+        }
+      },
+      "first-missing-positive": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/first-missing-positive",
+          "normalizedTitle": "first missing positive",
+          "slug": "first-missing-positive",
+          "tags": [
+            "Array",
+            "Hash Table"
+          ],
+          "title": "First Missing Positive"
+        }
+      },
+      "generate-parentheses": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/generate-parentheses",
+          "normalizedTitle": "generate parentheses",
+          "slug": "generate-parentheses",
+          "tags": [
+            "String",
+            "Dynamic Programming",
+            "Backtracking"
+          ],
+          "title": "Generate Parentheses"
+        }
+      },
+      "group-anagrams": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "affirm": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "agoda",
+            "adobe",
+            "affirm"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/group-anagrams",
+          "normalizedTitle": "group anagrams",
+          "slug": "group-anagrams",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "String",
+            "Sorting"
+          ],
+          "title": "Group Anagrams"
+        }
+      },
+      "happy-number": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/happy-number",
+          "normalizedTitle": "happy number",
+          "slug": "happy-number",
+          "tags": [
+            "Hash Table",
+            "Math",
+            "Two Pointers"
+          ],
+          "title": "Happy Number"
+        }
+      },
+      "house-robber": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "agoda"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/house-robber",
+          "normalizedTitle": "house robber",
+          "slug": "house-robber",
+          "tags": [
+            "Array",
+            "Dynamic Programming"
+          ],
+          "title": "House Robber"
+        }
+      },
+      "how-many-numbers-are-smaller-than-the-current-number": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/how-many-numbers-are-smaller-than-the-current-number",
+          "normalizedTitle": "how many numbers are smaller than the current number",
+          "slug": "how-many-numbers-are-smaller-than-the-current-number",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "Sorting",
+            "Counting Sort"
+          ],
+          "title": "How Many Numbers Are Smaller Than the Current Number"
+        }
+      },
+      "insert-delete-getrandom-o1": {
+        "data": {
+          "companies": {
+            "affirm": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda",
+            "affirm"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/insert-delete-getrandom-o1",
+          "normalizedTitle": "insert delete getrandom o(1)",
+          "slug": "insert-delete-getrandom-o1",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "Math",
+            "Design",
+            "Randomized"
+          ],
+          "title": "Insert Delete GetRandom O(1)"
+        }
+      },
+      "insert-delete-getrandom-o1-duplicates-allowed": {
+        "data": {
+          "companies": {
+            "affirm": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "affirm"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/insert-delete-getrandom-o1-duplicates-allowed",
+          "normalizedTitle": "insert delete getrandom o(1) - duplicates allowed",
+          "slug": "insert-delete-getrandom-o1-duplicates-allowed",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "Math",
+            "Design",
+            "Randomized"
+          ],
+          "title": "Insert Delete GetRandom O(1) - Duplicates allowed"
+        }
+      },
+      "insert-interval": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/insert-interval",
+          "normalizedTitle": "insert interval",
+          "slug": "insert-interval",
+          "tags": [
+            "Array"
+          ],
+          "title": "Insert Interval"
+        }
+      },
+      "integer-break": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/integer-break",
+          "normalizedTitle": "integer break",
+          "slug": "integer-break",
+          "tags": [
+            "Math",
+            "Dynamic Programming"
+          ],
+          "title": "Integer Break"
+        }
+      },
+      "integer-to-roman": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/integer-to-roman",
+          "normalizedTitle": "integer to roman",
+          "slug": "integer-to-roman",
+          "tags": [
+            "Hash Table",
+            "Math",
+            "String"
+          ],
+          "title": "Integer to Roman"
+        }
+      },
+      "intersection-of-two-arrays": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/intersection-of-two-arrays",
+          "normalizedTitle": "intersection of two arrays",
+          "slug": "intersection-of-two-arrays",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "Two Pointers",
+            "Binary Search",
+            "Sorting"
+          ],
+          "title": "Intersection of Two Arrays"
+        }
+      },
+      "intersection-of-two-linked-lists": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/intersection-of-two-linked-lists",
+          "normalizedTitle": "intersection of two linked lists",
+          "slug": "intersection-of-two-linked-lists",
+          "tags": [
+            "Hash Table",
+            "Linked List",
+            "Two Pointers"
+          ],
+          "title": "Intersection of Two Linked Lists"
+        }
+      },
+      "invalid-tweets": {
+        "data": {
+          "companies": {
+            "acko": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "acko"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/invalid-tweets",
+          "normalizedTitle": "invalid tweets",
+          "slug": "invalid-tweets",
+          "tags": [
+            "Database"
+          ],
+          "title": "Invalid Tweets"
+        }
+      },
+      "is-subsequence": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/is-subsequence",
+          "normalizedTitle": "is subsequence",
+          "slug": "is-subsequence",
+          "tags": [
+            "Two Pointers",
+            "String",
+            "Dynamic Programming"
+          ],
+          "title": "Is Subsequence"
+        }
+      },
+      "jump-game": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/jump-game",
+          "normalizedTitle": "jump game",
+          "slug": "jump-game",
+          "tags": [
+            "Array",
+            "Dynamic Programming",
+            "Greedy"
+          ],
+          "title": "Jump Game"
+        }
+      },
+      "jump-game-ii": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/jump-game-ii",
+          "normalizedTitle": "jump game ii",
+          "slug": "jump-game-ii",
+          "tags": [
+            "Array",
+            "Dynamic Programming",
+            "Greedy"
+          ],
+          "title": "Jump Game II"
+        }
+      },
+      "koko-eating-bananas": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/koko-eating-bananas",
+          "normalizedTitle": "koko eating bananas",
+          "slug": "koko-eating-bananas",
+          "tags": [
+            "Array",
+            "Binary Search"
+          ],
+          "title": "Koko Eating Bananas"
+        }
+      },
+      "kth-largest-element-in-an-array": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/kth-largest-element-in-an-array",
+          "normalizedTitle": "kth largest element in an array",
+          "slug": "kth-largest-element-in-an-array",
+          "tags": [
+            "Array",
+            "Divide and Conquer",
+            "Sorting",
+            "Heap (Priority Queue)",
+            "Quickselect"
+          ],
+          "title": "Kth Largest Element in an Array"
+        }
+      },
+      "kth-smallest-element-in-a-bst": {
+        "data": {
+          "companies": {
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/kth-smallest-element-in-a-bst",
+          "normalizedTitle": "kth smallest element in a bst",
+          "slug": "kth-smallest-element-in-a-bst",
+          "tags": [
+            "Tree",
+            "Depth-First Search",
+            "Binary Search Tree",
+            "Binary Tree"
+          ],
+          "title": "Kth Smallest Element in a BST"
+        }
+      },
+      "largest-number": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/largest-number",
+          "normalizedTitle": "largest number",
+          "slug": "largest-number",
+          "tags": [
+            "Array",
+            "String",
+            "Greedy",
+            "Sorting"
+          ],
+          "title": "Largest Number"
+        }
+      },
+      "largest-rectangle-in-histogram": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/largest-rectangle-in-histogram",
+          "normalizedTitle": "largest rectangle in histogram",
+          "slug": "largest-rectangle-in-histogram",
+          "tags": [
+            "Array",
+            "Stack",
+            "Monotonic Stack"
+          ],
+          "title": "Largest Rectangle in Histogram"
+        }
+      },
+      "length-of-last-word": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/length-of-last-word",
+          "normalizedTitle": "length of last word",
+          "slug": "length-of-last-word",
+          "tags": [
+            "String"
+          ],
+          "title": "Length of Last Word"
+        }
+      },
+      "letter-combinations-of-a-phone-number": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/letter-combinations-of-a-phone-number",
+          "normalizedTitle": "letter combinations of a phone number",
+          "slug": "letter-combinations-of-a-phone-number",
+          "tags": [
+            "Hash Table",
+            "String",
+            "Backtracking"
+          ],
+          "title": "Letter Combinations of a Phone Number"
+        }
+      },
+      "lexicographically-smallest-string-after-substring-operation": {
+        "data": {
+          "companies": {
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/lexicographically-smallest-string-after-substring-operation",
+          "normalizedTitle": "lexicographically smallest string after substring operation",
+          "slug": "lexicographically-smallest-string-after-substring-operation",
+          "tags": [
+            "String",
+            "Greedy"
+          ],
+          "title": "Lexicographically Smallest String After Substring Operation"
+        }
+      },
+      "longest-common-prefix": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "accolite": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe",
+            "accolite"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/longest-common-prefix",
+          "normalizedTitle": "longest common prefix",
+          "slug": "longest-common-prefix",
+          "tags": [
+            "String",
+            "Trie"
+          ],
+          "title": "Longest Common Prefix"
+        }
+      },
+      "longest-common-subsequence": {
+        "data": {
+          "companies": {
+            "accolite": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accolite"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/longest-common-subsequence",
+          "normalizedTitle": "longest common subsequence",
+          "slug": "longest-common-subsequence",
+          "tags": [
+            "String",
+            "Dynamic Programming"
+          ],
+          "title": "Longest Common Subsequence"
+        }
+      },
+      "longest-increasing-path-in-a-matrix": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/longest-increasing-path-in-a-matrix",
+          "normalizedTitle": "longest increasing path in a matrix",
+          "slug": "longest-increasing-path-in-a-matrix",
+          "tags": [
+            "Array",
+            "Dynamic Programming",
+            "Depth-First Search",
+            "Breadth-First Search",
+            "Graph",
+            "Topological Sort",
+            "Memoization",
+            "Matrix"
+          ],
+          "title": "Longest Increasing Path in a Matrix"
+        }
+      },
+      "longest-increasing-subsequence": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/longest-increasing-subsequence",
+          "normalizedTitle": "longest increasing subsequence",
+          "slug": "longest-increasing-subsequence",
+          "tags": [
+            "Array",
+            "Binary Search",
+            "Dynamic Programming"
+          ],
+          "title": "Longest Increasing Subsequence"
+        }
+      },
+      "longest-palindromic-substring": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "accolite": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "agoda",
+            "adobe",
+            "accolite"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/longest-palindromic-substring",
+          "normalizedTitle": "longest palindromic substring",
+          "slug": "longest-palindromic-substring",
+          "tags": [
+            "Two Pointers",
+            "String",
+            "Dynamic Programming"
+          ],
+          "title": "Longest Palindromic Substring"
+        }
+      },
+      "longest-substring-without-repeating-characters": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "accolite": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "agoda",
+            "adobe",
+            "accolite"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/longest-substring-without-repeating-characters",
+          "normalizedTitle": "longest substring without repeating characters",
+          "slug": "longest-substring-without-repeating-characters",
+          "tags": [
+            "Hash Table",
+            "String",
+            "Sliding Window"
+          ],
+          "title": "Longest Substring Without Repeating Characters"
+        }
+      },
+      "longest-valid-parentheses": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/longest-valid-parentheses",
+          "normalizedTitle": "longest valid parentheses",
+          "slug": "longest-valid-parentheses",
+          "tags": [
+            "String",
+            "Dynamic Programming",
+            "Stack"
+          ],
+          "title": "Longest Valid Parentheses"
+        }
+      },
+      "lowest-common-ancestor-of-a-binary-tree": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree",
+          "normalizedTitle": "lowest common ancestor of a binary tree",
+          "slug": "lowest-common-ancestor-of-a-binary-tree",
+          "tags": [
+            "Tree",
+            "Depth-First Search",
+            "Binary Tree"
+          ],
+          "title": "Lowest Common Ancestor of a Binary Tree"
+        }
+      },
+      "lru-cache": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/lru-cache",
+          "normalizedTitle": "lru cache",
+          "slug": "lru-cache",
+          "tags": [
+            "Hash Table",
+            "Linked List",
+            "Design",
+            "Doubly-Linked List"
+          ],
+          "title": "LRU Cache"
+        }
+      },
+      "majority-element": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/majority-element",
+          "normalizedTitle": "majority element",
+          "slug": "majority-element",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "Divide and Conquer",
+            "Sorting",
+            "Counting"
+          ],
+          "title": "Majority Element"
+        }
+      },
+      "majority-element-ii": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/majority-element-ii",
+          "normalizedTitle": "majority element ii",
+          "slug": "majority-element-ii",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "Sorting",
+            "Counting"
+          ],
+          "title": "Majority Element II"
+        }
+      },
+      "make-the-string-great": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/make-the-string-great",
+          "normalizedTitle": "make the string great",
+          "slug": "make-the-string-great",
+          "tags": [
+            "String",
+            "Stack"
+          ],
+          "title": "Make The String Great"
+        }
+      },
+      "max-consecutive-ones": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/max-consecutive-ones",
+          "normalizedTitle": "max consecutive ones",
+          "slug": "max-consecutive-ones",
+          "tags": [
+            "Array"
+          ],
+          "title": "Max Consecutive Ones"
+        }
+      },
+      "maximal-rectangle": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/maximal-rectangle",
+          "normalizedTitle": "maximal rectangle",
+          "slug": "maximal-rectangle",
+          "tags": [
+            "Array",
+            "Dynamic Programming",
+            "Stack",
+            "Matrix",
+            "Monotonic Stack"
+          ],
+          "title": "Maximal Rectangle"
+        }
+      },
+      "maximum-area-of-longest-diagonal-rectangle": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/maximum-area-of-longest-diagonal-rectangle",
+          "normalizedTitle": "maximum area of longest diagonal rectangle",
+          "slug": "maximum-area-of-longest-diagonal-rectangle",
+          "tags": [
+            "Array"
+          ],
+          "title": "Maximum Area of Longest Diagonal Rectangle"
+        }
+      },
+      "maximum-depth-of-binary-tree": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/maximum-depth-of-binary-tree",
+          "normalizedTitle": "maximum depth of binary tree",
+          "slug": "maximum-depth-of-binary-tree",
+          "tags": [
+            "Tree",
+            "Depth-First Search",
+            "Breadth-First Search",
+            "Binary Tree"
+          ],
+          "title": "Maximum Depth of Binary Tree"
+        }
+      },
+      "maximum-product-subarray": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/maximum-product-subarray",
+          "normalizedTitle": "maximum product subarray",
+          "slug": "maximum-product-subarray",
+          "tags": [
+            "Array",
+            "Dynamic Programming"
+          ],
+          "title": "Maximum Product Subarray"
+        }
+      },
+      "maximum-subarray": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/maximum-subarray",
+          "normalizedTitle": "maximum subarray",
+          "slug": "maximum-subarray",
+          "tags": [
+            "Array",
+            "Divide and Conquer",
+            "Dynamic Programming"
+          ],
+          "title": "Maximum Subarray"
+        }
+      },
+      "median-of-two-sorted-arrays": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/median-of-two-sorted-arrays",
+          "normalizedTitle": "median of two sorted arrays",
+          "slug": "median-of-two-sorted-arrays",
+          "tags": [
+            "Array",
+            "Binary Search",
+            "Divide and Conquer"
+          ],
+          "title": "Median of Two Sorted Arrays"
+        }
+      },
+      "merge-intervals": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/merge-intervals",
+          "normalizedTitle": "merge intervals",
+          "slug": "merge-intervals",
+          "tags": [
+            "Array",
+            "Sorting"
+          ],
+          "title": "Merge Intervals"
+        }
+      },
+      "merge-k-sorted-lists": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/merge-k-sorted-lists",
+          "normalizedTitle": "merge k sorted lists",
+          "slug": "merge-k-sorted-lists",
+          "tags": [
+            "Linked List",
+            "Divide and Conquer",
+            "Heap (Priority Queue)",
+            "Merge Sort"
+          ],
+          "title": "Merge k Sorted Lists"
+        }
+      },
+      "merge-operations-to-turn-array-into-a-palindrome": {
+        "data": {
+          "companies": {
+            "accolite": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accolite"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/merge-operations-to-turn-array-into-a-palindrome",
+          "normalizedTitle": "merge operations to turn array into a palindrome",
+          "slug": "merge-operations-to-turn-array-into-a-palindrome",
+          "tags": [
+            "Array",
+            "Two Pointers",
+            "Greedy"
+          ],
+          "title": "Merge Operations to Turn Array Into a Palindrome"
+        }
+      },
+      "merge-sorted-array": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/merge-sorted-array",
+          "normalizedTitle": "merge sorted array",
+          "slug": "merge-sorted-array",
+          "tags": [
+            "Array",
+            "Two Pointers",
+            "Sorting"
+          ],
+          "title": "Merge Sorted Array"
+        }
+      },
+      "merge-two-sorted-lists": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/merge-two-sorted-lists",
+          "normalizedTitle": "merge two sorted lists",
+          "slug": "merge-two-sorted-lists",
+          "tags": [
+            "Linked List",
+            "Recursion"
+          ],
+          "title": "Merge Two Sorted Lists"
+        }
+      },
+      "middle-of-the-linked-list": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/middle-of-the-linked-list",
+          "normalizedTitle": "middle of the linked list",
+          "slug": "middle-of-the-linked-list",
+          "tags": [
+            "Linked List",
+            "Two Pointers"
+          ],
+          "title": "Middle of the Linked List"
+        }
+      },
+      "min-cost-climbing-stairs": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/min-cost-climbing-stairs",
+          "normalizedTitle": "min cost climbing stairs",
+          "slug": "min-cost-climbing-stairs",
+          "tags": [
+            "Array",
+            "Dynamic Programming"
+          ],
+          "title": "Min Cost Climbing Stairs"
+        }
+      },
+      "min-stack": {
+        "data": {
+          "companies": {
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/min-stack",
+          "normalizedTitle": "min stack",
+          "slug": "min-stack",
+          "tags": [
+            "Stack",
+            "Design"
+          ],
+          "title": "Min Stack"
+        }
+      },
+      "minimum-absolute-difference": {
+        "data": {
+          "companies": {
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/minimum-absolute-difference",
+          "normalizedTitle": "minimum absolute difference",
+          "slug": "minimum-absolute-difference",
+          "tags": [
+            "Array",
+            "Sorting"
+          ],
+          "title": "Minimum Absolute Difference"
+        }
+      },
+      "minimum-depth-of-binary-tree": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/minimum-depth-of-binary-tree",
+          "normalizedTitle": "minimum depth of binary tree",
+          "slug": "minimum-depth-of-binary-tree",
+          "tags": [
+            "Tree",
+            "Depth-First Search",
+            "Breadth-First Search",
+            "Binary Tree"
+          ],
+          "title": "Minimum Depth of Binary Tree"
+        }
+      },
+      "minimum-right-shifts-to-sort-the-array": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/minimum-right-shifts-to-sort-the-array",
+          "normalizedTitle": "minimum right shifts to sort the array",
+          "slug": "minimum-right-shifts-to-sort-the-array",
+          "tags": [
+            "Array"
+          ],
+          "title": "Minimum Right Shifts to Sort the Array"
+        }
+      },
+      "minimum-window-substring": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda",
+            "adobe"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/minimum-window-substring",
+          "normalizedTitle": "minimum window substring",
+          "slug": "minimum-window-substring",
+          "tags": [
+            "Hash Table",
+            "String",
+            "Sliding Window"
+          ],
+          "title": "Minimum Window Substring"
+        }
+      },
+      "move-zeroes": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "agoda"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/move-zeroes",
+          "normalizedTitle": "move zeroes",
+          "slug": "move-zeroes",
+          "tags": [
+            "Array",
+            "Two Pointers"
+          ],
+          "title": "Move Zeroes"
+        }
+      },
+      "multiply-strings": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/multiply-strings",
+          "normalizedTitle": "multiply strings",
+          "slug": "multiply-strings",
+          "tags": [
+            "Math",
+            "String",
+            "Simulation"
+          ],
+          "title": "Multiply Strings"
+        }
+      },
+      "n-queens": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/n-queens",
+          "normalizedTitle": "n-queens",
+          "slug": "n-queens",
+          "tags": [
+            "Array",
+            "Backtracking"
+          ],
+          "title": "N-Queens"
+        }
+      },
+      "next-greater-element-i": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/next-greater-element-i",
+          "normalizedTitle": "next greater element i",
+          "slug": "next-greater-element-i",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "Stack",
+            "Monotonic Stack"
+          ],
+          "title": "Next Greater Element I"
+        }
+      },
+      "next-permutation": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/next-permutation",
+          "normalizedTitle": "next permutation",
+          "slug": "next-permutation",
+          "tags": [
+            "Array",
+            "Two Pointers"
+          ],
+          "title": "Next Permutation"
+        }
+      },
+      "nth-digit": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/nth-digit",
+          "normalizedTitle": "nth digit",
+          "slug": "nth-digit",
+          "tags": [
+            "Math",
+            "Binary Search"
+          ],
+          "title": "Nth Digit"
+        }
+      },
+      "number-of-days-between-two-dates": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/number-of-days-between-two-dates",
+          "normalizedTitle": "number of days between two dates",
+          "slug": "number-of-days-between-two-dates",
+          "tags": [
+            "Math",
+            "String"
+          ],
+          "title": "Number of Days Between Two Dates"
+        }
+      },
+      "number-of-divisible-triplet-sums": {
+        "data": {
+          "companies": {
+            "activision": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "activision"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/number-of-divisible-triplet-sums",
+          "normalizedTitle": "number of divisible triplet sums",
+          "slug": "number-of-divisible-triplet-sums",
+          "tags": [
+            "Array",
+            "Hash Table"
+          ],
+          "title": "Number of Divisible Triplet Sums"
+        }
+      },
+      "number-of-islands": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/number-of-islands",
+          "normalizedTitle": "number of islands",
+          "slug": "number-of-islands",
+          "tags": [
+            "Array",
+            "Depth-First Search",
+            "Breadth-First Search",
+            "Union Find",
+            "Matrix"
+          ],
+          "title": "Number of Islands"
+        }
+      },
+      "palindrome-number": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/palindrome-number",
+          "normalizedTitle": "palindrome number",
+          "slug": "palindrome-number",
+          "tags": [
+            "Math"
+          ],
+          "title": "Palindrome Number"
+        }
+      },
+      "palindromic-substrings": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/palindromic-substrings",
+          "normalizedTitle": "palindromic substrings",
+          "slug": "palindromic-substrings",
+          "tags": [
+            "Two Pointers",
+            "String",
+            "Dynamic Programming"
+          ],
+          "title": "Palindromic Substrings"
+        }
+      },
+      "parallel-courses-iii": {
+        "data": {
+          "companies": {
+            "acko": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "acko"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/parallel-courses-iii",
+          "normalizedTitle": "parallel courses iii",
+          "slug": "parallel-courses-iii",
+          "tags": [
+            "Array",
+            "Dynamic Programming",
+            "Graph",
+            "Topological Sort"
+          ],
+          "title": "Parallel Courses III"
+        }
+      },
+      "parse-lisp-expression": {
+        "data": {
+          "companies": {
+            "affirm": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "affirm"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/parse-lisp-expression",
+          "normalizedTitle": "parse lisp expression",
+          "slug": "parse-lisp-expression",
+          "tags": [
+            "Hash Table",
+            "String",
+            "Stack",
+            "Recursion"
+          ],
+          "title": "Parse Lisp Expression"
+        }
+      },
+      "partition-list": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/partition-list",
+          "normalizedTitle": "partition list",
+          "slug": "partition-list",
+          "tags": [
+            "Linked List",
+            "Two Pointers"
+          ],
+          "title": "Partition List"
+        }
+      },
+      "pascals-triangle": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/pascals-triangle",
+          "normalizedTitle": "pascal's triangle",
+          "slug": "pascals-triangle",
+          "tags": [
+            "Array",
+            "Dynamic Programming"
+          ],
+          "title": "Pascal's Triangle"
+        }
+      },
+      "peak-index-in-a-mountain-array": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/peak-index-in-a-mountain-array",
+          "normalizedTitle": "peak index in a mountain array",
+          "slug": "peak-index-in-a-mountain-array",
+          "tags": [
+            "Array",
+            "Binary Search"
+          ],
+          "title": "Peak Index in a Mountain Array"
+        }
+      },
+      "perfect-number": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/perfect-number",
+          "normalizedTitle": "perfect number",
+          "slug": "perfect-number",
+          "tags": [
+            "Math"
+          ],
+          "title": "Perfect Number"
+        }
+      },
+      "perfect-squares": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/perfect-squares",
+          "normalizedTitle": "perfect squares",
+          "slug": "perfect-squares",
+          "tags": [
+            "Math",
+            "Dynamic Programming",
+            "Breadth-First Search"
+          ],
+          "title": "Perfect Squares"
+        }
+      },
+      "permutation-difference-between-two-strings": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/permutation-difference-between-two-strings",
+          "normalizedTitle": "permutation difference between two strings",
+          "slug": "permutation-difference-between-two-strings",
+          "tags": [
+            "Hash Table",
+            "String"
+          ],
+          "title": "Permutation Difference between Two Strings"
+        }
+      },
+      "permutation-in-string": {
+        "data": {
+          "companies": {
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/permutation-in-string",
+          "normalizedTitle": "permutation in string",
+          "slug": "permutation-in-string",
+          "tags": [
+            "Hash Table",
+            "Two Pointers",
+            "String",
+            "Sliding Window"
+          ],
+          "title": "Permutation in String"
+        }
+      },
+      "permutation-sequence": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/permutation-sequence",
+          "normalizedTitle": "permutation sequence",
+          "slug": "permutation-sequence",
+          "tags": [
+            "Math",
+            "Recursion"
+          ],
+          "title": "Permutation Sequence"
+        }
+      },
+      "permutations": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/permutations",
+          "normalizedTitle": "permutations",
+          "slug": "permutations",
+          "tags": [
+            "Array",
+            "Backtracking"
+          ],
+          "title": "Permutations"
+        }
+      },
+      "permutations-ii": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/permutations-ii",
+          "normalizedTitle": "permutations ii",
+          "slug": "permutations-ii",
+          "tags": [
+            "Array",
+            "Backtracking",
+            "Sorting"
+          ],
+          "title": "Permutations II"
+        }
+      },
+      "plus-one": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "agoda",
+            "adobe"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/plus-one",
+          "normalizedTitle": "plus one",
+          "slug": "plus-one",
+          "tags": [
+            "Array",
+            "Math"
+          ],
+          "title": "Plus One"
+        }
+      },
+      "powx-n": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/powx-n",
+          "normalizedTitle": "pow(x, n)",
+          "slug": "powx-n",
+          "tags": [
+            "Math",
+            "Recursion"
+          ],
+          "title": "Pow(x, n)"
+        }
+      },
+      "product-of-array-except-self": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/product-of-array-except-self",
+          "normalizedTitle": "product of array except self",
+          "slug": "product-of-array-except-self",
+          "tags": [
+            "Array",
+            "Prefix Sum"
+          ],
+          "title": "Product of Array Except Self"
+        }
+      },
+      "reformat-phone-number": {
+        "data": {
+          "companies": {
+            "activision": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "activision"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/reformat-phone-number",
+          "normalizedTitle": "reformat phone number",
+          "slug": "reformat-phone-number",
+          "tags": [
+            "String"
+          ],
+          "title": "Reformat Phone Number"
+        }
+      },
+      "remove-duplicates-from-sorted-array": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/remove-duplicates-from-sorted-array",
+          "normalizedTitle": "remove duplicates from sorted array",
+          "slug": "remove-duplicates-from-sorted-array",
+          "tags": [
+            "Array",
+            "Two Pointers"
+          ],
+          "title": "Remove Duplicates from Sorted Array"
+        }
+      },
+      "remove-duplicates-from-sorted-array-ii": {
+        "data": {
+          "companies": {
+            "accolite": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe",
+            "accolite"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/remove-duplicates-from-sorted-array-ii",
+          "normalizedTitle": "remove duplicates from sorted array ii",
+          "slug": "remove-duplicates-from-sorted-array-ii",
+          "tags": [
+            "Array",
+            "Two Pointers"
+          ],
+          "title": "Remove Duplicates from Sorted Array II"
+        }
+      },
+      "remove-duplicates-from-sorted-list": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/remove-duplicates-from-sorted-list",
+          "normalizedTitle": "remove duplicates from sorted list",
+          "slug": "remove-duplicates-from-sorted-list",
+          "tags": [
+            "Linked List"
+          ],
+          "title": "Remove Duplicates from Sorted List"
+        }
+      },
+      "remove-duplicates-from-sorted-list-ii": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii",
+          "normalizedTitle": "remove duplicates from sorted list ii",
+          "slug": "remove-duplicates-from-sorted-list-ii",
+          "tags": [
+            "Linked List",
+            "Two Pointers"
+          ],
+          "title": "Remove Duplicates from Sorted List II"
+        }
+      },
+      "remove-element": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/remove-element",
+          "normalizedTitle": "remove element",
+          "slug": "remove-element",
+          "tags": [
+            "Array",
+            "Two Pointers"
+          ],
+          "title": "Remove Element"
+        }
+      },
+      "remove-nth-node-from-end-of-list": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/remove-nth-node-from-end-of-list",
+          "normalizedTitle": "remove nth node from end of list",
+          "slug": "remove-nth-node-from-end-of-list",
+          "tags": [
+            "Linked List",
+            "Two Pointers"
+          ],
+          "title": "Remove Nth Node From End of List"
+        }
+      },
+      "replace-the-substring-for-balanced-string": {
+        "data": {
+          "companies": {
+            "accolite": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accolite"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/replace-the-substring-for-balanced-string",
+          "normalizedTitle": "replace the substring for balanced string",
+          "slug": "replace-the-substring-for-balanced-string",
+          "tags": [
+            "String",
+            "Sliding Window"
+          ],
+          "title": "Replace the Substring for Balanced String"
+        }
+      },
+      "restore-ip-addresses": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/restore-ip-addresses",
+          "normalizedTitle": "restore ip addresses",
+          "slug": "restore-ip-addresses",
+          "tags": [
+            "String",
+            "Backtracking"
+          ],
+          "title": "Restore IP Addresses"
+        }
+      },
+      "reverse-integer": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/reverse-integer",
+          "normalizedTitle": "reverse integer",
+          "slug": "reverse-integer",
+          "tags": [
+            "Math"
+          ],
+          "title": "Reverse Integer"
+        }
+      },
+      "reverse-linked-list": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/reverse-linked-list",
+          "normalizedTitle": "reverse linked list",
+          "slug": "reverse-linked-list",
+          "tags": [
+            "Linked List",
+            "Recursion"
+          ],
+          "title": "Reverse Linked List"
+        }
+      },
+      "reverse-linked-list-ii": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/reverse-linked-list-ii",
+          "normalizedTitle": "reverse linked list ii",
+          "slug": "reverse-linked-list-ii",
+          "tags": [
+            "Linked List"
+          ],
+          "title": "Reverse Linked List II"
+        }
+      },
+      "reverse-nodes-in-k-group": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/reverse-nodes-in-k-group",
+          "normalizedTitle": "reverse nodes in k-group",
+          "slug": "reverse-nodes-in-k-group",
+          "tags": [
+            "Linked List",
+            "Recursion"
+          ],
+          "title": "Reverse Nodes in k-Group"
+        }
+      },
+      "reverse-string": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/reverse-string",
+          "normalizedTitle": "reverse string",
+          "slug": "reverse-string",
+          "tags": [
+            "Two Pointers",
+            "String"
+          ],
+          "title": "Reverse String"
+        }
+      },
+      "reverse-substrings-between-each-pair-of-parentheses": {
+        "data": {
+          "companies": {
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/reverse-substrings-between-each-pair-of-parentheses",
+          "normalizedTitle": "reverse substrings between each pair of parentheses",
+          "slug": "reverse-substrings-between-each-pair-of-parentheses",
+          "tags": [
+            "String",
+            "Stack"
+          ],
+          "title": "Reverse Substrings Between Each Pair of Parentheses"
+        }
+      },
+      "reverse-vowels-of-a-string": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "accolite": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "accolite"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/reverse-vowels-of-a-string",
+          "normalizedTitle": "reverse vowels of a string",
+          "slug": "reverse-vowels-of-a-string",
+          "tags": [
+            "Two Pointers",
+            "String"
+          ],
+          "title": "Reverse Vowels of a String"
+        }
+      },
+      "reverse-words-in-a-string": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/reverse-words-in-a-string",
+          "normalizedTitle": "reverse words in a string",
+          "slug": "reverse-words-in-a-string",
+          "tags": [
+            "Two Pointers",
+            "String"
+          ],
+          "title": "Reverse Words in a String"
+        }
+      },
+      "rising-temperature": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/rising-temperature",
+          "normalizedTitle": "rising temperature",
+          "slug": "rising-temperature",
+          "tags": [
+            "Database"
+          ],
+          "title": "Rising Temperature"
+        }
+      },
+      "roman-to-integer": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/roman-to-integer",
+          "normalizedTitle": "roman to integer",
+          "slug": "roman-to-integer",
+          "tags": [
+            "Hash Table",
+            "Math",
+            "String"
+          ],
+          "title": "Roman to Integer"
+        }
+      },
+      "rotate-array": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/rotate-array",
+          "normalizedTitle": "rotate array",
+          "slug": "rotate-array",
+          "tags": [
+            "Array",
+            "Math",
+            "Two Pointers"
+          ],
+          "title": "Rotate Array"
+        }
+      },
+      "rotate-image": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/rotate-image",
+          "normalizedTitle": "rotate image",
+          "slug": "rotate-image",
+          "tags": [
+            "Array",
+            "Math",
+            "Matrix"
+          ],
+          "title": "Rotate Image"
+        }
+      },
+      "rotate-list": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/rotate-list",
+          "normalizedTitle": "rotate list",
+          "slug": "rotate-list",
+          "tags": [
+            "Linked List",
+            "Two Pointers"
+          ],
+          "title": "Rotate List"
+        }
+      },
+      "rotting-oranges": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/rotting-oranges",
+          "normalizedTitle": "rotting oranges",
+          "slug": "rotting-oranges",
+          "tags": [
+            "Array",
+            "Breadth-First Search",
+            "Matrix"
+          ],
+          "title": "Rotting Oranges"
+        }
+      },
+      "same-tree": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/same-tree",
+          "normalizedTitle": "same tree",
+          "slug": "same-tree",
+          "tags": [
+            "Tree",
+            "Depth-First Search",
+            "Breadth-First Search",
+            "Binary Tree"
+          ],
+          "title": "Same Tree"
+        }
+      },
+      "search-a-2d-matrix": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/search-a-2d-matrix",
+          "normalizedTitle": "search a 2d matrix",
+          "slug": "search-a-2d-matrix",
+          "tags": [
+            "Array",
+            "Binary Search",
+            "Matrix"
+          ],
+          "title": "Search a 2D Matrix"
+        }
+      },
+      "search-in-rotated-sorted-array": {
+        "data": {
+          "companies": {
+            "accolite": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe",
+            "accolite"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/search-in-rotated-sorted-array",
+          "normalizedTitle": "search in rotated sorted array",
+          "slug": "search-in-rotated-sorted-array",
+          "tags": [
+            "Array",
+            "Binary Search"
+          ],
+          "title": "Search in Rotated Sorted Array"
+        }
+      },
+      "search-in-rotated-sorted-array-ii": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/search-in-rotated-sorted-array-ii",
+          "normalizedTitle": "search in rotated sorted array ii",
+          "slug": "search-in-rotated-sorted-array-ii",
+          "tags": [
+            "Array",
+            "Binary Search"
+          ],
+          "title": "Search in Rotated Sorted Array II"
+        }
+      },
+      "search-insert-position": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/search-insert-position",
+          "normalizedTitle": "search insert position",
+          "slug": "search-insert-position",
+          "tags": [
+            "Array",
+            "Binary Search"
+          ],
+          "title": "Search Insert Position"
+        }
+      },
+      "separate-black-and-white-balls": {
+        "data": {
+          "companies": {
+            "1kosmos": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "1kosmos"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/separate-black-and-white-balls",
+          "normalizedTitle": "separate black and white balls",
+          "slug": "separate-black-and-white-balls",
+          "tags": [
+            "Two Pointers",
+            "String",
+            "Greedy"
+          ],
+          "title": "Separate Black and White Balls"
+        }
+      },
+      "set-matrix-zeroes": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/set-matrix-zeroes",
+          "normalizedTitle": "set matrix zeroes",
+          "slug": "set-matrix-zeroes",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "Matrix"
+          ],
+          "title": "Set Matrix Zeroes"
+        }
+      },
+      "shopping-offers": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/shopping-offers",
+          "normalizedTitle": "shopping offers",
+          "slug": "shopping-offers",
+          "tags": [
+            "Array",
+            "Dynamic Programming",
+            "Backtracking",
+            "Bit Manipulation",
+            "Memoization",
+            "Bitmask"
+          ],
+          "title": "Shopping Offers"
+        }
+      },
+      "shortest-palindrome": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/shortest-palindrome",
+          "normalizedTitle": "shortest palindrome",
+          "slug": "shortest-palindrome",
+          "tags": [
+            "String",
+            "Rolling Hash",
+            "String Matching",
+            "Hash Function"
+          ],
+          "title": "Shortest Palindrome"
+        }
+      },
+      "shortest-uncommon-substring-in-an-array": {
+        "data": {
+          "companies": {
+            "affirm": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "affirm"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/shortest-uncommon-substring-in-an-array",
+          "normalizedTitle": "shortest uncommon substring in an array",
+          "slug": "shortest-uncommon-substring-in-an-array",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "String",
+            "Trie"
+          ],
+          "title": "Shortest Uncommon Substring in an Array"
+        }
+      },
+      "simplify-path": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/simplify-path",
+          "normalizedTitle": "simplify path",
+          "slug": "simplify-path",
+          "tags": [
+            "String",
+            "Stack"
+          ],
+          "title": "Simplify Path"
+        }
+      },
+      "single-number-ii": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/single-number-ii",
+          "normalizedTitle": "single number ii",
+          "slug": "single-number-ii",
+          "tags": [
+            "Array",
+            "Bit Manipulation"
+          ],
+          "title": "Single Number II"
+        }
+      },
+      "sort-array-by-increasing-frequency": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "agoda"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/sort-array-by-increasing-frequency",
+          "normalizedTitle": "sort array by increasing frequency",
+          "slug": "sort-array-by-increasing-frequency",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "Sorting"
+          ],
+          "title": "Sort Array by Increasing Frequency"
+        }
+      },
+      "sort-colors": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/sort-colors",
+          "normalizedTitle": "sort colors",
+          "slug": "sort-colors",
+          "tags": [
+            "Array",
+            "Two Pointers",
+            "Sorting"
+          ],
+          "title": "Sort Colors"
+        }
+      },
+      "sort-integers-by-the-number-of-1-bits": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/sort-integers-by-the-number-of-1-bits",
+          "normalizedTitle": "sort integers by the number of 1 bits",
+          "slug": "sort-integers-by-the-number-of-1-bits",
+          "tags": [
+            "Array",
+            "Bit Manipulation",
+            "Sorting",
+            "Counting"
+          ],
+          "title": "Sort Integers by The Number of 1 Bits"
+        }
+      },
+      "spiral-matrix": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/spiral-matrix",
+          "normalizedTitle": "spiral matrix",
+          "slug": "spiral-matrix",
+          "tags": [
+            "Array",
+            "Matrix",
+            "Simulation"
+          ],
+          "title": "Spiral Matrix"
+        }
+      },
+      "spiral-matrix-ii": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/spiral-matrix-ii",
+          "normalizedTitle": "spiral matrix ii",
+          "slug": "spiral-matrix-ii",
+          "tags": [
+            "Array",
+            "Matrix",
+            "Simulation"
+          ],
+          "title": "Spiral Matrix II"
+        }
+      },
+      "split-the-array": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/split-the-array",
+          "normalizedTitle": "split the array",
+          "slug": "split-the-array",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "Counting"
+          ],
+          "title": "Split the Array"
+        }
+      },
+      "sqrtx": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/sqrtx",
+          "normalizedTitle": "sqrt(x)",
+          "slug": "sqrtx",
+          "tags": [
+            "Math",
+            "Binary Search"
+          ],
+          "title": "Sqrt(x)"
+        }
+      },
+      "squares-of-a-sorted-array": {
+        "data": {
+          "companies": {
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/squares-of-a-sorted-array",
+          "normalizedTitle": "squares of a sorted array",
+          "slug": "squares-of-a-sorted-array",
+          "tags": [
+            "Array",
+            "Two Pointers",
+            "Sorting"
+          ],
+          "title": "Squares of a Sorted Array"
+        }
+      },
+      "string-compression": {
+        "data": {
+          "companies": {
+            "affirm": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "affirm"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/string-compression",
+          "normalizedTitle": "string compression",
+          "slug": "string-compression",
+          "tags": [
+            "Two Pointers",
+            "String"
+          ],
+          "title": "String Compression"
+        }
+      },
+      "string-compression-iii": {
+        "data": {
+          "companies": {
+            "affirm": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "affirm"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/string-compression-iii",
+          "normalizedTitle": "string compression iii",
+          "slug": "string-compression-iii",
+          "tags": [
+            "String"
+          ],
+          "title": "String Compression III"
+        }
+      },
+      "string-to-integer-atoi": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/string-to-integer-atoi",
+          "normalizedTitle": "string to integer (atoi)",
+          "slug": "string-to-integer-atoi",
+          "tags": [
+            "String"
+          ],
+          "title": "String to Integer (atoi)"
+        }
+      },
+      "subarray-product-less-than-k": {
+        "data": {
+          "companies": {
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/subarray-product-less-than-k",
+          "normalizedTitle": "subarray product less than k",
+          "slug": "subarray-product-less-than-k",
+          "tags": [
+            "Array",
+            "Binary Search",
+            "Sliding Window",
+            "Prefix Sum"
+          ],
+          "title": "Subarray Product Less Than K"
+        }
+      },
+      "subsets": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/subsets",
+          "normalizedTitle": "subsets",
+          "slug": "subsets",
+          "tags": [
+            "Array",
+            "Backtracking",
+            "Bit Manipulation"
+          ],
+          "title": "Subsets"
+        }
+      },
+      "subsets-ii": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/subsets-ii",
+          "normalizedTitle": "subsets ii",
+          "slug": "subsets-ii",
+          "tags": [
+            "Array",
+            "Backtracking",
+            "Bit Manipulation"
+          ],
+          "title": "Subsets II"
+        }
+      },
+      "substring-with-concatenation-of-all-words": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/substring-with-concatenation-of-all-words",
+          "normalizedTitle": "substring with concatenation of all words",
+          "slug": "substring-with-concatenation-of-all-words",
+          "tags": [
+            "Hash Table",
+            "String",
+            "Sliding Window"
+          ],
+          "title": "Substring with Concatenation of All Words"
+        }
+      },
+      "substrings-of-size-three-with-distinct-characters": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/substrings-of-size-three-with-distinct-characters",
+          "normalizedTitle": "substrings of size three with distinct characters",
+          "slug": "substrings-of-size-three-with-distinct-characters",
+          "tags": [
+            "Hash Table",
+            "String",
+            "Sliding Window",
+            "Counting"
+          ],
+          "title": "Substrings of Size Three with Distinct Characters"
+        }
+      },
+      "sudoku-solver": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/sudoku-solver",
+          "normalizedTitle": "sudoku solver",
+          "slug": "sudoku-solver",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "Backtracking",
+            "Matrix"
+          ],
+          "title": "Sudoku Solver"
+        }
+      },
+      "sum-of-values-at-indices-with-k-set-bits": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/sum-of-values-at-indices-with-k-set-bits",
+          "normalizedTitle": "sum of values at indices with k set bits",
+          "slug": "sum-of-values-at-indices-with-k-set-bits",
+          "tags": [
+            "Array",
+            "Bit Manipulation"
+          ],
+          "title": "Sum of Values at Indices With K Set Bits"
+        }
+      },
+      "swap-nodes-in-pairs": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/swap-nodes-in-pairs",
+          "normalizedTitle": "swap nodes in pairs",
+          "slug": "swap-nodes-in-pairs",
+          "tags": [
+            "Linked List",
+            "Recursion"
+          ],
+          "title": "Swap Nodes in Pairs"
+        }
+      },
+      "symmetric-tree": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/symmetric-tree",
+          "normalizedTitle": "symmetric tree",
+          "slug": "symmetric-tree",
+          "tags": [
+            "Tree",
+            "Depth-First Search",
+            "Breadth-First Search",
+            "Binary Tree"
+          ],
+          "title": "Symmetric Tree"
+        }
+      },
+      "text-justification": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/text-justification",
+          "normalizedTitle": "text justification",
+          "slug": "text-justification",
+          "tags": [
+            "Array",
+            "String",
+            "Simulation"
+          ],
+          "title": "Text Justification"
+        }
+      },
+      "top-k-frequent-elements": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/top-k-frequent-elements",
+          "normalizedTitle": "top k frequent elements",
+          "slug": "top-k-frequent-elements",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "Divide and Conquer",
+            "Sorting",
+            "Heap (Priority Queue)",
+            "Bucket Sort",
+            "Counting",
+            "Quickselect"
+          ],
+          "title": "Top K Frequent Elements"
+        }
+      },
+      "top-k-frequent-words": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/top-k-frequent-words",
+          "normalizedTitle": "top k frequent words",
+          "slug": "top-k-frequent-words",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "String",
+            "Trie",
+            "Sorting",
+            "Heap (Priority Queue)",
+            "Bucket Sort",
+            "Counting"
+          ],
+          "title": "Top K Frequent Words"
+        }
+      },
+      "trapping-rain-water": {
+        "data": {
+          "companies": {
+            "accolite": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe",
+            "accolite"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/trapping-rain-water",
+          "normalizedTitle": "trapping rain water",
+          "slug": "trapping-rain-water",
+          "tags": [
+            "Array",
+            "Two Pointers",
+            "Dynamic Programming",
+            "Stack",
+            "Monotonic Stack"
+          ],
+          "title": "Trapping Rain Water"
+        }
+      },
+      "triangle": {
+        "data": {
+          "companies": {
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/triangle",
+          "normalizedTitle": "triangle",
+          "slug": "triangle",
+          "tags": [
+            "Array",
+            "Dynamic Programming"
+          ],
+          "title": "Triangle"
+        }
+      },
+      "truncate-sentence": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/truncate-sentence",
+          "normalizedTitle": "truncate sentence",
+          "slug": "truncate-sentence",
+          "tags": [
+            "Array",
+            "String"
+          ],
+          "title": "Truncate Sentence"
+        }
+      },
+      "two-sum": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "accolite": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "agoda",
+            "adobe",
+            "accolite"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/two-sum",
+          "normalizedTitle": "two sum",
+          "slug": "two-sum",
+          "tags": [
+            "Array",
+            "Hash Table"
+          ],
+          "title": "Two Sum"
+        }
+      },
+      "ugly-number-ii": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/ugly-number-ii",
+          "normalizedTitle": "ugly number ii",
+          "slug": "ugly-number-ii",
+          "tags": [
+            "Hash Table",
+            "Math",
+            "Dynamic Programming",
+            "Heap (Priority Queue)"
+          ],
+          "title": "Ugly Number II"
+        }
+      },
+      "unique-binary-search-trees": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/unique-binary-search-trees",
+          "normalizedTitle": "unique binary search trees",
+          "slug": "unique-binary-search-trees",
+          "tags": [
+            "Math",
+            "Dynamic Programming",
+            "Tree",
+            "Binary Search Tree",
+            "Binary Tree"
+          ],
+          "title": "Unique Binary Search Trees"
+        }
+      },
+      "unique-binary-search-trees-ii": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/unique-binary-search-trees-ii",
+          "normalizedTitle": "unique binary search trees ii",
+          "slug": "unique-binary-search-trees-ii",
+          "tags": [
+            "Dynamic Programming",
+            "Backtracking",
+            "Tree",
+            "Binary Search Tree",
+            "Binary Tree"
+          ],
+          "title": "Unique Binary Search Trees II"
+        }
+      },
+      "unique-paths": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/unique-paths",
+          "normalizedTitle": "unique paths",
+          "slug": "unique-paths",
+          "tags": [
+            "Math",
+            "Dynamic Programming",
+            "Combinatorics"
+          ],
+          "title": "Unique Paths"
+        }
+      },
+      "unique-paths-ii": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "agoda",
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/unique-paths-ii",
+          "normalizedTitle": "unique paths ii",
+          "slug": "unique-paths-ii",
+          "tags": [
+            "Array",
+            "Dynamic Programming",
+            "Matrix"
+          ],
+          "title": "Unique Paths II"
+        }
+      },
+      "valid-anagram": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "affirm": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "affirm"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/valid-anagram",
+          "normalizedTitle": "valid anagram",
+          "slug": "valid-anagram",
+          "tags": [
+            "Hash Table",
+            "String",
+            "Sorting"
+          ],
+          "title": "Valid Anagram"
+        }
+      },
+      "valid-palindrome": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/valid-palindrome",
+          "normalizedTitle": "valid palindrome",
+          "slug": "valid-palindrome",
+          "tags": [
+            "Two Pointers",
+            "String"
+          ],
+          "title": "Valid Palindrome"
+        }
+      },
+      "valid-parentheses": {
+        "data": {
+          "companies": {
+            "accenture": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "accolite": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            },
+            "agoda": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "accenture",
+            "agoda",
+            "adobe",
+            "accolite"
+          ],
+          "difficulty": "Easy",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/valid-parentheses",
+          "normalizedTitle": "valid parentheses",
+          "slug": "valid-parentheses",
+          "tags": [
+            "String",
+            "Stack"
+          ],
+          "title": "Valid Parentheses"
+        }
+      },
+      "valid-sudoku": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/valid-sudoku",
+          "normalizedTitle": "valid sudoku",
+          "slug": "valid-sudoku",
+          "tags": [
+            "Array",
+            "Hash Table",
+            "Matrix"
+          ],
+          "title": "Valid Sudoku"
+        }
+      },
+      "validate-binary-search-tree": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/validate-binary-search-tree",
+          "normalizedTitle": "validate binary search tree",
+          "slug": "validate-binary-search-tree",
+          "tags": [
+            "Tree",
+            "Depth-First Search",
+            "Binary Search Tree",
+            "Binary Tree"
+          ],
+          "title": "Validate Binary Search Tree"
+        }
+      },
+      "wildcard-matching": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/wildcard-matching",
+          "normalizedTitle": "wildcard matching",
+          "slug": "wildcard-matching",
+          "tags": [
+            "String",
+            "Dynamic Programming",
+            "Greedy",
+            "Recursion"
+          ],
+          "title": "Wildcard Matching"
+        }
+      },
+      "word-ladder": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Hard",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/word-ladder",
+          "normalizedTitle": "word ladder",
+          "slug": "word-ladder",
+          "tags": [
+            "Hash Table",
+            "String",
+            "Breadth-First Search"
+          ],
+          "title": "Word Ladder"
+        }
+      },
+      "word-search": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/word-search",
+          "normalizedTitle": "word search",
+          "slug": "word-search",
+          "tags": [
+            "Array",
+            "String",
+            "Backtracking",
+            "Depth-First Search",
+            "Matrix"
+          ],
+          "title": "Word Search"
+        }
+      },
+      "zigzag-conversion": {
+        "data": {
+          "companies": {
+            "adobe": {
+              "lastAskedPeriod": "within_6_months"
+            }
+          },
+          "companyIds": [
+            "adobe"
+          ],
+          "difficulty": "Medium",
+          "lastAskedPeriod": "within_6_months",
+          "link": "https://leetcode.com/problems/zigzag-conversion",
+          "normalizedTitle": "zigzag conversion",
+          "slug": "zigzag-conversion",
+          "tags": [
+            "String"
+          ],
+          "title": "Zigzag Conversion"
+        }
+      }
+    },
+    "users": {},
+    "contact-messages": {}
+  }
+}

@@ -146,7 +146,21 @@ npm test
 npm test:watch
 ```
 
-## 10. Next Steps
+## 10. Database Management
+
+We provide scripts to backup and restore your local Firestore database, which is useful for saving your development state or seeding a new environment.
+
+```bash
+# Backup database to a local JSON file
+npm run db:backup
+
+# Restore database from the latest backup
+npm run db:restore
+```
+
+For more details, see the **[Database Management Guide](./database-management.md)**.
+
+## 11. Next Steps
 
 To dive deeper into our engineering standards, check out these specific guides:
 
