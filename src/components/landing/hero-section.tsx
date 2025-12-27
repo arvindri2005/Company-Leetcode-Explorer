@@ -35,8 +35,8 @@ export default function HeroSection() {
       className="min-h-screen flex items-center justify-center text-center relative px-8"
     >
       <FloatingShapes />
-      <div className="max-w-[800px] z-[2]">
-        <h1 className="text-6xl mb-4 bg-gradient-to-r from-brand-teal to-brand-purple bg-clip-text text-transparent animate-fadeInUp">
+      <div className="max-w-4xl z-[2]">
+        <h1 className="text-6xl mb-4 bg-gradient-to-r from-brand-teal to-brand-purple bg-clip-text text-transparent animate-fadeInUp text-balance">
           Master Your Coding Interviews
         </h1>
         <p className="text-2xl mb-8 text-gray-custom-400 animate-fadeInUp animation-delay-200">
