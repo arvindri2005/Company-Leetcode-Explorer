@@ -21,6 +21,15 @@ const contactSchema = z.object({
     .max(5000, "Message must be less than 5000 characters"),
 });
 
+export type ContactFormState = {
+  errors?: {
+    name?: string[];
+    email?: string[];
+    message?: string[];
+  };
+  message?: string;
+};
+
 /**
  * Processes and saves a contact form submission.
  *
@@ -30,12 +39,15 @@ const contactSchema = z.object({
  * 3. On successful validation, it calls the ContactService to save the message.
  * 4. Returns a success message to the client.
  *
- * @param {any} prevState - The previous state from the `useFormState` hook (not used).
+ * @param {ContactFormState | null} prevState - The previous state from the `useFormState` hook.
  * @param {FormData} formData - The data submitted from the contact form.
- * @returns {Promise<{ errors?: any; message?: string }>} An object containing either validation
+ * @returns {Promise<ContactFormState>} An object containing either validation
  * errors or a success/failure message.
  */
-export async function sendContactMessage(prevState: any, formData: FormData) {
+export async function sendContactMessage(
+  prevState: ContactFormState | null,
+  formData: FormData
+): Promise<ContactFormState> {
   const validatedFields = contactSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),

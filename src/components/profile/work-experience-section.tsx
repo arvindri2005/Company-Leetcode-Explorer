@@ -110,7 +110,7 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                       <FormItem>
                         <FormLabel>Job Title</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} autoComplete="organization-title" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -123,7 +123,7 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                       <FormItem>
                         <FormLabel>Company Name</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} autoComplete="organization" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -137,7 +137,11 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                         <FormItem>
                           <FormLabel>Start Date (MM/YYYY)</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input
+                              {...field}
+                              placeholder="MM/YYYY"
+                              autoComplete="off"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -152,7 +156,11 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                             End Date (MM/YYYY or Present, Optional)
                           </FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input
+                              {...field}
+                              placeholder="MM/YYYY or Present"
+                              autoComplete="off"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

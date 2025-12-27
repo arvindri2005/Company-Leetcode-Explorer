@@ -11,7 +11,7 @@ import React, {
 } from "react";
 
 // --- Constants ---
-const COOLDOWN_DURATION_MS = 0 * 60 * 1000; // 5 minutes
+const COOLDOWN_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 const LOCAL_STORAGE_KEY = "aiFeatureCooldownEndTime";
 
 // --- Context Type Definition ---
@@ -19,9 +19,8 @@ interface AICooldownContextType {
   cooldownEndTime: number | null;
   canUseAI: boolean;
   isLoadingCooldown: boolean;
-  remainingTimeMs: number;
   startCooldown: () => void;
-  formattedRemainingTime: string;
+  getFormattedRemainingTime: () => string;
 }
 
 // --- Create Context ---
@@ -58,54 +57,42 @@ export const CooldownStateProvider: React.FC<CooldownStateProviderProps> = ({
     }
     return null;
   });
-  const [currentTime, setCurrentTime] = useState(() => Date.now());
   const [isLoadingCooldown, setIsLoadingCooldown] = useState(true);
 
   useEffect(() => {
     setIsLoadingCooldown(false);
   }, []);
 
-  // Effect to manage the countdown timer
+  // Effect to manage the countdown timer end state
   useEffect(() => {
-    if (isLoadingCooldown) return;
+    if (isLoadingCooldown || !cooldownEndTime) return;
 
-    let intervalId: NodeJS.Timeout | undefined;
+    const now = Date.now();
+    const remaining = cooldownEndTime - now;
 
-    if (cooldownEndTime && cooldownEndTime > currentTime) {
-      intervalId = setInterval(() => {
-        const now = Date.now();
-        setCurrentTime(now);
-        if (now >= cooldownEndTime) {
-          setCooldownEndTime(null);
-          try {
-            localStorage.removeItem(LOCAL_STORAGE_KEY);
-          } catch (error) {
-            console.warn(
-              "AI Cooldown: Failed to remove item from localStorage on expiry.",
-              error,
-            );
-          }
-          if (intervalId) clearInterval(intervalId);
-        }
-      }, 1000);
-    } else if (cooldownEndTime && currentTime >= cooldownEndTime) {
+    if (remaining <= 0) {
+      // Already expired
       setCooldownEndTime(null);
       try {
         localStorage.removeItem(LOCAL_STORAGE_KEY);
       } catch (error) {
-        console.warn(
-          "AI Cooldown: Failed to remove item from localStorage (cleanup).",
-          error,
-        );
+        console.warn("AI Cooldown: Failed to remove item from localStorage.", error);
       }
+      return;
     }
 
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
+    // Set timeout to clear cooldown when it expires
+    const timeoutId = setTimeout(() => {
+      setCooldownEndTime(null);
+      try {
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+      } catch (error) {
+        console.warn("AI Cooldown: Failed to remove item from localStorage.", error);
       }
-    };
-  }, [cooldownEndTime, currentTime, isLoadingCooldown]);
+    }, remaining);
+
+    return () => clearTimeout(timeoutId);
+  }, [cooldownEndTime, isLoadingCooldown]);
 
   const startCooldown = useCallback(() => {
     const newEndTime = Date.now() + COOLDOWN_DURATION_MS;
@@ -115,41 +102,36 @@ export const CooldownStateProvider: React.FC<CooldownStateProviderProps> = ({
       console.warn("AI Cooldown: Failed to set item in localStorage.", error);
     }
     setCooldownEndTime(newEndTime);
-    setCurrentTime(Date.now());
   }, []);
 
-  const remainingTimeMs = useMemo(() => {
-    if (isLoadingCooldown) return COOLDOWN_DURATION_MS;
-    if (cooldownEndTime) return Math.max(0, cooldownEndTime - currentTime);
-    return 0;
-  }, [isLoadingCooldown, cooldownEndTime, currentTime]);
-
   const canUseAI = useMemo(
-    () => isLoadingCooldown || remainingTimeMs <= 0,
-    [isLoadingCooldown, remainingTimeMs],
+    () => isLoadingCooldown || !cooldownEndTime,
+    [isLoadingCooldown, cooldownEndTime]
   );
 
-  const formattedRemainingTime = useMemo(() => {
-    if (isLoadingCooldown && !cooldownEndTime) return "...";
-    if (remainingTimeMs <= 0) return "Ready";
+  const getFormattedRemainingTime = useCallback(() => {
+     if (isLoadingCooldown && !cooldownEndTime) return "...";
+     if (!cooldownEndTime) return "Ready";
+     
+     const remainingTimeMs = Math.max(0, cooldownEndTime - Date.now());
+     if (remainingTimeMs <= 0) return "Ready";
 
-    const totalSeconds = Math.ceil(remainingTimeMs / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
+     const totalSeconds = Math.ceil(remainingTimeMs / 1000);
+     const minutes = Math.floor(totalSeconds / 60);
+     const seconds = totalSeconds % 60;
 
-    if (minutes > 0) {
-      return `${minutes}m ${seconds.toString().padStart(2, "0")}s`;
-    }
-    return `${seconds}s`;
-  }, [isLoadingCooldown, remainingTimeMs, cooldownEndTime]);
+     if (minutes > 0) {
+       return `${minutes}m ${seconds.toString().padStart(2, "0")}s`;
+     }
+     return `${seconds}s`;
+  }, [isLoadingCooldown, cooldownEndTime]);
 
   const providerValue = {
     cooldownEndTime,
     canUseAI,
     isLoadingCooldown,
-    remainingTimeMs,
     startCooldown,
-    formattedRemainingTime,
+    getFormattedRemainingTime,
   };
 
   return React.createElement(

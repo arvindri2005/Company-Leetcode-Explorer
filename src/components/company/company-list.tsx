@@ -186,6 +186,8 @@ const CompanyList: React.FC<CompanyListProps> = ({
 
   // Click outside suggestions
   useEffect(() => {
+    if (!showSuggestions) return;
+
     const handleClickOutside = (event: MouseEvent) => {
       if (
         suggestionsRef.current &&
@@ -196,7 +198,7 @@ const CompanyList: React.FC<CompanyListProps> = ({
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [showSuggestions]);
 
   return (
     <section
@@ -220,10 +222,10 @@ const CompanyList: React.FC<CompanyListProps> = ({
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8"
             aria-label="Company Cards"
           >
-            {displayedCompanies.map((company) => (
+            {displayedCompanies.map((company, index) => (
               <li key={company.id} className="list-none">
                 <ErrorBoundary fallback={<CompanyCardErrorFallback />}>
-                  <CompanyCard company={company} />
+                  <CompanyCard company={company} priority={index < 8} />
                 </ErrorBoundary>
               </li>
             ))}

@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import CompanyPageWrapper, { generateMetadata, generateStaticParams } from '@/app/company/[companySlug]/page';
 import { companyService } from '@/services/company.service';
 import { problemService } from '@/services/problem.service';
+import { createMockCompany, createMockProblemsResponse, createMockProblem } from '@/__tests__/factories/data-factories';
 
 // Mock the services
 jest.mock('@/services/company.service', () => ({
@@ -40,23 +41,23 @@ jest.mock('@/lib/utils', () => ({
 }));
 
 describe('Company Page', () => {
-  const mockCompany = {
+  const mockCompany = createMockCompany({
     slug: 'test-company',
     name: 'test company',
     logo: 'logo.png',
     problemCount: 10,
     website: 'https://example.com',
-    commonTags: [{ tag: 'tag1' }, { tag: 'tag2' }],
-  };
+    commonTags: [{ tag: 'tag1', count: 10 }, { tag: 'tag2', count: 5 }],
+  });
 
-  const mockProblemsResponse = {
+  const mockProblemsResponse = createMockProblemsResponse({
     problems: [
-      { id: '1', title: 'Problem 1' },
-      { id: '2', title: 'Problem 2' },
+      createMockProblem({ id: '1', title: 'Problem 1' }),
+      createMockProblem({ id: '2', title: 'Problem 2' }),
     ],
     total: 2,
     hasMore: false,
-  };
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();

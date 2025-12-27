@@ -7,6 +7,19 @@
  * database layer (`@/lib/data`) and handle tasks like creating or updating user
  * profiles, toggling bookmarks, setting problem progress, and managing saved
  * content. They also ensure proper cache revalidation for user-specific data.
+ *
+ * SENTINEL SECURITY WARNING:
+ * Some actions in this file (e.g. `toggleBookmarkProblemAction`, `setProblemStatusAction`)
+ * accept a `userId` parameter and use the Firebase Client SDK. Since the Client SDK
+ * is not authenticated on the server side, these actions rely ENTIRELY on Firestore
+ * Security Rules to prevent unauthorized writes (where `request.auth` will be null).
+ *
+ * As currently implemented, these actions will fail on the server if Firestore Rules
+ * correctly require authentication. They exist mainly for architectural symmetry or
+ * potential future use with an Admin SDK context.
+ *
+ * DO NOT ENABLE ADMIN PRIVILEGES FOR THIS ENVIRONMENT WITHOUT ADDING SERVER-SIDE
+ * AUTHENTICATION CHECKS (e.g. verifying an ID token).
  */
 "use server";
 
@@ -17,29 +30,7 @@ import type {
 import { userService } from "@/services/user.service";
 import { revalidateTag } from "next/cache";
 
-interface SyncUserProfileInput {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
-}
-/**
- * Synchronizes Firebase Auth user data with a user profile document in Firestore.
- *
- * This action is typically called upon user sign-in or when their auth profile changes.
- * It checks if a user profile document exists in the `users` collection. If not, it creates one.
- * If it exists, it updates the `displayName` and `email` fields if they have changed.
- *
- * @param {SyncUserProfileInput} userData - An object containing the user's UID, email, and display name from Firebase Auth.
- * @returns {Promise<{ success: boolean; error?: string }>} A promise that resolves to an object
- * indicating the success or failure of the synchronization operation.
- * @deprecated This action uses the Client SDK which is not authenticated on the server. Use `userService.syncUserProfile` on the client side instead.
- */
-export async function syncUserProfile(
-  userData: SyncUserProfileInput,
-): Promise<{ success: boolean; error?: string }> {
-  console.warn("syncUserProfile Server Action is deprecated. Use userService.syncUserProfile on the client side.");
-  return await userService.syncUserProfile(userData.uid, userData.email, userData.displayName);
-}
+import { handleServerActionError } from "@/lib/error-handler";
 
 /**
  * Toggles the bookmark status of a coding problem for a given user.
@@ -91,12 +82,13 @@ export async function toggleBookmarkProblemAction(
     revalidateTag(`user-profile-${userId}`, "max");
     return { success: true, isBookmarked: result.isBookmarked };
   } catch (error) {
-    console.error("Error in toggleBookmarkProblemAction:", error);
-    if (error instanceof Error) return { success: false, error: error.message };
-    return {
-      success: false,
-      error: "An unknown error occurred while toggling bookmark.",
-    };
+    const message = handleServerActionError(error, "toggleBookmarkProblemAction", {
+      userId,
+      problemId,
+      companySlug,
+      problemSlug,
+    });
+    return { success: false, error: message };
   }
 }
 
@@ -148,11 +140,13 @@ export async function setProblemStatusAction(
     }
     return result;
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to set problem status due to an unknown error.";
-    console.error("Error in setProblemStatusAction:", error);
+    const message = handleServerActionError(error, "setProblemStatusAction", {
+      userId,
+      problemId,
+      status,
+      companySlug,
+      problemSlug,
+    });
     return { success: false, error: message };
   }
 }
@@ -199,11 +193,11 @@ export async function getUserProblemStatusesForIdsAction(
 
     return result;
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to fetch user problem statuses.";
-    console.error("Error in getUserProblemStatusesForIdsAction:", error);
+    const message = handleServerActionError(
+      error,
+      "getUserProblemStatusesForIdsAction",
+      { userId, count: problemIds.length },
+    );
     return { error: message };
   }
 }

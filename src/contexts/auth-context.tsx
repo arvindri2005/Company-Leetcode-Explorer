@@ -39,7 +39,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (firebaseUser && !isUserProfileSynced) {
       try {
         const result = await userService.syncUserProfile(
-          firebaseUser.uid,
           firebaseUser.email,
           firebaseUser.displayName,
         );
