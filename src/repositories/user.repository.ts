@@ -53,9 +53,10 @@ export class UserRepository {
             companySlug: data.companySlug,
             problemSlug: data.problemSlug,
             bookmarkedAt: data.bookmarkedAt?.toDate(),
-          } as BookmarkedProblemInfo;
+            isDeleted: data.isDeleted === true,
+          } as BookmarkedProblemInfo & { isDeleted?: boolean };
         })
-        .filter((info) => info.companySlug && info.problemSlug);
+        .filter((info) => info.companySlug && info.problemSlug && !info.isDeleted);
     } catch (error) {
       Logger.error(
         `Error fetching bookmarked problems info`,
@@ -96,7 +97,8 @@ export class UserRepository {
       const querySnapshot = await getDocs(q);
       querySnapshot.forEach((docSnap) => {
         const data = docSnap.data();
-        if (data.status && data.companySlug && data.problemSlug) {
+        // Soft delete check: ignore if isDeleted is true
+        if (data.status && data.companySlug && data.problemSlug && data.isDeleted !== true) {
           statuses[docSnap.id] = {
             problemId: docSnap.id,
             status: data.status as ProblemStatus,
@@ -144,7 +146,8 @@ export class UserRepository {
       querySnapshots.forEach(querySnapshot => {
           querySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
-            if (data.status) {
+            // Soft delete check
+            if (data.status && data.isDeleted !== true) {
               statuses[docSnap.id] = {
                 problemId: docSnap.id,
                 status: data.status as ProblemStatus,
@@ -195,7 +198,11 @@ export class UserRepository {
 
       querySnapshots.forEach(snap => {
           snap.forEach((docSnap) => {
-            bookmarkedIds.add(docSnap.id);
+            const data = docSnap.data();
+            // Soft delete check
+            if (data.isDeleted !== true) {
+              bookmarkedIds.add(docSnap.id);
+            }
           });
       });
 
@@ -369,18 +376,34 @@ export class UserRepository {
       const batch = writeBatch(db);
       let isBookmarked = false;
 
-      if (docSnap.exists()) {
-        batch.delete(bookmarkDocRef);
+      // Soft delete logic:
+      // If exists and not deleted: Soft delete it
+      // If exists and deleted: Restore it
+      // If doesn't exist: Create it
+
+      const data = docSnap.exists() ? docSnap.data() : null;
+      const alreadyBookmarked = docSnap.exists() && data?.isDeleted !== true;
+
+      if (alreadyBookmarked) {
+        // Soft delete
+        batch.update(bookmarkDocRef, {
+            isDeleted: true,
+            deletedAt: serverTimestamp()
+        });
         batch.set(aggregateDocRef, {
             bookmarkedProblemIds: arrayRemove(problemId)
         }, { merge: true });
         isBookmarked = false;
       } else {
+        // Create or Restore
         batch.set(bookmarkDocRef, {
           bookmarkedAt: serverTimestamp(),
           companySlug: companySlug,
           problemSlug: problemSlug,
-        });
+          isDeleted: false,
+          deletedAt: null
+        }, { merge: true });
+
         batch.set(aggregateDocRef, {
             bookmarkedProblemIds: arrayUnion(problemId)
         }, { merge: true });
@@ -415,16 +438,26 @@ export class UserRepository {
     try {
       const batch = writeBatch(db);
 
-      // 1. Update individual problem status
+      // 1. Update individual problem status with Soft Delete support
       if (status === "none") {
-        batch.delete(statusDocRef);
+        // Soft delete instead of hard delete
+        batch.set(statusDocRef, {
+            status: "none",
+            isDeleted: true,
+            deletedAt: serverTimestamp(),
+            updatedAt: serverTimestamp(), // Keep track of when it was cleared
+            companySlug: companySlug, // Preserve metadata if possible
+            problemSlug: problemSlug
+        }, { merge: true });
       } else {
         batch.set(statusDocRef, {
           status: status,
+          isDeleted: false,
+          deletedAt: null,
           updatedAt: serverTimestamp(),
           companySlug: companySlug,
           problemSlug: problemSlug,
-        });
+        }, { merge: true });
       }
 
       // 2. Update aggregate stats
