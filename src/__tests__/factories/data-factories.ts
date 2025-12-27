@@ -1,4 +1,5 @@
 import type { Company, LeetCodeProblem, PaginatedProblemsResponse } from "@/types";
+import type { User as FirebaseUser } from "firebase/auth";
 
 // Seedable PRNG (Mulberry32)
 class RandomGenerator {
@@ -61,6 +62,13 @@ export const simpleFaker = {
       return names[Math.floor(prng.next() * names.length)] + " " + Math.floor(prng.next() * 1000);
     }
   },
+  person: {
+    fullName: () => {
+      const firstNames = ["Alice", "Bob", "Charlie", "Diana", "Evan", "Fiona", "George", "Hannah"];
+      const lastNames = ["Smith", "Jones", "Taylor", "Brown", "Williams", "Wilson", "Johnson", "Davies"];
+      return simpleFaker.helpers.arrayElement(firstNames) + " " + simpleFaker.helpers.arrayElement(lastNames);
+    }
+  },
   internet: {
     email: () => `user${Math.floor(prng.next() * 10000)}@example.com`,
     url: () => `https://example.com/${prng.next().toString(36).substring(7)}`,
@@ -103,6 +111,32 @@ export const createMockCompany = (overrides: Partial<Company> = {}): Company => 
     ],
     relatedCompanies: [simpleFaker.company.name(), simpleFaker.company.name()],
     statsLastUpdatedAt: simpleFaker.date.recent(),
+    ...overrides,
+  };
+};
+
+export const createMockUser = (overrides: Partial<FirebaseUser> = {}): FirebaseUser => {
+  return {
+    uid: simpleFaker.string.uuid(),
+    email: simpleFaker.internet.email(),
+    emailVerified: true,
+    displayName: simpleFaker.person.fullName(),
+    photoURL: simpleFaker.internet.url(),
+    isAnonymous: false,
+    metadata: {
+      creationTime: simpleFaker.date.recent().toISOString(),
+      lastSignInTime: simpleFaker.date.recent().toISOString(),
+    },
+    providerData: [],
+    refreshToken: '',
+    tenantId: null,
+    delete: jest.fn(),
+    getIdToken: jest.fn(),
+    getIdTokenResult: jest.fn(),
+    reload: jest.fn(),
+    toJSON: jest.fn(),
+    phoneNumber: null,
+    providerId: 'firebase',
     ...overrides,
   };
 };
