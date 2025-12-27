@@ -12,6 +12,7 @@ export interface UserProfile {
   email: string | null;
   displayName: string | null;
   createdAt: Date; // Or Firestore Timestamp if directly from DB
+  lastSyncedAt?: Date;
   // educationHistory and workHistory will be fetched from subcollections
 }
 

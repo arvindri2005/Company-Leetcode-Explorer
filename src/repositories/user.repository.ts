@@ -660,7 +660,7 @@ export class UserRepository {
       // and doesn't require a prior 'read' (getDoc) which fails offline.
       const updates: Partial<UserProfile> = {
         uid,
-        lastSyncedAt: serverTimestamp(),
+        lastSyncedAt: serverTimestamp() as any,
       };
 
       if (email) updates.email = email;
