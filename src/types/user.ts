@@ -67,7 +67,10 @@ export const EducationExperienceSchema = z.object({
     .regex(/^\d{4}$/, "Invalid year format (YYYY).")
     .optional()
     .or(z.literal("")),
-  gpa: z.string().optional().or(z.literal("")), // Keep as string to allow various formats or N/A
+  gpa: z.string()
+    .regex(/^\d+(\.\d{1,2})?$/, "GPA must be a number (e.g. 3.5, 4.0)")
+    .optional()
+    .or(z.literal("")), // Keep as string to allow various formats or N/A
 });
 /**
  * @description Represents a user's educational experience.
