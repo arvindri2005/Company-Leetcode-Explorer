@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import CompanyPage from '@/components/company/page/company-page';
+import { createMockCompany, createMockProblemsResponse, createMockProblem } from '@/__tests__/factories/data-factories';
 
 // Mock child components
 jest.mock('@/components/company/company-header', () => ({
@@ -42,25 +43,31 @@ jest.mock('@/services/company.service', () => ({
 }));
 
 describe('CompanyPage', () => {
-  const mockCompany = {
+  const mockCompany = createMockCompany({
     id: '1',
     slug: 'test-company',
     name: 'Test Company',
     logo: 'logo.png',
     problemCount: 10,
     website: 'https://example.com',
-    commonTags: [],
-    relatedCompanies: [],
-  };
+  });
 
-  const mockProblemsData = {
-    problems: [{ id: '1', title: 'Problem 1', difficulty: 'Easy' as const, slug: 'problem-1', tags: [], link: 'http://example.com', companyId: '1', companySlug: 'test-company', normalizedTitle: 'problem 1' }],
-    hasMore: false,
-    nextCursor: undefined,
+  const mockProblemsData = createMockProblemsResponse({
+    problems: [
+      createMockProblem({
+        id: '1',
+        title: 'Problem 1',
+        difficulty: 'Easy',
+        slug: 'problem-1',
+        link: 'http://example.com',
+        companyId: '1',
+        companySlug: 'test-company',
+        normalizedTitle: 'problem 1',
+      })
+    ],
     totalProblems: 1,
-    totalPages: 1,
-    currentPage: 1,
-  };
+    hasMore: false,
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();

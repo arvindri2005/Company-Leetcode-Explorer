@@ -1,5 +1,6 @@
 import { render, screen, waitFor, act } from '@testing-library/react';
 import CompanyTabs from '@/components/company/page/company-tabs';
+import { createMockCompany } from '@/__tests__/factories/data-factories';
 
 // Mock child components
 jest.mock('@/components/problem/problem-list', () => ({
@@ -35,16 +36,11 @@ jest.mock('@/components/company/company-problem-stats', () => ({
 }));
 
 describe('CompanyTabs', () => {
-  const mockCompany = {
+  const mockCompany = createMockCompany({
     id: '1',
     slug: 'test-company',
     name: 'Test Company',
-    logo: 'logo.png',
-    problemCount: 10,
-    website: 'https://example.com',
-    commonTags: [],
-    relatedCompanies: [],
-  };
+  });
 
   const defaultProps = {
     company: mockCompany,

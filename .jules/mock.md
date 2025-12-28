@@ -9,3 +9,9 @@
 ## 2025-02-18 - [Factory Pattern for Firebase User]
 **Illusion:** Tests for user profile components relied on large, hardcoded mock objects simulating Firebase User types. This led to fragility when the `User` type evolved and made tests hard to read due to noise.
 **Reality:** Implemented `createMockUser` in `src/__tests__/factories/data-factories.ts` which returns a properly typed `FirebaseUser` object (using `Partial<FirebaseUser>`). It leverages `simpleFaker` for realistic data and allows granular overrides. Critically, we learned that shallow spreading overrides (`...overrides`) on nested objects (like `metadata`) can accidentally wipe out default values, requiring tests to either provide full nested objects or factories to implement deep merging.
+## 2024-05-24 - [Factorization of Company Tests]
+Illusion: Hardcoded JSON objects in component tests led to duplication and potential drift from types.
+Reality: Implemented `createMockCompany` and `createMockProblem` factories in `src/__tests__/factories/data-factories.ts` and refactored tests to use them.
+- Factory Pattern reduces noise in tests.
+- Seedable PRNG ensures deterministic but realistic data.
+- Overrides allow specific test scenarios while defaults handle the rest.

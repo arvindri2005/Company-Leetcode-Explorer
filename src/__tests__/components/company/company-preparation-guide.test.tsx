@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import CompanyPreparationGuide from '@/components/company/company-preparation-guide';
+import { createMockCompany } from '@/__tests__/factories/data-factories';
 
 // Mock Accordion to avoid Radix UI complexity in tests
 jest.mock('@/components/ui/accordion', () => ({
@@ -10,17 +11,12 @@ jest.mock('@/components/ui/accordion', () => ({
 }));
 
 describe('CompanyPreparationGuide', () => {
-  const mockCompany = {
+  const mockCompany = createMockCompany({
     id: '1',
     slug: 'test-company',
     name: 'Test Company',
-    logo: 'logo.png',
-    problemCount: 10,
-    website: 'https://example.com',
     description: 'A test company description.',
-    commonTags: [],
-    relatedCompanies: [],
-  };
+  });
 
   it('should render all sections', () => {
     render(<CompanyPreparationGuide company={mockCompany} />);
