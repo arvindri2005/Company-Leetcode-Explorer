@@ -52,12 +52,12 @@ export function PaginationControls({
       if (currentPage === 1 && !hasNextPage && hideOnSinglePage) return null;
 
       return (
-        <div className={cn("flex items-center justify-center gap-2", className)}>
+        <div className={cn("flex flex-wrap items-center justify-center gap-2", className)}>
           <Link
             href={currentPage > 1 ? getUrl(currentPage - 1) : "#"}
             aria-disabled={currentPage <= 1}
             className={cn(
-              "flex h-9 px-4 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sm font-medium transition-colors hover:bg-white/10 hover:text-white",
+              "flex h-11 px-4 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sm font-medium transition-colors hover:bg-white/10 hover:text-white md:h-9",
               currentPage <= 1 && "pointer-events-none opacity-50"
             )}
           >
@@ -65,7 +65,7 @@ export function PaginationControls({
             Previous
           </Link>
 
-          <div className="flex items-center justify-center px-4 font-medium text-sm">
+          <div className="flex items-center justify-center px-4 font-medium text-sm h-11 md:h-9">
              Page {currentPage}
           </div>
 
@@ -73,7 +73,7 @@ export function PaginationControls({
             href={hasNextPage ? getUrl(currentPage + 1) : "#"}
             aria-disabled={!hasNextPage}
             className={cn(
-              "flex h-9 px-4 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sm font-medium transition-colors hover:bg-white/10 hover:text-white",
+              "flex h-11 px-4 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sm font-medium transition-colors hover:bg-white/10 hover:text-white md:h-9",
               !hasNextPage && "pointer-events-none opacity-50"
             )}
           >
@@ -118,12 +118,12 @@ export function PaginationControls({
   if (totalPages <= 1 && hideOnSinglePage) return null;
 
   return (
-    <div className={cn("flex items-center justify-center gap-2", className)}>
+    <div className={cn("flex flex-wrap items-center justify-center gap-2", className)}>
       <Link
         href={currentPage > 1 ? getUrl(currentPage - 1) : "#"}
         aria-disabled={currentPage <= 1}
         className={cn(
-          "flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sm font-medium transition-colors hover:bg-white/10 hover:text-white",
+          "flex h-11 w-11 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sm font-medium transition-colors hover:bg-white/10 hover:text-white md:h-9 md:w-9",
           currentPage <= 1 && "pointer-events-none opacity-50"
         )}
       >
@@ -135,7 +135,7 @@ export function PaginationControls({
         page === "..." ? (
           <div
             key={`ellipsis-${index}`}
-            className="flex h-9 w-9 items-center justify-center text-gray-500"
+            className="flex h-11 w-11 items-center justify-center text-gray-500 md:h-9 md:w-9"
           >
             <MoreHorizontal className="h-4 w-4" />
           </div>
@@ -144,7 +144,7 @@ export function PaginationControls({
             key={page}
             href={getUrl(page as number)}
             className={cn(
-              "flex h-9 w-9 items-center justify-center rounded-md border text-sm font-medium transition-colors",
+              "flex h-11 w-11 items-center justify-center rounded-md border text-sm font-medium transition-colors md:h-9 md:w-9",
               currentPage === page
                 ? "border-teal-500/50 bg-teal-500/10 text-teal-400 font-bold"
                 : "border-white/10 bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
@@ -159,7 +159,7 @@ export function PaginationControls({
         href={currentPage < totalPages ? getUrl(currentPage + 1) : "#"}
         aria-disabled={currentPage >= totalPages}
         className={cn(
-          "flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sm font-medium transition-colors hover:bg-white/10 hover:text-white",
+          "flex h-11 w-11 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sm font-medium transition-colors hover:bg-white/10 hover:text-white md:h-9 md:w-9",
           currentPage >= totalPages && "pointer-events-none opacity-50"
         )}
       >
