@@ -23,7 +23,7 @@ import { aiService } from "@/services/ai.service";
 import { revalidateTag } from "next/cache";
 import { auth } from "@/lib/firebase"; // For current user ID
 import { companyService } from "@/services/company.service"; // needed for revalidate lookup
-import { problemService } from "@/services/problem.service"; // needed for revalidate lookup
+import { Logger } from "@/lib/logger";
 
 
 /**
@@ -41,11 +41,16 @@ import { problemService } from "@/services/problem.service"; // needed for reval
 export async function performQuestionGrouping(
   problems: AIProblemInput[],
 ): Promise<GroupQuestionsOutput | { error: string }> {
+  const start = Date.now();
+  Logger.info("AI question grouping started", { problemCount: problems.length });
   try {
     const result = await aiService.groupQuestions(problems);
+    const durationMs = Date.now() - start;
+    Logger.info("AI question grouping completed", { durationMs, groupCount: result.groups?.length });
     return result;
   } catch (error) {
-    console.error("Error in AI question grouping:", error);
+    const durationMs = Date.now() - start;
+    Logger.error("Error in AI question grouping", error, { durationMs });
     if (error instanceof Error)
       return { error: `Failed to group questions: ${error.message}` };
     return {
@@ -73,11 +78,17 @@ export async function performSimilarQuestionSearch(
   currentProblemSlug: string,
   currentProblemCompanySlug: string,
 ): Promise<FindSimilarQuestionsOutput | { error: string }> {
+  const start = Date.now();
+  Logger.info("AI similar question search started", { currentProblemSlug, currentProblemCompanySlug });
   try {
     // aiService handles the lookup of the problem internally now
-    return await aiService.findSimilarQuestions(currentProblemSlug, currentProblemCompanySlug);
+    const result = await aiService.findSimilarQuestions(currentProblemSlug, currentProblemCompanySlug);
+    const durationMs = Date.now() - start;
+    Logger.info("AI similar question search completed", { durationMs });
+    return result;
   } catch (error) {
-    console.error("Error in AI similar question search:", error);
+    const durationMs = Date.now() - start;
+    Logger.error("Error in AI similar question search", error, { durationMs, currentProblemSlug, currentProblemCompanySlug });
     if (error instanceof Error)
       return { error: `Failed to find similar questions: ${error.message}` };
     return {
@@ -102,6 +113,8 @@ export async function performSimilarQuestionSearch(
 export async function generateFlashcardsAction(
   companyId: string,
 ): Promise<GenerateFlashcardsOutput | { error: string }> {
+  const start = Date.now();
+  Logger.info("AI flashcard generation started", { companyId });
   try {
     const result = await aiService.generateFlashcards(companyId);
 
@@ -112,10 +125,13 @@ export async function generateFlashcardsAction(
        revalidateTag(`company-slug-${company.slug}`, 'max');
        revalidateTag(`company-detail-${company.id}`, 'max');
     }
+    const durationMs = Date.now() - start;
+    Logger.info("AI flashcard generation completed", { durationMs, companyId, flashcardCount: ('flashcards' in result) ? result.flashcards.length : 0 });
 
     return result;
   } catch (error) {
-    console.error("Error in AI flashcard generation:", error);
+    const durationMs = Date.now() - start;
+    Logger.error("Error in AI flashcard generation", error, { durationMs, companyId });
     if (error instanceof Error)
       return { error: `Failed to generate flashcards: ${error.message}` };
     return { error: "An unknown error occurred while generating flashcards." };
@@ -141,6 +157,8 @@ export async function generateCompanyStrategyAction(
   companyId: string,
   targetRoleLevel?: TargetRoleLevel,
 ): Promise<GenerateCompanyStrategyOutput | { error: string }> {
+  const start = Date.now();
+  Logger.info("AI company strategy generation started", { companyId, targetRoleLevel });
   try {
       const firebaseUser = auth.currentUser;
       const result = await aiService.generateCompanyStrategy(companyId, firebaseUser?.uid, targetRoleLevel);
@@ -150,9 +168,12 @@ export async function generateCompanyStrategyAction(
         revalidateTag(`company-slug-${company.slug}`, 'max');
         revalidateTag(`company-detail-${company.id}`, 'max');
       }
+      const durationMs = Date.now() - start;
+      Logger.info("AI company strategy generation completed", { durationMs, companyId });
       return result;
   } catch (error) {
-    console.error("Error in AI company strategy generation:", error);
+    const durationMs = Date.now() - start;
+    Logger.error("Error in AI company strategy generation", error, { durationMs, companyId });
     if (error instanceof Error)
       return { error: `Failed to generate strategy: ${error.message}` };
     return {
@@ -178,6 +199,8 @@ export async function generateCompanyStrategyAction(
 export async function generateProblemInsightsAction(
   problem: LeetCodeProblem,
 ): Promise<GenerateProblemInsightsOutput | { error: string }> {
+  const start = Date.now();
+  Logger.info("AI problem insights generation started", { problemSlug: problem.slug, companySlug: problem.companySlug });
   try {
     const result = await aiService.generateProblemInsights(problem);
 
@@ -186,9 +209,13 @@ export async function generateProblemInsightsAction(
     revalidateTag(`problem-detail-${problem.id}`, 'max');
     revalidateTag(`company-detail-${problem.companyId}`, 'max');
 
+    const durationMs = Date.now() - start;
+    Logger.info("AI problem insights generation completed", { durationMs, problemSlug: problem.slug });
+
     return result;
   } catch (error) {
-    console.error("Error in AI problem insights generation:", error);
+    const durationMs = Date.now() - start;
+    Logger.error("Error in AI problem insights generation", error, { durationMs, problemSlug: problem.slug });
     if (error instanceof Error)
       return { error: `Failed to generate insights: ${error.message}` };
     return {
