@@ -97,6 +97,7 @@ export interface LeetCodeProblem {
   slug: string; // Problem's own slug
   lastAskedPeriod?: LastAskedPeriod;
   normalizedTitle: string;
+  acceptanceRate?: number; // Optional acceptance rate
   // Optional fields for UI, augmented after fetching user-specific data
   isBookmarked?: boolean;
   currentStatus?: ProblemStatus;
@@ -152,6 +153,7 @@ export const LeetCodeProblemSchema = z.object({
   slug: z.string(),
   lastAskedPeriod: LastAskedPeriodSchema.optional(),
   normalizedTitle: z.string(),
+  acceptanceRate: z.number().optional(),
   isBookmarked: z.boolean().optional(),
   currentStatus: ProblemStatusSchema.optional(),
 });

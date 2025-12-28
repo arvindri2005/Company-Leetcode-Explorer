@@ -54,7 +54,7 @@ describe('CompanyPage', () => {
   };
 
   const mockProblemsData = {
-    problems: [{ id: '1', title: 'Problem 1', difficulty: 'Easy', slug: 'problem-1', tags: [], link: 'http://example.com', companyId: '1', companySlug: 'test-company', normalizedTitle: 'problem 1' }],
+    problems: [{ id: '1', title: 'Problem 1', difficulty: 'Easy' as const, slug: 'problem-1', tags: [], link: 'http://example.com', companyId: '1', companySlug: 'test-company', normalizedTitle: 'problem 1' }],
     hasMore: false,
     nextCursor: undefined,
     totalProblems: 1,

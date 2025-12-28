@@ -57,14 +57,13 @@ const mockProblems: LeetCodeProblem[] = [
     title: "Two Sum",
     difficulty: "Easy",
     acceptanceRate: 49.2,
-    frequency: 5,
-    url: "https://leetcode.com/problems/two-sum",
     tags: ["Array", "Hash Table"],
+    companyId: "google",
     companyIds: ["google"],
     link: "https://leetcode.com/problems/two-sum",
-    questionId: "1",
-    isPaidOnly: false,
+    slug: "two-sum",
     companySlug: "google",
+    normalizedTitle: "two sum",
   },
 ];
 

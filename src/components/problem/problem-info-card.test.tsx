@@ -23,13 +23,13 @@ const mockProblem: LeetCodeProblem = {
   title: "Longest Substring Without Repeating Characters",
   difficulty: "Medium",
   acceptanceRate: 33.8,
-  frequency: 8,
-  url: "https://leetcode.com/problems/longest-substring-without-repeating-characters",
   tags: ["Hash Table", "String", "Sliding Window"],
+  companyId: "amazon",
+  companySlug: "amazon",
+  slug: "longest-substring-without-repeating-characters",
+  normalizedTitle: "longest substring without repeating characters",
   companyIds: ["amazon", "meta"],
   link: "https://leetcode.com/problems/longest-substring-without-repeating-characters",
-  questionId: "3",
-  isPaidOnly: false,
   lastAskedPeriod: "last_30_days",
 };
 
