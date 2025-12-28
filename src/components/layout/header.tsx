@@ -86,6 +86,7 @@ const Header = React.memo(function Header() {
           href={item.href}
           className={className}
           onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
+          aria-current={isActive ? "page" : undefined}
         >
           {item.label}
         </Link>
