@@ -8,6 +8,8 @@
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
     "build": "next build",
     "clean": "rimraf .next .swc coverage dist out",
+    "db:backup": "tsx scripts/backup-firestore.ts",
+    "db:restore": "tsx scripts/restore-firestore.ts",
     "start": "next start",
     "setup": "node scripts/setup.mjs",
     "lint": "eslint .",
