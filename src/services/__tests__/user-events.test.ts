@@ -1,5 +1,5 @@
 import { userService } from "@/services/user.service";
-import { appEvents } from "@/lib/events";
+import { appEvents } from "@/services/event-bus";
 import { userRepository } from "@/repositories/user.repository";
 
 // Mock dependencies
