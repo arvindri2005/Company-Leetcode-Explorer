@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import UserInfoCard from '@/components/profile/user-info-card';
 import { FormProvider, useForm } from 'react-hook-form';
+import { createMockUser } from '@/__tests__/factories/data-factories';
 
 // Mock dependencies
 jest.mock('lucide-react', () => ({
@@ -13,28 +14,14 @@ jest.mock('lucide-react', () => ({
   X: () => <span data-testid="x-icon" />,
 }));
 
-const mockUser = {
-  uid: 'test-uid',
-  email: 'test@example.com',
-  emailVerified: true,
+const mockUser = createMockUser({
   displayName: 'Test User',
-  photoURL: 'https://example.com/avatar.jpg',
-  isAnonymous: false,
+  email: 'test@example.com',
   metadata: {
     creationTime: '2023-01-01T00:00:00Z',
     lastSignInTime: '2023-01-02T00:00:00Z',
   },
-  providerData: [],
-  refreshToken: '',
-  tenantId: null,
-  delete: jest.fn(),
-  getIdToken: jest.fn(),
-  getIdTokenResult: jest.fn(),
-  reload: jest.fn(),
-  toJSON: jest.fn(),
-  phoneNumber: null,
-  providerId: 'firebase',
-};
+});
 
 // Wrapper component to provide Form Context
 const Wrapper = ({ children }: { children: React.ReactNode }) => {
