@@ -55,7 +55,7 @@ describe('Company Page', () => {
       createMockProblem({ id: '1', title: 'Problem 1' }),
       createMockProblem({ id: '2', title: 'Problem 2' }),
     ],
-    total: 2,
+    totalProblems: 2,
     hasMore: false,
   });
 
@@ -139,7 +139,7 @@ describe('Company Page', () => {
       (companyService.getCompanyBySlug as jest.Mock).mockResolvedValue(null);
       // Even if company is null, we might still call getProblems due to Promise.all, or handle it gracefully.
       // In the implementation, we do Promise.all, so both are called.
-      (problemService.getProblemsByCompanySlug as jest.Mock).mockResolvedValue({ problems: [], total: 0 });
+      (problemService.getProblemsByCompanySlug as jest.Mock).mockResolvedValue({ problems: [], totalProblems: 0 });
       
       const params = Promise.resolve({ companySlug: 'invalid-company' });
 

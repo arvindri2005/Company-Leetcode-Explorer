@@ -130,7 +130,7 @@ export class UserRepository {
 
       querySnapshots.forEach(querySnapshot => {
           querySnapshot.forEach((docSnap) => {
-            const data = docSnap.data();
+            const data = docSnap.data() as any;
             if (data.status) {
               statuses[docSnap.id] = {
                 problemId: docSnap.id,

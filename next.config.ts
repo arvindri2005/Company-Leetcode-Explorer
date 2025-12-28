@@ -45,6 +45,9 @@ const nextConfig: NextConfig = {
     '@genkit-ai/flow',
     'genkit'
     ],
+    experimental: {
+    },
+    turbopack: {}
 };
 
 export default withSerwist(nextConfig);

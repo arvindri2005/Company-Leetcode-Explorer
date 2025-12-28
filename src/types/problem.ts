@@ -87,6 +87,7 @@ export interface LeetCodeProblem {
   id: string;
   title: string;
   difficulty: "Easy" | "Medium" | "Hard";
+  acceptanceRate?: number;
   link: string;
   tags: string[];
   companyId: string; // ID of the company this problem is primarily associated with in *this* app (Legacy/Primary)
