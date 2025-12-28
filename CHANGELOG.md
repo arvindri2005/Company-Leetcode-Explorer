@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `inputMode` attributes to form fields for optimized mobile keyboards (ad88787).
+- Caching for global user problem stats in `UserService` (4ebf1b6).
 - User Activity Event System for tracking actions (3d9e6b4).
 - Soft delete support for User Bookmarks (3976dbc).
 - Twitter card metadata to company pages for better sharing (3f8e312).
@@ -25,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI layer README and Genkit flow documentation (d41a37e).
 
 ### Changed
+- Standardized error handling for Server Actions (2878682).
+- Hardened GPA validation in `EducationExperienceSchema` (2ca43e6).
 - Replaced `framer-motion` with native CSS and Tailwind animations to reduce bundle size (f35c907, 459eb7d).
 - Refactored `ProblemRepository` to reduce cyclomatic complexity (2a1b07b).
 - Split `types/index.ts` into domain-specific modules (6dd1f92).
@@ -51,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explicitly typed Firestore query constraints as `QueryConstraint[]` (2eccbd8).
 
 ### Fixed
+- Outdated documentation in Getting Started guide and README (7451759).
 - Added `lastSyncedAt` to `UserProfile` to resolve type mismatch (8941d05).
 - Unbounded cache growth and stale state in companies list (1f6af11).
 - Accessible name mismatch in problem card unit tests (bc23662).
