@@ -79,6 +79,7 @@ export function ContactForm() {
             name="email"
             type="email"
             autoComplete="email"
+            inputMode="email"
             required
             aria-invalid={!!state?.errors?.email}
             aria-describedby={state?.errors?.email ? "email-error" : undefined}

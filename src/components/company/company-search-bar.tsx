@@ -132,6 +132,7 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
             name="company-search"
             type="search"
             autoComplete="off"
+            inputMode="search"
             role="combobox"
             aria-autocomplete="list"
             aria-expanded={showSuggestions}

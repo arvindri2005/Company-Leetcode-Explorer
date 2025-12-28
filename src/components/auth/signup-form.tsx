@@ -222,6 +222,7 @@ export default function SignupForm() {
                       placeholder="you@example.com"
                       {...field}
                       autoComplete="email"
+                      inputMode="email"
                       className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
                     />
                     {field.value && !form.getFieldState("email").invalid && (
