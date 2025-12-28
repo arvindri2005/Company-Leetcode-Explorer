@@ -1,6 +1,3 @@
-import { config } from "dotenv";
-config();
-
 import "@/ai/flows/group-questions.ts";
 import "@/ai/flows/find-similar-questions-flow.ts";
 import "@/ai/flows/generate-flashcards-flow.ts";
