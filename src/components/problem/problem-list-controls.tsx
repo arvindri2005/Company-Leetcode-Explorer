@@ -14,7 +14,7 @@ import type {
   LastAskedFilter,
   StatusFilter,
 } from "@/types";
-import { lastAskedPeriodOptions, PROBLEM_STATUS_OPTIONS } from "@/types";
+import { lastAskedPeriodOptions, PROBLEM_STATUS_OPTIONS } from "@/constants/problem-constants";
 import {
   Select,
   SelectContent,
