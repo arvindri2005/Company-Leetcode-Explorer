@@ -33,7 +33,9 @@ describe('CompanyPreparationGuide', () => {
 
   it('should render company description', () => {
     render(<CompanyPreparationGuide company={mockCompany} />);
-    expect(screen.getByText('A test company description.')).toBeInTheDocument();
+    const description = screen.getByText('A test company description.');
+    expect(description).toBeInTheDocument();
+    expect(description).toHaveClass('max-w-[65ch]');
   });
 
   it('should render interview process steps', () => {

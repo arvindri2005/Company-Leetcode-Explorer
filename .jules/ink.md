@@ -1,5 +1,5 @@
 # Ink's Manuscript
 
-## 2025-02-18 - Fluid Layouts for Landing Page
-Legibility: Improved responsive scaling on large screens and mobile devices by removing hardcoded pixel constraints.
-Typesetting: Replaced `max-w-[800px]` and `max-w-[1200px]` with standard Tailwind relative units (`max-w-3xl`, `max-w-7xl`). Added `text-balance` to Hero heading to prevent typographic widows.
+## 2025-12-28 - Optimizing Line Length for Readability
+Legibility: Constrained body text width to `max-w-[65ch]` in `CompanyPreparationGuide` to prevent lines from spanning the full 1280px container width on desktop.
+Typesetting: Applied `max-w-[65ch]` to paragraphs and lists in the "About", "Interview Process", and "How to Prepare" sections. Maintained `leading-relaxed` (1.625) for optimal vertical rhythm.

@@ -30,7 +30,7 @@ export default function CompanyPreparationGuide({
           </h2>
           <Card className="border-white/10">
             <CardContent className="pt-6">
-              <p className="text-muted-foreground leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed max-w-[65ch]">
                 {company.description}
               </p>
             </CardContent>
@@ -46,7 +46,7 @@ export default function CompanyPreparationGuide({
         </h2>
         <Card className="border-white/10">
           <CardContent className="pt-6 space-y-4">
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground leading-relaxed max-w-[65ch]">
               The interview process at {companyName} typically follows a standard
               structure designed to assess your technical skills, problem-solving
               abilities, and cultural fit. While specific rounds may vary by role
@@ -90,7 +90,7 @@ export default function CompanyPreparationGuide({
         </h2>
         <Card className="border-white/10">
           <CardContent className="pt-6">
-            <ul className="space-y-3 text-muted-foreground">
+            <ul className="space-y-3 text-muted-foreground max-w-[65ch]">
               <li className="flex gap-2">
                 <span className="font-bold text-foreground min-w-[120px]">
                   Master the Basics:

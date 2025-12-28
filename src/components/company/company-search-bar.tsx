@@ -63,7 +63,7 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
   // Use useEffect to reset index when suggestions change
   useEffect(() => {
     setActiveIndex(-1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [suggestions]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
