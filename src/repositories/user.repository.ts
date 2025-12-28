@@ -124,22 +124,9 @@ export class UserRepository {
     if (!userId || !problemIds || problemIds.length === 0) return {};
     const statuses: Record<string, UserProblemStatusInfo> = {};
     
-    // Chunking to avoid "IN supports up to 30 comparison values" error
-    const CHUNK_SIZE = 30;
-    const chunks = [];
-    for (let i = 0; i < problemIds.length; i += CHUNK_SIZE) {
-        chunks.push(problemIds.slice(i, i + CHUNK_SIZE));
-    }
-
     try {
       const progressColRef = collection(db, "users", userId, "problemProgress");
-      
-      const queryPromises = chunks.map(chunk => {
-          const q = query(progressColRef, where(documentId(), "in", chunk));
-          return getDocs(q);
-      });
-
-      const querySnapshots = await Promise.all(queryPromises);
+      const querySnapshots = await this.fetchDocsByIds(progressColRef, problemIds);
 
       querySnapshots.forEach(querySnapshot => {
           querySnapshot.forEach((docSnap) => {
@@ -171,13 +158,6 @@ export class UserRepository {
     if (!userId || !problemIds || problemIds.length === 0) return new Set();
     const bookmarkedIds = new Set<string>();
 
-    // Chunking to avoid "IN supports up to 30 comparison values" error
-    const CHUNK_SIZE = 30;
-    const chunks = [];
-    for (let i = 0; i < problemIds.length; i += CHUNK_SIZE) {
-        chunks.push(problemIds.slice(i, i + CHUNK_SIZE));
-    }
-
     try {
       const bookmarksColRef = collection(
         db,
@@ -186,12 +166,7 @@ export class UserRepository {
         "bookmarkedProblems",
       );
       
-      const queryPromises = chunks.map(chunk => {
-           const q = query(bookmarksColRef, where(documentId(), "in", chunk));
-           return getDocs(q);
-      });
-
-      const querySnapshots = await Promise.all(queryPromises);
+      const querySnapshots = await this.fetchDocsByIds(bookmarksColRef, problemIds);
 
       querySnapshots.forEach(snap => {
           snap.forEach((docSnap) => {
@@ -208,6 +183,27 @@ export class UserRepository {
       );
       return new Set();
     }
+  }
+
+  /**
+   * Helper to fetch documents by IDs in chunks of 30 to satisfy Firestore "IN" query limits.
+   */
+  private async fetchDocsByIds(
+      collectionRef: any, // Typed as any to accept CollectionReference or Query easily without complex generic imports for now
+      ids: string[]
+  ) {
+      const CHUNK_SIZE = 30;
+      const chunks = [];
+      for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
+          chunks.push(ids.slice(i, i + CHUNK_SIZE));
+      }
+
+      const queryPromises = chunks.map(chunk => {
+          const q = query(collectionRef, where(documentId(), "in", chunk));
+          return getDocs(q);
+      });
+
+      return Promise.all(queryPromises);
   }
 
   async getUserEducation(userId: string): Promise<EducationExperience[]> {
