@@ -4,6 +4,7 @@ const serverSchema = z.object({
   GEMINI_API_KEY: z.string().optional(),
   GOOGLE_API_KEY: z.string().optional(),
   LOGO_API: z.string().optional(),
+  LOG_LEVEL: z.enum(["DEBUG", "INFO", "WARN", "ERROR"]).optional(),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 });
 
@@ -65,6 +66,7 @@ if (typeof window === "undefined") {
       GEMINI_API_KEY: process.env.GEMINI_API_KEY,
       GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
       LOGO_API: process.env.LOGO_API,
+      LOG_LEVEL: process.env.LOG_LEVEL,
       NODE_ENV: process.env.NODE_ENV,
    };
    _serverEnv = serverSchema.safeParse(serverEnv);

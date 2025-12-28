@@ -160,7 +160,7 @@ export default function RootLayout({
         <script async src="https://cdn.ampproject.org/v0.js"></script>
         <script
           async
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID || "ca-pub-6342943619826199"}`}
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID}`}
           crossOrigin="anonymous"
         ></script>
       </head>
