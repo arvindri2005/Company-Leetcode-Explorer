@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import type { Company } from "@/types";
 import { fetchCompaniesAction } from "@/app/actions/company.actions";
 
@@ -15,6 +14,10 @@ interface CompaniesCache {
   };
 }
 
+// Global cache storage (Singleton)
+let globalCache: CompaniesCache = {};
+let cleanupIntervalId: NodeJS.Timeout | null = null;
+
 // Cache expiry time (30 minutes)
 const CACHE_EXPIRY = 30 * 60 * 1000;
 // Cleanup interval (10 minutes)
@@ -23,8 +26,8 @@ const CLEANUP_INTERVAL = 10 * 60 * 1000;
 /**
  * @function useCompaniesCache
  * @description A custom hook that provides a caching layer for fetching company data.
- * It manages an in-memory cache with an expiry time, automatically clears stale entries,
- * and provides a function to fetch data that intelligently uses the cache.
+ * It uses a module-level singleton cache to persist data across component remounts (navigation),
+ * ensuring efficient memory usage and reduced network requests.
  * @returns {{
  *   fetchCompaniesWithCache: (page: number, pageSize: number, searchTerm?: string) => Promise<{
  *     companies: Company[];
@@ -36,31 +39,27 @@ const CLEANUP_INTERVAL = 10 * 60 * 1000;
  * }} An object containing the cached fetch function and a function to clear the cache.
  */
 export function useCompaniesCache() {
-  const [cache, setCache] = useState<CompaniesCache>({});
-
-  // Clear expired cache entries
-  useEffect(() => {
+  // Initialize cleanup interval if not running
+  if (!cleanupIntervalId && typeof window !== "undefined") {
     const clearExpiredCache = () => {
       const now = Date.now();
-      setCache((prevCache) => {
-        const newCache = { ...prevCache };
-        let hasChanges = false;
+      let hasChanges = false;
 
-        Object.keys(newCache).forEach((key) => {
-          if (now - newCache[key].timestamp > CACHE_EXPIRY) {
-            delete newCache[key];
-            hasChanges = true;
-          }
-        });
-
-        return hasChanges ? newCache : prevCache;
+      Object.keys(globalCache).forEach((key) => {
+        if (now - globalCache[key].timestamp > CACHE_EXPIRY) {
+          delete globalCache[key];
+          hasChanges = true;
+        }
       });
+      
+      // Optional: Log if cache was cleaned
+      if (hasChanges && process.env.NODE_ENV === 'development') {
+        console.debug("🗑️ [Flow] Companies cache cleaned");
+      }
     };
 
-    // Run cleanup every 10 minutes
-    const interval = setInterval(clearExpiredCache, CLEANUP_INTERVAL);
-    return () => clearInterval(interval);
-  }, []);
+    cleanupIntervalId = setInterval(clearExpiredCache, CLEANUP_INTERVAL);
+  }
 
   const getCacheKey = (
     page: number,
@@ -76,7 +75,7 @@ export function useCompaniesCache() {
     searchTerm: string = "",
   ) => {
     const key = getCacheKey(page, pageSize, searchTerm);
-    const cacheEntry = cache[key];
+    const cacheEntry = globalCache[key];
 
     if (cacheEntry && Date.now() - cacheEntry.timestamp <= CACHE_EXPIRY) {
       return cacheEntry.data;
@@ -97,13 +96,10 @@ export function useCompaniesCache() {
     },
   ) => {
     const key = getCacheKey(page, pageSize, searchTerm);
-    setCache((prev) => ({
-      ...prev,
-      [key]: {
-        data,
-        timestamp: Date.now(),
-      },
-    }));
+    globalCache[key] = {
+      data,
+      timestamp: Date.now(),
+    };
   };
 
   const fetchCompaniesWithCache = async (
@@ -114,6 +110,9 @@ export function useCompaniesCache() {
     // Try to get from cache first
     const cachedData = getCachedData(page, pageSize, searchTerm);
     if (cachedData) {
+      if (process.env.NODE_ENV === 'development') {
+        console.debug("⚡ [Flow] Cache hit for companies", { page, searchTerm });
+      }
       return cachedData;
     }
 
@@ -127,6 +126,8 @@ export function useCompaniesCache() {
 
   return {
     fetchCompaniesWithCache,
-    clearCache: () => setCache({}),
+    clearCache: () => {
+      globalCache = {};
+    },
   };
 }
