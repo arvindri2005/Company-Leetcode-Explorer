@@ -1,4 +1,5 @@
 import { User } from "firebase/auth";
+import { Auth } from "firebase/auth";
 
 export type NavigationPosition = "main" | "auth" | "mobile-bottom";
 
@@ -7,11 +8,17 @@ export interface NavigationContext {
   isLoading: boolean;
 }
 
+export interface NavigationActionContext {
+  router: any; // NextRouter type is hard to import in lib, so generic for now
+  toast: any;
+  auth: Auth;
+}
+
 export interface NavigationItem {
   key: string;
   label: string;
   href?: string;
-  onClick?: (router: any) => void; // router instance might be needed for logout redirect
+  onClick?: (context: NavigationActionContext) => void | Promise<void>;
   position: NavigationPosition;
   order?: number;
   isVisible?: (context: NavigationContext) => boolean;
@@ -91,38 +98,27 @@ navigationRegistry.register({
   isVisible: ({ user, isLoading }) => !isLoading && !!user,
 });
 
-// Logout is special because it has an onClick.
-// We'll handle the onClick logic in the registration, 
-// or maybe we need a way to inject dependencies like 'signOut' and 'toast'.
-// For now, the Header component defines handleLogout. 
-// To fully decouple, we might need an 'action' registry, but for now 
-// let's allow passing a custom onClick or handling specific keys in the component.
-// OR, we can just register it here, but the implementation of 'onClick' 
-// needs access to app-specific 'auth' and 'router'.
-//
-// A better pattern for 'Logout' might be to keep it hardcoded IF it's deeply integrated,
-// OR allow the registry to hold the callback if we initialize it in a client component.
-//
-// Since 'navigationRegistry' is a static singleton, we can't easily put runtime hooks in it 
-// unless we register them at runtime.
-//
-// Let's stick to 'Profile' here. 'Logout' is often a permanent fixture of auth.
-// However, I can register a placeholder for Logout and let the component hydration fill it? No that's complex.
-//
-// Let's keep Logout hardcoded in the 'Auth' section of Header for now, 
-// OR register it from a "useNavigation" hook that initializes the registry with context-aware items.
-//
-// Let's go with a static registry for LINKS, but for Actions it might be tricky.
-// actually, I can register the Logout item, but the 'onClick' won't be serializable if this was server-side.
-// But this is client-side.
-//
-// However, imports like 'firebase/auth' are fine in this file.
-// The issue is 'useRouter' hook.
-//
-// Solution: The NavigationRegistry will just hold the definition. 
-// For Logout, we can use a special 'type': 'button' and 'action': 'logout'.
-// But I want to be generic.
-//
-// Let's stick to: The registry holds the *structure*.
-// For the specific case of Logout, it relies on `auth` which is global. 
-// `router` needs to be passed in.
+// We can now safely register Logout here, as the handler will receive dependencies at runtime
+navigationRegistry.register({
+  key: "logout",
+  label: "Logout",
+  position: "auth",
+  order: 100,
+  isVisible: ({ user, isLoading }) => !isLoading && !!user,
+  onClick: async ({ auth, router, toast }) => {
+    // Dynamic import to avoid circular dependencies if any, though firebase/auth is safe
+    const { signOut } = await import("firebase/auth");
+    try {
+      if (auth) {
+        await signOut(auth);
+        toast.success("Logged Out", "You have been successfully logged out.");
+        router.push("/");
+      } else {
+        toast.error("Logout Failed", "Authentication not initialized.");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Logout Failed", "Could not log you out. Please try again.");
+    }
+  },
+});
