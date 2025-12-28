@@ -9,7 +9,15 @@ import {
   companyService
 } from "@/services/company.service";
 
-import type { Company, ProblemListFilters, PaginatedProblemsResponse } from "@/types";
+import type {
+  Company,
+  ProblemListFilters,
+  PaginatedProblemsResponse,
+  DifficultyFilter,
+  LastAskedFilter,
+  StatusFilter,
+  SortKey,
+} from "@/types";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import CompanyHeader from "@/components/company/company-header";
 import CompanyTabs from "@/components/company/page/company-tabs";
@@ -35,12 +43,11 @@ interface CompanyPageProps {
  */
 export default async function CompanyPage({ company, initialPaginatedProblems }: CompanyPageProps) {
 // Helper to parse array filters
-  const difficultyFilter: any[] = [];
-  const lastAskedFilter: any[] = [];
-  const statusFilter: any[] = [];
+  const difficultyFilter: DifficultyFilter[] = [];
+  const lastAskedFilter: LastAskedFilter[] = [];
+  const statusFilter: StatusFilter[] = [];
   const searchTerm = "";
-  const sortKey: any = "title";
-
+  const sortKey: SortKey = "title";
 
   const initialFilters: ProblemListFilters = {
     difficultyFilter,
