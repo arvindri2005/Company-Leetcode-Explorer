@@ -83,7 +83,11 @@ export const WorkExperienceSchema = z.object({
   companyName: z.string().min(2, "Company name is required."),
   startDate: z
     .string()
-    .min(4, "Start date is required (e.g., YYYY or MM/YYYY)."), // Keep as string for flexibility
+    .min(4, "Start date is required.")
+    .regex(
+      /^(\d{4}|(0[1-9]|1[0-2])\/\d{4})$/,
+      "Start date must be in YYYY or MM/YYYY format."
+    ),
   endDate: z.string().optional().or(z.literal("")), // Optional, string for flexibility (e.g., "Present", YYYY, MM/YYYY)
   responsibilities: z
     .string()
