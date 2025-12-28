@@ -49,7 +49,7 @@ export default function TypingTestGame() {
             {/* Glossy Progress Bar Container */}
            <div className="h-1.5 w-full bg-muted/30 rounded-t-lg overflow-hidden absolute top-0 left-0 right-0 z-20 backdrop-blur-sm border-b border-white/5">
               <div 
-                  className="h-full bg-gradient-to-r from-primary/80 to-primary transition-all duration-300 ease-out shadow-[0_0_10px_rgba(var(--primary),0.5)]" 
+                  className="h-full bg-gradient-to-r from-primary/80 to-primary transition-all duration-300 ease-out shadow-glow-primary"
                   style={{ width: `${progress}%` }}
               />
            </div>

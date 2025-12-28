@@ -32,7 +32,7 @@ const ShineButton = React.forwardRef<HTMLButtonElement, ShineButtonProps>(
         className={cn(
           "px-6 py-3 border-none rounded-full text-md font-semibold cursor-pointer transition-all duration-300 no-underline inline-flex items-center justify-center gap-2",
           "bg-gradient-to-r from-brand-teal to-brand-purple text-white",
-          "hover:transform hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,212,170,0.3)]",
+          "hover:transform hover:-translate-y-1 hover:shadow-glow",
           "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-teal",
           className,
         )}

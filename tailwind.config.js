@@ -105,6 +105,11 @@ module.exports = {
                 md: "calc(var(--radius) - 2px)",
                 sm: "calc(var(--radius) - 4px)",
             },
+            boxShadow: {
+                "glow": `0 10px 30px ${COLORS.brand.teal}4d`,
+                "glow-lg": `0 20px 40px ${COLORS.brand.teal}1a`,
+                "glow-primary": "0 0 10px hsl(var(--primary) / 0.5)",
+            },
             fontSize: {
                 xxs: "0.625rem",
             },
