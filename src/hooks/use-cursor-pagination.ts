@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import type { Company } from "@/types";
+import { Logger } from "@/lib/logger";
 
 interface CompaniesResponse {
   companies: Company[];
@@ -64,15 +65,17 @@ export const useCursorPagination = () => {
 
         const result = await response.json();
         return result;
-      } catch (error: any) {
-        if (error.name === "AbortError") {
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === "AbortError") {
           // Return a neutral response for aborted requests
           return {
             companies: [],
             hasMore: false, // or keep previous state logic in consumer
           };
         }
-        console.error("Error fetching companies:", error);
+        
+        Logger.error("Error fetching companies", error);
+        
         return {
           companies: [],
           hasMore: false,
