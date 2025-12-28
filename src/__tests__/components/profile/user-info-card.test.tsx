@@ -11,6 +11,7 @@ jest.mock('lucide-react', () => ({
   Edit: () => <span data-testid="edit-icon" />,
   Save: () => <span data-testid="save-icon" />,
   X: () => <span data-testid="x-icon" />,
+  LogOut: () => <span data-testid="logout-icon" />,
 }));
 
 const mockUser = {
@@ -76,8 +77,9 @@ describe('UserInfoCard', () => {
     // Check member since
     expect(screen.getByText(/Member since January 2023/)).toBeInTheDocument();
     
-    // Check logout button
-    expect(screen.getByText('Log Out')).toBeInTheDocument();
+    // Check logout button (it might be rendered multiple times for mobile/desktop, checking for at least one)
+    const logoutButtons = screen.getAllByText('Log Out');
+    expect(logoutButtons.length).toBeGreaterThan(0);
   });
 
   it('renders edit mode correctly', () => {
@@ -103,7 +105,9 @@ describe('UserInfoCard', () => {
       </Wrapper>
     );
 
-    fireEvent.click(screen.getByText('Log Out'));
+    // Get the first logout button (desktop one usually, or just any)
+    const logoutButtons = screen.getAllByText('Log Out');
+    fireEvent.click(logoutButtons[0]);
     expect(mockProps.handleLogout).toHaveBeenCalled();
   });
 

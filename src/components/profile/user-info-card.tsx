@@ -3,7 +3,7 @@
 import React from "react";
 import { useFormContext, FormProvider } from "react-hook-form";
 import { z } from "zod";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Mail,
@@ -12,6 +12,7 @@ import {
   Edit,
   Save,
   X,
+  LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,10 +79,10 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
   };
 
   return (
-    <Card className="bg-card border border-border rounded-xl mb-8 shadow-sm overflow-hidden">
-      <CardHeader className="p-6 pb-2">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-          <Avatar className="h-24 w-24 ring-4 ring-background shadow-lg shrink-0">
+    <Card className="bg-card border border-border rounded-xl mb-8 shadow-sm overflow-hidden relative">
+      <CardHeader className="p-6">
+        <div className="flex flex-col sm:flex-row items-start gap-6">
+          <Avatar className="h-24 w-24 ring-4 ring-primary/10 ring-offset-2 ring-offset-background shadow-lg shrink-0">
             <AvatarImage
               src={user.photoURL || undefined}
               data-ai-hint="profile avatar"
@@ -92,113 +93,131 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
             </AvatarFallback>
           </Avatar>
           
-          <div className="flex-grow space-y-1.5 w-full">
-            {!isEditingDisplayName ? (
-              <div className="flex items-center justify-between sm:justify-start gap-4">
-                <h2 className="text-2xl font-bold tracking-tight text-foreground">
-                  {user.displayName || "Anonymous User"}
-                </h2>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    setIsEditingDisplayName(true);
-                    displayNameForm.setValue(
-                      "displayName",
-                      user.displayName || "",
-                    );
-                  }}
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors rounded-full"
-                  aria-label="Edit display name"
-                >
-                  <Edit size={16} />
-                </Button>
-              </div>
-            ) : (
-              <FormProvider {...displayNameForm}>
-                <Form {...displayNameForm}>
-                  <form
-                    onSubmit={displayNameForm.handleSubmit(onSubmitDisplayName)}
-                    className="space-y-3 max-w-md"
-                  >
-                    <FormField
-                      control={displayNameForm.control}
-                      name="displayName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="Enter display name"
-                              className="text-lg font-medium h-10"
-                              autoFocus
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        type="submit"
-                        size="sm"
-                        disabled={isSubmittingDisplayName}
+          <div className="flex-grow space-y-3 w-full pt-1">
+            <div className="flex justify-between items-start gap-4">
+              {!isEditingDisplayName ? (
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                      {user.displayName || "Anonymous User"}
+                    </h2>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setIsEditingDisplayName(true);
+                        displayNameForm.setValue(
+                          "displayName",
+                          user.displayName || "",
+                        );
+                      }}
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors rounded-full"
+                      aria-label="Edit display name"
+                    >
+                      <Edit size={14} />
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Mail className="h-3.5 w-3.5" />
+                    <span className="truncate max-w-[200px] sm:max-w-none">{user.email}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full max-w-md">
+                  <FormProvider {...displayNameForm}>
+                    <Form {...displayNameForm}>
+                      <form
+                        onSubmit={displayNameForm.handleSubmit(onSubmitDisplayName)}
+                        className="space-y-3"
                       >
-                        {isSubmittingDisplayName ? (
-                          <Loader2 className="animate-spin h-3.5 w-3.5 mr-2" />
-                        ) : (
-                          <Save className="h-3.5 w-3.5 mr-2" />
-                        )}
-                        Save
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsEditingDisplayName(false)}
-                        disabled={isSubmittingDisplayName}
-                      >
-                        <X className="h-3.5 w-3.5 mr-2" /> Cancel
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
-              </FormProvider>
-            )}
-            
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Mail className="h-3.5 w-3.5" />
-                <span className="truncate">{user.email}</span>
-                {user.emailVerified && (
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400 border border-green-200 dark:border-green-500/30">
-                    Verified
-                  </span>
-                )}
-              </div>
-
-              {user.metadata.creationTime && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground/80">
-                  <CalendarDays className="h-3.5 w-3.5" />
-                  <span>Member since {formatDate(user.metadata.creationTime)}</span>
+                        <FormField
+                          control={displayNameForm.control}
+                          name="displayName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  placeholder="Enter display name"
+                                  className="text-lg font-medium h-10"
+                                  autoFocus
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            type="submit"
+                            size="sm"
+                            disabled={isSubmittingDisplayName}
+                          >
+                            {isSubmittingDisplayName ? (
+                              <Loader2 className="animate-spin h-3.5 w-3.5 mr-2" />
+                            ) : (
+                              <Save className="h-3.5 w-3.5 mr-2" />
+                            )}
+                            Save
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setIsEditingDisplayName(false)}
+                            disabled={isSubmittingDisplayName}
+                          >
+                            <X className="h-3.5 w-3.5 mr-2" /> Cancel
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </FormProvider>
                 </div>
               )}
+
+              {/* Desktop Logout Button */}
+              <Button
+                onClick={handleLogout}
+                variant="ghost"
+                size="sm"
+                className="hidden sm:flex text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Log Out
+              </Button>
+            </div>
+            
+            <div className="flex flex-wrap gap-2 pt-1">
+              {user.emailVerified && (
+                <div className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400 border border-green-200 dark:border-green-500/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
+                  Verified
+                </div>
+              )}
+
+              {user.metadata.creationTime && (
+                <div className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted/50 text-muted-foreground border border-border">
+                  <CalendarDays className="h-3 w-3 mr-1.5" />
+                  Member since {formatDate(user.metadata.creationTime)}
+                </div>
+              )}
+            </div>
+
+            {/* Mobile Logout Button (Visible only on small screens) */}
+            <div className="sm:hidden pt-4 border-t border-border mt-4 w-full">
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                className="w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 border-dashed"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Log Out
+              </Button>
             </div>
           </div>
         </div>
       </CardHeader>
-      
-      <CardContent className="p-6 pt-4">
-        <div className="flex justify-start">
-          <Button
-            onClick={handleLogout}
-            variant="outline"
-            className="w-full sm:w-auto text-muted-foreground hover:text-foreground border-dashed"
-          >
-            Log Out
-          </Button>
-        </div>
-      </CardContent>
     </Card>
   );
 };
