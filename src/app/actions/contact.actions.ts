@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { contactService } from "@/services/contact.service";
+import { handleServerActionError } from "@/lib/error-handler";
 
 /**
  * Zod schema for validating the contact form data.
@@ -67,10 +68,11 @@ export async function sendContactMessage(
       message: "Your message has been sent successfully!",
     };
   } catch (error) {
-    console.error("Error saving contact message:", error);
+    // We explicitly do NOT pass the PII (name, email, message) to the logger
+    // to prevent logging sensitive user data.
+    const errorMessage = handleServerActionError(error, "sendContactMessage");
     return {
-      message:
-        "An error occurred while sending your message. Please try again later.",
+      message: errorMessage || "An error occurred while sending your message. Please try again later.",
     };
   }
 }
