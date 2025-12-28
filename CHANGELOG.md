@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explicitly typed Firestore query constraints as `QueryConstraint[]` (2eccbd8).
 
 ### Fixed
+- Added `lastSyncedAt` to `UserProfile` to resolve type mismatch (8941d05).
 - Unbounded cache growth and stale state in companies list (1f6af11).
 - Accessible name mismatch in problem card unit tests (bc23662).
 - JSON-LD injection issues and metadata typos (4281837).
@@ -70,3 +71,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - `react-icons` dependency.
+
+[Unreleased]: https://github.com/arvindri2005/Byte-to-Offer/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/arvindri2005/Byte-to-Offer/releases/tag/v0.1.0
