@@ -5,8 +5,8 @@
  * a list of company suggestions as the user types. It is designed to be a controlled
  * component, with its state managed by a parent component.
  */
-import React, { useState, useEffect } from "react";
-import { Loader2, Building2, Search } from "lucide-react";
+import React, { useState, useRef } from "react";
+import { Loader2, Building2, Search, X } from "lucide-react";
 import Image from "next/image";
 import { getLogoUrl, cn } from "@/lib/utils";
 import { useTypingPlaceholder } from "@/hooks/use-typing-placeholder";
@@ -59,12 +59,14 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
   onSearch,
 }) => {
   const [activeIndex, setActiveIndex] = useState(-1);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Use useEffect to reset index when suggestions change
-  useEffect(() => {
+  // Reset index when suggestions change
+  const [prevSuggestions, setPrevSuggestions] = useState(suggestions);
+  if (suggestions !== prevSuggestions) {
+    setPrevSuggestions(suggestions);
     setActiveIndex(-1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [suggestions]);
+  }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!showSuggestions || suggestions.length === 0) {
@@ -139,8 +141,9 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
                 ? `suggestion-${activeIndex}`
                 : undefined
             }
+            ref={inputRef}
             data-testid="search-input"
-            className="w-full p-5 text-lg border border-white/10 rounded-full bg-white/5 text-white backdrop-blur-lg transition-all duration-300 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/30 placeholder:text-white/50"
+            className="w-full p-5 pr-17 text-lg border border-white/10 rounded-full bg-white/5 text-white backdrop-blur-lg transition-all duration-300 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/30 placeholder:text-white/50"
             placeholder={`Search for ${placeholder}|`}
             value={searchTermInput}
             onChange={(e) => setSearchTermInput(e.target.value)}
