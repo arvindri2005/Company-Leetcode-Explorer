@@ -38,8 +38,8 @@ export default function CompanyHeader({ company }: CompanyHeaderProps) {
                             src={getLogoUrl(company.logo) as string}
                             alt={`${company.name} Logo`}
                             fill
+                            sizes="(max-width: 768px) 64px, 96px"
                             className="rounded-full object-contain bg-white p-2"
-                            unoptimized
                         />
                     ) : (
                         <div className="flex h-full w-full items-center justify-center bg-gray-700 rounded-full">
