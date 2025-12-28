@@ -6,12 +6,12 @@ The project follows a **Layered Architecture** to separate concerns (Presentatio
 
 ```
 src/
-├── actions/              # (or src/app/actions) Server Actions (standard entry point for mutations)
-├── ai/                   # AI logic using Genkit (Flows, configuration)
 ├── app/                  # Next.js App Router (Pages, Layouts, API routes)
+│   ├── actions/          # Server Actions (standard entry point for mutations)
 │   ├── (auth)/           # Route groups (e.g., login, signup)
 │   ├── companies/        # Feature routes
 │   └── ...
+├── ai/                   # AI logic using Genkit (Flows, configuration)
 ├── components/           # React Components
 │   ├── ai/               # AI-related components
 │   ├── company/          # Company-related components
@@ -74,7 +74,7 @@ graph TD
     *   **Pages (`src/app`)**: Server Components by default. Responsible for initial data fetching and layout.
     *   **Components (`src/components`)**: Reusable UI blocks. Organized by feature (e.g., `company`, `ai`) or generic type (`ui`).
 
-2.  **Action Layer (`src/app/actions` or `src/actions`)**:
+2.  **Action Layer (`src/app/actions`)**:
     *   **Server Actions**: Functions running on the server, callable from Client Components.
     *   **Responsibility**: Validate inputs, authentication checks, and call the **Service Layer**.
 

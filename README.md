@@ -43,9 +43,9 @@ Don't wait - start practicing with our cutting-edge platform today!
 
 ## 🛠️ Tech Stack
 
--   **Framework**: Next.js (App Router)
+-   **Framework**: Next.js 16 (App Router)
 -   **Language**: TypeScript
--   **UI**: React, ShadCN UI, Tailwind CSS
+-   **UI**: React 19, ShadCN UI, Tailwind CSS
 -   **AI Integration**: Genkit (with Google Gemini models)
 -   **Database**: Firebase Firestore
 -   **Authentication**: Firebase Authentication
