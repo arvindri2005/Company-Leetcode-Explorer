@@ -1,42 +1,30 @@
 
-import {
-  toggleBookmarkProblemAction,
-  setProblemStatusAction,
-  getUserProblemStatusesForIdsAction
-} from "../user.actions";
+import { toggleBookmarkProblemAction, setProblemStatusAction, getUserProblemStatusesForIdsAction } from "../user.actions";
 import { userService } from "@/services/user.service";
 import { revalidateTag } from "next/cache";
-
-// Mock the userService
-jest.mock("@/services/user.service", () => ({
-  userService: {
-    toggleBookmarkProblem: jest.fn(),
-    setProblemStatus: jest.fn(),
-    getBookmarksForIds: jest.fn(),
-    getProblemStatusesForIds: jest.fn(),
-    syncUserProfile: jest.fn(),
-  },
-}));
-
-jest.mock("next/cache", () => ({
-  revalidateTag: jest.fn(),
-}));
-
-// Mock error handler
-jest.mock("@/lib/error-handler", () => ({
-  handleServerActionError: jest.fn((error) => (error instanceof Error ? error.message : "Unknown error")),
-}));
-
 import { handleServerActionError } from "@/lib/error-handler";
+
+// Mock dependencies
+jest.mock("@/services/user.service");
+jest.mock("next/cache");
+jest.mock("@/lib/error-handler");
+
+// Mock Firebase to avoid initialization errors
+jest.mock("@/lib/firebase", () => ({
+  db: {},
+  auth: {},
+  app: {},
+}));
 
 describe("User Actions", () => {
   const mockUserId = "user-123";
-  const mockProblemId = "problem-456";
+  const mockProblemId = "problem-123";
   const mockCompanySlug = "google";
   const mockProblemSlug = "two-sum";
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (handleServerActionError as jest.Mock).mockImplementation((error) => error.message);
   });
 
   describe("toggleBookmarkProblemAction", () => {
@@ -69,7 +57,7 @@ describe("User Actions", () => {
     it("should return error if required params are missing", async () => {
       // Act & Assert
       expect(await toggleBookmarkProblemAction("", mockProblemId, mockCompanySlug, mockProblemSlug))
-        .toEqual({ success: false, error: expect.stringContaining("User not authenticated") });
+        .toEqual({ success: false, error: expect.stringContaining("User ID is required") });
       
       expect(await toggleBookmarkProblemAction(mockUserId, "", mockCompanySlug, mockProblemSlug))
         .toEqual({ success: false, error: expect.stringContaining("Problem ID is required") });
@@ -83,9 +71,8 @@ describe("User Actions", () => {
 
     it("should handle service errors", async () => {
       // Arrange
-      const errorMessage = "Database error";
       (userService.toggleBookmarkProblem as jest.Mock).mockResolvedValue({
-        error: errorMessage,
+        error: "Database error",
       });
 
       // Act
@@ -97,15 +84,14 @@ describe("User Actions", () => {
       );
 
       // Assert
-      expect(result).toEqual({ success: false, error: errorMessage });
+      expect(result).toEqual({ success: false, error: "Database error" });
       expect(revalidateTag).not.toHaveBeenCalled();
     });
 
     it("should catch unexpected errors", async () => {
       // Arrange
-      const error = new Error("Unexpected crash");
+      const error = new Error("Unexpected error");
       (userService.toggleBookmarkProblem as jest.Mock).mockRejectedValue(error);
-      (handleServerActionError as jest.Mock).mockReturnValue("Unexpected crash");
 
       // Act
       const result = await toggleBookmarkProblemAction(
@@ -116,13 +102,13 @@ describe("User Actions", () => {
       );
 
       // Assert
-      expect(result).toEqual({ success: false, error: "Unexpected crash" });
       expect(handleServerActionError).toHaveBeenCalledWith(error, "toggleBookmarkProblemAction", {
         userId: mockUserId,
         problemId: mockProblemId,
         companySlug: mockCompanySlug,
         problemSlug: mockProblemSlug,
       });
+      expect(result).toEqual({ success: false, error: "Unexpected error" });
     });
   });
 
@@ -155,10 +141,10 @@ describe("User Actions", () => {
       expect(result).toEqual({ success: true });
     });
 
-    it("should return error if validation fails", async () => {
+     it("should return error if validation fails", async () => {
        // Act & Assert
        expect(await setProblemStatusAction("", mockProblemId, "solved", mockCompanySlug, mockProblemSlug))
-       .toEqual({ success: false, error: expect.stringContaining("User not authenticated") });
+       .toEqual({ success: false, error: expect.stringContaining("User ID is required") });
     });
   });
 
@@ -168,8 +154,8 @@ describe("User Actions", () => {
       const problemIds = ["p1", "p2"];
       const mockBookmarks = new Set(["p1"]);
       const mockStatuses = {
-        p1: { status: "solved", lastUpdated: Date.now() },
-        p2: { status: "todo", lastUpdated: Date.now() },
+        p1: { status: "solved" },
+        p2: { status: "todo" },
       };
 
       (userService.getBookmarksForIds as jest.Mock).mockResolvedValue(mockBookmarks);
@@ -179,12 +165,10 @@ describe("User Actions", () => {
       const result = await getUserProblemStatusesForIdsAction(mockUserId, problemIds);
 
       // Assert
-      // @ts-ignore
-      expect(result["p1"]).toEqual({ isBookmarked: true, status: "solved" });
-      // @ts-ignore
-      expect(result["p2"]).toEqual({ isBookmarked: false, status: "todo" });
+      expect(result).toEqual({
+        p1: { isBookmarked: true, status: "solved" },
+        p2: { isBookmarked: false, status: "todo" },
+      });
     });
   });
-  
-
 });

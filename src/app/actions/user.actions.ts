@@ -29,8 +29,23 @@ import type {
 } from "@/types";
 import { userService } from "@/services/user.service";
 import { revalidateTag } from "next/cache";
+import { z } from "zod";
+import { ProblemStatusSchema } from "@/types/problem";
+import { Logger } from "@/lib/logger";
 
 import { handleServerActionError } from "@/lib/error-handler";
+
+const ActionInputSchema = z.object({
+  userId: z.string().min(1, "User ID is required"),
+  problemId: z.string().min(1, "Problem ID is required"),
+  companySlug: z.string().min(1, "Company slug is required").max(100),
+  problemSlug: z.string().min(1, "Problem slug is required").max(100),
+});
+
+const GetStatusInputSchema = z.object({
+  userId: z.string().min(1, "User ID is required"),
+  problemIds: z.array(z.string().min(1)).min(1),
+});
 
 /**
  * Toggles the bookmark status of a coding problem for a given user.
@@ -54,20 +69,32 @@ export async function toggleBookmarkProblemAction(
   companySlug: string,
   problemSlug: string,
 ): Promise<{ success: boolean; isBookmarked?: boolean; error?: string }> {
-  if (!userId)
-    return {
-      success: false,
-      error: "User not authenticated. Cannot toggle bookmark.",
-    };
-  if (!problemId)
-    return {
-      success: false,
-      error: "Problem ID is required to toggle bookmark.",
-    };
-  if (!companySlug)
-    return { success: false, error: "Company slug is required." };
-  if (!problemSlug)
-    return { success: false, error: "Problem slug is required." };
+  const validation = ActionInputSchema.safeParse({
+    userId,
+    problemId,
+    companySlug,
+    problemSlug,
+  });
+
+  if (!validation.success) {
+    Logger.warn("Security validation failed in toggleBookmarkProblemAction", { error: validation.error });
+
+    // Zod v3+ safeParse return structure
+    if (validation.error) {
+       // Using 'issues' or 'errors' depending on Zod version available in environment.
+       // ZodError exposes 'issues' array.
+       return {
+         success: false,
+         error: validation.error.issues[0]?.message || "Invalid input parameters",
+       };
+    } else {
+       // Fallback message
+       return {
+         success: false,
+         error: "Invalid input parameters",
+       };
+    }
+  }
 
   try {
     const result = await userService.toggleBookmarkProblem(
@@ -114,17 +141,30 @@ export async function setProblemStatusAction(
   companySlug: string,
   problemSlug: string,
 ): Promise<{ success: boolean; error?: string }> {
-  if (!userId)
-    return {
-      success: false,
-      error: "User not authenticated. Cannot set problem status.",
-    };
-  if (!problemId)
-    return { success: false, error: "Problem ID is required to set status." };
-  if (!companySlug)
-    return { success: false, error: "Company slug is required." };
-  if (!problemSlug)
-    return { success: false, error: "Problem slug is required." };
+  const validation = ActionInputSchema.extend({
+    status: ProblemStatusSchema,
+  }).safeParse({
+    userId,
+    problemId,
+    companySlug,
+    problemSlug,
+    status,
+  });
+
+  if (!validation.success) {
+     Logger.warn("Security validation failed in setProblemStatusAction", { error: validation.error });
+     if (validation.error) {
+       return {
+         success: false,
+         error: validation.error.issues[0]?.message || "Invalid input parameters",
+       };
+    } else {
+       return {
+         success: false,
+         error: "Invalid input parameters",
+       };
+    }
+  }
 
   try {
     const result = await userService.setProblemStatus(
@@ -169,9 +209,25 @@ export async function getUserProblemStatusesForIdsAction(
   | Record<string, { isBookmarked: boolean; status?: ProblemStatus }>
   | { error: string }
 > {
-  if (!userId)
-    return { error: "User not authenticated." };
-  if (!problemIds || problemIds.length === 0) return {};
+  const validation = GetStatusInputSchema.safeParse({ userId, problemIds });
+  if (!validation.success) {
+    // If validation fails because problemIds is empty, we can just return empty object
+    // but the schema requires min(1), so it will error.
+    // The original code returned {} for empty array.
+    // Let's check for empty array explicitly before schema or allow it in schema.
+    // The schema says .min(1), so it enforces non-empty.
+    // However, if the client sends an empty array, arguably we should just return {}.
+    // But let's stick to strict validation: if you ask for statuses, provide IDs.
+    // Exception: the original code allowed empty array.
+    if (problemIds && problemIds.length === 0) return {};
+
+    Logger.warn("Security validation failed in getUserProblemStatusesForIdsAction", { error: validation.error });
+    if (validation.error) {
+       return { error: validation.error.issues[0]?.message || "Invalid input parameters" };
+    } else {
+       return { error: "Invalid input parameters" };
+    }
+  }
 
   try {
     const [bookmarks, statuses] = await Promise.all([
