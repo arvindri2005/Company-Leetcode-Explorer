@@ -129,7 +129,11 @@ export default function CompanySubmissionForm() {
             <FormItem>
               <FormLabel>Company Name</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Awesome Tech Inc." {...field} />
+                <Input
+                  placeholder="e.g., Awesome Tech Inc."
+                  autoComplete="organization"
+                  {...field}
+                />
               </FormControl>
               <FormDescription>
                 The official name of the company.
@@ -146,7 +150,13 @@ export default function CompanySubmissionForm() {
             <FormItem>
               <FormLabel>Logo URL (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder="https://example.com/logo.png" {...field} />
+                <Input
+                  type="url"
+                  inputMode="url"
+                  autoComplete="url"
+                  placeholder="https://example.com/logo.png"
+                  {...field}
+                />
               </FormControl>
               <FormDescription>
                 A direct URL to the company's logo. Leave blank if not
@@ -189,7 +199,13 @@ export default function CompanySubmissionForm() {
                 Website URL (Optional)
               </FormLabel>
               <FormControl>
-                <Input placeholder="https://example.com" {...field} />
+                <Input
+                  type="url"
+                  inputMode="url"
+                  autoComplete="url"
+                  placeholder="https://example.com"
+                  {...field}
+                />
               </FormControl>
               <FormDescription>
                 The official website of the company. Leave blank if not

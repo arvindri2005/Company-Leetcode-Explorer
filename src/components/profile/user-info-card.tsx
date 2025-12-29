@@ -140,6 +140,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                                   placeholder="Enter display name"
                                   className="text-lg font-medium h-10"
                                   autoFocus
+                                  autoComplete="name"
                                 />
                               </FormControl>
                               <FormMessage />
