@@ -10,7 +10,20 @@ import {
 } from "@/types";
 import { appEvents, AppEventKey, AppEventHandler } from "@/services/event-bus";
 
+interface CachedGlobalStats {
+  data: {
+    solvedProblemIds: string[];
+    attemptedProblemIds: string[];
+    bookmarkedProblemIds: string[];
+  };
+  timestamp: number;
+}
+
 export class UserService {
+  private globalStatsCache: Map<string, CachedGlobalStats> = new Map();
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+  private readonly MAX_CACHE_SIZE = 1000; // Max number of users in cache
+
   /**
    * Subscribe to user-related events.
    */
@@ -23,7 +36,33 @@ export class UserService {
   }
 
   async getUserGlobalProblemStats(userId: string): Promise<{ solvedProblemIds: string[], attemptedProblemIds: string[], bookmarkedProblemIds: string[] }> {
-    return await userRepository.getUserGlobalProblemStats(userId);
+    const now = Date.now();
+    const cached = this.globalStatsCache.get(userId);
+
+    if (cached && now - cached.timestamp < this.CACHE_TTL) {
+      // Return a copy to prevent mutation of the cache by consumers
+      return {
+        solvedProblemIds: [...cached.data.solvedProblemIds],
+        attemptedProblemIds: [...cached.data.attemptedProblemIds],
+        bookmarkedProblemIds: [...cached.data.bookmarkedProblemIds],
+      };
+    }
+
+    const data = await userRepository.getUserGlobalProblemStats(userId);
+    
+    // Memory management: Prevent unbound growth
+    if (this.globalStatsCache.size >= this.MAX_CACHE_SIZE) {
+      this.globalStatsCache.clear();
+    }
+    
+    this.globalStatsCache.set(userId, { data, timestamp: now });
+    
+    // Return a copy even on fresh fetch to be consistent
+    return {
+        solvedProblemIds: [...data.solvedProblemIds],
+        attemptedProblemIds: [...data.attemptedProblemIds],
+        bookmarkedProblemIds: [...data.bookmarkedProblemIds],
+    };
   }
 
 
@@ -80,6 +119,26 @@ export class UserService {
     );
 
     if (!result.error) {
+      // Update cache
+      const cached = this.globalStatsCache.get(userId);
+      if (cached) {
+        const { bookmarkedProblemIds } = cached.data;
+        let newBookmarked = [...bookmarkedProblemIds];
+        
+        if (result.isBookmarked) {
+          if (!newBookmarked.includes(problemId)) {
+            newBookmarked.push(problemId);
+          }
+        } else {
+          newBookmarked = newBookmarked.filter(id => id !== problemId);
+        }
+        
+        this.globalStatsCache.set(userId, {
+          ...cached,
+          data: { ...cached.data, bookmarkedProblemIds: newBookmarked },
+        });
+      }
+
       await appEvents.emit("user:bookmark_toggled", {
         userId,
         problemId,
@@ -109,6 +168,32 @@ export class UserService {
     );
 
     if (result.success) {
+      // Update cache
+      const cached = this.globalStatsCache.get(userId);
+      if (cached) {
+        let { solvedProblemIds, attemptedProblemIds } = cached.data;
+        
+        // Clone arrays to ensure immutability
+        solvedProblemIds = [...solvedProblemIds];
+        attemptedProblemIds = [...attemptedProblemIds];
+
+        if (status === 'solved') {
+          if (!solvedProblemIds.includes(problemId)) {
+            solvedProblemIds.push(problemId);
+          }
+        } else if (status === 'attempted') {
+           if (!attemptedProblemIds.includes(problemId)) {
+            attemptedProblemIds.push(problemId);
+          }
+        }
+        // No removal logic as per repository spec
+        
+        this.globalStatsCache.set(userId, {
+          ...cached,
+          data: { ...cached.data, solvedProblemIds, attemptedProblemIds },
+        });
+      }
+
       await appEvents.emit("user:problem_status_changed", {
         userId,
         problemId,
