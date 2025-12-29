@@ -4,7 +4,7 @@ import React from "react";
 import type { LeetCodeProblem, ProblemStatus } from "@/types";
 import ProblemCard from "@/components/problem/problem-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2 } from "lucide-react";
+import { Loader2, ClipboardList } from "lucide-react";
 
 /**
  * @interface ProblemWithStatusAndBookmark
@@ -64,9 +64,18 @@ const ProfileProblemList: React.FC<ProfileProblemListProps> = ({
 
   if (problems.length === 0) {
     return (
-      <p className="text-muted-foreground text-center py-6">
-        No problems in this list yet.
-      </p>
+      <div className="flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed border-muted rounded-xl bg-muted/5">
+        <div className="bg-background p-3 rounded-full mb-4 ring-1 ring-border shadow-sm">
+          <ClipboardList className="h-6 w-6 text-muted-foreground" />
+        </div>
+        <h3 className="text-lg font-medium text-foreground mb-1">
+          No problems found
+        </h3>
+        <p className="text-sm text-muted-foreground max-w-xs">
+          This list is currently empty. Start solving or bookmarking problems to
+          see them here!
+        </p>
+      </div>
     );
   }
 
