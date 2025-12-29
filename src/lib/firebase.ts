@@ -1,43 +1,34 @@
-/**
- * @file firebase.ts
- * @description This file initializes the Firebase app and exports the Firestore database and Auth instances.
- * It includes checks for necessary environment variables and ensures that Firebase is only initialized once.
- */
-
-import {
-  initializeApp,
-  getApps,
-  getApp,
-  type FirebaseOptions,
-} from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getFirestore, enableMultiTabIndexedDbPersistence, initializeFirestore, CACHE_SIZE_UNLIMITED } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { Logger } from "./logger";
 import { env } from "@/env";
 
-const firebaseConfig: FirebaseOptions = {
+const firebaseConfig = {
   apiKey: env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   projectId: env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   storageBucket: env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID, // Optional
+  measurementId: env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase
-let app;
-if (!getApps().length) {
-  // Basic check to prevent initialization with undefined values, especially on client-side if vars are missing.
-  if (firebaseConfig.apiKey && firebaseConfig.projectId) {
-    app = initializeApp(firebaseConfig);
-  } else {
-    throw new Error("Firebase configuration is incomplete. App cannot be initialized.");
-  }
-} else {
-  app = getApp();
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = initializeFirestore(app, {
+  cacheSizeBytes: CACHE_SIZE_UNLIMITED,
+});
+
+if (typeof window !== 'undefined') {
+  enableMultiTabIndexedDbPersistence(db).catch((err) => {
+    if (err.code == 'failed-precondition') {
+      Logger.warn('Multiple tabs open, persistence can only be enabled in one tab at a a time.');
+    } else if (err.code == 'unimplemented') {
+      Logger.warn('The current browser does not support all of the features required to enable persistence');
+    }
+  });
 }
 
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-export { db, auth, app };
+export { app, auth, db };
