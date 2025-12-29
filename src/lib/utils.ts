@@ -99,3 +99,19 @@ export function safeJsonLd(data: any): string {
     .replace(/>/g, "\\u003e")
     .replace(/&/g, "\\u0026");
 }
+
+/**
+ * @function parseArrayValid
+ * @description Filters an array of strings against a list of valid values, ensuring type safety.
+ * @template T
+ * @param {string[] | null} val - The input array of strings or null.
+ * @param {T[]} validValues - The array of allowed values.
+ * @returns {T[]} An array containing only the valid values from the input.
+ */
+export function parseArrayValid<T extends string>(
+  val: string[] | null,
+  validValues: T[]
+): T[] {
+  if (!val) return [];
+  return val.filter((v): v is T => validValues.includes(v as T));
+}
