@@ -30,10 +30,8 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Lint
-        # Continuing on error because of existing technical debt (unescaped entities, hooks warnings)
-        # Pilot: "We visualize the debt so we can pay it down later."
+        # We now enforce linting success (with warnings for legacy debt)
         run: pnpm lint
-        continue-on-error: true
 
       - name: Typecheck
         # Continuing on error because of existing technical debt (test types, missing definitions)
