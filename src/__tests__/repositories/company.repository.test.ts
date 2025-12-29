@@ -14,7 +14,7 @@ import {
   startAfter, 
   documentId 
 } from "firebase/firestore";
-import { createMockCompany } from "../factories/data-factories";
+import { createMockCompany, createMockFirestoreDoc } from "../factories/data-factories";
 
 // Mock Firebase
 jest.mock("firebase/firestore", () => {
@@ -72,17 +72,13 @@ describe("CompanyRepository", () => {
     normalizedName: "google",
   });
 
-  const mockCompanyDoc = {
-    id: mockCompany.id,
-    data: () => ({
-      ...mockCompany,
-      // Simulate Firestore specific fields
-      statsLastUpdatedAt: mockCompany.statsLastUpdatedAt 
-        ? Timestamp.fromDate(mockCompany.statsLastUpdatedAt) 
-        : null,
-    }),
-    exists: () => true,
-  };
+  const mockCompanyDoc = createMockFirestoreDoc({
+    ...mockCompany,
+    // Simulate Firestore specific fields using the local MockTimestamp class
+    statsLastUpdatedAt: mockCompany.statsLastUpdatedAt
+      ? Timestamp.fromDate(mockCompany.statsLastUpdatedAt)
+      : null,
+  }, mockCompany.id);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -142,17 +138,15 @@ describe("CompanyRepository", () => {
     
     it("should generate nextCursor if there are more results", async () => {
          // Create enough docs to trigger hasMore (pageSize + 1)
-         const docs = Array.from({ length: 11 }, (_, i) => ({
-             ...mockCompanyDoc,
-             id: `${i}`,
-             data: () => ({ 
+         const docs = Array.from({ length: 11 }, (_, i) =>
+             createMockFirestoreDoc({
                ...mockCompany, 
                id: `${i}`, 
                name: `Company ${i}`, 
                normalizedName: `company ${i}`,
                statsLastUpdatedAt: Timestamp.now()
-             })
-         }));
+             }, `${i}`)
+         );
          
          (getDocs as jest.Mock).mockResolvedValue({ docs });
 

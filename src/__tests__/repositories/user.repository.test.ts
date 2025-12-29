@@ -1,5 +1,6 @@
 import { UserRepository } from "@/repositories/user.repository";
 import { getDocs } from "firebase/firestore";
+import { createMockFirestoreDoc, createMockTimestamp } from "../factories/data-factories";
 
 // Mock Firebase
 jest.mock("firebase/firestore", () => ({
@@ -42,17 +43,15 @@ describe("UserRepository", () => {
     it("should fetch statuses for given problem IDs", async () => {
       const userId = "user1";
       const problemIds = ["p1", "p2"];
+      const fixedDate = new Date("2024-01-01");
       
       const mockDocs = [
-        {
-          id: "p1",
-          data: () => ({
+        createMockFirestoreDoc({
             status: "solved",
             companySlug: "google",
             problemSlug: "two-sum",
-            updatedAt: { toDate: () => new Date("2024-01-01") },
-          }),
-        },
+            updatedAt: createMockTimestamp(fixedDate),
+        }, "p1")
       ];
 
       (getDocs as jest.Mock).mockResolvedValue({
@@ -67,7 +66,7 @@ describe("UserRepository", () => {
           status: "solved",
           companySlug: "google",
           problemSlug: "two-sum",
-          updatedAt: new Date("2024-01-01"),
+          updatedAt: fixedDate,
         },
       });
       expect(getDocs).toHaveBeenCalledTimes(1);
@@ -103,9 +102,7 @@ describe("UserRepository", () => {
       const problemIds = ["p1", "p2"];
 
       const mockDocs = [
-        {
-          id: "p1",
-        },
+        createMockFirestoreDoc({}, "p1")
       ];
 
       (getDocs as jest.Mock).mockResolvedValue({
