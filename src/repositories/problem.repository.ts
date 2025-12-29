@@ -301,14 +301,32 @@ export class ProblemRepository {
       }
     }
 
+    // Optimization: Use Firestore range queries for search
+    if (searchTerm.trim() !== "") {
+      const lowercasedSearchTerm = searchTerm.toLowerCase().trim();
+      constraints.push(where("normalizedTitle", ">=", lowercasedSearchTerm));
+      constraints.push(
+        where("normalizedTitle", "<=", lowercasedSearchTerm + "\uf8ff"),
+      );
+    }
+
     const hasResidualFilters =
-      residualDifficultyFilter.length > 0 ||
-      residualLastAskedFilter.length > 0 ||
-      searchTerm.trim() !== "";
+      residualDifficultyFilter.length > 0 || residualLastAskedFilter.length > 0;
+    // Note: searchTerm is now handled via constraints, so it's not a residual filter.
+    // However, if we search, we MUST sort by normalizedTitle first.
+    // If the user requests sorting by 'difficulty', we can't use the Optimized Path
+    // because Firestore requires inequality fields to be the first orderBy.
+
+    const isSortCompatibleWithSearch =
+      searchTerm.trim() !== "" ? sortKey === "title" : true;
 
     const isSupportedSort = sortKey === "title" || sortKey === "difficulty";
 
-    if (!hasResidualFilters && isSupportedSort) {
+    if (
+      !hasResidualFilters &&
+      isSupportedSort &&
+      isSortCompatibleWithSearch
+    ) {
       try {
         return await this.fetchProblemsByCompanyOptimized(
           companyId,
@@ -519,17 +537,8 @@ export class ProblemRepository {
             residualLastAskedFilter.includes(p.lastAskedPeriod),
         );
       }
-      if (searchTerm.trim() !== "") {
-        const lowercasedSearchTerm = searchTerm.toLowerCase().trim();
-        processedProblems = processedProblems.filter(
-          (p) =>
-            p.title.toLowerCase().includes(lowercasedSearchTerm) ||
-            (p.tags &&
-              p.tags.some((tag) =>
-                tag.toLowerCase().includes(lowercasedSearchTerm),
-              )),
-        );
-      }
+      // Search is now handled by Firestore constraints (Starts With logic on Title).
+      // This optimization prioritizes read efficiency over full-text/tag search capabilities.
 
       // Client-side sorting for the 200 items
       const difficultyOrder: Record<LeetCodeProblem["difficulty"], number> = {
@@ -646,23 +655,36 @@ export class ProblemRepository {
 
     const residualLastAskedFilter = lastAskedFilter;
 
+    // Optimization: Use Firestore range queries for search
+    if (searchTerm.trim() !== "") {
+      const lowercasedSearchTerm = searchTerm.toLowerCase().trim();
+      constraints.push(where("normalizedTitle", ">=", lowercasedSearchTerm));
+      constraints.push(
+        where("normalizedTitle", "<=", lowercasedSearchTerm + "\uf8ff"),
+      );
+    }
+
     const hasResidualFilters =
-      residualDifficultyFilter.length > 0 ||
-      residualLastAskedFilter.length > 0 ||
-      searchTerm.trim() !== "";
+      residualDifficultyFilter.length > 0 || residualLastAskedFilter.length > 0;
+
+    const isSortCompatibleWithSearch =
+      searchTerm.trim() !== "" ? sortKey === "title" : true;
 
     const isDefaultSort = sortKey === "title";
 
     // Optimized Path: Use DB Limits if possible
     // We can use this path if:
     // 1. No text search (requires in-memory filtering or dedicated search service)
+    //    -> UPDATED: Now supports text search via range queries if sort is compatible.
     // 2. Filters are compatible with Firestore composite indexes (usually handled, but 'in' operator has limits)
     // 3. Sorting is standard
 
     // Check if we can use the optimized path
     const canUseOptimizedPath =
-      !hasResidualFilters && (isDefaultSort || sortKey === "difficulty");
-    // Note: Sort by difficulty is supported in optimized path logic below
+      !hasResidualFilters &&
+      (isDefaultSort || sortKey === "difficulty") &&
+      isSortCompatibleWithSearch;
+    // Note: Sort by difficulty is supported in optimized path logic below ONLY if not searching.
 
     if (canUseOptimizedPath) {
       try {
@@ -806,17 +828,8 @@ export class ProblemRepository {
       );
     }
 
-    if (searchTerm.trim() !== "") {
-      const lowercasedSearchTerm = searchTerm.toLowerCase().trim();
-      processedProblems = processedProblems.filter(
-        (p) =>
-          p.title.toLowerCase().includes(lowercasedSearchTerm) ||
-          (p.tags &&
-            p.tags.some((tag) =>
-              tag.toLowerCase().includes(lowercasedSearchTerm),
-            )),
-      );
-    }
+    // Search is now handled by Firestore constraints.
+    // We removed the in-memory 'includes' check to rely on the efficient DB query.
 
     const difficultyOrder: Record<LeetCodeProblem["difficulty"], number> = {
       Easy: 1,
