@@ -4,6 +4,9 @@ import { useFormStatus, useFormState } from "react-dom";
 import { sendContactMessage } from "@/app/actions/contact.actions";
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 /**
  * A client component that renders a form submission button with a pending state.
@@ -12,13 +15,14 @@ function SubmitButton() {
   const { pending } = useFormStatus();
 
   return (
-    <button
+    <Button
       type="submit"
-      disabled={pending}
-      className="inline-flex justify-center rounded-md border border-transparent bg-primary py-3 px-6 text-base font-medium text-white shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50"
+      isLoading={pending}
+      className="w-full sm:w-auto px-8"
+      size="lg"
     >
       {pending ? "Sending..." : "Send Message"}
-    </button>
+    </Button>
   );
 }
 
@@ -44,12 +48,12 @@ export function ContactForm() {
       <div>
         <label
           htmlFor="name"
-          className="block text-sm font-medium text-gray-400"
+          className="block text-sm font-medium text-gray-400 mb-1"
         >
           Name
         </label>
         <div className="mt-1">
-          <input
+          <Input
             type="text"
             name="name"
             id="name"
@@ -57,7 +61,7 @@ export function ContactForm() {
             required
             aria-invalid={!!state?.errors?.name}
             aria-describedby={state?.errors?.name ? "name-error" : undefined}
-            className="block w-full rounded-md border-gray-600 bg-gray-800 py-3 px-4 text-white shadow-sm focus:border-primary focus:ring-primary"
+            className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500 focus-visible:ring-primary focus-visible:border-primary"
           />
         </div>
         {state?.errors?.name && (
@@ -69,20 +73,21 @@ export function ContactForm() {
       <div>
         <label
           htmlFor="email"
-          className="block text-sm font-medium text-gray-400"
+          className="block text-sm font-medium text-gray-400 mb-1"
         >
           Email
         </label>
         <div className="mt-1">
-          <input
+          <Input
             id="email"
             name="email"
             type="email"
+            inputMode="email"
             autoComplete="email"
             required
             aria-invalid={!!state?.errors?.email}
             aria-describedby={state?.errors?.email ? "email-error" : undefined}
-            className="block w-full rounded-md border-gray-600 bg-gray-800 py-3 px-4 text-white shadow-sm focus:border-primary focus:ring-primary"
+            className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500 focus-visible:ring-primary focus-visible:border-primary"
           />
         </div>
         {state?.errors?.email && (
@@ -94,19 +99,19 @@ export function ContactForm() {
       <div>
         <label
           htmlFor="message"
-          className="block text-sm font-medium text-gray-400"
+          className="block text-sm font-medium text-gray-400 mb-1"
         >
           Message
         </label>
         <div className="mt-1">
-          <textarea
+          <Textarea
             id="message"
             name="message"
             rows={4}
             required
             aria-invalid={!!state?.errors?.message}
             aria-describedby={state?.errors?.message ? "message-error" : undefined}
-            className="block w-full rounded-md border-gray-600 bg-gray-800 py-3 px-4 text-white shadow-sm focus:border-primary focus:ring-primary"
+            className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500 focus-visible:ring-primary focus-visible:border-primary"
           />
         </div>
         {state?.errors?.message && (
