@@ -13,6 +13,7 @@ import type { Company } from "@/types";
 import { companyService } from "@/services/company.service";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { slugify } from "@/lib/utils";
+import { handleServerActionError } from "@/lib/error-handler";
 
 /**
  * Adds a new company to the database after validating and cleaning the input data.
@@ -92,11 +93,13 @@ export async function addCompany(
       },
     };
   } catch (error) {
-    console.error("Error adding company (action level):", error);
-    if (error instanceof Error) return { success: false, error: error.message };
+    const errorMessage = handleServerActionError(error, "addCompany", {
+      name: companyDataInput.name,
+      // Avoid logging potentially large or sensitive URL fields unless necessary
+    });
     return {
       success: false,
-      error: "An unknown error occurred while adding the company.",
+      error: errorMessage,
     };
   }
 }
@@ -140,18 +143,19 @@ export async function fetchCompaniesAction(
       nextCursor: result.nextCursor,
     };
   } catch (error) {
-    console.error("Error fetching companies in action:", error);
-    const message =
-      error instanceof Error
-        ? error.message
-        : "An unknown error occurred while fetching companies.";
+    const errorMessage = handleServerActionError(error, "fetchCompaniesAction", {
+      page,
+      pageSize,
+      searchTerm,
+      cursor,
+    });
     return {
       companies: [],
       totalPages: 0,
       totalCompanies: 0,
       currentPage: 1,
       hasMore: false,
-      error: message,
+      error: errorMessage,
     };
   }
 }
@@ -181,11 +185,10 @@ export async function fetchCompanySuggestionsAction(
   try {
     return await companyService.fetchCompanySuggestions(searchTerm, limitNum);
   } catch (error) {
-    console.error("Error fetching company suggestions in action:", error);
-    const message =
-      error instanceof Error
-        ? error.message
-        : "An unknown error occurred while fetching suggestions.";
-    return { error: message };
+    const errorMessage = handleServerActionError(error, "fetchCompanySuggestionsAction", {
+      searchTerm,
+      limitNum,
+    });
+    return { error: errorMessage };
   }
 }
