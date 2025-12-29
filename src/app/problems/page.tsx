@@ -2,11 +2,11 @@ import { Suspense } from "react";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { Metadata } from "next";
 import { env } from "@/env";
-import { safeJsonLd } from "@/lib/utils";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import ProblemListContainer from "./problem-list-container";
 import ProblemListErrorFallback from "@/components/problem/problem-list-error-fallback";
 import { Skeleton } from "@/components/ui/skeleton";
+import StructuredData from "@/components/seo/structured-data";
 
 const APP_URL = env.NEXT_PUBLIC_APP_URL;
 
@@ -84,10 +84,7 @@ export default function AllProblemsPage() {
           </div>
         </aside>
       </div>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
-      />
+      <StructuredData data={jsonLd} />
     </div>
   );
 }

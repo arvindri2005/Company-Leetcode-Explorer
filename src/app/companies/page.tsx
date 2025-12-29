@@ -4,6 +4,7 @@ import { env } from "@/env";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import CompanyListErrorFallback from "@/components/company/company-list-error-fallback";
 import CompaniesListContainer from "./companies-list-container";
+import StructuredData from "@/components/seo/structured-data";
 
 export const revalidate = 2592000; // 1 month
 
@@ -50,12 +51,32 @@ export const metadata: Metadata = {
   },
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: "Top Tech Companies Interview Questions",
+  description:
+    "Collection of interview questions and preparation guides for top tech companies.",
+  provider: {
+    "@type": "Organization",
+    name: "Byte to Offer",
+    url: APP_URL,
+  },
+};
+
 export default function CompaniesPage() {
   return (
     <ErrorBoundary fallback={<CompanyListErrorFallback />}>
-      <Suspense fallback={<div className="container mx-auto px-4 py-8 text-center text-gray-400">Loading companies...</div>}>
+      <Suspense
+        fallback={
+          <div className="container mx-auto px-4 py-8 text-center text-gray-400">
+            Loading companies...
+          </div>
+        }
+      >
         <CompaniesListContainer />
       </Suspense>
+      <StructuredData data={jsonLd} />
     </ErrorBoundary>
   );
 }
