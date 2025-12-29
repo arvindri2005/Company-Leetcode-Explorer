@@ -16,8 +16,16 @@ jest.mock('@/hooks/use-toast', () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 
+// Mock useOnlineStatus
+jest.mock('@/hooks/use-online-status', () => ({
+  useOnlineStatus: jest.fn(),
+}));
+
+import { useOnlineStatus } from '@/hooks/use-online-status';
+
 describe('ContactForm', () => {
   it('renders inputs with correct attributes', () => {
+    (useOnlineStatus as jest.Mock).mockReturnValue(true);
     render(<ContactForm />);
     
     const nameInput = screen.getByLabelText('Name');
@@ -31,5 +39,21 @@ describe('ContactForm', () => {
     
     const messageInput = screen.getByLabelText('Message');
     expect(messageInput).toBeRequired();
+  });
+
+  it('renders "Send Message" when online', () => {
+    (useOnlineStatus as jest.Mock).mockReturnValue(true);
+    render(<ContactForm />);
+
+    const button = screen.getByRole('button', { name: /send message/i });
+    expect(button).toBeEnabled();
+  });
+
+  it('renders "You are offline" and disabled when offline', () => {
+    (useOnlineStatus as jest.Mock).mockReturnValue(false);
+    render(<ContactForm />);
+
+    const button = screen.getByRole('button', { name: /you are offline/i });
+    expect(button).toBeDisabled();
   });
 });
