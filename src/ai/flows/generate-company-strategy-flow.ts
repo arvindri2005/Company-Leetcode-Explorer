@@ -249,7 +249,18 @@ const generateCompanyStrategyFlow = ai.defineFlow(
     outputSchema: GenerateCompanyStrategyOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
+    // Nova Guardrail: Token Optimization & Cost Control
+    // Limit the number of problems sent to the model to prevent context explosion and reduce costs.
+    const MAX_PROBLEMS_FOR_CONTEXT = 25;
+    const safeProblems = input.problems.slice(0, MAX_PROBLEMS_FOR_CONTEXT);
+
+    // Create a safe input object with truncated problems
+    const safeInput = {
+      ...input,
+      problems: safeProblems,
+    };
+
+    const { output } = await prompt(safeInput);
     if (
       !output ||
       !output.preparationStrategy ||

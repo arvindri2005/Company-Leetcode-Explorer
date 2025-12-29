@@ -1,11 +1,38 @@
-## 2025-02-18 - [Seedable PRNG for Data Factories]
-**Illusion:** `Math.random()` in data factories caused non-deterministic test data, making reproduction of specific data states impossible and risking flaky tests.
-**Reality:** Implemented a Mulberry32-based seedable PRNG in `src/__tests__/factories/data-factories.ts` and exposed a `simpleFaker.seed()` method. This allows tests to request specific "random" data states reliably.
+# Mocking Strategies
 
-## 2025-02-18 - [Refactoring Hardcoded Data to Factories]
-**Illusion:** Tests in `page.test.tsx` and `problem-card.test.tsx` relied on hardcoded JSON objects, leading to brittle tests that break when types change and poor coverage of optional fields.
-**Reality:** Refactored these tests to use `createMockCompany` and `createMockProblem` from `@/__tests__/factories/data-factories`. This ensures all required fields are present (preventing type errors) and provides realistic defaults, while still allowing specific fields to be overridden for the test scenario.
+## Jest Hoisting & Module Mocks
 
-## 2025-02-18 - [Factory Pattern for Firebase User]
-**Illusion:** Tests for user profile components relied on large, hardcoded mock objects simulating Firebase User types. This led to fragility when the `User` type evolved and made tests hard to read due to noise.
-**Reality:** Implemented `createMockUser` in `src/__tests__/factories/data-factories.ts` which returns a properly typed `FirebaseUser` object (using `Partial<FirebaseUser>`). It leverages `simpleFaker` for realistic data and allows granular overrides. Critically, we learned that shallow spreading overrides (`...overrides`) on nested objects (like `metadata`) can accidentally wipe out default values, requiring tests to either provide full nested objects or factories to implement deep merging.
+**Date**: 2024-05-23
+**Context**: Testing Genkit AI flows where `definePrompt` is called at module load time.
+
+### The Problem
+When testing a file that calls `ai.definePrompt` at the top level, we need to mock `ai.definePrompt` to return a spy function that we can assert on. However, because Jest mocks are hoisted, we cannot create a spy variable in the test scope and use it in the mock factory directly if it's a `const`.
+
+### The Solution: Exposed Hidden Property
+Instead of trying to inject a spy from the outside, we create the spy *inside* the mock factory and expose it via a hidden property on the mocked module.
+
+```typescript
+// Test File
+import * as mockedModule from '@/path/to/module';
+
+jest.mock('@/path/to/module', () => {
+  const internalSpy = jest.fn();
+  return {
+    ...jest.requireActual('@/path/to/module'),
+    someFunction: jest.fn(() => internalSpy),
+    // Expose the spy for the test to use
+    __internalSpy: internalSpy
+  };
+});
+
+describe('My Test', () => {
+  const spy = (mockedModule as any).__internalSpy;
+  
+  it('works', () => {
+    // Now we can assert on the spy that was used inside the module
+    expect(spy).toHaveBeenCalled();
+  });
+});
+```
+
+This pattern ensures that the exact function instance returned by the mock factory is the one we are asserting on in the test.
