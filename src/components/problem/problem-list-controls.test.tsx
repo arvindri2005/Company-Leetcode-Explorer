@@ -13,7 +13,6 @@ describe("ProblemListControls", () => {
         onStatusFilterChange={jest.fn()}
         sortKey="difficulty"
         onSortKeyChange={jest.fn()}
-        problemCount={10}
         showStatusFilter={true}
       />
     );
@@ -34,7 +33,6 @@ describe("ProblemListControls", () => {
         onStatusFilterChange={jest.fn()}
         sortKey="difficulty"
         onSortKeyChange={jest.fn()}
-        problemCount={10}
       />
     );
     
