@@ -1,25 +1,16 @@
-## 2025-12-26 - [Granular Error Boundaries for Critical Lists]
+# Chaos Engineering & Resilience
 
-### Entropy: [Cascading Failure]
-The main problems page (`/problems`) was performing data fetching directly in the page component. If the database (Firestore) was unreachable or returned an error during this initial fetch, the entire page would crash, triggering the global `error.tsx` and replacing the entire UI (including navigation) with a generic error screen. This "White Screen of Death" experience is jarring and provides no path forward other than a full refresh.
+> "Hope is not a strategy. The system will fail; the question is how." - Chaos 👾
 
-### Order: [Resilience via Granular Boundaries]
-We implemented a **Granular Error Boundary** strategy:
-1.  **Isolation**: Moved the risky data fetching logic into a dedicated Server Component `ProblemListContainer`.
-2.  **Containment**: Wrapped this container in a `Suspense` boundary (for loading states) and a granular `ErrorBoundary` in the parent Page.
-3.  **Fallback**: Created a specific `ProblemListErrorFallback` component that preserves the page layout (Header, Sidebar) and only replaces the list area with a user-friendly error card and a reload button.
+## Principles
 
-This ensures that "A broken widget is better than a broken page", allowing the user to still access other parts of the application (like the Sidebar or Navigation) even if the main list fails to load.
+1.  **Assume Failure**: Every component, network call, and database query will eventually fail.
+2.  **Graceful Degradation**: When a part breaks, the whole shouldn't. A broken widget is better than a broken page.
+3.  **Containment**: Errors must be trapped as close to the source as possible using Error Boundaries.
+4.  **Recovery**: Provide clear paths for users to recover (retry, go home, reload).
 
-## 2025-12-28 - [Fault Isolation for Companies Page]
+## Critical Learnings
 
-### Entropy: [Page-Level Crash on Data Failure]
-Similar to the problems page, the companies directory (`/companies`) performed data fetching at the top level of the Page component. A failure in `companyService.getCompanies` (e.g., Firestore downtime) would cause the entire page to throw, removing the navigation bar and footer and rendering a generic error page.
-
-### Order: [Container-Presentational Pattern with Boundaries]
-We applied the **Container-Presentational Pattern** combined with Error Boundaries:
-1.  **Refactoring**: Extracted data fetching into `CompaniesListContainer`.
-2.  **Protection**: Wrapped the container with `ErrorBoundary` and `Suspense` in the main `CompaniesPage`.
-3.  **UX Continuity**: Implemented `CompanyListErrorFallback` to show a localized error message while keeping the site shell (Header/Footer) intact.
-
-This standardization ensures that critical list views degrade gracefully, allowing users to navigate away even if the specific content fails to load.
+### 2024-05-22 - [Homepage] Entropy: Search Bar Failure
+*   **Failure Mode**: The `SearchSection` on the landing page is a critical interactive component. If it crashes (e.g., due to a runtime error in suggestion logic or a failed network call handled improperly), the error bubbles up to the root `error.tsx`, taking down the entire homepage, including the Hero, Stats, and Features sections. This is a "White Screen of Death" scenario for the landing page.
+*   **Resilience Strategy**: Wrap `SearchSection` in a granular `ErrorBoundary` with a lightweight fallback. This ensures that even if the search functionality is unavailable, the marketing content remains visible and accessible.

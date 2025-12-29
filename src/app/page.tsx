@@ -12,6 +12,8 @@ import FeaturesSection from "@/components/landing/feature-section";
 import StatsSection from "@/components/landing/stats-section";
 import SearchSection from "@/components/landing/search-section";
 import StructuredData from "@/components/seo/structured-data";
+import ErrorBoundary from "@/components/ui/error-boundary";
+import SearchSectionErrorFallback from "@/components/landing/search-section-error-fallback";
 import { env } from "@/env";
 
 const APP_URL = env.NEXT_PUBLIC_APP_URL;
@@ -93,7 +95,9 @@ export default function ShowcasePage() {
       <HeroSection />
       <FeaturesSection />
       <StatsSection />
-      <SearchSection />
+      <ErrorBoundary fallback={<SearchSectionErrorFallback />}>
+        <SearchSection />
+      </ErrorBoundary>
       <StructuredData data={jsonLd} />
     </div>
   );
