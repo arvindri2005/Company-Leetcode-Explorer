@@ -8,7 +8,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { ProblemStatus, PROBLEM_STATUS_DISPLAY } from "@/types";
+import { ProblemStatus } from "@/types";
+import { PROBLEM_STATUS_DISPLAY } from "@/constants/problem-constants";
 import { CheckCircle2, Pencil, ListTodo } from "lucide-react";
 
 const statusConfig = {

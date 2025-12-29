@@ -8,7 +8,7 @@
 "use client";
 
 import type { Company, LeetCodeProblem, LastAskedPeriod } from "@/types";
-import { lastAskedPeriodOptions } from "@/types";
+import { lastAskedPeriodOptions } from "@/constants/problem-constants";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
