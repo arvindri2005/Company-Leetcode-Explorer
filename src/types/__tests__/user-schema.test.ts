@@ -36,4 +36,31 @@ describe("WorkExperienceSchema", () => {
     const data = { ...validBase, startDate: "5/2023" };
     expect(WorkExperienceSchema.safeParse(data).success).toBe(false);
   });
+
+  // EndDate tests
+  it("accepts 'Present' as endDate", () => {
+    const data = { ...validBase, endDate: "Present" };
+    expect(WorkExperienceSchema.safeParse(data).success).toBe(true);
+  });
+
+  it("accepts valid YYYY endDate", () => {
+    const data = { ...validBase, endDate: "2024" };
+    expect(WorkExperienceSchema.safeParse(data).success).toBe(true);
+  });
+
+  it("accepts valid MM/YYYY endDate", () => {
+    const data = { ...validBase, endDate: "01/2024" };
+    expect(WorkExperienceSchema.safeParse(data).success).toBe(true);
+  });
+
+  it("accepts empty string endDate", () => {
+     const data = { ...validBase, endDate: "" };
+     expect(WorkExperienceSchema.safeParse(data).success).toBe(true);
+  });
+
+  it("rejects invalid string endDate", () => {
+    // This should fail after we implement the fix
+    const data = { ...validBase, endDate: "Invalid Date" };
+    expect(WorkExperienceSchema.safeParse(data).success).toBe(false);
+  });
 });
