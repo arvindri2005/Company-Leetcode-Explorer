@@ -26,6 +26,7 @@ import {
 import { Button } from "@/components/ui/button";
 import React, { useState, useCallback, useMemo } from "react";
 import { navigationRegistry, NavigationItem } from "@/lib/navigation-registry";
+import { cn } from "@/lib/utils";
 
 /**
  * Renders the main application header and navigation bar.
@@ -44,8 +45,10 @@ const Header = React.memo(function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = useCallback(async () => {
+    setIsLoggingOut(true);
     try {
       if (auth) {
         await signOut(auth);
@@ -68,6 +71,8 @@ const Header = React.memo(function Header() {
         description: "Could not log you out. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoggingOut(false);
     }
   }, [toast, router]);
 
@@ -146,24 +151,28 @@ const Header = React.memo(function Header() {
               It appears only when user is logged in.
              */}
             {user && (
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => {
                   handleLogout();
                   if (isMobile) setIsMobileMenuOpen(false);
                 }}
-                className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base focus-visible:ring-2 focus-visible:ring-teal-400 focus:outline-none rounded-md ${
+                isLoading={isLoggingOut}
+                className={cn(
+                  "text-gray-200 hover:text-teal-400 hover:bg-transparent font-medium text-base h-auto p-0 rounded-md ring-offset-0",
+                  "focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-0 focus-visible:bg-transparent",
                   isMobile
-                    ? "block py-4 border-b border-gray-200/10 font-bold"
-                    : ""
-                }`}
+                    ? "w-full justify-start py-4 border-b border-gray-200/10 font-bold rounded-none hover:bg-transparent"
+                    : "py-2"
+                )}
               >
                 Logout
-              </button>
+              </Button>
             )}
           </>
         );
       },
-    [authLoading, user, handleLogout, renderNavItem],
+    [authLoading, user, handleLogout, renderNavItem, isLoggingOut],
   );
 
   return (
