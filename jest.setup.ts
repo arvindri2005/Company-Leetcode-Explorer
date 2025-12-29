@@ -37,3 +37,6 @@ if (typeof global.Headers === 'undefined') {
   } as any;
 }
 
+// Global mock for Firebase to prevent initialization errors in tests
+jest.mock('@/lib/firebase');
+
