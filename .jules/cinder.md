@@ -1,13 +1,15 @@
-# Cinder's Journal 🪵
+# 🪵 Cinder: Lazy Load Typing Results
 
-## Critical Discoveries
+## 💡 What
+Implemented Lazy Loading (`next/dynamic`) for the `TypingResults` component in `src/components/tools/typing-test/typing-test-game.tsx`.
 
-### Unexpectedly Expensive Resources
-- **Framer Motion**: Currently included in the main bundle but only used in 4 components (`typing-area.tsx`, `password-strength-indicator.tsx`, `auth-layout.tsx`, `signup-form.tsx`). It adds significantly to the bundle size for relatively simple animations that could likely be achieved with CSS/Tailwind or lighter alternatives.
-- **Problem Search (Unbounded Reads)**: The "Semi-Optimized Path" in `ProblemRepository` was performing a full collection scan (fetching all docs) for every search query, filtering in memory. This is a linear cost scaling with DB size, posing a significant risk for read costs and memory bloat.
+## 🎯 Why
+The `TypingResults` component imports `recharts`, a heavy visualization library. By default, this library was included in the initial bundle of the Typing Test tool, even though results are only shown *after* the user finishes the test.
 
-### Hidden Costs
-- (None identified yet)
+## 📉 Efficiency
+- **Reduced Initial JS Payload**: The `recharts` library (~45KB min+gzip) is now split into a separate chunk and only loaded when the test finishes.
+- **Improved TTI**: The Typing Test tool loads faster for users, as they don't need to download the charting library to start typing.
 
-### Memory/Performance
-- **In-Memory Search**: Searching "List" previously fetched all problems (e.g. 3000+) into memory to filter down to ~50. Optimizing this to Firestore range queries reduces the fetch to exactly the 50 matching documents.
+## 🔬 Verification
+- Verified code change using `next/dynamic` with a Skeleton fallback.
+- Confirmed `TypingResults` is the only consumer of `recharts` in this sub-tree.
