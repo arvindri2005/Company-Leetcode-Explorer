@@ -117,6 +117,7 @@ export default function ForgotPasswordForm() {
               <FormControl>
                 <Input
                   type="email"
+                  inputMode="email"
                   placeholder="you@example.com"
                   {...field}
                   autoComplete="email"

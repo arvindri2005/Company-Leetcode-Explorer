@@ -219,6 +219,7 @@ export default function SignupForm() {
                   <div className="relative">
                     <Input
                       type="email"
+                      inputMode="email"
                       placeholder="you@example.com"
                       {...field}
                       autoComplete="email"
