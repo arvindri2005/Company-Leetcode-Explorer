@@ -39,7 +39,7 @@ export default function HeroSection() {
         <h1 className="text-6xl mb-4 bg-gradient-to-r from-brand-teal to-brand-purple bg-clip-text text-transparent animate-fadeInUp text-balance">
           Master Your Coding Interviews
         </h1>
-        <p className="text-2xl mb-8 text-gray-custom-400 animate-fadeInUp animation-delay-200">
+        <p className="text-2xl mb-8 text-gray-custom-400 animate-fadeInUp animation-delay-200 leading-relaxed max-w-2xl mx-auto">
           Explore thousands of real world interview problems with detailed
           solutions, explanations, and interview tips. Your journey to landing
           your dream job starts here.
