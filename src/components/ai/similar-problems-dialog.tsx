@@ -43,13 +43,13 @@ import {
   Lightbulb,
   Tag,
   Globe,
-  Loader2,
   Search,
   AlertTriangle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import React from "react";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { SimilarProblemsSkeleton } from "@/components/skeletons/ai-skeletons";
 
 /**
  * Props for the SimilarProblemsDialog component.
@@ -129,17 +129,7 @@ const SimilarProblemsContent = ({
   isLoading: boolean;
 }) => {
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 space-y-4">
-        <Loader2 className="h-16 w-16 animate-spin text-primary" />
-        <p className="text-lg text-muted-foreground">
-          Finding similar problems...
-        </p>
-        <p className="text-sm text-muted-foreground/80">
-          Please wait a moment.
-        </p>
-      </div>
-    );
+    return <SimilarProblemsSkeleton />;
   }
 
   if (!similarProblems || similarProblems.length === 0) {

@@ -28,7 +28,6 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import {
-  Loader2,
   Lightbulb,
   Brain,
   ListChecks,
@@ -40,6 +39,7 @@ import remarkGfm from "remark-gfm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { GenerateProblemInsightsOutput } from "@/types";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { ProblemInsightsSkeleton } from "@/components/skeletons/ai-skeletons";
 
 /**
  * Props for the ProblemInsightsDialog component.
@@ -88,15 +88,7 @@ const InsightsContent = ({
   isLoading: boolean;
 }) => {
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 space-y-4">
-        <Loader2 className="h-16 w-16 animate-spin text-primary" />
-        <p className="text-lg text-muted-foreground">Generating insights...</p>
-        <p className="text-sm text-muted-foreground/80">
-          Please wait a moment.
-        </p>
-      </div>
-    );
+    return <ProblemInsightsSkeleton />;
   }
 
   if (!insights) {
