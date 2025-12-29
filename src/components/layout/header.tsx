@@ -12,7 +12,6 @@ import Image from "next/image";
 import { Menu } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { auth } from "@/lib/firebase";
-import { signOut } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, usePathname } from "next/navigation";
 import {
@@ -45,32 +44,6 @@ const Header = React.memo(function Header() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const handleLogout = useCallback(async () => {
-    try {
-      if (auth) {
-        await signOut(auth);
-        toast({
-          title: "Logged Out",
-          description: "You have been successfully logged out.",
-        });
-        router.push("/");
-      } else {
-        toast({
-          title: "Logout Failed",
-          description: "Authentication not initialized.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Logout error:", error);
-      toast({
-        title: "Logout Failed",
-        description: "Could not log you out. Please try again.",
-        variant: "destructive",
-      });
-    }
-  }, [toast, router]);
-
   // Render a navigation item
   const renderNavItem = useCallback((item: NavigationItem, isMobile: boolean) => {
     const isActive = item.href && pathname === item.href;
@@ -93,14 +66,19 @@ const Header = React.memo(function Header() {
       );
     }
     
-    // If no href, maybe it's a button with onClick?
-    // Not currently used by standard registry items, but good for extensibility.
+    // Extensibility Point: 
+    // Handle action-based items (like Logout) via the registry's onClick handler,
+    // passing the necessary context (router, toast, auth).
     if (item.onClick) {
         return (
             <button
                 key={item.key}
-                onClick={() => {
-                   item.onClick!(router);
+                onClick={async () => {
+                   if (auth) {
+                     await item.onClick!({ router, toast, auth });
+                   } else {
+                     console.error("Auth context missing for navigation action");
+                   }
                    if (isMobile) setIsMobileMenuOpen(false);
                 }}
                 className={className}
@@ -111,7 +89,7 @@ const Header = React.memo(function Header() {
     }
 
     return null;
-  }, [pathname, router]);
+  }, [pathname, router, toast]);
 
   const commonNavLinks = useMemo(
     () =>
@@ -137,33 +115,10 @@ const Header = React.memo(function Header() {
         return (
           <>
             {items.map(item => renderNavItem(item, isMobile))}
-            
-            {/* 
-              Logout is handled separately because it requires specific local state/context 
-              that is hard to inject into the static registry (router, toast).
-              Ideally, we would register a "Logout" action that delegates to this component,
-              but for now, hardcoding the logout button alongside dynamic auth links is acceptable.
-              It appears only when user is logged in.
-             */}
-            {user && (
-              <button
-                onClick={() => {
-                  handleLogout();
-                  if (isMobile) setIsMobileMenuOpen(false);
-                }}
-                className={`text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base focus-visible:ring-2 focus-visible:ring-teal-400 focus:outline-none rounded-md ${
-                  isMobile
-                    ? "block py-4 border-b border-gray-200/10 font-bold"
-                    : ""
-                }`}
-              >
-                Logout
-              </button>
-            )}
           </>
         );
       },
-    [authLoading, user, handleLogout, renderNavItem],
+    [authLoading, user, renderNavItem],
   );
 
   return (
