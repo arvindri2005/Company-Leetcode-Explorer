@@ -81,13 +81,13 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
     <Card className="bg-card border border-border rounded-xl mb-8 shadow-sm overflow-hidden relative">
       <CardHeader className="p-6">
         <div className="flex flex-col sm:flex-row items-start gap-6">
-          <Avatar className="h-24 w-24 ring-4 ring-primary/10 ring-offset-2 ring-offset-background shadow-lg shrink-0">
+          <Avatar className="h-24 w-24 ring-4 ring-primary/10 ring-offset-4 ring-offset-background shadow-lg shrink-0">
             <AvatarImage
               src={user.photoURL || undefined}
               data-ai-hint="profile avatar"
               className="object-cover"
             />
-            <AvatarFallback className="text-3xl bg-primary/10 text-primary font-bold">
+            <AvatarFallback className="text-3xl bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold">
               {getInitials(user.displayName)}
             </AvatarFallback>
           </Avatar>
@@ -97,7 +97,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
               {!isEditingDisplayName ? (
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                    <h2 className="text-3xl font-bold tracking-tight text-foreground">
                       {user.displayName || "Anonymous User"}
                     </h2>
                     <Button
@@ -110,10 +110,10 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                           user.displayName || "",
                         );
                       }}
-                      className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors rounded-full"
+                      className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors rounded-full"
                       aria-label="Edit display name"
                     >
-                      <Edit size={14} />
+                      <Edit size={15} />
                     </Button>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -192,8 +192,8 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
               )}
 
               {user.metadata.creationTime && (
-                <div className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted/50 text-muted-foreground border border-border">
-                  <CalendarDays className="h-3 w-3 mr-1.5" />
+                <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary/5 text-primary border border-primary/20">
+                  <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
                   Member since {formatDate(user.metadata.creationTime)}
                 </div>
               )}

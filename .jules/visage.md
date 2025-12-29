@@ -1,3 +1,7 @@
-## 2025-12-27 - Profile Hierarchy Refinement
-**Reflection:** Users perceive the profile as their "home base." Technical details like UID and raw database headers ("Account Information") detract from this personal feel. A strong visual hierarchy (Name > Meta > Actions) is critical for scanning.
-**Touch:** Promoted the Avatar with a ring/shadow and increased size. Moved "Member Since" and "Verified" status to the header to create a cohesive identity card, removing the separate "Account Info" section entirely.
+## 2025-12-29 - [Visage] Profile Polish
+**Reflection:** The Profile page lacked a strong "Identity" moment. The avatar was standard, and the empty state for the problem list felt like a system error rather than a blank canvas.
+**Touch:**
+-   **Avatar**: Added a gradient fallback and an offset ring to give it dimension.
+-   **Typography**: Increased the Display Name size (`text-3xl`) to establish clearer hierarchy.
+-   **Badges**: Standardized the "Member Since" badge to use a subtle primary tint, making it feel like a reward.
+-   **Empty State**: Replaced plain text with a centered icon layout to encourage action.
