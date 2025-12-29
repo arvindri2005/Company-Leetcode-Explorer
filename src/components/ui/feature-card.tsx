@@ -9,7 +9,7 @@ import { FeatureCardProps } from "@/types";
 export function FeatureCard({ icon, title, description }: FeatureCardProps) {
   const Icon = icon;
   return (
-    <div className="bg-white/5 border border-white/10 rounded-3xl p-8 text-center transition-all duration-300 backdrop-blur-[10px] hover:transform hover:-translate-y-2 hover:border-brand-teal hover:shadow-[0_20px_40px_rgba(0,212,170,0.1)]">
+    <div className="bg-white/5 border border-white/10 rounded-3xl p-8 text-center transition-all duration-300 backdrop-blur-[10px] hover:transform hover:-translate-y-2 hover:border-brand-teal hover:shadow-glow-lg">
       <div className="text-5xl text-brand-teal mb-4">{Icon && <Icon />}</div>
       <h3 className="text-2xl mb-4 text-gray-custom-200">{title}</h3>
       <p className="text-gray-custom-400 leading-relaxed">{description}</p>
