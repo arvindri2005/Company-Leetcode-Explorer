@@ -4,7 +4,7 @@ Follow these instructions to set up and run the project locally.
 
 ## Prerequisites
 
--   Node.js (v18 or later recommended)
+-   Node.js (v20 or later recommended)
 -   npm or yarn
 -   A Firebase project
 -   A Google Cloud project with access to Generative AI models (e.g., Gemini via Google AI Studio or Vertex AI)
@@ -120,7 +120,7 @@ npm run dev
 # yarn dev
 ```
 
-Your application should now be running on `http://localhost:9002` (or another port if 9002 is busy).
+Your application should now be running on `http://localhost:3000`.
 
 ## 8. Genkit Development Server (for AI features)
 
