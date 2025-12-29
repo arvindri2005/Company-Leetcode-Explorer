@@ -63,6 +63,15 @@ navigationRegistry.register({
   order: 20,
 });
 
+navigationRegistry.register({
+  key: "tracker",
+  label: "Tracker",
+  href: "/tracker",
+  position: "main",
+  order: 30,
+  isVisible: ({ user }) => !!user,
+});
+
 // Auth items are dynamic, so we'll register them with isVisible checks
 navigationRegistry.register({
   key: "login",
