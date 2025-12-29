@@ -1,41 +1,19 @@
 # Beacon's Journal 🚨
 
-## Critical Discoveries
+## 2024-05-23: API Route Observability Gap
+### Discovery
+While scanning the codebase, I found that `src/app/api/companies/[companyId]/ai-problems/route.ts` uses `console.error` directly instead of the structured `Logger` utility. This makes it a "black box" in production logs as it lacks context like request IDs, timestamps in a standard format, and severity levels consistent with the rest of the application.
 
-### 2024-05-22: Blind Spot in Problem Repository (Semi-Optimized Path)
-**Severity:** High (Observability)
-**Component:** `ProblemRepository.fetchProblemsByCompanyCore`
-**Issue:**
-The "Semi-Optimized Path" for fetching company problems (used when search terms or complex filters are present) fetches up to 200 documents and filters them in memory.
-- **Silent Failures:** This logic block was not wrapped in a `try-catch`, meaning Firestore errors would propagate up without context.
-- **Missing Metrics:** We had no visibility into:
-    1. How many documents were fetched vs. how many survived filtering (efficiency ratio).
-    2. Execution time (latency).
-    3. Which filters caused data drops.
+### The Fix
+I will replace `console.error` with `Logger.error` and ensure the error message captures the relevant context (companyId).
 
-**Resolution:**
-Wrapped the logic in a `try-catch` block and added structured logging to track:
-- `fetchedCount`: Raw docs from Firestore.
-- `filteredCount`: Docs remaining after in-memory filtering.
-- `durationMs`: Execution time.
-- `filterStats`: Which filters were active.
+## 2024-05-23: AI Flow Observability
+### Discovery
+The AI flows (e.g., `src/ai/flows/group-questions.ts`) use `ai.defineFlow` but seemingly lack internal logging for duration, token usage, or specific failure reasons beyond throwing an error. While `unstable_cache` is used, cache hits/misses are silent.
 
-This allows us to diagnose "missing problem" reports and monitor performance of the in-memory filtering strategy.
-
-### 2024-05-22: Unmonitored AI Actions (Duration & Context)
-**Severity:** Medium (Observability)
-**Component:** `src/app/actions/ai.actions.ts`
-**Issue:**
-AI actions (Question Grouping, Similar Questions, Strategy Generation, etc.) were "black boxes".
-- **Generic Errors:** Used `console.error` directly, bypassing the structured `Logger`.
-- **Missing Metrics:** No visibility into how long AI calls take (which can be seconds to minutes).
-- **Missing Context:** Errors didn't explicitly include user inputs (like slugs or IDs) in the log metadata, making it hard to reproduce specific failures.
-
-**Resolution:**
-Instrumented all exported functions in `ai.actions.ts` to:
-- Log a "Started" event with input metadata (e.g., `problemCount`, `companyId`).
-- Measure execution duration (`durationMs`).
-- Log a "Completed" event with duration and result stats (e.g., `flashcardCount`).
-- Log "Error" events using `Logger.error` with the full context and duration.
-
-This allows us to monitor AI performance, costs (implied by duration/counts), and debug failures with specific inputs.
+### Opportunity
+Adding a "wrapper" or interceptor for AI flows to log:
+- Input size (number of questions)
+- Execution time
+- Success/Failure
+would be valuable. However, given the "one small improvement" constraint, fixing the API route is a lower hanging fruit and ensures consistency first.
