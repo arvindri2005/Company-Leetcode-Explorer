@@ -69,7 +69,74 @@ export async function submitData(formData: FormData): Promise<ActionResponse<str
 ### Global Error Barriers
 Use `error.tsx` in Next.js route segments to catch unexpected runtime errors and display a fallback UI without crashing the entire app.
 
-## 5. Barrel Files (Index files)
+## 5. Event-Driven Architecture (Observer Pattern)
+
+We use a lightweight, typed event bus to decouple side effects from core business logic. This allows us to perform actions like analytics logging, cache invalidation, or sending notifications without cluttering the primary service methods.
+
+### The Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User / Client
+    participant S as Service (e.g., UserService)
+    participant R as Repository
+    participant EB as Event Bus (appEvents)
+    participant Sub as Subscribers (Analytics, etc.)
+
+    U->>S: Perform Action (e.g., toggleBookmark)
+    S->>R: Update Database
+    R-->>S: Success
+    S->>EB: Emit Event ("user:bookmark_toggled")
+    par Side Effects
+        EB->>Sub: Trigger Handler 1
+        EB->>Sub: Trigger Handler 2
+    end
+    S-->>U: Return Result
+```
+
+### Implementation
+
+The system is built on two core files:
+1.  **`src/lib/event-emitter.ts`**: A generic `TypedEventEmitter` class.
+2.  **`src/services/event-bus.ts`**: The singleton instance (`appEvents`) and the Type Definition (`AppEventMap`).
+
+### How to Add a New Event
+
+1.  **Define the Event Type**: Add a new key and payload type to `AppEventMap` in `src/services/event-bus.ts`.
+
+```typescript
+// src/services/event-bus.ts
+export interface AppEventMap {
+  // ... existing events
+  "company:created": {
+    companyId: string;
+    name: string;
+    createdBy: string;
+  };
+}
+```
+
+2.  **Emit the Event**: In your Service method, emit the event after the core action succeeds.
+
+```typescript
+// src/services/company.service.ts
+import { appEvents } from "@/services/event-bus";
+
+async createCompany(...) {
+  // ... db logic
+  await appEvents.emit("company:created", { ... });
+}
+```
+
+3.  **Subscribe to the Event**: Register a listener (usually in a startup script or a dedicated effects manager).
+
+```typescript
+appEvents.subscribe("company:created", async (payload) => {
+  await analytics.track("Company Created", payload);
+});
+```
+
+## 6. Barrel Files (Index files)
 
 Use `index.ts` files to export public members of a module. This creates a clean public API for other parts of the app.
 
