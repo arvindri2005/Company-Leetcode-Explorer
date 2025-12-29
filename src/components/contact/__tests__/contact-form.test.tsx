@@ -26,6 +26,7 @@ describe('ContactForm', () => {
     
     const emailInput = screen.getByLabelText('Email');
     expect(emailInput).toHaveAttribute('autoComplete', 'email');
+    expect(emailInput).toHaveAttribute('inputMode', 'email');
     expect(emailInput).toBeRequired();
     
     const messageInput = screen.getByLabelText('Message');
