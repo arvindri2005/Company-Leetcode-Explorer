@@ -627,18 +627,13 @@ export class ProblemRepository {
     sortKey?: SortKey;
   }) {
     const {
-      cursor,
-      page,
-      pageSize = 10,
       difficultyFilter = [],
       lastAskedFilter = [],
       searchTerm = "",
       sortKey = "title",
     } = params;
 
-    const problemsColRef = collection(getFirestore(), "problems");
     const constraints: QueryConstraint[] = [];
-
     let usedInOperator = false;
     let residualDifficultyFilter: DifficultyFilter[] = [];
 
@@ -673,122 +668,14 @@ export class ProblemRepository {
     const isDefaultSort = sortKey === "title";
 
     // Optimized Path: Use DB Limits if possible
-    // We can use this path if:
-    // 1. No text search (requires in-memory filtering or dedicated search service)
-    //    -> UPDATED: Now supports text search via range queries if sort is compatible.
-    // 2. Filters are compatible with Firestore composite indexes (usually handled, but 'in' operator has limits)
-    // 3. Sorting is standard
-
-    // Check if we can use the optimized path
     const canUseOptimizedPath =
       !hasResidualFilters &&
       (isDefaultSort || sortKey === "difficulty") &&
       isSortCompatibleWithSearch;
-    // Note: Sort by difficulty is supported in optimized path logic below ONLY if not searching.
 
     if (canUseOptimizedPath) {
       try {
-        let totalProblems = -1; // -1 indicates unknown
-
-        // REMOVED: getCountFromServer to save reads
-        // const countQuery = query(problemsColRef, ...constraints);
-        // const countSnapshot = await getCountFromServer(countQuery);
-        // totalProblems = countSnapshot.data().count;
-
-        // 2. Prepare Query for Data
-        const sortField =
-          sortKey === "difficulty" ? "difficulty" : "normalizedTitle";
-        let queryConstraints = [...constraints, orderBy(sortField, "asc")];
-
-        if (sortKey === "difficulty") {
-          queryConstraints.push(orderBy("normalizedTitle", "asc"));
-        }
-
-        let limitCount = pageSize;
-        let startIndex = 0;
-
-        // PAGINATION STRATEGY
-        if (page) {
-          // Fetch limit = (page * pageSize) + 1 to detect hasMore
-          limitCount = page * pageSize + 1;
-          startIndex = (page - 1) * pageSize;
-          queryConstraints.push(limit(limitCount));
-        } else {
-          // Cursor based (existing logic)
-          // Fetch pageSize + 1 to detect hasMore easily without total count?
-          // Existing logic was consistent with matching pageSize.
-          // We'll keep it simple for cursor or bump it too?
-          // Let's bump it to be consistent with "cheaper" checks.
-          queryConstraints.push(limit(pageSize + 1));
-          if (cursor) {
-            const cursorDocRef = doc(getFirestore(), "problems", cursor);
-            const cursorDocSnap = await getDoc(cursorDocRef);
-            if (cursorDocSnap.exists()) {
-              queryConstraints.push(startAfter(cursorDocSnap));
-            }
-          }
-        }
-
-        let q = query(problemsColRef, ...queryConstraints);
-        const snap = await getDocs(q);
-        const docs = snap.docs;
-
-        // Process results
-        let resultDocs = docs;
-        let hasMore = false;
-
-        if (page) {
-          // Check if we got more than needed (indicating next page exists)
-          // We wanted 'page * pageSize' items effectively to fill up to this page.
-          // Actually 'limitCount' is 'page * pageSize + 1'.
-          // If docs.length == limitCount, then we have at least one more item after this current page set.
-          const targetSize = page * pageSize;
-          hasMore = docs.length > targetSize;
-
-          if (docs.length <= startIndex) {
-            resultDocs = [];
-          } else {
-            // Slice the relevant window: [startIndex, startIndex + pageSize]
-            // But we must stop before the extra item if fetched.
-            // The 'docs' array contains 0..N items.
-            // We want items at indices [startIndex, startIndex + pageSize).
-            resultDocs = docs.slice(startIndex, startIndex + pageSize);
-          }
-        } else {
-          // Cursor logic
-          hasMore = docs.length > pageSize;
-          if (hasMore) {
-            resultDocs = docs.slice(0, pageSize);
-          }
-        }
-
-        let problems = resultDocs.map((docSnap) =>
-          this.mapDocToProblem(docSnap),
-        );
-
-        // Calculate pagination metadata
-        // totalPages is unknown (-1)
-        let totalPages = -1;
-        let currentPage = page || 1;
-        let nextCursor = hasMore
-          ? problems[problems.length - 1]?.id
-          : undefined;
-
-        Logger.info(`[OPTIMIZED FETCH - NO COUNT]`, {
-          page,
-          limitCount,
-          fetched: docs.length,
-          hasMore,
-        });
-
-        return {
-          problems,
-          totalProblems,
-          hasMore,
-          nextCursor,
-          totalPages,
-          currentPage,
-        };
+        return await this.fetchProblemsOptimized(params, constraints);
       } catch (error: any) {
         if (
           error.code === "failed-precondition" ||
@@ -806,8 +693,135 @@ export class ProblemRepository {
       }
     }
 
-    // Semi-Optimized Path (Fetch All + In-Memory Slice)
-    // Used for: Complex filters OR Page-based pagination
+    return await this.fetchProblemsSemiOptimized(
+      params,
+      constraints,
+      residualDifficultyFilter,
+      residualLastAskedFilter,
+    );
+  }
+
+  private async fetchProblemsOptimized(
+    params: {
+      cursor?: string;
+      page?: number;
+      pageSize?: number;
+      sortKey?: SortKey;
+    },
+    constraints: QueryConstraint[],
+  ) {
+    const {
+      cursor,
+      page,
+      pageSize = 10,
+      sortKey = "title",
+    } = params;
+
+    const problemsColRef = collection(getFirestore(), "problems");
+    const totalProblems = -1; // -1 indicates unknown
+
+    // 2. Prepare Query for Data
+    const sortField =
+      sortKey === "difficulty" ? "difficulty" : "normalizedTitle";
+    let queryConstraints = [...constraints, orderBy(sortField, "asc")];
+
+    if (sortKey === "difficulty") {
+      queryConstraints.push(orderBy("normalizedTitle", "asc"));
+    }
+
+    let limitCount = pageSize;
+    let startIndex = 0;
+
+    // PAGINATION STRATEGY
+    if (page) {
+      // Fetch limit = (page * pageSize) + 1 to detect hasMore
+      limitCount = page * pageSize + 1;
+      startIndex = (page - 1) * pageSize;
+      queryConstraints.push(limit(limitCount));
+    } else {
+      // Cursor based (existing logic)
+      queryConstraints.push(limit(pageSize + 1));
+      if (cursor) {
+        const cursorDocRef = doc(getFirestore(), "problems", cursor);
+        const cursorDocSnap = await getDoc(cursorDocRef);
+        if (cursorDocSnap.exists()) {
+          queryConstraints.push(startAfter(cursorDocSnap));
+        }
+      }
+    }
+
+    let q = query(problemsColRef, ...queryConstraints);
+    const snap = await getDocs(q);
+    const docs = snap.docs;
+
+    // Process results
+    let resultDocs = docs;
+    let hasMore = false;
+
+    if (page) {
+      const targetSize = page * pageSize;
+      hasMore = docs.length > targetSize;
+
+      if (docs.length <= startIndex) {
+        resultDocs = [];
+      } else {
+        resultDocs = docs.slice(startIndex, startIndex + pageSize);
+      }
+    } else {
+      // Cursor logic
+      hasMore = docs.length > pageSize;
+      if (hasMore) {
+        resultDocs = docs.slice(0, pageSize);
+      }
+    }
+
+    let problems = resultDocs.map((docSnap) =>
+      this.mapDocToProblem(docSnap),
+    );
+
+    // Calculate pagination metadata
+    let totalPages = -1;
+    let currentPage = page || 1;
+    let nextCursor = hasMore
+      ? problems[problems.length - 1]?.id
+      : undefined;
+
+    Logger.info(`[OPTIMIZED FETCH - NO COUNT]`, {
+      page,
+      limitCount,
+      fetched: docs.length,
+      hasMore,
+    });
+
+    return {
+      problems,
+      totalProblems,
+      hasMore,
+      nextCursor,
+      totalPages,
+      currentPage,
+    };
+  }
+
+  private async fetchProblemsSemiOptimized(
+    params: {
+      cursor?: string;
+      page?: number;
+      pageSize?: number;
+      sortKey?: SortKey;
+    },
+    constraints: QueryConstraint[],
+    residualDifficultyFilter: DifficultyFilter[],
+    residualLastAskedFilter: LastAskedFilter[],
+  ) {
+    const {
+      cursor,
+      page,
+      pageSize = 10,
+      sortKey = "title",
+    } = params;
+
+    const problemsColRef = collection(getFirestore(), "problems");
     const q = query(problemsColRef, ...constraints);
     const problemSnapshot = await getDocs(q);
 
@@ -827,9 +841,6 @@ export class ProblemRepository {
           residualLastAskedFilter.includes(p.lastAskedPeriod),
       );
     }
-
-    // Search is now handled by Firestore constraints.
-    // We removed the in-memory 'includes' check to rely on the efficient DB query.
 
     const difficultyOrder: Record<LeetCodeProblem["difficulty"], number> = {
       Easy: 1,
