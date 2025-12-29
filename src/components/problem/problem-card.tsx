@@ -164,7 +164,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-8 w-8 hover:bg-primary/5 rounded-full"
+                                    className="h-11 w-11 md:h-9 md:w-9 hover:bg-primary/5 rounded-full"
                                     aria-label={`Change status. Current status: ${currentStatus}`}
                                 >
                                     <StatusIcon className={cn("h-5 w-5 transition-colors", statusColor)} />
@@ -237,7 +237,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                                 handleToggleBookmark();
                             }}
                             isLoading={isTogglingBookmark}
-                            className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/5"
+                            className="h-11 w-11 md:h-9 md:w-9 text-muted-foreground hover:text-primary hover:bg-primary/5"
                             aria-label={isBookmarked ? "Remove from bookmarks" : "Add to bookmarks"}
                         >
                             {!isTogglingBookmark && <Bookmark className={cn("h-4 w-4", isBookmarked && "fill-primary text-primary")} />}
@@ -249,7 +249,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                                 e.stopPropagation();
                                 setIsExpanded(!isExpanded);
                             }}
-                            className={cn("h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-transform duration-200", isExpanded && "rotate-180")}
+                            className={cn("h-11 w-11 md:h-9 md:w-9 text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-transform duration-200", isExpanded && "rotate-180")}
                             aria-label={isExpanded ? "Collapse details" : "Expand details"}
                             aria-expanded={isExpanded}
                         >
