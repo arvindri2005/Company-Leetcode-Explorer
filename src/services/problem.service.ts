@@ -179,41 +179,48 @@ export class ProblemService {
 
       const { problems, totalProblems, hasMore, nextCursor, totalPages, currentPage } = await getCachedProblems();
 
-      if (params.userId) {
-          const { userService } = await import("./user.service");
-          const problemIds = problems.map((p) => p.id);
-            const [userBookmarks, userStatuses] = await Promise.all([
-                userService.getBookmarksForIds(params.userId, problemIds),
-                userService.getProblemStatusesForIds(params.userId, problemIds),
-            ]);
-
-            const finalProblems = problems.map((problem) => {
-                const statusInfo = userStatuses[problem.id];
-                return {
-                ...problem,
-                isBookmarked: userBookmarks.has(problem.id),
-                currentStatus: statusInfo ? statusInfo.status : undefined,
-                };
-            });
-
-            return {
-                problems: finalProblems,
-                totalProblems,
-                hasMore,
-                nextCursor,
-                totalPages,
-                currentPage,
-            };
-      }
-
-      return {
+      if (!params.userId) {
+        return {
           problems,
           totalProblems,
           hasMore,
           nextCursor,
           totalPages,
           currentPage,
+        };
+      }
+
+      const finalProblems = await this.enrichProblemsWithUserData(params.userId, problems);
+
+      return {
+        problems: finalProblems,
+        totalProblems,
+        hasMore,
+        nextCursor,
+        totalPages,
+        currentPage,
       };
+  }
+
+  private async enrichProblemsWithUserData(
+    userId: string,
+    problems: LeetCodeProblem[]
+  ): Promise<LeetCodeProblem[]> {
+    const { userService } = await import("./user.service");
+    const problemIds = problems.map((p) => p.id);
+    const [userBookmarks, userStatuses] = await Promise.all([
+      userService.getBookmarksForIds(userId, problemIds),
+      userService.getProblemStatusesForIds(userId, problemIds),
+    ]);
+
+    return problems.map((problem) => {
+      const statusInfo = userStatuses[problem.id];
+      return {
+        ...problem,
+        isBookmarked: userBookmarks.has(problem.id),
+        currentStatus: statusInfo ? statusInfo.status : undefined,
+      };
+    });
   }
 
   async getAllProblems(): Promise<LeetCodeProblem[]> {
