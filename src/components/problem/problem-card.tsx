@@ -21,7 +21,6 @@ import {
   Sparkles,
   Lightbulb,
   Clock,
-  Loader2,
   ChevronDown,
   ListTodo,
 } from "lucide-react";
@@ -237,15 +236,11 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                                 e.stopPropagation();
                                 handleToggleBookmark();
                             }}
-                            disabled={isTogglingBookmark}
+                            isLoading={isTogglingBookmark}
                             className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/5"
                             aria-label={isBookmarked ? "Remove from bookmarks" : "Add to bookmarks"}
                         >
-                            {isTogglingBookmark ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <Bookmark className={cn("h-4 w-4", isBookmarked && "fill-primary text-primary")} />
-                            )}
+                            {!isTogglingBookmark && <Bookmark className={cn("h-4 w-4", isBookmarked && "fill-primary text-primary")} />}
                         </Button>
                          <Button
                             variant="ghost"
@@ -304,9 +299,9 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                                       if (!user) promptLogin();
                                       else handleFindSimilar();
                                   }}
-                                  disabled={isLoadingSimilar}
+                                  isLoading={isLoadingSimilar}
                                 >
-                                   {isLoadingSimilar ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" /> : <Sparkles className="h-3.5 w-3.5 mr-2 text-purple-400" />}
+                                   {!isLoadingSimilar && <Sparkles className="h-3.5 w-3.5 mr-2 text-purple-400" />}
                                   Similar
                                 </Button>
                                 <Button
@@ -317,9 +312,9 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                                       if (!user) promptLogin();
                                       else handleGenerateInsights();
                                   }}
-                                  disabled={isLoadingInsights}
+                                  isLoading={isLoadingInsights}
                                 >
-                                  {isLoadingInsights ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" /> : <Lightbulb className="h-3.5 w-3.5 mr-2 text-yellow-400" />}
+                                  {!isLoadingInsights && <Lightbulb className="h-3.5 w-3.5 mr-2 text-yellow-400" />}
                                   Hints
                                 </Button>
                            </div>

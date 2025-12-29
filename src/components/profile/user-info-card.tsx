@@ -8,7 +8,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Mail,
   CalendarDays,
-  Loader2,
   Edit,
   Save,
   X,
@@ -151,13 +150,9 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                           <Button
                             type="submit"
                             size="sm"
-                            disabled={isSubmittingDisplayName}
+                            isLoading={isSubmittingDisplayName}
                           >
-                            {isSubmittingDisplayName ? (
-                              <Loader2 className="animate-spin h-3.5 w-3.5 mr-2" />
-                            ) : (
-                              <Save className="h-3.5 w-3.5 mr-2" />
-                            )}
+                            {!isSubmittingDisplayName && <Save className="h-3.5 w-3.5 mr-2" />}
                             Save
                           </Button>
                           <Button
