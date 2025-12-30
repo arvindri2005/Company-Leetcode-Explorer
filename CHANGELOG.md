@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Polished Profile page UI with improved `UserInfoCard` styling and empty states for problem lists (3c49a4f).
+- Expanded touch targets for `Checkbox` and `RadioGroup` components to improve mobile accessibility (1b23b69).
+- Documented Event-Driven Architecture and Observer patterns in `guide/advanced-patterns.md` (4f5ce36).
 - `inputMode` attributes to form fields for optimized mobile keyboards (ad88787).
 - Caching for global user problem stats in `UserService` (4ebf1b6).
 - User Activity Event System for tracking actions (3d9e6b4).
@@ -27,6 +30,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI layer README and Genkit flow documentation (d41a37e).
 
 ### Changed
+- Lazy loaded `TypingResults` component to optimize initial bundle size (3135cb2).
+- Standardized animation tokens in Tailwind configuration (7ba2be8).
+- Refactored `ProblemRepository` to flatten `fetchAllProblemsCore` logic (ce507d1).
+- Enforced strict types in `UserRepository` (fab0b81).
 - Standardized error handling for Server Actions (2878682).
 - Hardened GPA validation in `EducationExperienceSchema` (2ca43e6).
 - Replaced `framer-motion` with native CSS and Tailwind animations to reduce bundle size (f35c907, 459eb7d).
@@ -55,6 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explicitly typed Firestore query constraints as `QueryConstraint[]` (2eccbd8).
 
 ### Fixed
+- Reduced toast notification removal delay from 16m to 5s to prevent memory leaks (3b66c44).
 - Outdated documentation in Getting Started guide and README (7451759).
 - Added `lastSyncedAt` to `UserProfile` to resolve type mismatch (8941d05).
 - Unbounded cache growth and stale state in companies list (1f6af11).
