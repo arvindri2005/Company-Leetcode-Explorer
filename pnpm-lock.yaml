@@ -261,9 +261,6 @@ importers:
       ts-jest:
         specifier: ^29.4.5
         version: 29.4.6(@babel/core@7.28.5)(@jest/transform@30.2.0)(@jest/types@30.2.0)(babel-jest@30.2.0(@babel/core@7.28.5))(esbuild@0.27.2)(jest-util@30.2.0)(jest@30.2.0(@types/node@24.10.4)(ts-node@10.9.2(@types/node@24.10.4)(typescript@5.9.3)))(typescript@5.9.3)
-      ts-node:
-        specifier: ^10.9.2
-        version: 10.9.2(@types/node@24.10.4)(typescript@5.9.3)
       tsx:
         specifier: ^4.21.0
         version: 4.21.0
@@ -8213,6 +8210,7 @@ snapshots:
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
+    optional: true
 
   '@csstools/color-helpers@5.1.0': {}
 
@@ -9607,6 +9605,7 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
+    optional: true
 
   '@js-sdsl/ordered-map@4.4.2': {}
 
@@ -11370,13 +11369,17 @@ snapshots:
 
   '@trpc/server@10.45.3': {}
 
-  '@tsconfig/node10@1.0.12': {}
+  '@tsconfig/node10@1.0.12':
+    optional: true
 
-  '@tsconfig/node12@1.0.11': {}
+  '@tsconfig/node12@1.0.11':
+    optional: true
 
-  '@tsconfig/node14@1.0.3': {}
+  '@tsconfig/node14@1.0.3':
+    optional: true
 
-  '@tsconfig/node16@1.0.4': {}
+  '@tsconfig/node16@1.0.4':
+    optional: true
 
   '@tybys/wasm-util@0.10.1':
     dependencies:
@@ -11957,6 +11960,7 @@ snapshots:
   acorn-walk@8.3.4:
     dependencies:
       acorn: 8.15.0
+    optional: true
 
   acorn@8.15.0: {}
 
@@ -12015,7 +12019,8 @@ snapshots:
       normalize-path: 3.0.0
       picomatch: 2.3.1
 
-  arg@4.1.3: {}
+  arg@4.1.3:
+    optional: true
 
   argparse@1.0.10:
     dependencies:
@@ -12495,7 +12500,8 @@ snapshots:
       object-assign: 4.1.1
       vary: 1.1.2
 
-  create-require@1.1.1: {}
+  create-require@1.1.1:
+    optional: true
 
   cross-spawn@7.0.6:
     dependencies:
@@ -12656,7 +12662,8 @@ snapshots:
     dependencies:
       dequal: 2.0.3
 
-  diff@4.0.2: {}
+  diff@4.0.2:
+    optional: true
 
   doc-path@4.1.1: {}
 
@@ -16662,6 +16669,7 @@ snapshots:
       typescript: 5.9.3
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
+    optional: true
 
   tsconfck@3.1.6(typescript@5.9.3):
     optionalDependencies:
@@ -16897,7 +16905,8 @@ snapshots:
 
   uuid@9.0.1: {}
 
-  v8-compile-cache-lib@3.0.1: {}
+  v8-compile-cache-lib@3.0.1:
+    optional: true
 
   v8-to-istanbul@9.3.0:
     dependencies:
@@ -17233,7 +17242,8 @@ snapshots:
       buffer-crc32: 0.2.13
       fd-slicer: 1.1.0
 
-  yn@3.1.1: {}
+  yn@3.1.1:
+    optional: true
 
   yocto-queue@0.1.0: {}
 
