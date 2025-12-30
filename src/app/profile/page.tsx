@@ -25,6 +25,8 @@ import StrategyListsSection from "@/components/profile/strategy-lists-section";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ErrorBoundary from "@/components/ui/error-boundary";
+import ProfileTabErrorFallback from "@/components/profile/profile-tab-error-fallback";
 import {
   Bookmark,
   CheckCircle2,
@@ -600,115 +602,157 @@ export default function ProfilePage() {
             </TabsList>
 
             <TabsContent value="bookmarks">
-              <Card className="bg-card border border-border rounded-xl shadow-sm">
-                <CardHeader>
-                  <CardTitle>Your Bookmarked Problems</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ProfileProblemList
-                    title="Bookmarked Problems"
-                    problems={bookmarkedProblemDetails}
-                    isLoading={isLoadingBookmarks}
-                    listType="bookmarks"
-                    onBookmarkChanged={handleProblemBookmarkChangeOnProfile}
-                    onProblemStatusChange={handleProblemStatusChangeOnProfile}
+              <ErrorBoundary
+                fallbackRender={(props) => (
+                  <ProfileTabErrorFallback
+                    {...props}
+                    tabName="Bookmarked Problems"
                   />
-                </CardContent>
-              </Card>
+                )}
+              >
+                <Card className="bg-card border border-border rounded-xl shadow-sm">
+                  <CardHeader>
+                    <CardTitle>Your Bookmarked Problems</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ProfileProblemList
+                      title="Bookmarked Problems"
+                      problems={bookmarkedProblemDetails}
+                      isLoading={isLoadingBookmarks}
+                      listType="bookmarks"
+                      onBookmarkChanged={handleProblemBookmarkChangeOnProfile}
+                      onProblemStatusChange={handleProblemStatusChangeOnProfile}
+                    />
+                  </CardContent>
+                </Card>
+              </ErrorBoundary>
             </TabsContent>
 
             <TabsContent value="solved">
-              <Card className="bg-card border border-border rounded-xl shadow-sm">
-                <CardHeader>
-                  <CardTitle>Solved Problems</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ProfileProblemList
-                    title="Solved Problems"
-                    problems={problemsWithStatusDetails.filter(
-                      (p) => p.currentStatus === "solved",
-                    )}
-                    isLoading={isLoadingStatuses}
-                    listType="status"
-                    onBookmarkChanged={handleProblemBookmarkChangeOnProfile}
-                    onProblemStatusChange={handleProblemStatusChangeOnProfile}
-                  />
-                </CardContent>
-              </Card>
+              <ErrorBoundary
+                fallbackRender={(props) => (
+                  <ProfileTabErrorFallback {...props} tabName="Solved Problems" />
+                )}
+              >
+                <Card className="bg-card border border-border rounded-xl shadow-sm">
+                  <CardHeader>
+                    <CardTitle>Solved Problems</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ProfileProblemList
+                      title="Solved Problems"
+                      problems={problemsWithStatusDetails.filter(
+                        (p) => p.currentStatus === "solved",
+                      )}
+                      isLoading={isLoadingStatuses}
+                      listType="status"
+                      onBookmarkChanged={handleProblemBookmarkChangeOnProfile}
+                      onProblemStatusChange={handleProblemStatusChangeOnProfile}
+                    />
+                  </CardContent>
+                </Card>
+              </ErrorBoundary>
             </TabsContent>
 
             <TabsContent value="attempted">
-              <Card className="bg-card border border-border rounded-xl shadow-sm">
-                <CardHeader>
-                  <CardTitle>Attempted Problems</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ProfileProblemList
-                    title="Attempted Problems"
-                    problems={problemsWithStatusDetails.filter(
-                      (p) => p.currentStatus === "attempted",
-                    )}
-                    isLoading={isLoadingStatuses}
-                    listType="status"
-                    onBookmarkChanged={handleProblemBookmarkChangeOnProfile}
-                    onProblemStatusChange={handleProblemStatusChangeOnProfile}
+              <ErrorBoundary
+                fallbackRender={(props) => (
+                  <ProfileTabErrorFallback
+                    {...props}
+                    tabName="Attempted Problems"
                   />
-                </CardContent>
-              </Card>
+                )}
+              >
+                <Card className="bg-card border border-border rounded-xl shadow-sm">
+                  <CardHeader>
+                    <CardTitle>Attempted Problems</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ProfileProblemList
+                      title="Attempted Problems"
+                      problems={problemsWithStatusDetails.filter(
+                        (p) => p.currentStatus === "attempted",
+                      )}
+                      isLoading={isLoadingStatuses}
+                      listType="status"
+                      onBookmarkChanged={handleProblemBookmarkChangeOnProfile}
+                      onProblemStatusChange={handleProblemStatusChangeOnProfile}
+                    />
+                  </CardContent>
+                </Card>
+              </ErrorBoundary>
             </TabsContent>
 
             <TabsContent value="todo">
-              <Card className="bg-card border border-border rounded-xl shadow-sm">
-                <CardHeader>
-                  <CardTitle>To-Do Problems</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ProfileProblemList
-                    title="To-Do Problems"
-                    problems={problemsWithStatusDetails.filter(
-                      (p) => p.currentStatus === "todo",
-                    )}
-                    isLoading={isLoadingStatuses}
-                    listType="status"
-                    onBookmarkChanged={handleProblemBookmarkChangeOnProfile}
-                    onProblemStatusChange={handleProblemStatusChangeOnProfile}
-                  />
-                </CardContent>
-              </Card>
+              <ErrorBoundary
+                fallbackRender={(props) => (
+                  <ProfileTabErrorFallback {...props} tabName="To-Do Problems" />
+                )}
+              >
+                <Card className="bg-card border border-border rounded-xl shadow-sm">
+                  <CardHeader>
+                    <CardTitle>To-Do Problems</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ProfileProblemList
+                      title="To-Do Problems"
+                      problems={problemsWithStatusDetails.filter(
+                        (p) => p.currentStatus === "todo",
+                      )}
+                      isLoading={isLoadingStatuses}
+                      listType="status"
+                      onBookmarkChanged={handleProblemBookmarkChangeOnProfile}
+                      onProblemStatusChange={handleProblemStatusChangeOnProfile}
+                    />
+                  </CardContent>
+                </Card>
+              </ErrorBoundary>
             </TabsContent>
 
             <TabsContent value="strategyLists">
-              <StrategyListsSection
-                strategyTodoLists={strategyTodoLists}
-                isLoadingStrategyTodoLists={isLoadingStrategyTodoLists}
-                updatingTodoItemId={updatingTodoItemId}
-                handleToggleTodoItem={handleToggleTodoItem}
-              />
+              <ErrorBoundary
+                fallbackRender={(props) => (
+                  <ProfileTabErrorFallback {...props} tabName="Strategies" />
+                )}
+              >
+                <StrategyListsSection
+                  strategyTodoLists={strategyTodoLists}
+                  isLoadingStrategyTodoLists={isLoadingStrategyTodoLists}
+                  updatingTodoItemId={updatingTodoItemId}
+                  handleToggleTodoItem={handleToggleTodoItem}
+                />
+              </ErrorBoundary>
             </TabsContent>
 
             <TabsContent value="background">
-              <div className="space-y-8 bg-card border border-border rounded-xl p-6 mb-8 shadow-sm">
-                <FormProvider {...educationForm}>
-                  <EducationExperienceSection
-                    userId={user.uid}
-                    educationHistory={educationHistory}
-                    isLoadingEducation={isLoadingEducation}
-                    handleAddEducation={handleAddEducation}
-                    isEducationDialogOpen={isEducationDialogOpen}
-                    setIsEducationDialogOpen={setIsEducationDialogOpen}
-                  />
-                </FormProvider>
-                <FormProvider {...workForm}>
-                  <WorkExperienceSection
-                    userId={user.uid}
-                    workExperience={workExperience}
-                    isLoadingWorkExperience={isLoadingWorkExperience}
-                    handleAddWorkExperience={handleAddWorkExperience}
-                    isWorkDialogOpen={isWorkDialogOpen}
-                    setIsWorkDialogOpen={setIsWorkDialogOpen}
-                  />
-                </FormProvider>
-              </div>
+              <ErrorBoundary
+                fallbackRender={(props) => (
+                  <ProfileTabErrorFallback {...props} tabName="Background" />
+                )}
+              >
+                <div className="space-y-8 bg-card border border-border rounded-xl p-6 mb-8 shadow-sm">
+                  <FormProvider {...educationForm}>
+                    <EducationExperienceSection
+                      userId={user.uid}
+                      educationHistory={educationHistory}
+                      isLoadingEducation={isLoadingEducation}
+                      handleAddEducation={handleAddEducation}
+                      isEducationDialogOpen={isEducationDialogOpen}
+                      setIsEducationDialogOpen={setIsEducationDialogOpen}
+                    />
+                  </FormProvider>
+                  <FormProvider {...workForm}>
+                    <WorkExperienceSection
+                      userId={user.uid}
+                      workExperience={workExperience}
+                      isLoadingWorkExperience={isLoadingWorkExperience}
+                      handleAddWorkExperience={handleAddWorkExperience}
+                      isWorkDialogOpen={isWorkDialogOpen}
+                      setIsWorkDialogOpen={setIsWorkDialogOpen}
+                    />
+                  </FormProvider>
+                </div>
+              </ErrorBoundary>
             </TabsContent>
           </Tabs>
         </div>
