@@ -26,4 +26,9 @@ export type AppEventHandler<K extends AppEventKey> = (
   payload: AppEventMap[K],
 ) => void | Promise<void>;
 
+/**
+ * Global Event Bus instance.
+ * Use this to emit and subscribe to application-wide events.
+ * See `guide/advanced-patterns.md` for usage examples.
+ */
 export const appEvents = new TypedEventEmitter<AppEventMap>();

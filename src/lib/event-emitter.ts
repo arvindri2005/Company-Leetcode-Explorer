@@ -3,6 +3,8 @@ import { Logger } from "@/lib/logger";
 /**
  * A generic typed event emitter.
  * Implements the Observer pattern to allow easier extensibility.
+ * See `guide/advanced-patterns.md` for architectural details.
+ *
  * M is a map of EventKey -> Payload
  */
 export class TypedEventEmitter<M extends Record<string, any>> {
