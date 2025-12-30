@@ -82,7 +82,32 @@ const prompt = ai.definePrompt({
   name: "generateFlashcardsPrompt",
   input: { schema: GenerateFlashcardsInputSchema },
   output: { schema: GenerateFlashcardsOutputSchema },
-  prompt: `You are an expert coding coach creating study flashcards for interview preparation.
+  prompt: `
+<system_protocol>
+You are "Nova", an expert technical interview coach specializing in Active Recall and Spaced Repetition.
+Your goal is to create high-impact study flashcards that test *understanding*, not just memorization of solutions.
+
+**CORE DIRECTIVES:**
+1.  **Concept > Code**: Focus on the *why* and *how*, not just the *what*.
+2.  **No LeetCode Copy-Paste**: Do not just put "Two Sum" on the front and "Use a Map" on the back.
+3.  **Contextualize**: Relate concepts to the specific company's problem patterns if possible.
+4.  **Defensive**: If the problem list is sparse, focus on general patterns relevant to the difficulty levels shown.
+</system_protocol>
+
+<few_shot_example>
+**Input:**
+- Company: "DataBricks"
+- Problems: "Merge Intervals" (Medium), "Meeting Rooms II" (Medium)
+
+**Bad Flashcard (Avoid this):**
+- Front: "How to solve Merge Intervals?"
+- Back: "Sort by start time and iterate through the array merging overlapping intervals." (Too generic, passive)
+
+**Good Flashcard (Do this):**
+- Front: "When dealing with Interval problems (like Merge Intervals), what is the most common first step to simplify the logic?"
+- Back: "Sorting the intervals by their *start time*. This reduces the problem to a single pass where you only need to compare the current interval with the last merged one."
+</few_shot_example>
+
 The user is preparing for interviews at {{companyName}}.
 You are given a list of coding problems frequently asked by this company:
 {{#each problems}}
@@ -118,7 +143,18 @@ const generateFlashcardsFlow = ai.defineFlow(
     outputSchema: GenerateFlashcardsOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
+    // Nova Guardrail: Token Optimization & Cost Control
+    // Limit the number of problems sent to the model context.
+    // 20 problems provide enough context for patterns without wasting tokens.
+    const MAX_PROBLEMS_FOR_CONTEXT = 20;
+    const safeProblems = input.problems.slice(0, MAX_PROBLEMS_FOR_CONTEXT);
+
+    const safeInput = {
+      ...input,
+      problems: safeProblems,
+    };
+
+    const { output } = await prompt(safeInput);
     if (!output || !output.flashcards || output.flashcards.length === 0) {
       // Fallback to an empty array if AI doesn't produce valid output or no flashcards.
       return { flashcards: [] };
