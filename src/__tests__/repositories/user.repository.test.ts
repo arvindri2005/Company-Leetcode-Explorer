@@ -55,6 +55,7 @@ describe("UserRepository", () => {
       ];
 
       (getDocs as jest.Mock).mockResolvedValue({
+        docs: mockDocs,
         forEach: (callback: any) => mockDocs.forEach(callback),
       });
 
@@ -78,6 +79,7 @@ describe("UserRepository", () => {
       const problemIds = Array.from({ length: 35 }, (_, i) => `p${i}`);
       
       (getDocs as jest.Mock).mockResolvedValue({
+        docs: [],
         forEach: (callback: any) => [].forEach(callback),
       });
 
@@ -106,6 +108,7 @@ describe("UserRepository", () => {
       ];
 
       (getDocs as jest.Mock).mockResolvedValue({
+        docs: mockDocs,
         forEach: (callback: any) => mockDocs.forEach(callback),
       });
 
