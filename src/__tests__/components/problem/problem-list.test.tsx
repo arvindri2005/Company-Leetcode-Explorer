@@ -123,10 +123,12 @@ describe('ProblemList', () => {
     jest.clearAllMocks();
   });
 
-  it('should render initial problems', async () => {
+  it('should render initial problems and wait for user stats', async () => {
     // Setup mock return value for userService
+    // We return a "solved" status for Problem 1 to have a distinguishable state change to wait for.
+    // This prevents the test from exiting before the async useEffect completes, avoiding "not wrapped in act" warnings.
     (userService.getUserGlobalProblemStats as jest.Mock).mockResolvedValue({
-      solvedProblemIds: [],
+      solvedProblemIds: ['1'],
       attemptedProblemIds: [],
       bookmarkedProblemIds: [],
     });
@@ -136,8 +138,15 @@ describe('ProblemList', () => {
     await waitFor(() => {
       expect(screen.getByTestId('problem-list-controls')).toBeInTheDocument();
     });
+    
     expect(screen.getByText('Problem 1')).toBeInTheDocument();
     expect(screen.getByText('Problem 2')).toBeInTheDocument();
+
+    // Wait for the async stats update to reflect in the DOM
+    await waitFor(() => {
+        const problem1Card = screen.getByText('Problem 1').closest('div[data-testid="problem-card"]');
+        expect(problem1Card).toHaveAttribute('data-status', 'solved');
+    });
   });
 
   it('should apply user global stats (solved, bookmarked) to problems', async () => {
@@ -172,7 +181,7 @@ describe('ProblemList', () => {
     expect(problem2Card).toHaveAttribute('data-bookmarked', 'true');
   });
 
-  it('should render empty state when no problems', async () => {
+  it('should render empty state when no problems and wait for user stats', async () => {
       // Setup mock return value for userService
       (userService.getUserGlobalProblemStats as jest.Mock).mockResolvedValue({
         solvedProblemIds: [],
@@ -184,6 +193,11 @@ describe('ProblemList', () => {
   
       await waitFor(() => {
           expect(screen.getByText(/No problems match the current filters/i)).toBeInTheDocument();
+      });
+
+      // Even with no problems, the service is called. We should wait for it to ensure clean teardown.
+      await waitFor(() => {
+        expect(userService.getUserGlobalProblemStats).toHaveBeenCalled();
       });
     });
 });
