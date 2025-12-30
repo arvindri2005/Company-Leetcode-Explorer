@@ -2,7 +2,6 @@ import { z } from "zod";
 
 const serverSchema = z.object({
   GEMINI_API_KEY: z.string().optional(),
-  GOOGLE_API_KEY: z.string().optional(),
   LOG_LEVEL: z.enum(["DEBUG", "INFO", "WARN", "ERROR"]).optional(),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 });
@@ -66,7 +65,6 @@ let _serverEnv: ReturnType<typeof serverSchema.safeParse> = { success: true, dat
 if (typeof window === "undefined") {
    const serverEnv = {
       GEMINI_API_KEY: process.env.GEMINI_API_KEY,
-      GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
       LOG_LEVEL: process.env.LOG_LEVEL,
       NODE_ENV: process.env.NODE_ENV,
    };
