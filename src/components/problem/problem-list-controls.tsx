@@ -15,15 +15,6 @@ import type {
   StatusFilter,
 } from "@/types";
 import { lastAskedPeriodOptions, PROBLEM_STATUS_OPTIONS } from "@/constants/problem-constants";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Filter, ArrowUpDown, CalendarDays, CheckSquare } from "lucide-react";
 import React from "react";
 import { Chip } from "@/components/ui/chip";
 
@@ -39,7 +30,6 @@ interface ProblemListControlsProps {
   onLastAskedFilterChange: (filter: LastAskedFilter[]) => void;
   statusFilter: StatusFilter[];
   onStatusFilterChange: (filter: StatusFilter[]) => void;
-  problemCount: number;
   showStatusFilter?: boolean;
 }
 
@@ -63,7 +53,6 @@ const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
   onLastAskedFilterChange,
   statusFilter,
   onStatusFilterChange,
-  problemCount,
   showStatusFilter = false,
 }) => {
   const statusOptionsToDisplay = PROBLEM_STATUS_OPTIONS.filter(
