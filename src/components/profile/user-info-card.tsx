@@ -12,6 +12,7 @@ import {
   Save,
   X,
   LogOut,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,21 +79,24 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
   };
 
   return (
-    <Card className="bg-card border border-border rounded-xl mb-8 shadow-sm overflow-hidden relative">
-      <CardHeader className="p-6">
+    <Card className="bg-card border border-border rounded-xl mb-8 shadow-sm overflow-hidden relative group">
+      {/* Decorative Cover */}
+      <div className="h-32 w-full bg-gradient-to-r from-teal-500/10 via-purple-500/10 to-pink-500/10" />
+
+      <CardHeader className="relative px-6 pb-6 pt-0">
         <div className="flex flex-col sm:flex-row items-start gap-6">
-          <Avatar className="h-24 w-24 ring-4 ring-primary/10 ring-offset-4 ring-offset-background shadow-lg shrink-0">
+          <Avatar className="h-28 w-28 -mt-12 ring-4 ring-background shadow-xl shrink-0 bg-background">
             <AvatarImage
               src={user.photoURL || undefined}
               data-ai-hint="profile avatar"
               className="object-cover"
             />
-            <AvatarFallback className="text-3xl bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold">
+            <AvatarFallback className="text-4xl bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold">
               {getInitials(user.displayName)}
             </AvatarFallback>
           </Avatar>
           
-          <div className="flex-grow space-y-3 w-full pt-1">
+          <div className="flex-grow space-y-4 w-full pt-4">
             <div className="flex justify-between items-start gap-4">
               {!isEditingDisplayName ? (
                 <div className="space-y-1">
@@ -110,7 +114,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                           user.displayName || "",
                         );
                       }}
-                      className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors rounded-full"
+                      className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors rounded-full opacity-0 group-hover:opacity-100 focus:opacity-100"
                       aria-label="Edit display name"
                     >
                       <Edit size={15} />
@@ -119,6 +123,12 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Mail className="h-3.5 w-3.5" />
                     <span className="truncate max-w-[200px] sm:max-w-none">{user.email}</span>
+                    {user.emailVerified && (
+                      <span className="inline-flex items-center text-green-600 dark:text-green-500 ml-2 text-xs font-medium bg-green-50 dark:bg-green-500/10 px-2 py-0.5 rounded-full ring-1 ring-inset ring-green-600/20 dark:ring-green-500/20">
+                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        Verified
+                      </span>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -183,17 +193,10 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
               </Button>
             </div>
             
-            <div className="flex flex-wrap gap-2 pt-1">
-              {user.emailVerified && (
-                <div className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400 border border-green-200 dark:border-green-500/30">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
-                  Verified
-                </div>
-              )}
-
-              {user.metadata.creationTime && (
-                <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary/5 text-primary border border-primary/20">
-                  <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
+            <div className="flex items-center gap-4 text-sm text-muted-foreground border-t border-border/50 pt-4">
+               {user.metadata.creationTime && (
+                <div className="flex items-center">
+                  <CalendarDays className="h-4 w-4 mr-2 opacity-70" />
                   Member since {formatDate(user.metadata.creationTime)}
                 </div>
               )}

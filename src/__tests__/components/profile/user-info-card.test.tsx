@@ -13,6 +13,7 @@ jest.mock('lucide-react', () => ({
   Save: () => <span data-testid="save-icon" />,
   X: () => <span data-testid="x-icon" />,
   LogOut: () => <span data-testid="logout-icon" />,
+  CheckCircle2: () => <span data-testid="check-circle-icon" />,
 }));
 
 const mockUser = createMockUser({
