@@ -36,7 +36,7 @@ export const CompanySchema = z.object({
   slug: z.string(),
   logo: z.string().optional(),
   description: z.string().optional(),
-  website: z.string().optional(),
+  website: z.string().url().optional().or(z.literal("")),
   problemCount: z.number().optional(),
   difficultyCounts: z
     .object({
