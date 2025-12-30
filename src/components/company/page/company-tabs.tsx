@@ -6,13 +6,12 @@
  */
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
+import { Suspense } from "react";
 import dynamic from "next/dynamic";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Brain, Target, Users } from "lucide-react";
 import ProblemList from "@/components/problem/problem-list";
-import type { Company, LeetCodeProblem, ProblemListFilters, ProblemSummaryDTO } from "@/types";
-// import { getAIProblems } from "@/app/actions/problem.actions";
+import type { Company, LeetCodeProblem, ProblemListFilters } from "@/types";
 
 const AIGroupingSection = dynamic(
   () => import("@/components/ai/ai-grouping-section"),
@@ -54,8 +53,6 @@ const CompanyProblemStats = dynamic(
   },
 );
 
-const MAX_PROBLEMS_FOR_AI_FEATURES = 200;
-
 interface CompanyTabsProps {
   company: Company;
   displayProblemCount: number;
@@ -79,23 +76,7 @@ export default function CompanyTabs({
   totalPages,
   currentPage,
 }: CompanyTabsProps) {
-  const [aiProblems, setAiProblems] = useState<LeetCodeProblem[] | ProblemSummaryDTO[]>([]);
-
-  useEffect(() => {
-    async function fetchAIProblems() {
-      if (!company.id) return;
-
-      try {
-        const response = await fetch(`/api/companies/${company.id}/ai-problems`);
-        if (!response.ok) throw new Error("Failed to fetch AI problems");
-        const problems = await response.json();
-        setAiProblems(problems);
-      } catch (error) {
-        console.error("Failed to fetch problems for AI features:", error);
-      }
-    }
-    fetchAIProblems();
-  }, [company.id]);
+  // Removed aiProblems state and eager fetching effect
 
   return (
     <Tabs defaultValue="problems" orientation="horizontal" className="w-full">
@@ -150,7 +131,7 @@ export default function CompanyTabs({
         </TabsContent>
         <TabsContent value="ai-grouping" className="mt-0 transition-all duration-300 ease-in-out">
           <AIGroupingSection
-            problems={aiProblems}
+            companyId={company.id}
             companyName={company.name}
             companySlug={company.slug}
           />
