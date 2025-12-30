@@ -30,6 +30,8 @@ import {
   writeBatch,
   arrayUnion,
   arrayRemove,
+  Query,
+  CollectionReference,
 } from "firebase/firestore";
 import { Logger } from "@/lib/logger";
 
@@ -130,7 +132,7 @@ export class UserRepository {
 
       querySnapshots.forEach(querySnapshot => {
           querySnapshot.forEach((docSnap) => {
-            const data = docSnap.data() as any;
+            const data = docSnap.data();
             if (data.status) {
               statuses[docSnap.id] = {
                 problemId: docSnap.id,
@@ -189,7 +191,7 @@ export class UserRepository {
    * Helper to fetch documents by IDs in chunks of 30 to satisfy Firestore "IN" query limits.
    */
   private async fetchDocsByIds(
-      collectionRef: any, // Typed as any to accept CollectionReference or Query easily without complex generic imports for now
+      collectionRef: CollectionReference | Query,
       ids: string[]
   ) {
       const CHUNK_SIZE = 30;
@@ -262,11 +264,17 @@ export class UserRepository {
       return querySnapshot.docs.map((docSnap) => {
         const data = docSnap.data();
         const items = Array.isArray(data.items)
-          ? data.items.map((item: any) => ({
-              ...item,
-              isCompleted:
-                typeof item.isCompleted === "boolean" ? item.isCompleted : false,
-            }))
+          ? data.items.map((item: unknown) => {
+              const typedItem = item as Partial<StrategyTodoItem>;
+              return {
+                ...typedItem,
+                text: typeof typedItem.text === "string" ? typedItem.text : "",
+                isCompleted:
+                  typeof typedItem.isCompleted === "boolean"
+                    ? typedItem.isCompleted
+                    : false,
+              };
+            })
           : [];
         const focusTopics = Array.isArray(data.focusTopics)
           ? data.focusTopics
@@ -309,11 +317,17 @@ export class UserRepository {
       if (docSnap.exists()) {
         const data = docSnap.data();
         const items = Array.isArray(data.items)
-          ? data.items.map((item: any) => ({
-              ...item,
-              isCompleted:
-                typeof item.isCompleted === "boolean" ? item.isCompleted : false,
-            }))
+          ? data.items.map((item: unknown) => {
+              const typedItem = item as Partial<StrategyTodoItem>;
+              return {
+                ...typedItem,
+                text: typeof typedItem.text === "string" ? typedItem.text : "",
+                isCompleted:
+                  typeof typedItem.isCompleted === "boolean"
+                    ? typedItem.isCompleted
+                    : false,
+              };
+            })
           : [];
         const focusTopics = Array.isArray(data.focusTopics)
           ? data.focusTopics
@@ -654,9 +668,14 @@ export class UserRepository {
       // Optimistic Update: Use setDoc with merge: true
       // This works even if the client is offline (writes are queued)
       // and doesn't require a prior 'read' (getDoc) which fails offline.
-      const updates: Partial<UserProfile> = {
+      // Use FieldValue type for serverTimestamp, avoiding 'any' by accepting
+      // that the repository internal type might need to accept FieldValue where Date is expected
+      // or by defining a WriteUserProfile type.
+      // For now, we'll cast to unknown then Partial<UserProfile> which is safer than 'any',
+      // but ideally we should have a FirestoreUserProfile type.
+      const updates: Record<string, unknown> = {
         uid,
-        lastSyncedAt: serverTimestamp() as any,
+        lastSyncedAt: serverTimestamp(),
       };
 
       if (email) updates.email = email;
