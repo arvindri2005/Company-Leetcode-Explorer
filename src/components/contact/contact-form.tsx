@@ -7,21 +7,24 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { useOnlineStatus } from "@/hooks/use-online-status";
 
 /**
  * A client component that renders a form submission button with a pending state.
  */
 function SubmitButton() {
   const { pending } = useFormStatus();
+  const isOnline = useOnlineStatus();
 
   return (
     <Button
       type="submit"
       isLoading={pending}
+      disabled={!isOnline || pending}
       className="w-full sm:w-auto px-8"
       size="lg"
     >
-      {pending ? "Sending..." : "Send Message"}
+      {pending ? "Sending..." : isOnline ? "Send Message" : "You are offline"}
     </Button>
   );
 }
