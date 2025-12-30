@@ -7,6 +7,7 @@
  */
 import { genkit } from "genkit";
 import { googleAI } from "@genkit-ai/googleai";
+import { env } from "@/env";
 
 /**
  * The configured Genkit AI instance.
@@ -18,6 +19,6 @@ import { googleAI } from "@genkit-ai/googleai";
  * @type {import('genkit').Genkit}
  */
 export const ai = genkit({
-  plugins: [googleAI()],
+  plugins: [googleAI({ apiKey: env.GEMINI_API_KEY })],
   model: "googleai/gemini-flash-lite-latest",
 });

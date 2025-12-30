@@ -46,7 +46,7 @@ npm install
 ## 5. Configure Environment Variables
 
 1. In the root of your project, create a file named `.env.local`.
-2. Add your Firebase configuration and Google AI API key to this file. The `src/ai/genkit.ts` file expects `GOOGLE_API_KEY`.
+2. Add your Firebase configuration and Gemini API key to this file. The `src/env.ts` configuration expects `GEMINI_API_KEY`.
 
     ```env
     # Firebase Configuration
@@ -57,8 +57,8 @@ npm install
     NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
     NEXT_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id
 
-    # Google Generative AI API Key
-    GOOGLE_API_KEY=your_google_generative_ai_api_key
+    # Google Generative AI API Key (Gemini)
+    GEMINI_API_KEY=your_google_generative_ai_api_key
     ```
 
     Replace the `your_...` placeholders with your actual credentials.

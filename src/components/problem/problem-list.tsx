@@ -426,7 +426,6 @@ const ProblemList: React.FC<ProblemListProps> = ({
         onStatusFilterChange={(value) =>
           handleFilterChange({ statusFilter: value })
         }
-        problemCount={displayedProblems.length}
         showStatusFilter={!!user}
       />
 

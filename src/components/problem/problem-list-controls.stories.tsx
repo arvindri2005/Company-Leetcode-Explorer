@@ -32,7 +32,6 @@ const ProblemListControlsWrapper = () => {
             onStatusFilterChange={setStatus}
             sortKey={sortKey}
             onSortKeyChange={setSortKey}
-            problemCount={10}
             showStatusFilter={true}
         />
     )
@@ -50,7 +49,6 @@ export const Interactive: Story = {
         onStatusFilterChange: () => {},
         sortKey: "difficulty",
         onSortKeyChange: () => {},
-        problemCount: 10,
         showStatusFilter: true,
     },
     render: () => <ProblemListControlsWrapper />
@@ -66,7 +64,6 @@ export const Default: Story = {
     onLastAskedFilterChange: () => {},
     statusFilter: [],
     onStatusFilterChange: () => {},
-    problemCount: 42,
     showStatusFilter: true,
   },
 };

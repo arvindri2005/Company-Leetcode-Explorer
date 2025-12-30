@@ -7,7 +7,11 @@ const serverSchema = z.object({
 });
 
 const clientSchema = z.object({
-  NEXT_PUBLIC_APP_URL: z.string().url().default("https://bytetooffer.com"),
+  NEXT_PUBLIC_APP_URL: z.string().url().default(
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3000"
+      : "https://bytetooffer.com"
+  ),
   NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID: z.string().default("ca-pub-6342943619826199"),
   NEXT_PUBLIC_GOOGLE_ADSENSE_SLOT_ID: z.string().optional(),
   NEXT_PUBLIC_FIREBASE_API_KEY: z.string().min(1),
@@ -21,6 +25,9 @@ const clientSchema = z.object({
   LOGO_API: z.string().optional(),
 });
 
+// ⚠️ IMPORTANT: We must manually map process.env variables here.
+// Next.js client-side variables (NEXT_PUBLIC_*) are replaced at BUILD TIME by their string values.
+// They cannot be accessed dynamically (e.g. process.env[key]) or via object destructuring.
 const clientEnv = {
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID,
