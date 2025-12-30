@@ -1,3 +1,5 @@
+const plugin = require('tailwindcss/plugin');
+
 const COLORS = {
   brand: {
     teal: "#00d4aa",
@@ -149,14 +151,61 @@ module.exports = {
                         transform: "translateY(100%)",
                     },
                 },
+                fadeInUp: {
+                    "from": { opacity: "0", transform: "translateY(30px)" },
+                    "to": { opacity: "1", transform: "translateY(0)" },
+                },
+                float: {
+                    "0%, 100%": { transform: "translateY(0px)" },
+                    "50%": { transform: "translateY(-20px)" },
+                },
+                fadeIn: {
+                    "from": { opacity: "0" },
+                    "to": { opacity: "1" },
+                },
+                blink: {
+                    "0%, 100%": { opacity: "1" },
+                    "50%": { opacity: "0" },
+                },
+                shake: {
+                    "10%, 90%": { transform: "translate3d(-1px, 0, 0)" },
+                    "20%, 80%": { transform: "translate3d(2px, 0, 0)" },
+                    "30%, 50%, 70%": { transform: "translate3d(-4px, 0, 0)" },
+                    "40%, 60%": { transform: "translate3d(4px, 0, 0)" },
+                }
             },
             animation: {
                 "accordion-down": "accordion-down 0.2s ease-out",
                 "accordion-up": "accordion-up 0.2s ease-out",
                 "slide-in-from-bottom-full": "slide-in-from-bottom-full 0.3s ease-in-out",
                 "slide-out-to-bottom-full": "slide-out-to-bottom-full 0.3s ease-in-out",
+                fadeInUp: "fadeInUp 1s ease-out",
+                float: "float 6s ease-in-out infinite",
+                fadeIn: "fadeIn 0.5s ease-in-out",
+                blink: "blink 1s step-end infinite",
+                shake: "shake 0.4s cubic-bezier(.36,.07,.19,.97) both",
             },
         },
     },
-    plugins: [require("tailwindcss-animate")],
+    plugins: [
+        require("tailwindcss-animate"),
+        plugin(function({ addUtilities }) {
+            addUtilities({
+                '.animation-delay-200': {
+                    'animation-delay': '0.2s',
+                    'animation-fill-mode': 'both',
+                },
+                '.animation-delay-400': {
+                    'animation-delay': '0.4s',
+                    'animation-fill-mode': 'both',
+                },
+                '.animation-delay-2000': {
+                    'animation-delay': '2s',
+                },
+                '.animation-delay-4000': {
+                    'animation-delay': '4s',
+                },
+            })
+        })
+    ],
 };

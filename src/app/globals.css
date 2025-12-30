@@ -77,12 +77,6 @@ h1, h2, h3, h4, h5, h6 {
     background-size: 600% 600%;
     animation: Gradient 25s ease infinite;
   }
-  .animate-blink {
-    animation: blink 1s step-end infinite;
-  }
-  .animate-shake {
-    animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
-  }
 }
 
 @keyframes Gradient {
@@ -95,90 +89,4 @@ h1, h2, h3, h4, h5, h6 {
   100% {
     background-position: 0% 50%;
   }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-
-  50% {
-    transform: translateY(-20px);
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes blink {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
-}
-
-@keyframes shake {
-  10%, 90% {
-    transform: translate3d(-1px, 0, 0);
-  }
-  20%, 80% {
-    transform: translate3d(2px, 0, 0);
-  }
-  30%, 50%, 70% {
-    transform: translate3d(-4px, 0, 0);
-  }
-  40%, 60% {
-    transform: translate3d(4px, 0, 0);
-  }
-}
-
-.animate-fadeInUp {
-  animation: fadeInUp 1s ease-out;
-}
-
-.animation-delay-200 {
-  animation-delay: 0.2s;
-  animation-fill-mode: both;
-}
-
-.animation-delay-400 {
-  animation-delay: 0.4s;
-  animation-fill-mode: both;
-}
-
-.animation-delay-2000 {
-  animation-delay: 2s;
-}
-
-.animation-delay-4000 {
-  animation-delay: 4s;
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.5s ease-in-out;
 }
