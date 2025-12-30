@@ -3,8 +3,8 @@
 import React from "react";
 import type { LeetCodeProblem, ProblemStatus } from "@/types";
 import ProblemCard from "@/components/problem/problem-card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, ClipboardList } from "lucide-react";
+import { ProblemCardSkeleton } from "@/components/skeletons/problem-skeletons";
+import { ClipboardList } from "lucide-react";
 
 /**
  * @interface ProblemWithStatusAndBookmark
@@ -54,9 +54,9 @@ const ProfileProblemList: React.FC<ProfileProblemListProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        {[...Array(3)].map((_, i) => (
-          <Skeleton key={i} className="h-40 w-full rounded-lg" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[...Array(6)].map((_, i) => (
+          <ProblemCardSkeleton key={i} />
         ))}
       </div>
     );

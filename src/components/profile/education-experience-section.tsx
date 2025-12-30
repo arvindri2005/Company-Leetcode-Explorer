@@ -28,7 +28,7 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Skeleton } from "@/components/ui/skeleton";
+import { ExperienceListSkeleton } from "@/components/skeletons/experience-skeleton";
 import { PlusCircle, GraduationCap, Loader2 } from "lucide-react";
 import type { EducationExperience } from "@/types";
 import { EducationExperienceSchema as educationFormSchema } from "@/types"; // Renamed for clarity
@@ -197,7 +197,7 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
       </div>
       <div>
         {isLoadingEducation ? (
-          <Skeleton className="h-20 w-full" />
+          <ExperienceListSkeleton />
         ) : educationHistory.length > 0 ? (
           <ul className="space-y-3 mt-4">
             {educationHistory.map((edu) => (
