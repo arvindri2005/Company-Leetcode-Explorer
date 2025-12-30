@@ -9,3 +9,7 @@
 ## 2024-12-25 - Native Loading States
 **Learning:** Adding a native `isLoading` prop to the core `Button` component significantly reduces boilerplate across the application. It ensures consistent loading indicators (spinners), automatically handles `disabled` state, and manages layout shifts for icon-only buttons versus text buttons. This is preferred over manual `isLoading ? <Loader /> : <Icon />` toggling in consumer components.
 **Action:** When creating interactive UI elements, build state handling (loading, disabled) directly into the component props to enforce consistency and reduce consumer complexity.
+
+## 2025-05-18 - Full Card Clickability
+**Learning:** Making entire cards clickable by nesting an `<a>` tag inside a `<div>` is invalid HTML. The preferred UX pattern is to keep the interactive element (the link/button) distinct but expand its hit area using a CSS overlay (`after:absolute after:inset-0`) on a relative parent container. This maintains semantic validity and allows for nested interactive elements (like bookmark buttons) to sit above the overlay (`z-20`).
+**Action:** Use the "Pseudo-element Overlay" pattern for clickable cards instead of wrapping the whole card in a Link.

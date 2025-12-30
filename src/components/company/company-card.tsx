@@ -71,7 +71,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company, priority = false }) 
       <footer className="p-4 pt-0">
         <Link
           href={`/company/${company.slug}`}
-          className="block w-full mt-4 py-2 px-4 h-auto bg-white/10 border border-white/20 text-white/80 rounded-full text-center hover:bg-white/20 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/50"
+          className="block w-full mt-4 py-2 px-4 h-auto bg-white/10 border border-white/20 text-white/80 rounded-full text-center hover:bg-white/20 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/50 after:absolute after:inset-0 after:z-10"
           aria-label={`View problems for ${company.name}`}
         >
           View Problems

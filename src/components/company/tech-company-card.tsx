@@ -13,7 +13,7 @@ export function TechCompanyCard({ company, priority = false }: TechCompanyCardPr
   const imgSrc = getLogoUrl(company.logo) || "/icon.png";
 
   return (
-    <div className="bg-brand-surface border border-white/5 rounded-xl p-6 flex items-start gap-4 hover:border-white/10 transition-colors group">
+    <div className="relative bg-brand-surface border border-white/5 rounded-xl p-6 flex items-start gap-4 hover:border-white/10 transition-colors group">
       <div className="relative w-16 h-16 flex-shrink-0 bg-white rounded-xl p-2 flex items-center justify-center overflow-hidden">
         <Image
           src={imgSrc}
@@ -36,7 +36,7 @@ export function TechCompanyCard({ company, priority = false }: TechCompanyCardPr
         </div>
         <Link
           href={`/company/${company.slug}`}
-          className="inline-block text-xs font-medium bg-white/5 hover:bg-white/10 text-gray-300 px-3 py-1.5 rounded-md transition-colors"
+          className="inline-block text-xs font-medium bg-white/5 hover:bg-white/10 text-gray-300 px-3 py-1.5 rounded-md transition-colors after:absolute after:inset-0 after:z-10"
         >
           View
         </Link>
