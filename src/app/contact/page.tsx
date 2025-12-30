@@ -18,7 +18,7 @@ export default function ContactPage() {
   return (
     <div className="w-full">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-foreground">
-        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl text-balance">
           Contact Us
         </h1>
         <p className="mt-4 text-muted-foreground">

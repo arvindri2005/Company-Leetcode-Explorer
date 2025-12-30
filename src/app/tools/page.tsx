@@ -64,7 +64,7 @@ export default function ToolsPage() {
   return (
     <div className="container mx-auto py-12 px-4 max-w-7xl animate-in fade-in slide-in-from-bottom-5 duration-700">
       <div className="text-center mb-16 space-y-4">
-        <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+        <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent text-balance">
           Developer Tools
         </h1>
         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">

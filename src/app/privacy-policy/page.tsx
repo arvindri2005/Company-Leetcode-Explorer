@@ -45,7 +45,7 @@ export default function PrivacyPolicyPage() {
   return (
     <div className="w-full">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-foreground">
-        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl text-balance">
           Privacy Policy
         </h1>
         <p className="mt-4 text-muted-foreground">
@@ -61,7 +61,7 @@ export default function PrivacyPolicyPage() {
             (collectively, the &quot;Services&quot;).
           </p>
 
-          <h2 className="mt-8 text-2xl font-bold">1. Information We Collect</h2>
+          <h2 className="mt-8 text-2xl font-bold text-balance">1. Information We Collect</h2>
           <p>
             We may collect personal information that you voluntarily provide to
             us when you register for an account, use our Services, or contact
@@ -83,7 +83,7 @@ export default function PrivacyPolicyPage() {
             </li>
           </ul>
 
-          <h2 className="mt-8 text-2xl font-bold">
+          <h2 className="mt-8 text-2xl font-bold text-balance">
             2. How We Use Your Information
           </h2>
           <p>We use the information we collect to:</p>
@@ -104,7 +104,7 @@ export default function PrivacyPolicyPage() {
             <li>Find and prevent fraud.</li>
           </ul>
 
-          <h2 className="mt-8 text-2xl font-bold">
+          <h2 className="mt-8 text-2xl font-bold text-balance">
             3. Data Sharing and Disclosure
           </h2>
           <p>
@@ -128,7 +128,7 @@ export default function PrivacyPolicyPage() {
             </li>
           </ul>
 
-          <h2 className="mt-8 text-2xl font-bold">4. Data Security</h2>
+          <h2 className="mt-8 text-2xl font-bold text-balance">4. Data Security</h2>
           <p>
             We use administrative, technical, and physical security measures to
             help protect your personal information. While we have taken
@@ -138,7 +138,7 @@ export default function PrivacyPolicyPage() {
             be guaranteed against any interception or other type of misuse.
           </p>
 
-          <h2 className="mt-8 text-2xl font-bold">
+          <h2 className="mt-8 text-2xl font-bold text-balance">
             5. Your Data Protection Rights
           </h2>
           <p>
@@ -175,7 +175,7 @@ export default function PrivacyPolicyPage() {
             </li>
           </ul>
 
-          <h2 className="mt-8 text-2xl font-bold">
+          <h2 className="mt-8 text-2xl font-bold text-balance">
             6. Changes to This Privacy Policy
           </h2>
           <p>
@@ -185,7 +185,7 @@ export default function PrivacyPolicyPage() {
             changes.
           </p>
 
-          <h2 className="mt-8 text-2xl font-bold">7. Contact Us</h2>
+          <h2 className="mt-8 text-2xl font-bold text-balance">7. Contact Us</h2>
           <p>
             If you have any questions about this Privacy Policy, please{" "}
             <Link href="/contact" className="text-primary hover:underline">
