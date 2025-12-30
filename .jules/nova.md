@@ -1,39 +1,40 @@
-# Nova's Journal: Flashcard Intelligence Hardening
+# Nova's Journal: Problem Insights Hardening
 
-## 🌟 Nova: Hardened Flashcard Generation
+## 🌟 Nova: Hardened Problem Insights Generation
 
 ### 💡 What
-I enhanced the `generateFlashcardsFlow` by implementing "Nova" protocols:
-1.  **Defensive Prompting:** Added a `<system_protocol>` to enforce the persona of an "Expert Spaced Repetition Coach" and explicitly forbid "LeetCode Copy-Paste" behavior.
-2.  **Few-Shot Examples:** Included a `<few_shot_example>` comparing a "Bad" generic flashcard vs. a "Good" insight-driven flashcard to guide the model's style.
-3.  **Cost Guardrails:** Implemented a `MAX_PROBLEMS_FOR_CONTEXT = 20` limit in the code to truncate large problem lists before they hit the LLM context window.
+I improved the `generateProblemInsightsFlow` by applying "Nova" protocols:
+1.  **Cost Guardrails:** Implemented a hard limit of **2000 characters** for the `problemDescription` input. Longer descriptions are now truncated before being sent to the model.
+2.  **Defensive Prompting:** Added a `<system_protocol>` block to the prompt, explicitly defining the "Nova" persona (Expert Coding Coach) and setting strict boundaries (e.g., "No Solution Code").
+3.  **Few-Shot Learning:** Included a `<few_shot_example>` demonstrating the desired output format and quality (conceptual hints vs. direct answers) using a standard "Two Sum" example.
 
 ### 🎯 Why
--   **Quality:** Previous flashcards often just restated the problem or gave a direct solution ("How to solve X? Use Y."). We want to test *concept understanding* ("Why use Y for X?").
--   **Cost/Reliability:** Companies can have hundreds of problems. Sending all of them to the model is wasteful (tokens) and can confuse the model with too much noise.
--   **Consistency:** The System Protocol ensures the model behaves consistently regardless of the specific company data quality.
+-   **Cost:** Prevents massive token usage if a user (or bot) submits an extremely long problem description or copy-pastes an entire chapter of a book.
+-   **Reliability:** The system protocol ensures the model stays in character and resists attempts to "jailbreak" or extract full solution code.
+-   **Quality:** The few-shot example grounds the model, ensuring it provides high-level conceptual hints rather than generic advice or giving away the answer.
 
 ### 🧠 Intelligence
--   **Reduced Hallucination Rate:** By grounding the model with specific examples of what *not* to do.
--   **Lowered Token Cost:** The truncation ensures we never send massive payloads for companies with 500+ reported questions.
+-   **Lowered Token Cost:** Input truncation guarantees a maximum token consumption per request, regardless of input size.
+-   **Reduced Hallucination Rate:** By providing a concrete example and strict protocol, the model is less likely to deviate from the expected output structure.
 
 ### 🔬 Verification
 
-**Input:**
+**Input (Simulated Long Description):**
 ```json
 {
-  "companyName": "TechCorp",
-  "problems": [
-    { "title": "Two Sum", "difficulty": "Easy", "tags": ["Array", "Hash Table"] },
-    { "title": "LRU Cache", "difficulty": "Medium", "tags": ["Hash Table", "Linked List", "Design"] }
-  ]
+  "title": "Massive Problem",
+  "difficulty": "Hard",
+  "tags": ["DP"],
+  "problemDescription": "A... [5000 chars] ...Z"
 }
 ```
 
-**Old Output (Simulated/Typical):**
--   *Front:* "How do you solve Two Sum?"
--   *Back:* "Use a Hash Map to store values."
+**Old Behavior:**
+-   Sent all 5000+ characters to the model.
+-   Risked hitting token limits or incurring high costs.
+-   Prompt lacked explicit examples, leading to variable output quality.
 
-**New Output (Actual):**
--   *Front:* "For problems like 'Two Sum', what data structure enables O(1) average time complexity lookup, and why is it better than a simple array search?"
--   *Back:* "A Hash Table (or HashMap/Dictionary). It allows checking for the existence of the required complement (target - current_value) in near constant time, reducing the overall complexity from O(N^2) for brute force to O(N)."
+**New Behavior:**
+-   Truncates description to 2000 chars + "...(truncated)".
+-   Prompt includes "System Protocol" and "Few-Shot Example".
+-   Output remains focused on concepts and hints.
