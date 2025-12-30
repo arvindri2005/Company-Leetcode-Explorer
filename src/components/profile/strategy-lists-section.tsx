@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { StrategyListSkeleton } from "@/components/skeletons/strategy-skeleton";
 import { Brain, ListChecks, Target, FolderKanban, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -55,24 +55,7 @@ const StrategyListsSection: React.FC<StrategyListsSectionProps> = ({
   handleToggleTodoItem,
 }) => {
   if (isLoadingStrategyTodoLists) {
-    return (
-      <Card className="bg-card border border-border rounded-xl shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Brain className="mr-2 h-5 w-5 text-primary" />
-            Saved Strategy To-Do Lists
-          </CardTitle>
-          <CardDescription>
-            Loading your saved AI-generated To-Do lists...
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {[...Array(2)].map((_, i) => (
-            <Skeleton key={i} className="h-24 w-full rounded-lg" />
-          ))}
-        </CardContent>
-      </Card>
-    );
+    return <StrategyListSkeleton />;
   }
 
   if (strategyTodoLists.length === 0) {

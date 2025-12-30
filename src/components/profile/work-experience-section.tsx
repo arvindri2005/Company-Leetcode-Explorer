@@ -29,7 +29,7 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Skeleton } from "@/components/ui/skeleton";
+import { ExperienceListSkeleton } from "@/components/skeletons/experience-skeleton";
 import { PlusCircle, Briefcase, Loader2 } from "lucide-react";
 import type { WorkExperience } from "@/types";
 import { WorkExperienceSchema as workExperienceFormSchema } from "@/types"; // Renamed for clarity
@@ -200,7 +200,7 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
       </div>
       <div>
         {isLoadingWorkExperience ? (
-          <Skeleton className="h-20 w-full" />
+          <ExperienceListSkeleton />
         ) : workExperience.length > 0 ? (
           <ul className="space-y-3 mt-4">
             {workExperience.map((work) => (
