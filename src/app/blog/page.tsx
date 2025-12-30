@@ -71,7 +71,7 @@ export default function BlogPage() {
   return (
     <div className="w-full">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-foreground">
-        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl text-balance">
           Blog
         </h1>
         <p className="mt-4 text-muted-foreground">
@@ -81,7 +81,7 @@ export default function BlogPage() {
         <div className="mt-12 space-y-12">
           {blogPosts.map((post) => (
             <div key={post.slug}>
-              <h2 className="text-2xl font-bold">
+              <h2 className="text-2xl font-bold text-balance">
                 <a
                   // href={`/blog/${post.slug}`}
                   className="hover:underline"

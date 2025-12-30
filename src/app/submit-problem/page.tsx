@@ -41,7 +41,7 @@ export default async function SubmitProblemPage() {
   return (
     <section className="space-y-8 max-w-2xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
+        <h1 className="text-3xl font-bold tracking-tight md:text-4xl text-balance">
           Submit a New Interview Problem
         </h1>
         <p className="mt-2 text-lg text-muted-foreground">

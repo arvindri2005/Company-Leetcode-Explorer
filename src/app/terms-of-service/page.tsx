@@ -45,7 +45,7 @@ export default function TermsOfServicePage() {
   return (
     <div className="w-full">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-foreground">
-        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl text-balance">
           Terms of Service
         </h1>
         <p className="mt-4 text-muted-foreground">
@@ -53,7 +53,7 @@ export default function TermsOfServicePage() {
         </p>
 
         <div className="mt-8 prose prose-lg max-w-none">
-          <h2 className="mt-8 text-2xl font-bold">1. Acceptance of Terms</h2>
+          <h2 className="mt-8 text-2xl font-bold text-balance">1. Acceptance of Terms</h2>
           <p>
             By accessing or using the Byte To Offer website and services
             (collectively, the &quot;Services&quot;), you agree to be bound by
@@ -61,7 +61,7 @@ export default function TermsOfServicePage() {
             these Terms, you may not use the Services.
           </p>
 
-          <h2 className="mt-8 text-2xl font-bold">2. Use of Services</h2>
+          <h2 className="mt-8 text-2xl font-bold text-balance">2. Use of Services</h2>
           <p>
             You agree to use the Services only for lawful purposes and in
             accordance with these Terms. You agree not to use the Services:
@@ -89,7 +89,7 @@ export default function TermsOfServicePage() {
             </li>
           </ul>
 
-          <h2 className="mt-8 text-2xl font-bold">
+          <h2 className="mt-8 text-2xl font-bold text-balance">
             3. Intellectual Property Rights
           </h2>
           <p>
@@ -102,7 +102,7 @@ export default function TermsOfServicePage() {
             other intellectual property or proprietary rights laws.
           </p>
 
-          <h2 className="mt-8 text-2xl font-bold">
+          <h2 className="mt-8 text-2xl font-bold text-balance">
             4. Disclaimer of Warranties
           </h2>
           <p>
@@ -114,7 +114,7 @@ export default function TermsOfServicePage() {
             Services is at your sole risk.
           </p>
 
-          <h2 className="mt-8 text-2xl font-bold">
+          <h2 className="mt-8 text-2xl font-bold text-balance">
             5. Limitation of Liability
           </h2>
           <p>
@@ -132,23 +132,23 @@ export default function TermsOfServicePage() {
             otherwise, even if foreseeable.
           </p>
 
-          <h2 className="mt-8 text-2xl font-bold">6. Governing Law</h2>
+          <h2 className="mt-8 text-2xl font-bold text-balance">6. Governing Law</h2>
           <p>
             These Terms shall be governed by and construed in accordance with
             the laws of the State of Delaware, without giving effect to any
             choice or conflict of law provision or rule.
           </p>
 
-          <h2 className="mt-8 text-2xl font-bold">7. Changes to Terms</h2>
+          <h2 className="mt-8 text-2xl font-bold text-balance">7. Changes to Terms</h2>
           <p>
             We reserve the right, at our sole discretion, to modify or replace
             these Terms at any time. If a revision is material, we will provide
-            at least 30 days' notice prior to any new terms taking effect. What
+            at least 30 days&apos; notice prior to any new terms taking effect. What
             constitutes a material change will be determined at our sole
             discretion.
           </p>
 
-          <h2 className="mt-8 text-2xl font-bold">8. Contact Us</h2>
+          <h2 className="mt-8 text-2xl font-bold text-balance">8. Contact Us</h2>
           <p>
             If you have any questions about these Terms, please{" "}
             <Link href="/contact" className="text-primary hover:underline">

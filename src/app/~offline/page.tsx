@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 export default function OfflinePage() {
   return (
     <div className="flex min-h-[50vh] flex-col items-center justify-center p-4 text-center">
-      <h1 className="mb-2 text-2xl font-bold">You are offline</h1>
+      <h1 className="mb-2 text-2xl font-bold text-balance">You are offline</h1>
       <p className="text-muted-foreground">
         It looks like you have lost your internet connection.
       </p>
