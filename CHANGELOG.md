@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optimized `ProblemList` rendering using derived state to prevent unnecessary re-renders (e851300).
 - Enlarged small buttons on mobile to ensure minimum touch targets (6fff58f).
 - Explicitly typed Firestore query constraints as `QueryConstraint[]` (2eccbd8).
+- Removed unused `problemCount` prop from `ProblemList` to prevent unnecessary re-renders (3f720a9).
 
 ### Fixed
 - Reduced toast notification removal delay from 16m to 5s to prevent memory leaks (3b66c44).
@@ -74,7 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - Fixed JSON-LD XSS vulnerability by introducing `safeJsonLd` helper (0fca276).
 
-## [0.1.0] - 2025-12-24
+## [0.1.0] - 2024-12-24
 ### Added
 - `src/components/icons/google-icon.tsx` to replace `FcGoogle`.
 
