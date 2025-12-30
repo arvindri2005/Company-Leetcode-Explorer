@@ -44,6 +44,14 @@ jobs:
         # Ensures UI components and their dependencies are buildable in isolation.
         run: pnpm build-storybook
 
+      - name: Build App
+        # Pilot: "If it doesn't build in CI, it won't build in production."
+        # This catches errors that 'tsc' misses (e.g. Edge Runtime compliance, invalid static params).
+        # We generate a dummy .env.local because 'next build' validates env vars.
+        run: |
+          node scripts/generate-ci-env.mjs
+          pnpm build
+
       - name: Run Tests
         # We only run unit tests here.
         # NOTE: Integration tests that require real Firebase connection are skipped or mocked.
