@@ -64,7 +64,9 @@ export async function GET(request: Request) {
     const companyId = searchParams.get("companyId") || undefined;
     const cursor = searchParams.get("cursor") || undefined;
     const pageSize = parseInt(searchParams.get("pageSize") || "15");
-    const userId = searchParams.get("userId") || undefined;
+    // SENTINEL: Prevent IDOR by ignoring client-provided userId in public API.
+    // User data should only be fetched via authenticated endpoints or derived from session tokens.
+    const userId = undefined; 
     const companySlug = searchParams.get("companySlug") || undefined;
     const totalProblemCount = searchParams.get("totalProblemCount") ? parseInt(searchParams.get("totalProblemCount")!) : undefined;
     
