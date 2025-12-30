@@ -3,23 +3,17 @@
 ## Critical Discoveries
 
 ### Unique UI Patterns
-- **Hybrid Interaction Pattern in `ProblemCard`**: Uses an outer `div` with `onClick` for mouse users (convenience) but delegates keyboard focus/action to specific internal buttons (like the expand chevron). This prevents invalid HTML (nested interactive elements) but requires careful testing to ensure keyboard users have equivalent access to all functionality.
+- **Full-Card Clickability via CSS Overlay**: `CompanyCard` and `TechCompanyCard` use a `Link` with `after:absolute after:inset-0 after:z-10` to make the entire card clickable. This is a valid accessible pattern as long as the card contains no other interactive elements. It avoids invalid HTML nesting (`<a>` inside `<a>` or `<button>`).
+  - *Verification*: The focus ring correctly highlights the "View Problems" button (or "View" link), which is the semantic anchor.
 
-### Keyboard Traps
-- **Company Search Bar Suggestions**: The autocomplete dropdown in `CompanySearchBar` (`src/components/company/company-search-bar.tsx`) displays suggestions but does not allow keyboard users to navigate them with Arrow keys. They can only continue typing or press Enter to submit the search term, effectively making the suggestions inaccessible to keyboard-only users.
-### Hybrid Interaction Pattern in Cards
-Complex interactive cards (e.g., `ProblemCard`) use a hybrid interaction pattern:
-- The outer container (`div`) handles `onClick` for mouse users but lacks a button role to avoid invalid nesting of interactive elements.
-- Keyboard accessibility and focus management are delegated to specific child buttons (e.g., an expand chevron).
-- **Lesson:** This avoids "nested interactive controls" (invalid HTML) but requires ensuring all mouse-available actions are also available via keyboard-focusable children.
+### Components that are "Keyboard Traps" or Barriers
+- **ToastClose Missing Label**: The `ToastClose` component in `src/components/ui/toast.tsx` used an icon-only button without screen-reader text. This makes it impossible for blind users to know what the button does.
+  - *Fix*: Added `<span className="sr-only">Close</span>`.
 
-### Button Loading State
-The `Button` component suppresses children content when `isLoading` is true and `size="icon"`.
-- **Issue:** If the button relies on the icon for meaning and lacks an `aria-label`, it becomes nameless during loading.
-- **Fix:** Added `aria-busy="true"` and a fallback screen-reader-only "Loading" text if `aria-label` is missing.
-- **Lesson:** Always ensure accessible names persist during state changes.
+### Potential Improvements (Backlog)
+- **Filter Groups**: `ProblemListControls` uses a list of `Chip` buttons. These should be wrapped in a container with `role="group"` and `aria-label` to provide context (e.g., "Filter by difficulty").
+- **AutoFocus**: The `LoginForm` and `SignupForm` use `autoFocus` on the first input. While convenient for sighted users, this can be disorienting for screen reader users who might miss the page context (Header, Title) as focus jumps immediately to the input.
+- **Search Roles**: `CompanySearchBar` uses `role="combobox"` but could be further enhanced with better `aria-activedescendant` management for the dropdown options.
 
-### Typing Test Accessibility
-The typing test (`TypingArea`) uses a transparent textarea over a visual code display.
-- **Issue:** The textarea lacks a label, and the visual code is `aria-hidden` (or not associated). Screen reader users might hear what they type but not what they *should* type.
-- **Future Opportunity:** Associate the code display with the textarea using `aria-describedby` or providing a hidden instruction block.
+## Lessons Learned
+- **CSS-only Overlays**: Using CSS pseudo-elements to expand click targets is a robust way to handle "clickable cards" without breaking semantic HTML rules.
