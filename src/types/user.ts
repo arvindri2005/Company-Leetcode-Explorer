@@ -91,7 +91,11 @@ export const WorkExperienceSchema = z.object({
       /^(\d{4}|(0[1-9]|1[0-2])\/\d{4})$/,
       "Start date must be in YYYY or MM/YYYY format."
     ),
-  endDate: z.string().optional().or(z.literal("")), // Optional, string for flexibility (e.g., "Present", YYYY, MM/YYYY)
+  endDate: z.union([
+    z.literal(""),
+    z.literal("Present"),
+    z.string().regex(/^(\d{4}|(0[1-9]|1[0-2])\/\d{4})$/, "End date must be 'Present', YYYY, or MM/YYYY.")
+  ]).optional(),
   responsibilities: z
     .string()
     .min(10, "Please describe some responsibilities.")
