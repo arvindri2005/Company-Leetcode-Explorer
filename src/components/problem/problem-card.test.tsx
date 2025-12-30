@@ -85,4 +85,12 @@ describe("ProblemCard", () => {
     render(<ProblemCard problem={mockProblem} companySlug="google" showCompanies={true} />);
     expect(screen.getByText("google")).toBeInTheDocument();
   });
+
+  it("has accessible label for Write Code button", () => {
+    render(<ProblemCard problem={mockProblem} companySlug="google" />);
+    // Expand the card first to see the button
+    fireEvent.click(screen.getByText("Two Sum"));
+    const linkButton = screen.getByRole("button", { name: /Solve on LeetCode/i });
+    expect(linkButton).toBeInTheDocument();
+  });
 });
