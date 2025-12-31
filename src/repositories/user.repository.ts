@@ -125,25 +125,26 @@ export class UserRepository {
   ): Promise<Record<string, UserProblemStatusInfo>> {
     if (!userId || !problemIds || problemIds.length === 0) return {};
     const statuses: Record<string, UserProblemStatusInfo> = {};
-    
+
     try {
       const progressColRef = collection(db, "users", userId, "problemProgress");
       const querySnapshots = await this.fetchDocsByIds(progressColRef, problemIds);
 
-      querySnapshots.forEach(querySnapshot => {
-          querySnapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            if (data.status) {
-              statuses[docSnap.id] = {
-                problemId: docSnap.id,
-                status: data.status as ProblemStatus,
-                companySlug: data.companySlug,
-                problemSlug: data.problemSlug,
-                updatedAt: data.updatedAt?.toDate(),
-              };
-            }
-          });
-      });
+      // Flatten snapshots to reduce nesting and simplify iteration
+      const allDocs = querySnapshots.flatMap((qs) => qs.docs);
+
+      for (const docSnap of allDocs) {
+        const data = docSnap.data();
+        if (!data.status) continue;
+
+        statuses[docSnap.id] = {
+          problemId: docSnap.id,
+          status: data.status as ProblemStatus,
+          companySlug: data.companySlug,
+          problemSlug: data.problemSlug,
+          updatedAt: data.updatedAt?.toDate(),
+        };
+      }
 
       return statuses;
     } catch (error) {
@@ -167,14 +168,15 @@ export class UserRepository {
         userId,
         "bookmarkedProblems",
       );
-      
+
       const querySnapshots = await this.fetchDocsByIds(bookmarksColRef, problemIds);
 
-      querySnapshots.forEach(snap => {
-          snap.forEach((docSnap) => {
-            bookmarkedIds.add(docSnap.id);
-          });
-      });
+      // Flatten snapshots to reduce nesting
+      const allDocs = querySnapshots.flatMap((qs) => qs.docs);
+
+      for (const docSnap of allDocs) {
+        bookmarkedIds.add(docSnap.id);
+      }
 
       return bookmarkedIds;
     } catch (error) {
