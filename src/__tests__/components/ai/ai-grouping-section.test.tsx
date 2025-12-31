@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import AIGroupingSection from '@/components/ai/ai-grouping-section';
 import { LeetCodeProblem } from '@/types';
 
@@ -64,6 +64,7 @@ jest.mock('@/hooks/use-ai-cooldown', () => ({
     startCooldown: jest.fn(),
     formattedRemainingTime: '0s',
     isLoadingCooldown: false,
+    getFormattedRemainingTime: () => '0s',
   }),
 }));
 
@@ -74,6 +75,9 @@ jest.mock('@/hooks/use-toast', () => ({
 jest.mock('next/navigation', () => ({
   usePathname: () => '/test-path',
 }));
+
+// Mock global fetch
+global.fetch = jest.fn();
 
 describe('AIGroupingSection', () => {
   const mockProblems: LeetCodeProblem[] = [
@@ -86,19 +90,59 @@ describe('AIGroupingSection', () => {
       companyId: '1',
       companySlug: 'test-company',
       normalizedTitle: 'problem 1',
-
       tags: [],
     },
   ];
 
   const defaultProps = {
-    problems: mockProblems,
+    companyId: '1',
     companyName: 'Test Company',
     companySlug: 'test-company',
   };
 
-  it('should render initial state', () => {
+  beforeEach(() => {
+    (global.fetch as jest.Mock).mockClear();
+  });
+
+  it('should render initial state after fetching problems', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockProblems,
+    });
+
     render(<AIGroupingSection {...defaultProps} />);
-    expect(screen.getByText(/AI-Powered Question Grouping/i)).toBeInTheDocument();
+
+    // Initially it shows loading
+    expect(screen.getByText(/Loading problems.../i)).toBeInTheDocument();
+
+    // Wait for content to appear
+    await waitFor(() => {
+        expect(screen.getByText(/AI-Powered Question Grouping/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should render nothing if fetch fails', async () => {
+      (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Failed'));
+
+      render(<AIGroupingSection {...defaultProps} />);
+      
+      await waitFor(() => {
+          expect(screen.queryByText(/AI-Powered Question Grouping/i)).not.toBeInTheDocument();
+          expect(screen.queryByText(/Loading problems.../i)).not.toBeInTheDocument();
+      });
+  });
+
+  it('should render nothing if no problems returned', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          json: async () => [],
+      });
+
+      render(<AIGroupingSection {...defaultProps} />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText(/AI-Powered Question Grouping/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/Loading problems.../i)).not.toBeInTheDocument();
+      });
   });
 });

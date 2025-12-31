@@ -66,10 +66,6 @@ describe('CompanyTabs', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => [],
-    });
   });
 
   it('should render all tabs triggers', async () => {
@@ -80,12 +76,6 @@ describe('CompanyTabs', () => {
     expect(screen.getByText('AI Groups')).toBeInTheDocument();
     expect(screen.getByText('Flashcards')).toBeInTheDocument();
     expect(screen.getByText('Strategy')).toBeInTheDocument();
-    
-    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
-    // Flush any pending state updates from the useEffect
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
   });
 
   it('should render all content components (mocked tabs show all)', async () => {
@@ -100,23 +90,7 @@ describe('CompanyTabs', () => {
     expect(await screen.findByTestId('ai-grouping-section')).toBeInTheDocument();
     expect(await screen.findByTestId('flashcard-generator')).toBeInTheDocument();
     expect(await screen.findByTestId('company-strategy-generator')).toBeInTheDocument();
-
-    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
-    // Flush any pending state updates from the useEffect
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
   });
 
-  it('should fetch AI problems on mount', async () => {
-    render(<CompanyTabs {...defaultProps} />);
 
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(`/api/companies/${mockCompany.id}/ai-problems`);
-    });
-    // Flush any pending state updates from the useEffect
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-  });
 });

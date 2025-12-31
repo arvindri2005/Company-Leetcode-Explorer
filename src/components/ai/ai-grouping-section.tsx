@@ -10,7 +10,7 @@
 
 import type { LeetCodeProblem, AIProblemInput, ProblemSummaryDTO } from "@/types";
 import type { GroupQuestionsOutput } from "@/ai/flows/group-questions";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { performQuestionGrouping } from "@/app/actions/ai.actions";
 import { useToast } from "@/hooks/use-toast";
@@ -40,8 +40,8 @@ import { slugify } from "@/lib/utils";
  * Props for the AIGroupingSection component.
  */
 interface AIGroupingSectionProps {
-  /** The list of problems to be potentially grouped. */
-  problems: LeetCodeProblem[] | ProblemSummaryDTO[];
+  /** The unique identifier of the company. */
+  companyId: string;
   /** The name of the company the problems belong to. */
   companyName: string;
   /** The slug of the company, used for generating links. */
@@ -53,16 +53,17 @@ interface AIGroupingSectionProps {
  *
  * This component manages the entire lifecycle of the AI grouping feature:
  * - Checks if the user is logged in and prompts them to log in if not.
+ * - Fetches the problems for the company lazily when mounted.
  * - Manages a cooldown period for the AI feature to prevent abuse.
  * - Displays loading indicators while the AI is processing.
  * - Shows success or error notifications (toasts) based on the outcome.
  * - Renders the AI-generated groups in an interactive accordion if the operation is successful.
  *
  * @param {AIGroupingSectionProps} props - The props for the component.
- * @returns {JSX.Element | null} The rendered component, or `null` if there are no problems to group.
+ * @returns {JSX.Element | null} The rendered component.
  */
 const AIGroupingSection: React.FC<AIGroupingSectionProps> = ({
-  problems,
+  companyId,
   companyName,
   companySlug,
 }) => {
@@ -73,8 +74,33 @@ const AIGroupingSection: React.FC<AIGroupingSectionProps> = ({
   const [groupedData, setGroupedData] = useState<GroupQuestionsOutput | null>(
     null,
   );
-  const [isAILoading, setIsAILoading] = useState(false); // Renamed isLoading to isAILoading
+  const [isAILoading, setIsAILoading] = useState(false);
   const { toast } = useToast();
+  
+  // Local state for fetched problems
+  const [problems, setProblems] = useState<LeetCodeProblem[] | ProblemSummaryDTO[]>([]);
+  const [isFetchingProblems, setIsFetchingProblems] = useState(false);
+  const [hasFetchError, setHasFetchError] = useState(false);
+
+  useEffect(() => {
+    async function fetchAIProblems() {
+      if (!companyId) return;
+
+      setIsFetchingProblems(true);
+      try {
+        const response = await fetch(`/api/companies/${companyId}/ai-problems`);
+        if (!response.ok) throw new Error("Failed to fetch AI problems");
+        const data = await response.json();
+        setProblems(data);
+      } catch (error) {
+        console.error("Failed to fetch problems for AI features:", error);
+        setHasFetchError(true);
+      } finally {
+        setIsFetchingProblems(false);
+      }
+    }
+    fetchAIProblems();
+  }, [companyId]);
 
   const handleGroupQuestions = async () => {
     if (!user) {
@@ -92,6 +118,15 @@ const AIGroupingSection: React.FC<AIGroupingSectionProps> = ({
         variant: "default",
       });
       return;
+    }
+
+    if (problems.length === 0) {
+        toast({
+            title: "No Problems Found",
+            description: "There are no problems to group for this company.",
+            variant: "destructive",
+        });
+        return;
     }
 
     setIsAILoading(true);
@@ -128,8 +163,21 @@ const AIGroupingSection: React.FC<AIGroupingSectionProps> = ({
     }
   };
 
+  if (isFetchingProblems) {
+    return (
+        <div className="flex justify-center items-center h-48">
+            <Loader2 className="mr-2 h-6 w-6 animate-spin text-primary" />
+            <span className="text-muted-foreground">Loading problems...</span>
+        </div>
+    );
+  }
+
+  if (hasFetchError) {
+      return null; // Or a retry button/message
+  }
+
   if (problems.length === 0) {
-    return null;
+    return null; // Don't render if no problems
   }
 
   const isButtonDisabled =
