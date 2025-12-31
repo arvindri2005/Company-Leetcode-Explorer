@@ -7,17 +7,18 @@
  */
 import { genkit } from "genkit";
 import { googleAI } from "@genkit-ai/googleai";
+import { AI_MODELS } from "./model-registry";
 
 /**
  * The configured Genkit AI instance.
  *
  * This instance is initialized with the Google AI plugin and defaults to using
- * the 'gemini-2.0-flash' model for all AI-powered operations. It serves as the
+ * the configured standard model for all AI-powered operations. It serves as the
  * central point for interacting with the Genkit framework.
  *
  * @type {import('genkit').Genkit}
  */
 export const ai = genkit({
   plugins: [googleAI()],
-  model: "googleai/gemini-flash-lite-latest",
+  model: AI_MODELS.STANDARD,
 });

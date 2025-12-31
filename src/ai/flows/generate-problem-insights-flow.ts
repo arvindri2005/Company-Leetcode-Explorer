@@ -12,6 +12,7 @@
  */
 
 import { ai } from "@/ai/genkit";
+import { getModelForIntent } from "@/ai/model-registry";
 import { z } from "genkit";
 
 const GenerateProblemInsightsInputSchema = z.object({
@@ -80,6 +81,7 @@ const prompt = ai.definePrompt({
   name: "generateProblemInsightsPrompt",
   input: { schema: GenerateProblemInsightsInputSchema },
   output: { schema: GenerateProblemInsightsOutputSchema },
+  model: getModelForIntent("reasoning"), // Use reasoning model for deep insights
   config: {
     temperature: 0.4, // Balanced for creativity in hints but deterministic structure
     maxOutputTokens: 1000, // Cost guardrail
