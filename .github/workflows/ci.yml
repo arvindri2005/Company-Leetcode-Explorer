@@ -40,6 +40,15 @@ jobs:
         run: pnpm typecheck
         continue-on-error: true
 
+      - name: Generate CI Environment
+        # Generates a dummy .env.local so Next.js build can pass env validation
+        run: node scripts/generate-ci-env.mjs
+
+      - name: Build App
+        # Verifies the full Next.js build (including edge runtime, static params, etc.)
+        # This catches errors that lint/test might miss.
+        run: pnpm build
+
       - name: Build Storybook
         # Ensures UI components and their dependencies are buildable in isolation.
         run: pnpm build-storybook
