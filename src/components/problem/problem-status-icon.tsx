@@ -46,7 +46,7 @@ const ProblemStatusIconComponent: React.FC<{ status: ProblemStatus }> = ({
         <TooltipTrigger asChild>
           <div
             className={cn(
-              "flex items-center justify-center w-8 h-8 rounded-full",
+              "flex items-center justify-center w-8 h-8 rounded-full relative after:absolute after:-inset-2 after:content-['']",
               bgColor,
             )}
           >

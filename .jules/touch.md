@@ -21,3 +21,14 @@ Found that Checkbox and RadioGroupItem were native 16px (`h-4 w-4`) elements, ma
 
 **Touch Rule:**
 For elements that *must* be small visually (like checkboxes), use pseudo-elements to expand the interactive hit area to at least 44px.
+
+## 2024-05-24 - [Micro-Target Expansion] **Friction:** [32px Status Icons] **Smoothness:** [Pseudo-element Hit Areas]
+
+Found that `ProblemStatusIcon` used a 32px (`w-8 h-8`) container, which is below the 44px minimum touch target, making it difficult to tap on mobile to reveal the tooltip status label.
+
+**Smoothness Applied:**
+- Added `relative` and `after:absolute after:-inset-2 after:content-['']` to the icon container.
+- This adds 16px to the width/height (8px per side), creating a 48x48px interactive touch target centered on the 32px visual element.
+
+**Touch Rule:**
+Small visual indicators that reveal information on tap (like status icons with tooltips) must use pseudo-elements to meet the 44px touch target minimum.
