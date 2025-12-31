@@ -1,5 +1,7 @@
 import { User } from "firebase/auth";
 import { Auth } from "firebase/auth";
+import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import type { ToastFunction } from "@/hooks/use-toast";
 
 export type NavigationPosition = "main" | "auth" | "mobile-bottom";
 
@@ -9,8 +11,8 @@ export interface NavigationContext {
 }
 
 export interface NavigationActionContext {
-  router: any; // NextRouter type is hard to import in lib, so generic for now
-  toast: any;
+  router: AppRouterInstance;
+  toast: ToastFunction;
   auth: Auth;
 }
 

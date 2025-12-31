@@ -181,7 +181,7 @@ function toastMain({ ...props }: Toast) {
   };
 }
 
-type ToastFunction = typeof toastMain & {
+export type ToastFunction = typeof toastMain & {
   success: (title: string, description?: React.ReactNode) => ReturnType<typeof toastMain>;
   error: (title: string, description?: React.ReactNode) => ReturnType<typeof toastMain>;
   warning: (title: string, description?: React.ReactNode) => ReturnType<typeof toastMain>;
