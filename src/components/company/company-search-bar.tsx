@@ -109,10 +109,10 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
 
   return (
     <section
-      className="relative w-full max-w-[800px] mx-auto"
+      className="relative w-full max-w-4xl mx-auto"
       aria-label="Company Search"
     >
-      <div className="max-w-[800px] mx-auto text-center">
+      <div className="max-w-4xl mx-auto text-center">
         <form
           className="relative mt-8"
           role="search"
