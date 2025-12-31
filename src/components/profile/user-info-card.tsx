@@ -124,7 +124,6 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                                   {...field}
                                   placeholder="Enter display name"
                                   className="text-lg font-medium h-10"
-                                  autoFocus
                                   autoComplete="name"
                                   maxLength={50}
                                   enterKeyHint="done"

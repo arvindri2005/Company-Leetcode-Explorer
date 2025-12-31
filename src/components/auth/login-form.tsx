@@ -146,7 +146,6 @@ export default function LoginForm() {
                       type="email"
                       placeholder="you@example.com"
                       {...field}
-                      autoFocus
                       autoComplete="email"
                       inputMode="email"
                       className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
