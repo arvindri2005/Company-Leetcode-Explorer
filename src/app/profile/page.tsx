@@ -23,7 +23,7 @@ import ProgressStats from "@/components/profile/progress-stats";
 import ProfileProblemList from "@/components/profile/profile-problem-list";
 import StrategyListsSection from "@/components/profile/strategy-lists-section";
 
-import { Skeleton } from "@/components/ui/skeleton";
+import { ProfilePageSkeleton } from "@/components/skeletons/profile-skeletons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Bookmark,
@@ -532,7 +532,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (authLoading) return <Skeleton className="h-screen w-full" />;
+  if (authLoading) return <ProfilePageSkeleton />;
   if (!user) {
     router.push("/login");
     return null;

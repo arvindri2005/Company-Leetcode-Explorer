@@ -5,7 +5,7 @@ import { env } from "@/env";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import ProblemListContainer from "./problem-list-container";
 import ProblemListErrorFallback from "@/components/problem/problem-list-error-fallback";
-import { Skeleton } from "@/components/ui/skeleton";
+import { ProblemsPageSkeleton } from "@/components/skeletons/problem-skeletons";
 import StructuredData from "@/components/seo/structured-data";
 
 const APP_URL = env.NEXT_PUBLIC_APP_URL;
@@ -59,14 +59,7 @@ export default function AllProblemsPage() {
         {/* Main Content */}
         <div className="lg:col-span-3">
           <ErrorBoundary fallback={<ProblemListErrorFallback />}>
-            <Suspense fallback={<div className="space-y-4">
-              <Skeleton className="h-10 w-full" />
-              <div className="space-y-4">
-                {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className="h-24 w-full" />
-                ))}
-              </div>
-            </div>}>
+            <Suspense fallback={<ProblemsPageSkeleton />}>
               <ProblemListContainer />
             </Suspense>
           </ErrorBoundary>

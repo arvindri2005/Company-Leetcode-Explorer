@@ -25,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import React, { useState, useCallback, useMemo } from "react";
 import { navigationRegistry, NavigationItem } from "@/lib/navigation-registry";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * Renders the main application header and navigation bar.
@@ -107,7 +108,11 @@ const Header = React.memo(function Header() {
     () =>
       function AuthLinks(isMobile = false) {
         if (authLoading) {
-          return <span className="text-gray-200">Loading...</span>;
+          return (
+            <div className={`flex items-center gap-4 ${isMobile ? "flex-col items-start w-full" : ""}`}>
+              <Skeleton className="h-9 w-20 bg-white/10" />
+            </div>
+          );
         }
 
         const items = navigationRegistry.getItems('auth', { user, isLoading: authLoading });
