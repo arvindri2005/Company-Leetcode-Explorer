@@ -3,6 +3,7 @@ import { toggleBookmarkProblemAction, setProblemStatusAction, getUserProblemStat
 import { userService } from "@/services/user.service";
 import { revalidateTag } from "next/cache";
 import { handleServerActionError } from "@/lib/error-handler";
+import { simpleFaker } from "@/__tests__/factories/data-factories";
 
 // Mock dependencies
 jest.mock("@/services/user.service");
@@ -17,10 +18,10 @@ jest.mock("@/lib/firebase", () => ({
 }));
 
 describe("User Actions", () => {
-  const mockUserId = "user-123";
-  const mockProblemId = "problem-123";
-  const mockCompanySlug = "google";
-  const mockProblemSlug = "two-sum";
+  const mockUserId = simpleFaker.string.uuid();
+  const mockProblemId = simpleFaker.string.uuid();
+  const mockCompanySlug = simpleFaker.helpers.slugify(simpleFaker.company.name());
+  const mockProblemSlug = simpleFaker.helpers.slugify(simpleFaker.word.noun() + "-" + simpleFaker.word.noun());
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -151,11 +152,11 @@ describe("User Actions", () => {
   describe("getUserProblemStatusesForIdsAction", () => {
     it("should fetch statuses and bookmarks for given ids", async () => {
       // Arrange
-      const problemIds = ["p1", "p2"];
-      const mockBookmarks = new Set(["p1"]);
+      const problemIds = [simpleFaker.string.uuid(), simpleFaker.string.uuid()];
+      const mockBookmarks = new Set([problemIds[0]]);
       const mockStatuses = {
-        p1: { status: "solved" },
-        p2: { status: "todo" },
+        [problemIds[0]]: { status: "solved" },
+        [problemIds[1]]: { status: "todo" },
       };
 
       (userService.getBookmarksForIds as jest.Mock).mockResolvedValue(mockBookmarks);
@@ -166,8 +167,8 @@ describe("User Actions", () => {
 
       // Assert
       expect(result).toEqual({
-        p1: { isBookmarked: true, status: "solved" },
-        p2: { isBookmarked: false, status: "todo" },
+        [problemIds[0]]: { isBookmarked: true, status: "solved" },
+        [problemIds[1]]: { isBookmarked: false, status: "todo" },
       });
     });
   });
