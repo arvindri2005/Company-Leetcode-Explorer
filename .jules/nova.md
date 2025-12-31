@@ -1,40 +1,23 @@
-# Nova's Journal: Problem Insights Hardening
+# Nova Journal
 
-## 🌟 Nova: Hardened Problem Insights Generation
+## 🌟 Nova: Smart Truncation & Schema Hardening for Problem Insights
 
 ### 💡 What
-I improved the `generateProblemInsightsFlow` by applying "Nova" protocols:
-1.  **Cost Guardrails:** Implemented a hard limit of **2000 characters** for the `problemDescription` input. Longer descriptions are now truncated before being sent to the model.
-2.  **Defensive Prompting:** Added a `<system_protocol>` block to the prompt, explicitly defining the "Nova" persona (Expert Coding Coach) and setting strict boundaries (e.g., "No Solution Code").
-3.  **Few-Shot Learning:** Included a `<few_shot_example>` demonstrating the desired output format and quality (conceptual hints vs. direct answers) using a standard "Two Sum" example.
+Implemented a dual-layer hardening strategy for the `generateProblemInsights` AI flow:
+1.  **Smart Input Truncation**: Instead of hard-chopping the `problemDescription` at 2000 characters, the logic now seeks the last sentence boundary (period, question mark, exclamation point, or newline) within the limit. This prevents sending broken partial sentences to the model, reducing noise.
+2.  **Strict Schema Validation**: Updated the Zod output schema to enforce specific character limits on array items (`keyConcepts` < 80 chars, `commonDataStructures` < 50 chars) and the hint (`highLevelHint` < 300 chars).
 
 ### 🎯 Why
--   **Cost:** Prevents massive token usage if a user (or bot) submits an extremely long problem description or copy-pastes an entire chapter of a book.
--   **Reliability:** The system protocol ensures the model stays in character and resists attempts to "jailbreak" or extract full solution code.
--   **Quality:** The few-shot example grounds the model, ensuring it provides high-level conceptual hints rather than generic advice or giving away the answer.
+*   **Reliability**: Prevents the model from hallucinating based on incomplete sentence fragments at the end of the context window.
+*   **Quality**: Forces the model (via schema constraints) to be concise, aligning with the "high-level hint" goal rather than generating verbose explanations that might leak the solution.
+*   **Cost**: Maintains the 2000-character cost guardrail while improving the semantic value of the tokens sent.
 
 ### 🧠 Intelligence
--   **Lowered Token Cost:** Input truncation guarantees a maximum token consumption per request, regardless of input size.
--   **Reduced Hallucination Rate:** By providing a concrete example and strict protocol, the model is less likely to deviate from the expected output structure.
+*   **Reduced Noise**: By ensuring the context ends on a complete thought, we reduce the "garbage in, garbage out" risk.
+*   **Enforced Conciseness**: The model is now programmatically bound to provide short, punchy concepts, improving the UX for users who just want a quick hint.
 
 ### 🔬 Verification
-
-**Input (Simulated Long Description):**
-```json
-{
-  "title": "Massive Problem",
-  "difficulty": "Hard",
-  "tags": ["DP"],
-  "problemDescription": "A... [5000 chars] ...Z"
-}
-```
-
-**Old Behavior:**
--   Sent all 5000+ characters to the model.
--   Risked hitting token limits or incurring high costs.
--   Prompt lacked explicit examples, leading to variable output quality.
-
-**New Behavior:**
--   Truncates description to 2000 chars + "...(truncated)".
--   Prompt includes "System Protocol" and "Few-Shot Example".
--   Output remains focused on concepts and hints.
+*   **Input**: A 2500-char description ending in "...and then you must calculate the" (at char 2000).
+*   **Old Behavior**: Sent "...and then you must calculate the...(truncated)" to the model.
+*   **New Behavior**: Detects the last period at char 1950 and sends "...(previous sentence). ...(truncated)", ensuring clean context.
+*   **Tests**: Verified via `src/ai/flows/__tests__/generate-problem-insights-flow.test.ts`.
