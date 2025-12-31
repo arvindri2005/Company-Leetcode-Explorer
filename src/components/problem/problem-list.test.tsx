@@ -1,10 +1,10 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import ProblemList from "./problem-list";
 import { LeetCodeProblem } from "@/types";
+import { userService } from "@/services/user.service";
 
 // Mock Next.js hooks
 const mockPush = jest.fn();
-// Mock default search params
 const mockSearchParams = new URLSearchParams();
 
 jest.mock("next/navigation", () => ({
@@ -13,13 +13,11 @@ jest.mock("next/navigation", () => ({
   usePathname: () => "/company/google",
 }));
 
-// Mock server actions
-jest.mock("@/app/actions/user.actions", () => ({
-  getUserGlobalProblemStatsAction: jest.fn().mockResolvedValue({
-      solvedProblemIds: [],
-      attemptedProblemIds: [],
-      bookmarkedProblemIds: []
-  }),
+// Mock userService
+jest.mock("@/services/user.service", () => ({
+  userService: {
+    getUserGlobalProblemStats: jest.fn(),
+  },
 }));
 
 jest.mock("@/app/actions/problem.actions", () => ({
@@ -46,8 +44,14 @@ global.IntersectionObserver = jest.fn().mockImplementation(() => ({
 // Mock ProblemCard
 jest.mock("./problem-card", () => ({
   __esModule: true,
-  default: ({ problem }: { problem: LeetCodeProblem }) => (
-    <div data-testid="problem-card">{problem.title}</div>
+  default: ({ problem, problemStatus, initialIsBookmarked }: any) => (
+    <div
+        data-testid="problem-card"
+        data-status={problemStatus || "none"}
+        data-bookmarked={initialIsBookmarked ? "true" : "false"}
+    >
+        {problem.title}
+    </div>
   ),
 }));
 
@@ -70,9 +74,22 @@ const mockProblems: LeetCodeProblem[] = [
 describe("ProblemList", () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        // Default mock implementation
+        (userService.getUserGlobalProblemStats as jest.Mock).mockResolvedValue({
+            solvedProblemIds: [],
+            attemptedProblemIds: [],
+            bookmarkedProblemIds: []
+        });
     });
 
-  it("renders the list of problems", () => {
+  it("renders the list of problems and syncs status", async () => {
+    // Setup specific mock for this test to verify state sync
+    (userService.getUserGlobalProblemStats as jest.Mock).mockResolvedValue({
+        solvedProblemIds: ["1"], // "Two Sum" is solved
+        attemptedProblemIds: [],
+        bookmarkedProblemIds: []
+    });
+
     render(
       <ProblemList
         companyId="1"
@@ -92,10 +109,21 @@ describe("ProblemList", () => {
         currentPage={1}
       />
     );
+
+    // Initial render verification
     expect(screen.getByText("Two Sum")).toBeInTheDocument();
+
+    // Wait for async status sync (Integration Check)
+    await waitFor(() => {
+        const card = screen.getByTestId("problem-card");
+        expect(card).toHaveAttribute("data-status", "solved");
+    });
   });
 
-  it("shows no problems message when empty", () => {
+  it("shows no problems message when empty", async () => {
+    // Prevent state updates by returning a pending promise
+    (userService.getUserGlobalProblemStats as jest.Mock).mockReturnValue(new Promise(() => {}));
+
     render(
         <ProblemList
           companyId="1"
@@ -115,6 +143,10 @@ describe("ProblemList", () => {
           currentPage={1}
         />
       );
+
       expect(screen.getByText(/No problems match/)).toBeInTheDocument();
+
+      // Verify service was called (triggers the pending promise)
+      expect(userService.getUserGlobalProblemStats).toHaveBeenCalled();
   });
 });
