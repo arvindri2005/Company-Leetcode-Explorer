@@ -32,11 +32,11 @@ export default function HeroSection() {
   return (
     <section
       id="home"
-      className="min-h-screen flex items-center justify-center text-center relative px-8"
+      className="min-h-screen flex items-center justify-center text-center relative px-4 md:px-8"
     >
       <FloatingShapes />
       <div className="max-w-4xl z-[2]">
-        <h1 className="text-6xl mb-4 pb-4 bg-gradient-to-r from-brand-teal to-brand-purple bg-clip-text text-transparent animate-fadeInUp text-balance">
+        <h1 className="text-4xl md:text-6xl mb-4 pb-4 bg-gradient-to-r from-brand-teal to-brand-purple bg-clip-text text-transparent animate-fadeInUp text-balance leading-tight">
           Master Your Coding Interviews
         </h1>
         <p className="text-2xl mb-8 text-gray-custom-400 animate-fadeInUp animation-delay-200 leading-relaxed max-w-2xl mx-auto">
