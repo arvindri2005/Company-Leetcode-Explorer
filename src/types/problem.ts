@@ -88,6 +88,7 @@ export const LeetCodeProblemSchema = z.object({
   slug: z.string(),
   lastAskedPeriod: LastAskedPeriodSchema.optional(),
   normalizedTitle: z.string(),
+  acceptanceRate: z.number().optional(),
   isBookmarked: z.boolean().optional(),
   currentStatus: ProblemStatusSchema.optional(),
 });
