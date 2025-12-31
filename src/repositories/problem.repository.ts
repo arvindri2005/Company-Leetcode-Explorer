@@ -30,6 +30,15 @@ import { slugify } from "@/lib/utils";
 import { Logger } from "@/lib/logger";
 import { companyRepository } from "./company.repository";
 import { userRepository } from "./user.repository";
+import { problemFilterRegistry } from "@/lib/problem-filters/registry";
+import {
+  DifficultyFilterImplementation,
+  LastAskedFilterImplementation,
+} from "@/lib/problem-filters/implementations";
+
+// Register Core Filters
+problemFilterRegistry.register(new DifficultyFilterImplementation());
+problemFilterRegistry.register(new LastAskedFilterImplementation());
 
 function getFirestore(): Firestore {
   if (!db) {
@@ -525,18 +534,23 @@ export class ProblemRepository {
         processedProblems.forEach((p) => (p.companySlug = slug));
       }
 
+      // Extensibility Point: Apply generic filters via Registry
+      // This replaces the hardcoded difficulty/lastAsked logic
+      const filtersToApply: Record<string, any> = {};
       if (residualDifficultyFilter.length > 0) {
-        processedProblems = processedProblems.filter((p) =>
-          residualDifficultyFilter.includes(p.difficulty),
-        );
+        filtersToApply["difficulty"] = residualDifficultyFilter;
       }
       if (residualLastAskedFilter.length > 0) {
-        processedProblems = processedProblems.filter(
-          (p) =>
-            p.lastAskedPeriod &&
-            residualLastAskedFilter.includes(p.lastAskedPeriod),
-        );
+        filtersToApply["lastAsked"] = residualLastAskedFilter;
       }
+
+      // Note: We can also pass other arbitrary filters here if 'params' was extended
+      processedProblems = problemFilterRegistry.filterInMemory(
+        processedProblems,
+        filtersToApply,
+        companyId,
+      );
+
       // Search is now handled by Firestore constraints (Starts With logic on Title).
       // This optimization prioritizes read efficiency over full-text/tag search capabilities.
 
