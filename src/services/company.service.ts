@@ -1,6 +1,7 @@
 import { companyRepository, GetCompaniesParams, PaginatedCompaniesResponse } from "@/repositories/company.repository";
 import { Company } from "@/types";
 import { unstable_cache, revalidateTag } from "next/cache";
+import { Logger } from "@/lib/logger";
 
 export class CompanyService {
   async getCompanies(params: GetCompaniesParams = {}): Promise<PaginatedCompaniesResponse> {
@@ -63,7 +64,7 @@ export class CompanyService {
     try {
       return await getCachedCompany();
     } catch (error) {
-      console.error(`Error fetching company by ID ${id}:`, error);
+      Logger.error(`Error fetching company by ID ${id}`, error);
       return undefined;
     }
   }
@@ -85,7 +86,7 @@ export class CompanyService {
     try {
       return await getCachedCompany();
     } catch (error) {
-      console.error(`Error fetching company by slug ${slug}:`, error);
+      Logger.error(`Error fetching company by slug ${slug}`, error);
       return undefined;
     }
   }
@@ -107,7 +108,7 @@ export class CompanyService {
     try {
         return await getCachedSlugs();
     } catch (error) {
-        console.error("Error fetching all company slugs:", error);
+        Logger.error("Error fetching all company slugs", error);
         return [];
     }
   }
@@ -156,9 +157,9 @@ export class CompanyService {
         revalidateTag(`company-slug-${companySlug}-v2`, 'max');
       }
       
-      console.log(`[Cache] Revalidated companies page. Id: ${companyId}, Slug: ${companySlug}`);
+      Logger.info("[Cache] Revalidated companies page", { companyId, companySlug });
     } catch (error) {
-      console.error("Failed to revalidate companies page:", error);
+      Logger.error("Failed to revalidate companies page", error);
     }
   }
 
