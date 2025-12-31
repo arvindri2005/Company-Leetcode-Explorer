@@ -12,6 +12,19 @@ jest.mock('@/lib/utils', () => ({
   getLogoUrl: jest.fn((logo) => logo ? `/images/${logo}` : null),
 }));
 
+// Mock Breadcrumb components
+jest.mock('@/components/ui/breadcrumb', () => ({
+  Breadcrumb: ({ children }: { children: React.ReactNode }) => <nav>{children}</nav>,
+  BreadcrumbList: ({ children }: { children: React.ReactNode }) => <ol>{children}</ol>,
+  BreadcrumbItem: ({ children }: { children: React.ReactNode }) => <li>{children}</li>,
+  BreadcrumbLink: ({ children, asChild, ...props }: any) => {
+    if (asChild) return <>{children}</>;
+    return <a {...props}>{children}</a>;
+  },
+  BreadcrumbPage: ({ children }: { children: React.ReactNode }) => <span aria-current="page">{children}</span>,
+  BreadcrumbSeparator: () => <span aria-hidden="true">/</span>,
+}));
+
 describe('CompanyHeader', () => {
   const mockCompany = {
     id: '1',
@@ -28,7 +41,7 @@ describe('CompanyHeader', () => {
   it('should render company name, logo, and description', () => {
     render(<CompanyHeader company={mockCompany} />);
 
-    expect(screen.getByText('Test Company')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Test Company' })).toBeInTheDocument();
     expect(screen.getByText('A test company description.')).toBeInTheDocument();
     expect(screen.getByAltText('Test Company Logo')).toBeInTheDocument();
   });
