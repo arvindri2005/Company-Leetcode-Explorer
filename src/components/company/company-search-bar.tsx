@@ -95,6 +95,13 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
     }
   };
 
+  const handleClear = () => {
+    setSearchTermInput("");
+    inputRef.current?.focus();
+    // Usually we want to keep suggestions closed or empty when cleared
+    setShowSuggestions(false);
+  };
+
   const companies = [
     "Google",
     "Amazon",
@@ -144,7 +151,7 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
             }
             ref={inputRef}
             data-testid="search-input"
-            className="w-full p-5 pr-17 text-lg border border-white/10 rounded-full bg-white/5 text-white backdrop-blur-lg transition-all duration-300 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/30 placeholder:text-white/50"
+            className="w-full p-5 pr-20 text-lg border border-white/10 rounded-full bg-white/5 text-white backdrop-blur-lg transition-all duration-300 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/30 placeholder:text-white/50"
             placeholder={`Search for ${placeholder}|`}
             value={searchTermInput}
             onChange={(e) => setSearchTermInput(e.target.value)}
@@ -154,6 +161,18 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
             }}
             aria-label="Search for companies"
           />
+
+          {searchTermInput.length > 0 && (
+             <button
+                type="button"
+                onClick={handleClear}
+                aria-label="Clear search"
+                className="absolute right-[60px] top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white transition-colors p-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+             >
+                <X className="h-5 w-5" />
+             </button>
+          )}
+
           <button
             type="submit"
             aria-label="Submit company search"
