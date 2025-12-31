@@ -7,6 +7,17 @@
  * and generating study materials. They are responsible for fetching necessary data,
  * formatting the input for the AI flows, calling the flows, and handling the results,
  * including error management and cache revalidation.
+ *
+ * SENTINEL SECURITY WARNING:
+ * These actions utilize the Genkit AI service which incurs cost (tokens/latency).
+ * As currently implemented, they are public server actions and do not strictly enforce
+ * authentication or rate limiting on the server side (relying on client-side access controls).
+ * This presents a potential Denial of Wallet / Resource Exhaustion risk.
+ * Future improvements should implement server-side rate limiting or strict auth checks.
+ *
+ * Defensive measures implemented:
+ * - Strict input length validation (e.g., MAX_PROBLEMS_FOR_GROUPING).
+ * - Cost guardrails in Genkit flows (maxOutputTokens).
  */
 "use server";
 
@@ -25,6 +36,8 @@ import { auth } from "@/lib/firebase"; // For current user ID
 import { companyService } from "@/services/company.service"; // needed for revalidate lookup
 import { Logger } from "@/lib/logger";
 
+// SENTINEL: Maximum number of problems allowed for AI grouping to prevent DoS/Cost spikes.
+const MAX_PROBLEMS_FOR_GROUPING = 50;
 
 /**
  * Performs AI-powered grouping of coding problems into logical categories.
@@ -41,6 +54,20 @@ import { Logger } from "@/lib/logger";
 export async function performQuestionGrouping(
   problems: AIProblemInput[],
 ): Promise<GroupQuestionsOutput | { error: string }> {
+  // SENTINEL: Input validation to prevent excessive token usage
+  if (!problems || !Array.isArray(problems)) {
+    return { error: "Invalid input: 'problems' must be an array." };
+  }
+  if (problems.length > MAX_PROBLEMS_FOR_GROUPING) {
+    Logger.warn("Security: Question grouping request exceeded limit", { count: problems.length });
+    return { 
+      error: `Too many problems provided. Please select up to ${MAX_PROBLEMS_FOR_GROUPING} problems.` 
+    };
+  }
+  if (problems.length === 0) {
+    return { error: "At least one problem is required for grouping." };
+  }
+
   const start = Date.now();
   Logger.info("AI question grouping started", { problemCount: problems.length });
   try {
