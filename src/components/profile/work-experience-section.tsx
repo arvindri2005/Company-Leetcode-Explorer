@@ -141,6 +141,8 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                               {...field}
                               placeholder="MM/YYYY"
                               autoComplete="off"
+                              maxLength={7}
+                              enterKeyHint="next"
                             />
                           </FormControl>
                           <FormMessage />
@@ -160,6 +162,8 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                               {...field}
                               placeholder="MM/YYYY or Present"
                               autoComplete="off"
+                              maxLength={7}
+                              enterKeyHint="next"
                             />
                           </FormControl>
                           <FormMessage />

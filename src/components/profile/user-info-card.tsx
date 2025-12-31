@@ -126,6 +126,8 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                                   className="text-lg font-medium h-10"
                                   autoFocus
                                   autoComplete="name"
+                                  maxLength={50}
+                                  enterKeyHint="done"
                                 />
                               </FormControl>
                               <FormMessage />

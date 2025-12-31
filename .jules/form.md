@@ -1,13 +1,10 @@
-# Form's Ledger - Critical Input/Validation Learnings
+## 2025-02-12 - Critical InputMode Learning
+Input: Typing Test Area on mobile
+Output: The `inputmode` attribute is missing on the hidden textarea used for capturing keystrokes. While the textarea is hidden, on mobile devices, focusing it triggers the virtual keyboard. Without `inputmode`, it defaults to `text`, which may show suggestions or predictive text that interfere with the raw typing experience. `inputmode='none'` would disable the keyboard entirely, which breaks the test. The correct value is likely `text` but with `autoComplete='off'` (already present) or perhaps relying on the existing attributes. However, for a coding typing test, one might argue for no specific mode if it's just raw characters, but `inputmode='text'` is the default. Wait, the `inputmode` attribute documentation says `none` for when the page implements its own keyboard. Here, we want the system keyboard.
 
-## 2025-05-23 - Fix Autocomplete in Auth Flows
-**Input:** Missing `autoComplete` attributes on auth forms caused friction for password managers and manual typing.
-**Output:** Added standard `autoComplete` attributes (`email`, `current-password`, `new-password`, `name`) to Login, Signup, Forgot Password, and Reset Password forms to enable browser autofill and password manager integration.
-
-## 2024-05-24 - Optimizing Mobile Input and Autocomplete
-**Input:** Mobile users face friction when entering numeric data (Year, GPA) into text fields, requiring keyboard switching. Standard professional fields (Company, Job Title) lack autocomplete hints.
-**Output:** Applied `inputMode="numeric"` and `inputMode="decimal"` to relevant fields to trigger appropriate soft keyboards. Added `autoComplete="organization"` and `autoComplete="organization-title"` to leverage browser autofill for professional history.
-
-## 2025-05-26 - URL Input Optimization
-**Input:** Company submission forms requested URLs (Website, Logo) using standard text inputs, failing to trigger the URL-optimized keyboard on mobile (missing `.com` key) and preventing browser autofill.
-**Output:** Implemented `type="url"`, `inputMode="url"`, and `autoComplete="url"` on all URL fields to ensure the correct mobile keyboard layout and enable standard browser autocomplete.
+Actually, a better candidate for improvement is adding `inputMode='decimal'` or `'numeric'` to inputs that are logically numeric but typed as text (like GPAs or Years), or ensuring `enterKeyHint` is used where appropriate.
+## 2025-02-12 - Form Input Validation
+Input: Work Experience Date fields (MM/YYYY) and Display Name
+Output: Added `maxLength` and `enterKeyHint` to `src/components/profile/work-experience-section.tsx` and `src/components/profile/user-info-card.tsx`. This prevents users from typing invalidly long strings that would be rejected by Zod schemas, and improves mobile keyboard navigation.
+- `maxLength={7}` for MM/YYYY fields aligns perfectly with standard date formats.
+- `enterKeyHint='next'` and `'done'` improve the mobile form flow.
