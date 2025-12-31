@@ -16,15 +16,41 @@ git clone https://github.com/arvindri2005/Company-Leetcode-Explorer.git
 cd Company-Leetcode-Explorer
 ```
 
-## 2. Install Dependencies
+## 2. Quick Setup (Recommended)
+
+We provide a setup script to automate the initial configuration. This will install dependencies, create your `.env.local` file from the example, and set up git hooks.
+
+```bash
+npm run setup
+# or
+# pnpm setup
+```
+
+*Note: After running this, you still need to open `.env.local` and add your actual API keys (see Step 4 & 5).*
+
+---
+
+## 3. Manual Setup (Alternative)
+
+If you prefer to set up manually or the script fails, follow these steps:
+
+### Install Dependencies
 
 ```bash
 npm install
-# or
-# yarn install
 ```
 
-## 3. Set Up Firebase
+### Configure Environment
+
+1. Copy `.env.example` to `.env.local`:
+   ```bash
+   cp .env.example .env.local
+   ```
+2. Proceed to the next steps to fill in your keys.
+
+---
+
+## 4. Set Up Firebase (Required)
 
 1. Go to the [Firebase Console](https://console.firebase.google.com/).
 2. Create a new Firebase project or select an existing one.
@@ -35,7 +61,7 @@ npm install
     - Enable the **Email/Password** provider.
 5. From your Firebase project settings (Project Overview > Project settings > General tab), find your web app's Firebase configuration (API Key, Auth Domain, Project ID, etc.).
 
-## 4. Set Up Google Generative AI
+## 5. Set Up Google Generative AI
 
 1. Go to [Google AI Studio](https://aistudio.google.com/) or your Google Cloud Console.
 2. Obtain an API key for the Generative AI models (e.g., Gemini).
@@ -43,9 +69,9 @@ npm install
     - In Google Cloud Console: Ensure the "Vertex AI API" or "Generative Language API" is enabled, then create an API key under "APIs & Services" > "Credentials."
 3. **Important**: Treat this API key as a secret.
 
-## 5. Configure Environment Variables
+## 6. Configure Environment Variables (Required)
 
-1. In the root of your project, create a file named `.env.local`.
+1. In the root of your project, create a file named `.env.local` (if you haven't already via the setup script).
 2. Add your Firebase configuration and Google AI API key to this file. The `src/ai/genkit.ts` file expects `GOOGLE_API_KEY`.
 
     ```env
@@ -65,7 +91,7 @@ npm install
     **Ensure `.env.local` is added to your `.gitignore` file to prevent committing secrets.**
 
 
-## 6. Set Up Firestore Security Rules
+## 7. Set Up Firestore Security Rules
 
 For the application to function correctly, you need to set up appropriate security rules for your Firestore database.
 Go to your Firebase project > Firestore Database > Rules.
@@ -112,7 +138,7 @@ Click **Publish** to save your rules. **Review and tighten these rules for a pro
 
 
 
-## 7. Run the Development Server
+## 8. Run the Development Server
 
 ```bash
 npm run dev
@@ -122,7 +148,7 @@ npm run dev
 
 Your application should now be running on `http://localhost:3000`.
 
-## 8. Genkit Development Server (for AI features)
+## 9. Genkit Development Server (for AI features)
 
 To see AI flow traces and debug AI features locally, run the Genkit development UI in a separate terminal:
 
@@ -134,7 +160,7 @@ npm run genkit:dev
 
 This will typically start the Genkit UI on `http://localhost:4000`.
 
-## 9. Running Tests
+## 10. Running Tests
 
 This project uses Jest for testing. You can run the test suite with the following commands:
 
@@ -146,7 +172,7 @@ npm test
 npm test:watch
 ```
 
-## 10. Next Steps
+## 11. Next Steps
 
 To dive deeper into our engineering standards, check out these specific guides:
 
