@@ -93,8 +93,9 @@ describe('ProblemCard', () => {
     // Simulate clicking the card (e.g., via the difficulty badge) to expand it
     fireEvent.click(screen.getByText('Easy'));
 
-    // Updated expectation: Look for "Write Code" instead of "Solve"
-    const writeCodeButton = screen.getByRole('button', { name: /write code/i });
+    // Updated expectation: Look for "Solve on LeetCode" which comes from the aria-label
+    // The aria-label "Solve on LeetCode (opens in a new tab)" overrides the visible text "Write Code"
+    const writeCodeButton = screen.getByRole('button', { name: /solve on leetcode/i });
     expect(writeCodeButton).toBeInTheDocument();
   });
 });

@@ -287,6 +287,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                                   size="sm"
                                   className="h-8 text-sm md:text-base flex-1 bg-background hover:bg-muted border border-border/50"
                                   onClick={() => problem.link && window.open(problem.link, "_blank", "noopener,noreferrer")}
+                                  aria-label="Solve on LeetCode (opens in a new tab)"
                                 >
                                   <ExternalLink className="h-3.5 w-3.5 mr-2" />
                                   Write Code
