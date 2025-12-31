@@ -297,41 +297,12 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
     hydratedIdsRef.current.clear();
   }, [user?.uid]);
 
-  useEffect(() => {
-    if (!user) return;
-
-    // A. Apply Global Statuses immediately if loaded
-    if (areGlobalStatsLoaded) {
-        setDisplayedProblems((prev) => {
-            let hasChanges = false;
-            const next = prev.map(p => {
-                // Determine status from sets
-                let newStatus: ProblemStatus = "none";
-                if (solvedProblemIds.has(p.id)) newStatus = "solved";
-                else if (attemptedProblemIds.has(p.id)) newStatus = "attempted"; // Solved takes precedence if logic allows
-
-                const isBookmarked = bookmarkedProblemIds.has(p.id);
-
-                // Only update if changed prevents loops? React state updates if object ref changes
-                // Optimization: Checked inside map
-                 if (p.currentStatus !== newStatus || p.isBookmarked !== isBookmarked) {
-                     hasChanges = true;
-                     return { ...p, currentStatus: newStatus, isBookmarked: isBookmarked };
-                 }
-                return p;
-            });
-            return hasChanges ? next : prev;
-        });
-    }
-  }, [displayedProblems, user, areGlobalStatsLoaded, solvedProblemIds, attemptedProblemIds, bookmarkedProblemIds]);
+  // BOLT OPTIMIZATION: Removed the O(N) useEffect that mutated `displayedProblems`
+  // when statuses changed. Instead, we derive status during render.
 
   const handleProblemBookmarkChange = useCallback(
     (problemId: string, newIsBookmarked: boolean) => {
-      setDisplayedProblems((prev) =>
-        prev.map((p) =>
-          p.id === problemId ? { ...p, isBookmarked: newIsBookmarked } : p
-        )
-      );
+      // Just update the Sets. Rerender will pick it up.
       if (newIsBookmarked) {
           setBookmarkedProblemIds(prev => new Set(prev).add(problemId));
       } else {
@@ -347,11 +318,6 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
 
   const handleProblemStatusChange = useCallback(
     (problemId: string, newStatus: ProblemStatus) => {
-      setDisplayedProblems((prev) =>
-        prev.map((p) =>
-          p.id === problemId ? { ...p, currentStatus: newStatus } : p
-        )
-      );
       // Also update local Sets to reflect the change immediately without refetch
       if (newStatus === 'solved') {
           setSolvedProblemIds(prev => new Set(prev).add(problemId));
@@ -419,26 +385,40 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
           </p>
       ) : (
         <div className="space-y-4">
-          {displayedProblems.map((problem, index) => (
-            <div key={problem.id}>
-              <ErrorBoundary fallback={<ProblemCardErrorFallback />}>
-                <ProblemCard
-                  problem={problem}
-                  companySlug={problem.companySlug || "unknown"}
-                  initialIsBookmarked={problem.isBookmarked}
-                  onBookmarkChanged={handleProblemBookmarkChange}
-                  problemStatus={problem.currentStatus || "none"}
-                  onProblemStatusChange={handleProblemStatusChange}
-                  showCompanies={true}
-                />
-              </ErrorBoundary>
-              {(index + 1) % 25 === 0 && (
-                <div className="py-4">
-                  <AdPlaceholder title="Sponsored" className="h-32 w-full" />
-                </div>
-              )}
-            </div>
-          ))}
+          {displayedProblems.map((problem, index) => {
+            // Derived state logic moved to render loop
+            let computedStatus = problem.currentStatus || "none";
+            let computedIsBookmarked = problem.isBookmarked;
+
+            if (areGlobalStatsLoaded) {
+               if (solvedProblemIds.has(problem.id)) computedStatus = "solved";
+               else if (attemptedProblemIds.has(problem.id)) computedStatus = "attempted";
+               else computedStatus = "none";
+               
+               computedIsBookmarked = bookmarkedProblemIds.has(problem.id);
+            }
+
+            return (
+              <div key={problem.id}>
+                <ErrorBoundary fallback={<ProblemCardErrorFallback />}>
+                  <ProblemCard
+                    problem={problem}
+                    companySlug={problem.companySlug || "unknown"}
+                    initialIsBookmarked={computedIsBookmarked}
+                    onBookmarkChanged={handleProblemBookmarkChange}
+                    problemStatus={computedStatus}
+                    onProblemStatusChange={handleProblemStatusChange}
+                    showCompanies={true}
+                  />
+                </ErrorBoundary>
+                {(index + 1) % 25 === 0 && (
+                  <div className="py-4">
+                    <AdPlaceholder title="Sponsored" className="h-32 w-full" />
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
       
