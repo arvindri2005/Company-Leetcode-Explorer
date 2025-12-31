@@ -105,7 +105,8 @@ describe('UserInfoCard', () => {
       </Wrapper>
     );
 
-    fireEvent.click(screen.getByLabelText('Edit display name'));
+    const editButtons = screen.getAllByText('Edit Profile');
+    fireEvent.click(editButtons[0]);
     expect(mockProps.setIsEditingDisplayName).toHaveBeenCalledWith(true);
   });
 });

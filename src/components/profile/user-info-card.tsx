@@ -81,40 +81,25 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
     <Card className="bg-card border border-border rounded-xl mb-8 shadow-sm overflow-hidden relative">
       <CardHeader className="p-6">
         <div className="flex flex-col sm:flex-row items-start gap-6">
-          <Avatar className="h-24 w-24 ring-4 ring-primary/10 ring-offset-4 ring-offset-background shadow-lg shrink-0">
+          <Avatar className="h-24 w-24 ring-4 ring-primary/10 ring-offset-4 ring-offset-background shadow-lg shrink-0 transition-transform hover:scale-105 duration-300">
             <AvatarImage
               src={user.photoURL || undefined}
               data-ai-hint="profile avatar"
               className="object-cover"
             />
-            <AvatarFallback className="text-3xl bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold">
+            <AvatarFallback className="text-3xl bg-gradient-to-br from-primary/10 to-secondary/10 text-primary font-bold">
               {getInitials(user.displayName)}
             </AvatarFallback>
           </Avatar>
           
           <div className="flex-grow space-y-3 w-full pt-1">
-            <div className="flex justify-between items-start gap-4">
+            <div className="flex justify-between items-start gap-4 w-full">
               {!isEditingDisplayName ? (
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <h2 className="text-3xl font-bold tracking-tight text-foreground">
+                    <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                       {user.displayName || "Anonymous User"}
                     </h2>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        setIsEditingDisplayName(true);
-                        displayNameForm.setValue(
-                          "displayName",
-                          user.displayName || "",
-                        );
-                      }}
-                      className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors rounded-full"
-                      aria-label="Edit display name"
-                    >
-                      <Edit size={15} />
-                    </Button>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Mail className="h-3.5 w-3.5" />
@@ -172,19 +157,35 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                 </div>
               )}
 
-              {/* Desktop Logout Button */}
-              <Button
-                onClick={handleLogout}
-                variant="ghost"
-                size="sm"
-                className="hidden sm:flex text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Log Out
-              </Button>
+              {/* Desktop Actions */}
+              <div className="hidden sm:flex items-center gap-2">
+                {!isEditingDisplayName && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setIsEditingDisplayName(true);
+                      displayNameForm.setValue("displayName", user.displayName || "");
+                    }}
+                    className="h-9 hover:bg-secondary/50 transition-colors"
+                  >
+                    <Edit className="h-3.5 w-3.5 mr-2" />
+                    Edit Profile
+                  </Button>
+                )}
+                <Button
+                  onClick={handleLogout}
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Log Out
+                </Button>
+              </div>
             </div>
             
-            <div className="flex flex-wrap gap-2 pt-1">
+            <div className="flex flex-wrap gap-2 pt-2">
               {user.emailVerified && (
                 <div className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400 border border-green-200 dark:border-green-500/30">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
@@ -200,12 +201,25 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
               )}
             </div>
 
-            {/* Mobile Logout Button (Visible only on small screens) */}
-            <div className="sm:hidden pt-4 border-t border-border mt-4 w-full">
+            {/* Mobile Actions (Visible only on small screens) */}
+            <div className="sm:hidden pt-4 border-t border-border mt-4 w-full grid grid-cols-2 gap-3">
+              {!isEditingDisplayName && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsEditingDisplayName(true);
+                    displayNameForm.setValue("displayName", user.displayName || "");
+                  }}
+                  className="w-full"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Profile
+                </Button>
+              )}
               <Button
                 onClick={handleLogout}
-                variant="outline"
-                className="w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 border-dashed"
+                variant="ghost"
+                className="w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 border border-dashed border-border"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Log Out
