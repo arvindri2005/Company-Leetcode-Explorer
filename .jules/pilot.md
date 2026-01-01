@@ -11,3 +11,7 @@
 ## 2025-05-22 - Broken Setup Script
 **Discovery:** The `pnpm setup` command was defined in `package.json` pointing to `scripts/setup.mjs`, but the file was missing. This created a significant friction point for new developers onboarding to the project.
 **Protocol:** Implemented a robust `scripts/setup.mjs` that automates environment configuration (copying `.env.example`), dependency installation, and git hook setup. Always verify entry points defined in `package.json` actually exist.
+
+## 2025-06-03 - Parallel CI & Environment Enforcement
+**Discovery:** The CI pipeline was running sequentially (Lint -> Typecheck -> Build), taking unnecessary time. Also, developers could use different Node/pnpm versions, leading to "works on my machine" issues.
+**Protocol:** Split the CI pipeline into parallel jobs (`quality`, `build-app`, `build-storybook`) to reduce total build time. Added strict `engines` to `package.json` to enforce Node >=20 and pnpm >=9. Added a `validate` script to allow devs to run all checks locally in parallel.

@@ -2,6 +2,10 @@
   "name": "nextn",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
   "scripts": {
     "dev": "next dev --turbopack -p 3000",
     "dev:all": "concurrently -n \"NEXT,GENKIT\" -c \"cyan,magenta\" \"pnpm:dev\" \"pnpm:genkit:dev\"",
@@ -10,6 +14,7 @@
     "build": "next build",
     "clean": "rimraf .next .swc coverage dist out",
     "start": "next start",
+    "validate": "concurrently -n \"LINT,TYPE,TEST\" -c \"blue,yellow,green\" \"pnpm:lint\" \"pnpm:typecheck\" \"pnpm:test\"",
     "setup": "node scripts/setup.mjs",
     "lint": "eslint .",
     "prepare": "husky",

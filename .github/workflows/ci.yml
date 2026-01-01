@@ -7,10 +7,9 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-    name: Build & Test
+  quality:
+    name: Quality Checks
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,32 +28,75 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate CI Environment
+        run: node scripts/generate-ci-env.mjs
+
       - name: Lint
-        # Continuing on error because of existing technical debt (unescaped entities, hooks warnings)
-        # Pilot: "We visualize the debt so we can pay it down later."
+        # Continuing on error because of existing technical debt
         run: pnpm lint
         continue-on-error: true
 
       - name: Typecheck
-        # Continuing on error because of existing technical debt (test types, missing definitions)
+        # Continuing on error because of existing technical debt
         run: pnpm typecheck
         continue-on-error: true
 
+      - name: Run Tests
+        # Unit tests only
+        run: pnpm test
+
+  build-app:
+    name: Build App
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Generate CI Environment
-        # Generates a dummy .env.local so Next.js build can pass env validation
         run: node scripts/generate-ci-env.mjs
 
       - name: Build App
-        # Verifies the full Next.js build (including edge runtime, static params, etc.)
-        # This catches errors that lint/test might miss.
+        # Verifies the full Next.js build
         run: pnpm build
 
-      - name: Build Storybook
-        # Ensures UI components and their dependencies are buildable in isolation.
-        run: pnpm build-storybook
+  build-storybook:
+    name: Build Storybook
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Run Tests
-        # We only run unit tests here.
-        # NOTE: Integration tests that require real Firebase connection are skipped or mocked.
-        # Ideally, we should enforce this to be green.
-        run: pnpm test
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate CI Environment
+        run: node scripts/generate-ci-env.mjs
+
+      - name: Build Storybook
+        # Ensures UI components are buildable
+        run: pnpm build-storybook
