@@ -536,7 +536,7 @@ export class ProblemRepository {
 
       // Extensibility Point: Apply generic filters via Registry
       // This replaces the hardcoded difficulty/lastAsked logic
-      const filtersToApply: Record<string, any> = {};
+      const filtersToApply: Record<string, unknown> = {};
       if (residualDifficultyFilter.length > 0) {
         filtersToApply["difficulty"] = residualDifficultyFilter;
       }

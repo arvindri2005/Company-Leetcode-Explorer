@@ -1,6 +1,6 @@
 import { ProblemFilter } from "./types";
 import { where, QueryConstraint } from "firebase/firestore";
-import { ProblemSummaryDTO, DifficultyFilter, LastAskedFilter } from "@/types";
+import { ProblemSummaryDTO, DifficultyFilter, LastAskedFilter, DifficultySchema, LastAskedPeriodSchema } from "@/types";
 
 export class DifficultyFilterImplementation implements ProblemFilter<DifficultyFilter[]> {
   key = "difficulty";
@@ -27,6 +27,12 @@ export class DifficultyFilterImplementation implements ProblemFilter<DifficultyF
     if (!value || value.length === 0) return true;
     return value.includes(problem.difficulty);
   }
+
+  isValidValue(value: unknown): value is DifficultyFilter[] {
+    if (!Array.isArray(value)) return false;
+    // Check if every item in the array matches the DifficultySchema
+    return value.every(item => DifficultySchema.safeParse(item).success);
+  }
 }
 
 export class LastAskedFilterImplementation implements ProblemFilter<LastAskedFilter[]> {
@@ -48,5 +54,11 @@ export class LastAskedFilterImplementation implements ProblemFilter<LastAskedFil
     // ProblemSummaryDTO has 'lastAskedPeriod' already resolved for the context company
     // in the mapDocToProblem / fetch logic.
     return problem.lastAskedPeriod ? value.includes(problem.lastAskedPeriod) : false;
+  }
+
+  isValidValue(value: unknown): value is LastAskedFilter[] {
+    if (!Array.isArray(value)) return false;
+    // Check if every item in the array matches the LastAskedPeriodSchema
+    return value.every(item => LastAskedPeriodSchema.safeParse(item).success);
   }
 }
