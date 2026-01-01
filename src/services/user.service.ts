@@ -40,6 +40,10 @@ export class UserService {
     const cached = this.globalStatsCache.get(userId);
 
     if (cached && now - cached.timestamp < this.CACHE_TTL) {
+      // Refresh LRU position by deleting and re-setting
+      this.globalStatsCache.delete(userId);
+      this.globalStatsCache.set(userId, cached);
+
       // Return a copy to prevent mutation of the cache by consumers
       return {
         solvedProblemIds: [...cached.data.solvedProblemIds],
@@ -50,9 +54,13 @@ export class UserService {
 
     const data = await userRepository.getUserGlobalProblemStats(userId);
     
-    // Memory management: Prevent unbound growth
+    // Memory management: LRU Eviction
     if (this.globalStatsCache.size >= this.MAX_CACHE_SIZE) {
-      this.globalStatsCache.clear();
+      // Remove the oldest item (first key in the iterator)
+      const oldestKey = this.globalStatsCache.keys().next().value;
+      if (oldestKey) {
+        this.globalStatsCache.delete(oldestKey);
+      }
     }
     
     this.globalStatsCache.set(userId, { data, timestamp: now });
