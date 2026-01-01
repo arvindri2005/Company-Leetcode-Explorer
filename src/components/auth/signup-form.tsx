@@ -193,6 +193,7 @@ export default function SignupForm() {
                       placeholder="Your Name"
                       {...field}
                       autoComplete="name"
+                      autoCapitalize="words"
                       className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
                     />
                      {field.value && !form.getFieldState("displayName").invalid && (
