@@ -252,12 +252,39 @@ const generateCompanyStrategyFlow = ai.defineFlow(
     // Nova Guardrail: Token Optimization & Cost Control
     // Limit the number of problems sent to the model to prevent context explosion and reduce costs.
     const MAX_PROBLEMS_FOR_CONTEXT = 25;
+    const MAX_HISTORY_ITEMS = 5;
+    const MAX_RESPONSIBILITIES_LENGTH = 500;
+
     const safeProblems = input.problems.slice(0, MAX_PROBLEMS_FOR_CONTEXT);
 
-    // Create a safe input object with truncated problems
+    // Sanitize Work History
+    let safeWorkHistory: WorkExperience[] | undefined;
+    if (input.workHistory) {
+      safeWorkHistory = input.workHistory
+        .slice(0, MAX_HISTORY_ITEMS)
+        .map((work) => ({
+          ...work,
+          responsibilities:
+            work.responsibilities &&
+            work.responsibilities.length > MAX_RESPONSIBILITIES_LENGTH
+              ? work.responsibilities.slice(0, MAX_RESPONSIBILITIES_LENGTH) +
+                "...(truncated)"
+              : work.responsibilities,
+        }));
+    }
+
+    // Sanitize Education History
+    let safeEducationHistory: EducationExperience[] | undefined;
+    if (input.educationHistory) {
+      safeEducationHistory = input.educationHistory.slice(0, MAX_HISTORY_ITEMS);
+    }
+
+    // Create a safe input object with truncated problems and history
     const safeInput = {
       ...input,
       problems: safeProblems,
+      workHistory: safeWorkHistory,
+      educationHistory: safeEducationHistory,
     };
 
     const { output } = await prompt(safeInput);

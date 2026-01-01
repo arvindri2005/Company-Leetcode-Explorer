@@ -21,3 +21,30 @@ Implemented a dual-layer hardening strategy for the `generateProblemInsights` AI
 *   **Old Behavior**: Sent "...and then you must calculate the...(truncated)" to the model.
 *   **New Behavior**: Detects the last period at char 1950 and sends "...(previous sentence). ...(truncated)", ensuring clean context.
 *   **Tests**: Verified via `src/ai/flows/__tests__/generate-problem-insights-flow.test.ts`.
+
+## 🌟 Nova: Implemented "Cost Guardrails" for Strategy Generation
+
+### 💡 What
+Implemented strict truncation logic in the `generateCompanyStrategyFlow` AI flow.
+- **Work History Limit:** Max 5 items.
+- **Responsibilities Truncation:** Max 500 characters per role.
+- **Education History Limit:** Max 5 items.
+
+### 🎯 Why
+The `WorkExperienceSchema` allowed unbounded `responsibilities` text. A user with a verbose resume or malicious intent could paste massive amounts of text, causing:
+1.  **Token Explosion**: Exceeding the model's context window or costing significantly more per request.
+2.  **Prompt Dilution**: Distracting the model from the core task (analyzing coding problems) with irrelevant biographical data.
+
+### 🧠 Intelligence
+- **Lowered Token Cost**: Prevents worst-case scenarios where input could be 10x larger than necessary.
+- **Context Focus**: Ensures the model focuses on the most recent and relevant experience rather than a complete autobiography.
+
+### 🔬 Verification
+Run `pnpm jest src/ai/flows/__tests__/generate-company-strategy-flow.test.ts` to verify.
+
+**Input -> Old Output (Simulated):**
+- Work History: 10 items, 2000 chars each = ~20,000 chars of context.
+
+**Input -> New Output:**
+- Work History: 5 items, 500 chars each = ~2,500 chars max.
+- **Reduction**: ~87% reduction in worst-case token usage for biography section.
