@@ -1,23 +1,28 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { snippets } from "@/constants/typing-test-snippets";
 import { Snippet, Language } from "@/types/typing-test";
-
-// Utility to calculate WPM
-// Raw WPM = (Total Characters / 5) / Time (min)
-// Net WPM = Raw WPM - (Uncorrected Errors / Time (min)) - Simplified here to just standard WPM formula but tracking mistakes separately
-const calculateWPM = (startTime: number | null, endTime: number | null, charCount: number) => {
-  if (!startTime) return 0;
-  const end = endTime || Date.now();
-  const timeInMinutes = (end - startTime) / 60000;
-  if (timeInMinutes <= 0) return 0;
-  return Math.round((charCount / 5) / timeInMinutes);
-};
+import {
+  calculateWPM,
+  calculateAccuracy,
+  checkMistake,
+  processTabKey,
+  processEnterKey,
+  countCurrentMistakes
+} from "@/lib/typing-game-logic";
 
 export const useTypingGame = () => {
-  const [selectedLanguage, setSelectedLanguage] = useState<Language>("javascript");
-  const [currentSnippet, setCurrentSnippet] = useState<Snippet | null>(null);
-  
   // Game State
+  const [selectedLanguage, setSelectedLanguageState] = useState<Language>("javascript");
+
+  // Lazy initialization of random snippet to avoid effect-based initialization
+  const [currentSnippet, setCurrentSnippet] = useState<Snippet | null>(() => {
+      const filtered = snippets.filter(s => s.language === "javascript");
+      if (filtered.length > 0) {
+          return filtered[Math.floor(Math.random() * filtered.length)];
+      }
+      return null;
+  });
+
   const [userInput, setUserInput] = useState("");
   const [startTime, setStartTime] = useState<number | null>(null);
   const [endTime, setEndTime] = useState<number | null>(null);
@@ -52,22 +57,22 @@ export const useTypingGame = () => {
     }
   }, []);
 
-  // Initialize snippet
-  useEffect(() => {
-    // Only select new snippet if we don't have one or language changed
-    // We want to avoid resetting if just the hook re-runs, but here it depends on selectedLanguage
-    const filtered = snippets.filter(s => s.language === selectedLanguage);
-    if (filtered.length > 0) {
-        // Only if current snippet doesn't match language (or is null)
-        if (!currentSnippet || currentSnippet.language !== selectedLanguage) {
-             const randomSnippet = filtered[Math.floor(Math.random() * filtered.length)];
-             setCurrentSnippet(randomSnippet);
-             resetGame();
-        }
-    } else {
-        setCurrentSnippet(null);
-    }
-  }, [selectedLanguage, resetGame]); // Removed currentSnippet dependency to avoid infinite loop potential if not careful, handled inside
+  // Set Language and update snippet logic
+  const setSelectedLanguage = useCallback((lang: Language) => {
+      setSelectedLanguageState(lang);
+
+      const filtered = snippets.filter(s => s.language === lang);
+      if (filtered.length > 0) {
+           // Only change if different language or forcing new one?
+           // The original logic checked (!currentSnippet || currentSnippet.language !== selectedLanguage)
+           // Since we are setting the language now, we assume we want a snippet for THAT language.
+           const randomSnippet = filtered[Math.floor(Math.random() * filtered.length)];
+           setCurrentSnippet(randomSnippet);
+           resetGame();
+      } else {
+          setCurrentSnippet(null);
+      }
+  }, [resetGame]);
 
   // Focus input on load
   useEffect(() => {
@@ -105,7 +110,6 @@ export const useTypingGame = () => {
         const containerHeight = container.clientHeight;
         const scrollTop = container.scrollTop;
 
-        // Keep cursor in middle-ish
         if (cursorTop > scrollTop + containerHeight - 100) {
             container.scrollTo({ top: cursorTop - containerHeight / 2, behavior: 'smooth' });
         } else if (cursorTop < scrollTop + 50) {
@@ -119,7 +123,6 @@ export const useTypingGame = () => {
     if (filtered.length === 0) return;
 
     let next = filtered[Math.floor(Math.random() * filtered.length)];
-    // Try to get a different one
     if (filtered.length > 1 && currentSnippet) {
         let attempts = 0;
         while (next.id === currentSnippet.id && attempts < 10) {
@@ -132,67 +135,42 @@ export const useTypingGame = () => {
   }, [selectedLanguage, currentSnippet, resetGame]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Quick Restart
     if (e.key === 'Escape') {
         e.preventDefault();
         resetGame();
         return;
     }
 
+    if (isFinished) return;
+
+    const start = e.currentTarget.selectionStart;
+    const end = e.currentTarget.selectionEnd;
+    const value = e.currentTarget.value;
+
     if (e.key === 'Tab') {
       e.preventDefault();
-      if (isFinished) return;
-      
-      const start = e.currentTarget.selectionStart;
-      const end = e.currentTarget.selectionEnd;
-      const value = e.currentTarget.value;
-      
-      const newValue = value.substring(0, start) + "  " + value.substring(end);
+      const { newValue, newCursorPos } = processTabKey(value, start, end);
       
       setUserInput(newValue);
       
-      // Update cursor position
       setTimeout(() => {
           if (inputRef.current) {
-              inputRef.current.selectionStart = inputRef.current.selectionEnd = start + 2;
+              inputRef.current.selectionStart = inputRef.current.selectionEnd = newCursorPos;
           }
       }, 0);
       
       if (!startTime) setStartTime(Date.now());
     }
     
-    // Smart Indentation on Enter
     if (e.key === 'Enter') {
-        if (isFinished) return;
         e.preventDefault();
-        
-        const start = e.currentTarget.selectionStart;
-        const end = e.currentTarget.selectionEnd;
-        const value = e.currentTarget.value;
-        
-        // Find the start of the current line
-        const lastNewLine = value.lastIndexOf('\n', start - 1);
-        const currentLineStart = lastNewLine === -1 ? 0 : lastNewLine + 1;
-        const currentLine = value.substring(currentLineStart, start);
-        
-        // Calculate indentation
-        const match = currentLine.match(/^(\s*)/);
-        let indentation = match ? match[1] : "";
-        
-        // Check for opener char at end of current line segment (ignoring whitespace)
-        const trimmedLine = currentLine.trimEnd();
-        if (trimmedLine.endsWith('{') || trimmedLine.endsWith('(') || trimmedLine.endsWith('[')) {
-            indentation += "  "; // Add 2 spaces indent
-        }
-        
-        const insertion = "\n" + indentation;
-        const newValue = value.substring(0, start) + insertion + value.substring(end);
+        const { newValue, newCursorPos } = processEnterKey(value, start, end);
         
         setUserInput(newValue);
         
         setTimeout(() => {
           if (inputRef.current) {
-              inputRef.current.selectionStart = inputRef.current.selectionEnd = start + insertion.length;
+              inputRef.current.selectionStart = inputRef.current.selectionEnd = newCursorPos;
           }
       }, 0);
       
@@ -211,47 +189,26 @@ export const useTypingGame = () => {
       setStartTime(Date.now());
     }
 
-    // Mistake tracking logic:
-    // If the new char added at the end is incorrect, increment mistakes
-    if (value.length > prevValue.length) {
-        const newCharIndex = value.length - 1;
-        if (newCharIndex < currentSnippet.code.length) {
-            if (value[newCharIndex] !== currentSnippet.code[newCharIndex]) {
-                setTotalMistakes(prev => prev + 1);
-            }
-        } else {
-             // Overtyping beyond length is a mistake
-             setTotalMistakes(prev => prev + 1);
-        }
+    if (checkMistake(value, prevValue, currentSnippet.code)) {
+        setTotalMistakes(prev => prev + 1);
     }
 
     setUserInput(value);
 
     // Check completion
-    if (value.length >= currentSnippet.code.length) {
-        if (value === currentSnippet.code) {
-             const end = Date.now();
-             setEndTime(end);
-             setIsFinished(true);
-             const finalWpm = calculateWPM(startTime || Date.now(), end, value.length);
-             setWpm(finalWpm);
-             setWpmHistory(prev => [...prev, { time: Math.round((end - (startTime || end))/1000), wpm: finalWpm }]);
-        }
+    if (value === currentSnippet.code) {
+         const end = Date.now();
+         setEndTime(end);
+         setIsFinished(true);
+         const finalWpm = calculateWPM(startTime || Date.now(), end, value.length);
+         setWpm(finalWpm);
+         setWpmHistory(prev => [...prev, { time: Math.round((end - (startTime || end))/1000), wpm: finalWpm }]);
     }
     
     // Calculate Live Stats
     if (startTime) {
-        const currentWpm = calculateWPM(startTime, Date.now(), value.length);
-        setWpm(currentWpm);
-        
-        let correctChars = 0;
-        for (let i = 0; i < value.length; i++) {
-            if (value[i] === currentSnippet.code[i]) {
-                correctChars++;
-            }
-        }
-        const acc = value.length > 0 ? Math.round((correctChars / value.length) * 100) : 100;
-        setAccuracy(acc);
+        setWpm(calculateWPM(startTime, Date.now(), value.length));
+        setAccuracy(calculateAccuracy(value, currentSnippet.code));
     }
   }, [isFinished, currentSnippet, startTime, userInput]);
 
@@ -261,7 +218,8 @@ export const useTypingGame = () => {
   }, [userInput, currentSnippet]);
 
   return {
-      selectedLanguage, setSelectedLanguage,
+      selectedLanguage,
+      setSelectedLanguage, // Expose the wrapper instead of state setter
       currentSnippet,
       userInput, setUserInput,
       wpm, accuracy, wpmHistory,
@@ -271,14 +229,10 @@ export const useTypingGame = () => {
       resetGame, nextSnippet,
       handleKeyDown, handleInputChange,
       progress,
-      mistakes: totalMistakes, // Return cumulative mistakes
-      currentMistakes: useMemo(() => { // Also return current mistakes on screen if needed
+      mistakes: totalMistakes,
+      currentMistakes: useMemo(() => {
           if (!currentSnippet) return 0;
-          let count = 0;
-          for (let i = 0; i < userInput.length; i++) {
-            if (userInput[i] !== currentSnippet.code[i]) count++;
-          }
-          return count;
+          return countCurrentMistakes(userInput, currentSnippet.code);
       }, [userInput, currentSnippet])
   };
 };
