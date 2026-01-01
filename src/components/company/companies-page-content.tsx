@@ -6,6 +6,7 @@ import { Company } from "@/types";
 import { DashboardHeader } from "@/components/company/dashboard-header";
 import { TechCompanyCard } from "@/components/company/tech-company-card";
 import { CompanyTable } from "@/components/company/company-table";
+import { CompanyTableSkeleton } from "@/components/skeletons/companies-skeletons";
 import { Separator } from "@/components/ui/separator";
 import {
   Accordion,
@@ -159,10 +160,9 @@ export function CompaniesPageContent({
               {/* Natural flow - Page level scroll */}
               <div className="space-y-4">
                 {isLoading ? (
-                    <div className="space-y-8">
-                         {/* Simple loading skeleton */}
-                         <div className="w-full h-96 bg-white/5 rounded-xl animate-pulse"></div>
-                    </div>
+                  <div className="space-y-8">
+                    <CompanyTableSkeleton />
+                  </div>
                 ) : companies.length > 0 ? (
                     <div className="space-y-4">
                         <CompanyTable companies={companies} />
