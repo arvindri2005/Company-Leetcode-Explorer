@@ -110,7 +110,7 @@ export function safeJsonLd(data: any): string {
  */
 export function parseArrayValid<T extends string>(
   val: string[] | null,
-  validValues: T[]
+  validValues: readonly T[]
 ): T[] {
   if (!val) return [];
   return val.filter((v): v is T => validValues.includes(v as T));
