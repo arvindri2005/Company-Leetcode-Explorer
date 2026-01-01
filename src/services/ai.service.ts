@@ -31,8 +31,48 @@ import { companyService } from "@/services/company.service";
 import { problemService } from "@/services/problem.service";
 import { userService } from "@/services/user.service";
 import { unstable_cache } from "next/cache";
+import { Logger } from "@/lib/logger";
 
 export class AIService {
+  private async withObservability<T>(
+    flowName: string,
+    operation: () => Promise<T>,
+    metadata: Record<string, any> = {}
+  ): Promise<T> {
+    const startTime = Date.now();
+    const requestId = crypto.randomUUID();
+
+    Logger.info(`[AI] Starting ${flowName}`, {
+      requestId,
+      flowName,
+      ...metadata,
+    });
+
+    try {
+      const result = await operation();
+      const durationMs = Date.now() - startTime;
+
+      Logger.info(`[AI] Completed ${flowName}`, {
+        requestId,
+        flowName,
+        durationMs,
+        success: true,
+      });
+
+      return result;
+    } catch (error) {
+      const durationMs = Date.now() - startTime;
+      Logger.error(`[AI] Failed ${flowName}`, error, {
+        requestId,
+        flowName,
+        durationMs,
+        success: false,
+        ...metadata,
+      });
+      throw error;
+    }
+  }
+
   async groupQuestions(
     problems: AIProblemInput[]
   ): Promise<GroupQuestionsOutput> {
@@ -42,7 +82,12 @@ export class AIService {
         link: p.link || `https://example.com/problem/${p.slug}`,
       })),
     };
-    return await groupQuestionsFlow(input);
+    
+    return await this.withObservability(
+      "groupQuestions",
+      () => groupQuestionsFlow(input),
+      { problemCount: problems.length }
+    );
   }
 
   async findSimilarQuestions(
@@ -69,7 +114,12 @@ export class AIService {
         slug: currentProblem.slug,
       },
     };
-    return await findSimilarQuestionsFlow(input);
+
+    return await this.withObservability(
+      "findSimilarQuestions",
+      () => findSimilarQuestionsFlow(input),
+      { currentProblemSlug, currentProblemCompanySlug }
+    );
   }
 
   async generateFlashcards(
@@ -98,10 +148,14 @@ export class AIService {
         lastAskedPeriod: p.lastAskedPeriod as any,
       }));
 
-    return await generateFlashcardsFlow({
-      companyName: company.name,
-      problems: problemInputs,
-    });
+    return await this.withObservability(
+      "generateFlashcards",
+      () => generateFlashcardsFlow({
+        companyName: company.name,
+        problems: problemInputs,
+      }),
+      { companyId, companyName: company.name, problemCount: problemInputs.length }
+    );
   }
 
   async generateCompanyStrategy(
@@ -157,13 +211,17 @@ export class AIService {
        if (Array.isArray(workResult)) workHistory = workResult;
     }
 
-    return await generateCompanyStrategyFlow({
-      companyName: company.name,
-      problems: problemInputs,
-      targetRoleLevel,
-      educationHistory,
-      workHistory,
-    });
+    return await this.withObservability(
+      "generateCompanyStrategy",
+      () => generateCompanyStrategyFlow({
+        companyName: company.name,
+        problems: problemInputs,
+        targetRoleLevel,
+        educationHistory,
+        workHistory,
+      }),
+      { companyId, companyName: company.name, problemCount: problemInputs.length, userId, targetRoleLevel }
+    );
   }
 
   async generateProblemInsights(
@@ -186,7 +244,12 @@ export class AIService {
           tags: problem.tags,
           problemDescription: problemDescriptionForAI,
         };
-        return await generateProblemInsightsFlow(input);
+        
+        return await this.withObservability(
+          "generateProblemInsights",
+          () => generateProblemInsightsFlow(input),
+          { problemSlug: problem.slug, companySlug: problem.companySlug }
+        );
       },
       [cacheKey],
       {
