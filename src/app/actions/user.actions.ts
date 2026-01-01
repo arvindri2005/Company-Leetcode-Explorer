@@ -10,21 +10,18 @@
  *
  * SENTINEL SECURITY WARNING:
  * Some actions in this file (e.g. `toggleBookmarkProblemAction`, `setProblemStatusAction`)
- * accept a `userId` parameter and use the Firebase Client SDK. Since the Client SDK
- * is not authenticated on the server side, these actions rely ENTIRELY on Firestore
- * Security Rules to prevent unauthorized writes (where `request.auth` will be null).
+ * accept a `userId` parameter. We verify this matches the server-side authenticated user
+ * to prevent IDOR.
  *
- * As currently implemented, these actions will fail on the server if Firestore Rules
- * correctly require authentication. They exist mainly for architectural symmetry or
- * potential future use with an Admin SDK context.
- *
- * DO NOT ENABLE ADMIN PRIVILEGES FOR THIS ENVIRONMENT WITHOUT ADDING SERVER-SIDE
- * AUTHENTICATION CHECKS (e.g. verifying an ID token).
+ * NOTE: Since this project uses the Firebase Client SDK on the server, `auth.currentUser`
+ * is typically null unless a session management solution (like cookies) is implemented to
+ * hydrate the auth state. Consequently, these actions may currently fail in production
+ * if called directly from the server without such context. They remain here for architectural
+ * completeness and future enhancement (e.g., migrating to Admin SDK or implementing session cookies).
  */
 "use server";
 
 import type {
-  UserProblemStatusInfo,
   ProblemStatus,
 } from "@/types";
 import { userService } from "@/services/user.service";
@@ -32,6 +29,7 @@ import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { ProblemStatusSchema } from "@/types/problem";
 import { Logger } from "@/lib/logger";
+import { auth } from "@/lib/firebase";
 
 import { handleServerActionError } from "@/lib/error-handler";
 
@@ -62,6 +60,10 @@ const GetStatusInputSchema = z.object({
  * @returns {Promise<{ success: boolean; isBookmarked?: boolean; error?: string }>} A promise
  * that resolves to an object indicating the outcome. On success, `isBookmarked` reflects
  * the new bookmark status (true if bookmarked, false if removed).
+ *
+ * @deprecated This action is currently disabled for security reasons until proper server-side
+ * authentication (Admin SDK) is implemented. It currently relies on client-side auth state
+ * which is not available on the server.
  */
 export async function toggleBookmarkProblemAction(
   userId: string,
@@ -69,6 +71,14 @@ export async function toggleBookmarkProblemAction(
   companySlug: string,
   problemSlug: string,
 ): Promise<{ success: boolean; isBookmarked?: boolean; error?: string }> {
+  // SENTINEL: Prevent IDOR by verifying the requested userId matches the authenticated session.
+  // Note: auth.currentUser is likely null in the current Client SDK server setup, causing this to fail safely.
+  const currentUser = auth.currentUser;
+  if (!currentUser || currentUser.uid !== userId) {
+    Logger.warn("Security: Unauthorized attempt to toggle bookmark", { requestedUserId: userId, authenticatedUserId: currentUser?.uid });
+    return { success: false, error: "Unauthorized: Server-side authentication is required to perform this action." };
+  }
+
   const validation = ActionInputSchema.safeParse({
     userId,
     problemId,
@@ -81,14 +91,11 @@ export async function toggleBookmarkProblemAction(
     
     // Zod v3+ safeParse return structure
     if (validation.error) {
-       // Using 'issues' or 'errors' depending on Zod version available in environment.
-       // ZodError exposes 'issues' array.
        return {
          success: false,
          error: validation.error.issues[0]?.message || "Invalid input parameters",
        };
     } else {
-       // Fallback message
        return {
          success: false,
          error: "Invalid input parameters",
@@ -133,6 +140,10 @@ export async function toggleBookmarkProblemAction(
  * @param {string} problemSlug - The slug of the problem itself.
  * @returns {Promise<{ success: boolean; error?: string }>} A promise that resolves to an object
  * indicating the success or failure of the operation.
+ *
+ * @deprecated This action is currently disabled for security reasons until proper server-side
+ * authentication (Admin SDK) is implemented. It currently relies on client-side auth state
+ * which is not available on the server.
  */
 export async function setProblemStatusAction(
   userId: string,
@@ -141,6 +152,13 @@ export async function setProblemStatusAction(
   companySlug: string,
   problemSlug: string,
 ): Promise<{ success: boolean; error?: string }> {
+  // SENTINEL: Prevent IDOR by verifying the requested userId matches the authenticated session.
+  const currentUser = auth.currentUser;
+  if (!currentUser || currentUser.uid !== userId) {
+    Logger.warn("Security: Unauthorized attempt to set problem status", { requestedUserId: userId, authenticatedUserId: currentUser?.uid });
+    return { success: false, error: "Unauthorized: Server-side authentication is required to perform this action." };
+  }
+
   const validation = ActionInputSchema.extend({
     status: ProblemStatusSchema,
   }).safeParse({
@@ -201,6 +219,10 @@ export async function setProblemStatusAction(
  * @param {string} userId - The ID of the authenticated user.
  * @param {string[]} problemIds - The list of problem IDs to fetch status for.
  * @returns {Promise<Record<string, { isBookmarked: boolean; status?: ProblemStatus }> | { error: string }>}
+ *
+ * @deprecated This action is currently disabled for security reasons until proper server-side
+ * authentication (Admin SDK) is implemented. It currently relies on client-side auth state
+ * which is not available on the server.
  */
 export async function getUserProblemStatusesForIdsAction(
   userId: string,
@@ -209,16 +231,15 @@ export async function getUserProblemStatusesForIdsAction(
   | Record<string, { isBookmarked: boolean; status?: ProblemStatus }>
   | { error: string }
 > {
+  // SENTINEL: Prevent IDOR by verifying the requested userId matches the authenticated session.
+  const currentUser = auth.currentUser;
+  if (!currentUser || currentUser.uid !== userId) {
+    Logger.warn("Security: Unauthorized attempt to fetch user problem statuses", { requestedUserId: userId, authenticatedUserId: currentUser?.uid });
+    return { error: "Unauthorized: Server-side authentication is required to perform this action." };
+  }
+
   const validation = GetStatusInputSchema.safeParse({ userId, problemIds });
   if (!validation.success) {
-    // If validation fails because problemIds is empty, we can just return empty object
-    // but the schema requires min(1), so it will error.
-    // The original code returned {} for empty array.
-    // Let's check for empty array explicitly before schema or allow it in schema.
-    // The schema says .min(1), so it enforces non-empty.
-    // However, if the client sends an empty array, arguably we should just return {}.
-    // But let's stick to strict validation: if you ask for statuses, provide IDs.
-    // Exception: the original code allowed empty array.
     if (problemIds && problemIds.length === 0) return {};
     
     Logger.warn("Security validation failed in getUserProblemStatusesForIdsAction", { error: validation.error });
