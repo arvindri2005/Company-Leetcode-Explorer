@@ -12,6 +12,7 @@ if (fs.existsSync(filePath) && !isCI) {
 
 const content = `
 NEXT_PUBLIC_APP_URL=https://ci.example.com
+NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID=ca-pub-dummy
 NEXT_PUBLIC_FIREBASE_API_KEY=dummy-api-key-for-ci
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=ci-test.firebaseapp.com
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=ci-test-project
