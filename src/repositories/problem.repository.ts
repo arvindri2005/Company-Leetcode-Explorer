@@ -49,6 +49,15 @@ function getFirestore(): Firestore {
   return db;
 }
 
+function isFirestoreIndexError(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) return false;
+  const err = error as Record<string, unknown>;
+  return (
+    err.code === "failed-precondition" ||
+    (typeof err.message === "string" && err.message.includes("index"))
+  );
+}
+
 type FetchProblemsParams = {
   cursor?: string;
   page?: number;
@@ -188,7 +197,7 @@ export class ProblemRepository {
       return problemSnapshot.docs.map((docSnap) =>
         this.mapDocToProblem(docSnap),
       );
-    } catch (error) {
+    } catch (error: unknown) {
       Logger.error("Error fetching all problems", error);
       return [];
     }
@@ -208,7 +217,7 @@ export class ProblemRepository {
         return this.mapDocToProblem(problemSnap, company);
       }
       return undefined;
-    } catch (error) {
+    } catch (error: unknown) {
       Logger.error(`Error fetching problem details`, error, {
         companyId,
         problemId,
@@ -236,7 +245,7 @@ export class ProblemRepository {
         return { company, problem };
       }
       return { company, problem: undefined };
-    } catch (error) {
+    } catch (error: unknown) {
       Logger.error(
         `Error fetching problem by company slug and problem slug`,
         error,
@@ -254,7 +263,7 @@ export class ProblemRepository {
       return allProbs
         .map((p) => ({ companySlug: p.companySlug, problemSlug: p.slug }))
         .filter((s) => s.companySlug && s.problemSlug);
-    } catch (error) {
+    } catch (error: unknown) {
       Logger.error(
         "Error fetching all problem company and problem slugs",
         error,
@@ -344,11 +353,13 @@ export class ProblemRepository {
           residualDifficultyFilter,
           residualLastAskedFilter,
         );
-      } catch (error: any) {
-        if (
-          error.code === "failed-precondition" ||
-          error.message?.includes("index")
-        ) {
+      } catch (error: unknown) {
+        if (isFirestoreIndexError(error)) {
+          Logger.warn(
+            "Optimized path failed, falling back to semi-optimized",
+            undefined,
+            { message: (error as any).message },
+          );
           // Fall through to semi-optimized path
         } else {
           throw error;
@@ -623,7 +634,7 @@ export class ProblemRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       Logger.error("Error in Semi-Optimized Problem Fetch", error, {
         companyId,
       });
@@ -690,15 +701,12 @@ export class ProblemRepository {
     if (canUseOptimizedPath) {
       try {
         return await this.fetchProblemsOptimized(params, constraints);
-      } catch (error: any) {
-        if (
-          error.code === "failed-precondition" ||
-          error.message?.includes("index")
-        ) {
+      } catch (error: unknown) {
+        if (isFirestoreIndexError(error)) {
           Logger.warn(
             "Optimized path failed, falling back to full fetch",
             undefined,
-            { message: error.message },
+            { message: (error as any).message },
           );
           // Fall through to full fetch
         } else {
@@ -1004,7 +1012,7 @@ export class ProblemRepository {
         await setDoc(problemDocRef, dataToSave);
         return { id: problemSlug, updated: false };
       }
-    } catch (error) {
+    } catch (error: unknown) {
       const message =
         error instanceof Error
           ? error.message
