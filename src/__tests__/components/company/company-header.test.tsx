@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import CompanyHeader from '@/components/company/company-header';
+import { createMockCompany } from '@/__tests__/factories/data-factories';
 
 // Mock next/image
 jest.mock('next/image', () => ({
@@ -26,17 +27,12 @@ jest.mock('@/components/ui/breadcrumb', () => ({
 }));
 
 describe('CompanyHeader', () => {
-  const mockCompany = {
-    id: '1',
-    slug: 'test-company',
+  const mockCompany = createMockCompany({
     name: 'Test Company',
     logo: 'logo.png',
-    problemCount: 10,
     website: 'https://example.com',
     description: 'A test company description.',
-    commonTags: [],
-    relatedCompanies: [],
-  };
+  });
 
   it('should render company name, logo, and description', () => {
     render(<CompanyHeader company={mockCompany} />);
@@ -55,7 +51,10 @@ describe('CompanyHeader', () => {
   });
 
   it('should render fallback icon if no logo is provided', () => {
-    const companyWithoutLogo = { ...mockCompany, logo: undefined };
+    const companyWithoutLogo = createMockCompany({
+      ...mockCompany,
+      logo: undefined,
+    });
     render(<CompanyHeader company={companyWithoutLogo} />);
 
     expect(screen.queryByAltText('Test Company Logo')).not.toBeInTheDocument();
