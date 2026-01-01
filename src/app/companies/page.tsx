@@ -5,6 +5,7 @@ import ErrorBoundary from "@/components/ui/error-boundary";
 import CompanyListErrorFallback from "@/components/company/company-list-error-fallback";
 import CompaniesListContainer from "./companies-list-container";
 import StructuredData from "@/components/seo/structured-data";
+import { CompaniesPageSkeleton } from "@/components/skeletons/companies-page-skeleton";
 
 export const revalidate = 2592000; // 1 month
 
@@ -67,13 +68,7 @@ const jsonLd = {
 export default function CompaniesPage() {
   return (
     <ErrorBoundary fallback={<CompanyListErrorFallback />}>
-      <Suspense
-        fallback={
-          <div className="container mx-auto px-4 py-8 text-center text-gray-400">
-            Loading companies...
-          </div>
-        }
-      >
+      <Suspense fallback={<CompaniesPageSkeleton />}>
         <CompaniesListContainer />
       </Suspense>
       <StructuredData data={jsonLd} />
