@@ -8,3 +8,10 @@ Input: Work Experience Date fields (MM/YYYY) and Display Name
 Output: Added `maxLength` and `enterKeyHint` to `src/components/profile/work-experience-section.tsx` and `src/components/profile/user-info-card.tsx`. This prevents users from typing invalidly long strings that would be rejected by Zod schemas, and improves mobile keyboard navigation.
 - `maxLength={7}` for MM/YYYY fields aligns perfectly with standard date formats.
 - `enterKeyHint='next'` and `'done'` improve the mobile form flow.
+
+## 2025-02-12 - Accessibility Focus Trap
+Input: Login and Signup Forms (Initial Page Load)
+Output: Removed `autoFocus` from the initial input fields (Email and Display Name).
+- Automatically focusing a form control on page load confuses screen reader users by "teleporting" them to the input without context.
+- It can also cause unexpected scrolling or keyboard behavior on mobile devices.
+- Users should manually initiate focus when they are ready to type.

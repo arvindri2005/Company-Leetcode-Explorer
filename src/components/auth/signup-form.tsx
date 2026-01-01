@@ -192,7 +192,6 @@ export default function SignupForm() {
                     <Input
                       placeholder="Your Name"
                       {...field}
-                      autoFocus
                       autoComplete="name"
                       className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
                     />
