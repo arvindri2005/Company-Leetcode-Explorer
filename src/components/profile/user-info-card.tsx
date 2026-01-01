@@ -12,6 +12,7 @@ import {
   Save,
   X,
   LogOut,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,21 +79,27 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
   };
 
   return (
-    <Card className="bg-card border border-border rounded-xl mb-8 shadow-sm overflow-hidden relative">
-      <CardHeader className="p-6">
-        <div className="flex flex-col sm:flex-row items-start gap-6">
-          <Avatar className="h-24 w-24 ring-4 ring-primary/10 ring-offset-4 ring-offset-background shadow-lg shrink-0 transition-transform hover:scale-105 duration-300">
+    <Card className="bg-card border border-border rounded-xl mb-8 shadow-sm overflow-hidden relative group">
+      {/* VISAGE: Gradient Banner */}
+      <div className="h-32 w-full bg-gradient-to-r from-brand-teal/20 via-brand-purple/20 to-background dark:from-brand-teal/10 dark:via-brand-purple/10 dark:to-background" />
+
+      {/* Content pulled up to overlap banner */}
+      <div className="px-6 pb-6 -mt-12 relative z-10">
+        <div className="flex flex-col sm:flex-row items-end sm:items-start gap-6">
+
+          {/* Avatar with Cutout Border */}
+          <Avatar className="h-32 w-32 ring-4 ring-card ring-offset-0 shadow-2xl shrink-0 transition-transform hover:scale-105 duration-300 bg-card">
             <AvatarImage
               src={user.photoURL || undefined}
               data-ai-hint="profile avatar"
               className="object-cover"
             />
-            <AvatarFallback className="text-3xl bg-gradient-to-br from-primary/10 to-secondary/10 text-primary font-bold">
+            <AvatarFallback className="text-4xl bg-gradient-to-br from-primary/10 to-secondary/10 text-primary font-bold">
               {getInitials(user.displayName)}
             </AvatarFallback>
           </Avatar>
           
-          <div className="flex-grow space-y-3 w-full pt-1">
+          <div className="flex-grow space-y-3 w-full sm:pt-14">
             <div className="flex justify-between items-start gap-4 w-full">
               {!isEditingDisplayName ? (
                 <div className="space-y-1">
@@ -101,10 +108,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                       {user.displayName || "Anonymous User"}
                     </h2>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Mail className="h-3.5 w-3.5" />
-                    <span className="truncate max-w-[200px] sm:max-w-none">{user.email}</span>
-                  </div>
+                  {/* Handle/Email moved to badge section for cleaner hierarchy */}
                 </div>
               ) : (
                 <div className="w-full max-w-md">
@@ -187,18 +191,24 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
               </div>
             </div>
             
-            <div className="flex flex-wrap gap-2 pt-2">
+            {/* Refined Badges & Info */}
+            <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1 items-center text-sm text-muted-foreground">
+               <div className="flex items-center gap-1.5">
+                  <Mail className="h-4 w-4" />
+                  <span className="truncate max-w-[200px] sm:max-w-none">{user.email}</span>
+               </div>
+
               {user.emailVerified && (
-                <div className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400 border border-green-200 dark:border-green-500/30">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
-                  Verified
+                <div className="flex items-center gap-1.5 text-green-600 dark:text-green-400 font-medium">
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span>Verified</span>
                 </div>
               )}
 
               {user.metadata.creationTime && (
-                <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary/5 text-primary border border-primary/20">
-                  <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
-                  Member since {formatDate(user.metadata.creationTime)}
+                <div className="flex items-center gap-1.5">
+                  <CalendarDays className="h-4 w-4" />
+                  <span>Joined {formatDate(user.metadata.creationTime)}</span>
                 </div>
               )}
             </div>
@@ -229,7 +239,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
             </div>
           </div>
         </div>
-      </CardHeader>
+      </div>
     </Card>
   );
 };
