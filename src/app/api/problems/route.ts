@@ -8,6 +8,7 @@
  */
 import { NextResponse } from "next/server";
 import { problemService } from "@/services/problem.service";
+import { Logger } from "@/lib/logger";
 import { z } from "zod";
 import type {
   DifficultyFilter,
@@ -77,7 +78,7 @@ export async function GET(request: Request) {
       try {
         difficultyCounts = JSON.parse(difficultyCountsParam);
       } catch (e) {
-        console.warn("Invalid difficultyCounts param", e);
+        Logger.warn("Invalid difficultyCounts param", { error: e });
       }
     }
 
@@ -88,7 +89,7 @@ export async function GET(request: Request) {
     const lastAskedFilter = searchParams.getAll("lastAsked") as LastAskedFilter[];
     // statusFilter is not used in getPublicProblems (line 112 note in original file) but we can parse it if needed
     
-    console.log("[API] /api/problems (GET) called with userId:", userId);
+    Logger.info("[API] /api/problems (GET) called", { userId });
 
     let result;
     if (companyId) {
@@ -133,7 +134,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error("Error in /api/problems:", error);
+    Logger.error("Error in /api/problems", error);
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";
     return NextResponse.json(
