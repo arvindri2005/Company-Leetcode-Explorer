@@ -73,14 +73,6 @@ export const metadata: Metadata = {
       "Your ultimate hub for targeted coding interview preparation. Problem insights, company-specific interview questions, and more.",
     url: APP_URL,
     siteName: "Byte to Offer",
-    images: [
-      {
-        url: "/og-image.png", // Ensure this image exists in /public
-        width: 1200,
-        height: 630,
-        alt: "Byte to Offer - AI-Powered Interview Prep for Software Engineers",
-      },
-    ],
     locale: "en_US",
     type: "website",
   },
@@ -89,7 +81,6 @@ export const metadata: Metadata = {
     title: "Byte to Offer | AI-Powered interview Interview Prep",
     description:
       "Master coding interviews with AI-driven tools for targeted preparation. Explore interview questions for top tech companies.",
-    images: [`${APP_URL}/og-image.png`], // Ensure this image exists
   },
   icons: {
     icon: [
