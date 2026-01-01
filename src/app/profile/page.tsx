@@ -574,7 +574,7 @@ export default function ProfilePage() {
         {/* Right Column */}
         <div className="lg:col-span-8 xl:col-span-9">
           <Tabs defaultValue="bookmarks" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 mb-6">
+            <TabsList className="grid h-auto w-full grid-cols-2 gap-2 mb-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
               <TabsTrigger value="bookmarks">
                 <Bookmark className="mr-2 h-4 w-4" />
                 Bookmarks ({bookmarkedProblemDetails.length})
