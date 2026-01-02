@@ -38,31 +38,31 @@ interface CompanyHeaderProps {
  */
 export default function CompanyHeader({ company }: CompanyHeaderProps) {
     return (
-        <section className="relative bg-gradient-to-r from-gray-900 to-gray-800 border border-white/10 rounded-xl p-4 md:p-8 mb-4 md:mb-8 overflow-hidden shadow-lg transition-all duration-300 ease-in-out">
+        <section className="relative bg-gradient-to-r from-background to-card border border-border rounded-xl p-4 md:p-8 mb-4 md:mb-8 overflow-hidden shadow-lg transition-all duration-300 ease-in-out">
             <div className="relative z-20 mb-4 md:mb-6">
                 <Breadcrumb>
                     <BreadcrumbList>
                         <BreadcrumbItem>
                             <BreadcrumbLink asChild>
-                                <Link href="/" className="text-gray-400 hover:text-white transition-colors">Home</Link>
+                                <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors">Home</Link>
                             </BreadcrumbLink>
                         </BreadcrumbItem>
-                        <BreadcrumbSeparator className="text-gray-600" />
+                        <BreadcrumbSeparator className="text-muted-foreground/50" />
                         <BreadcrumbItem>
                             <BreadcrumbLink asChild>
-                                <Link href="/companies" className="text-gray-400 hover:text-white transition-colors">Companies</Link>
+                                <Link href="/companies" className="text-muted-foreground hover:text-foreground transition-colors">Companies</Link>
                             </BreadcrumbLink>
                         </BreadcrumbItem>
-                        <BreadcrumbSeparator className="text-gray-600" />
+                        <BreadcrumbSeparator className="text-muted-foreground/50" />
                         <BreadcrumbItem>
-                            <BreadcrumbPage className="text-white font-medium capitalize">{company.name}</BreadcrumbPage>
+                            <BreadcrumbPage className="text-foreground font-medium capitalize">{company.name}</BreadcrumbPage>
                         </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
             </div>
             <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
             <div className="relative z-10 flex flex-row md:flex-row items-center gap-3 md:gap-8 transition-all duration-300 ease-in-out">
-                <div className="relative h-16 w-16 md:h-24 md:w-24 flex-shrink-0 border-2 md:border-4 border-white/10 rounded-full shadow transition-all duration-300 ease-in-out">
+                <div className="relative h-16 w-16 md:h-24 md:w-24 flex-shrink-0 border-2 md:border-4 border-border rounded-full shadow transition-all duration-300 ease-in-out">
                     {company.logo ? (
                         <Image
                             src={getLogoUrl(company.logo) as string}
@@ -72,13 +72,13 @@ export default function CompanyHeader({ company }: CompanyHeaderProps) {
                             className="rounded-full object-contain bg-white p-2"
                         />
                     ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-gray-700 rounded-full">
-                            <Building2 className="h-12 w-12 text-gray-400" />
+                        <div className="flex h-full w-full items-center justify-center bg-muted rounded-full">
+                            <Building2 className="h-12 w-12 text-muted-foreground" />
                         </div>
                     )}
                 </div>
                 <div className="text-left transition-all duration-300 ease-in-out w-full flex flex-col justify-center">
-                    <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight transition-all duration-300 ease-in-out break-words capitalize">
+                    <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-foreground tracking-tight transition-all duration-300 ease-in-out break-words capitalize">
                         {company.name}
                     </h1>
                     {company.website && (
@@ -86,14 +86,14 @@ export default function CompanyHeader({ company }: CompanyHeaderProps) {
                             href={company.website}
                             target="_blank"
                             rel="noopener noreferrer nofollow"
-                            className="inline-flex items-center text-xs md:text-sm text-sky-400 hover:text-sky-300 transition-colors mt-1"
+                            className="inline-flex items-center text-xs md:text-sm text-primary hover:text-primary/80 transition-colors mt-1"
                         >
                             {company.website}
                             <ExternalLink className="h-4 w-4 ml-1.5" />
                         </a>
                     )}
                     {company.description && (
-                        <p className="hidden md:block mt-4 text-gray-300 max-w-2xl text-sm md:text-base transition-all duration-300 ease-in-out mx-auto md:mx-0">
+                        <p className="hidden md:block mt-4 text-muted-foreground max-w-2xl text-sm md:text-base transition-all duration-300 ease-in-out mx-auto md:mx-0">
                             {company.description}
                         </p>
                     )}

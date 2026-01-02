@@ -51,7 +51,7 @@ export function ContactForm() {
       <div>
         <label
           htmlFor="name"
-          className="block text-sm font-medium text-gray-400 mb-1"
+          className="block text-sm font-medium text-muted-foreground mb-1"
         >
           Name
         </label>
@@ -64,7 +64,7 @@ export function ContactForm() {
             required
             aria-invalid={!!state?.errors?.name}
             aria-describedby={state?.errors?.name ? "name-error" : undefined}
-            className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500 focus-visible:ring-primary focus-visible:border-primary"
+            className="bg-input border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-primary focus-visible:border-primary"
           />
         </div>
         {state?.errors?.name && (
@@ -76,7 +76,7 @@ export function ContactForm() {
       <div>
         <label
           htmlFor="email"
-          className="block text-sm font-medium text-gray-400 mb-1"
+          className="block text-sm font-medium text-muted-foreground mb-1"
         >
           Email
         </label>
@@ -90,7 +90,7 @@ export function ContactForm() {
             required
             aria-invalid={!!state?.errors?.email}
             aria-describedby={state?.errors?.email ? "email-error" : undefined}
-            className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500 focus-visible:ring-primary focus-visible:border-primary"
+            className="bg-input border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-primary focus-visible:border-primary"
           />
         </div>
         {state?.errors?.email && (
@@ -102,7 +102,7 @@ export function ContactForm() {
       <div>
         <label
           htmlFor="message"
-          className="block text-sm font-medium text-gray-400 mb-1"
+          className="block text-sm font-medium text-muted-foreground mb-1"
         >
           Message
         </label>
@@ -114,7 +114,7 @@ export function ContactForm() {
             required
             aria-invalid={!!state?.errors?.message}
             aria-describedby={state?.errors?.message ? "message-error" : undefined}
-            className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500 focus-visible:ring-primary focus-visible:border-primary"
+            className="bg-input border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-primary focus-visible:border-primary"
           />
         </div>
         {state?.errors?.message && (
