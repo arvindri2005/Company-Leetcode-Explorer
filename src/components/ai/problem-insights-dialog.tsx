@@ -153,7 +153,7 @@ const InsightsContent = ({
       )}
       {insights.highLevelHint && (
         <InsightSection title="High-Level Hint" icon={<Lightbulb size={22} />}>
-          <div className="prose prose-sm dark:prose-invert max-w-none bg-background/50 p-3 rounded-md">
+          <div className="prose prose-sm dark:prose-invert bg-background/50 p-3 rounded-md">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {insights.highLevelHint}
             </ReactMarkdown>

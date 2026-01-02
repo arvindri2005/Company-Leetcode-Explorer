@@ -414,7 +414,7 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
                   <ListChecks size={20} className="mr-2 text-primary" />
                   Overall Preparation Strategy
                 </h4>
-                <div className="prose prose-sm sm:prose dark:prose-invert max-w-none p-4 bg-muted/30 rounded-md">
+                <div className="prose prose-sm sm:prose dark:prose-invert p-4 bg-muted/30 rounded-md">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {strategyData.preparationStrategy}
                   </ReactMarkdown>
