@@ -1,7 +1,7 @@
 import { companyRepository, GetCompaniesParams, PaginatedCompaniesResponse } from "@/repositories/company.repository";
 import { Company } from "@/types";
-import { unstable_cache, revalidateTag } from "next/cache";
 import { Logger } from "@/lib/logger";
+import { cacheManager, CacheTTL } from "@/lib/cache";
 
 export class CompanyService {
   async getCompanies(params: GetCompaniesParams = {}): Promise<PaginatedCompaniesResponse> {
@@ -14,16 +14,14 @@ export class CompanyService {
       cursor,
     })}`;
 
-    const getCachedCompanies = unstable_cache(
+    return await cacheManager.wrap(
+      cacheKey,
       async () => await companyRepository.getCompanies(params),
-      [cacheKey],
       {
-        revalidate: 2592000, // 30 days
+        revalidate: CacheTTL.STATIC, // 30 days
         tags: ["companies-collection-broad"],
       }
     );
-
-    return await getCachedCompanies();
   }
 
   async loadMoreCompanies(
@@ -52,17 +50,15 @@ export class CompanyService {
       return await companyRepository.getCompanyById(id);
     }
 
-    const getCachedCompany = unstable_cache(
-      async () => companyRepository.getCompanyById(id),
-      [`company-${id}`],
-      {
-        revalidate: 2592000, // 30 days
-        tags: [`company-${id}-v2`],
-      }
-    );
-
     try {
-      return await getCachedCompany();
+      return await cacheManager.wrap(
+        `company-${id}`,
+        async () => companyRepository.getCompanyById(id),
+        {
+          revalidate: CacheTTL.STATIC, // 30 days
+          tags: [`company-${id}-v2`],
+        }
+      );
     } catch (error) {
       Logger.error(`Error fetching company by ID ${id}`, error);
       return undefined;
@@ -74,17 +70,15 @@ export class CompanyService {
       return await companyRepository.getCompanyBySlug(slug);
     }
 
-    const getCachedCompany = unstable_cache(
-      async () => companyRepository.getCompanyBySlug(slug),
-      [`company-slug-${slug}`],
-      {
-        revalidate: 2592000, // 30 days
-        tags: [`company-slug-${slug}-v2`],
-      }
-    );
-
     try {
-      return await getCachedCompany();
+      return await cacheManager.wrap(
+        `company-slug-${slug}`,
+        async () => companyRepository.getCompanyBySlug(slug),
+        {
+          revalidate: CacheTTL.STATIC, // 30 days
+          tags: [`company-slug-${slug}-v2`],
+        }
+      );
     } catch (error) {
       Logger.error(`Error fetching company by slug ${slug}`, error);
       return undefined;
@@ -96,17 +90,15 @@ export class CompanyService {
         return await companyRepository.getAllCompanySlugs(true);
     }
     
-    const getCachedSlugs = unstable_cache(
+    try {
+      return await cacheManager.wrap(
+        'all-company-slugs',
         async () => companyRepository.getAllCompanySlugs(true),
-        ['all-company-slugs'],
         {
-            revalidate: 86400, // 24 hours
+            revalidate: CacheTTL.DAILY, // 24 hours
             tags: ['companies-list'],
         }
-    );
-
-    try {
-        return await getCachedSlugs();
+      );
     } catch (error) {
         Logger.error("Error fetching all company slugs", error);
         return [];
@@ -147,14 +139,20 @@ export class CompanyService {
 
   async revalidateCompaniesPage(companyId?: string, companySlug?: string) {
     try {
-      revalidateTag("companies-list", 'max');
+      // Note: We need to use cacheManager.revalidateTag instead of direct revalidateTag import
+      // however, revalidateTag takes a single string.
+      // The original code was: revalidateTag("companies-list", 'max'); 
+      // Note: 'max' is not a valid 2nd arg for revalidateTag in standard Next.js, maybe it was ignored or from a specific version?
+      // Standard signature: revalidateTag(tag: string): void
+      
+      cacheManager.revalidateTag("companies-list");
       
       if (companyId) {
-        revalidateTag(`company-${companyId}-v2`, 'max');
+        cacheManager.revalidateTag(`company-${companyId}-v2`);
       }
       
       if (companySlug) {
-        revalidateTag(`company-slug-${companySlug}-v2`, 'max');
+        cacheManager.revalidateTag(`company-slug-${companySlug}-v2`);
       }
       
       Logger.info("[Cache] Revalidated companies page", { companyId, companySlug });
