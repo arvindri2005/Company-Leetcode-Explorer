@@ -149,11 +149,13 @@ export default function RootLayout({
           src="https://cdn.ampproject.org/v0/amp-ad-0.1.js"
         ></script>
         <script async src="https://cdn.ampproject.org/v0.js"></script>
-        <script
-          async
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID}`}
-          crossOrigin="anonymous"
-        ></script>
+        {env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID && (
+          <script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID}`}
+            crossOrigin="anonymous"
+          ></script>
+        )}
       </head>
       <body
         className="font-sans antialiased"
