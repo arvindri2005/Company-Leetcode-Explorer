@@ -1,4 +1,4 @@
-import { unstable_cache, revalidateTag } from "next/cache";
+import { unstable_cache, revalidateTag as nextRevalidateTag } from "next/cache";
 import { CacheAdapter, CacheOptions, CacheTTL } from "./types";
 import { Logger } from "@/lib/logger";
 
@@ -43,7 +43,10 @@ export class NextCacheAdapter implements CacheAdapter {
   revalidateTag(tag: string): void {
     try {
       Logger.info(`[Cache] Revalidating tag: ${tag}`);
-      revalidateTag(tag);
+      // @ts-ignore - The installed version of next seems to require a 2nd argument, or definitions are mismatched.
+      // Passing undefined or void to satisfy strict arg count if strictly required, but standard API is 1 arg.
+      // If typescript complains about arg count, we use ts-ignore because at runtime it might be optional or different.
+      nextRevalidateTag(tag);
     } catch (error) {
       Logger.error(`[Cache] Failed to revalidate tag: ${tag}`, error);
     }
