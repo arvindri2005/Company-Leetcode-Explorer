@@ -14,19 +14,12 @@ export class NextCacheAdapter implements CacheAdapter {
   ): Promise<T> {
     const { tags = [], revalidate = CacheTTL.SHORT } = options;
 
-    // We can add logging here to track cache definition,
-    // though 'unstable_cache' doesn't expose hit/miss callbacks directly.
-    // We log the *intent* to cache.
-    // Logger.debug(`[Cache] Wrapping key: ${key}`, { tags, revalidate });
-
     const cachedFn = unstable_cache(
       async () => {
-        // This execution happens on cache MISS
-        // Logger.debug(`[Cache] MISS: Executing source function for ${key}`);
         try {
           return await fn();
         } catch (error) {
-          Logger.error(`[Cache] Error executing source function for ${key}`, error);
+          (Logger as any).error(`[Cache] Error executing source function for ${key}`, error);
           throw error;
         }
       },
@@ -42,10 +35,10 @@ export class NextCacheAdapter implements CacheAdapter {
 
   revalidateTag(tag: string): void {
     try {
-      Logger.info(`[Cache] Revalidating tag: ${tag}`);
+      (Logger as any).info(`[Cache] Revalidating tag: ${tag}`);
       revalidateTag(tag);
     } catch (error) {
-      Logger.error(`[Cache] Failed to revalidate tag: ${tag}`, error);
+      (Logger as any).error(`[Cache] Failed to revalidate tag: ${tag}`, error);
     }
   }
 }
