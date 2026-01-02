@@ -21,6 +21,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { userService } from "@/services/user.service";
 import { loadMoreProblemsAction } from "@/app/actions/problem.actions";
 import { Loader2 } from "lucide-react";
+import { parseArrayValid } from "@/lib/utils";
 
 const ProblemListControls = dynamic(() => import("./problem-list-controls"), {
   loading: () => (
@@ -80,22 +81,28 @@ const ProblemList: React.FC<ProblemListProps> = ({
 
   // -- Helper to derive current filters from URL --
   const getCurrentFilters = useCallback((): ProblemListFilters => {
-     const params = new URLSearchParams(searchParams.toString());
-     const parseArrayValid = <T extends string>(
-             val: string[] | null,
-             validValues: T[]
-        ): T[] => {
-            if (!val) return [];
-            return val.filter((v): v is T => validValues.includes(v as T));
-        };
-      
-     return {
-        difficultyFilter: parseArrayValid(params.getAll("difficultyFilter"), ["Easy", "Medium", "Hard"]) as any[],
-        lastAskedFilter: parseArrayValid(params.getAll("lastAskedFilter"), ["last_30_days", "within_3_months", "within_6_months", "older_than_6_months"]) as any[],
-        statusFilter: parseArrayValid(params.getAll("statusFilter"), ["solved", "attempted", "todo"]) as any[],
-        searchTerm: params.get("searchTerm") || "",
-        sortKey: (params.get("sortKey") || "title") as SortKey,
-     };
+    const params = new URLSearchParams(searchParams.toString());
+
+    return {
+      difficultyFilter: parseArrayValid(params.getAll("difficultyFilter"), [
+        "Easy",
+        "Medium",
+        "Hard",
+      ]) as any[],
+      lastAskedFilter: parseArrayValid(params.getAll("lastAskedFilter"), [
+        "last_30_days",
+        "within_3_months",
+        "within_6_months",
+        "older_than_6_months",
+      ]) as any[],
+      statusFilter: parseArrayValid(params.getAll("statusFilter"), [
+        "solved",
+        "attempted",
+        "todo",
+      ]) as any[],
+      searchTerm: params.get("searchTerm") || "",
+      sortKey: (params.get("sortKey") || "title") as SortKey,
+    };
   }, [searchParams]);
 
   const currentFilters = getCurrentFilters();
@@ -126,21 +133,12 @@ const ProblemList: React.FC<ProblemListProps> = ({
   // -- Client-Side Fetch on Params Change --
   useEffect(() => {
     const fetchFilteredProblems = async () => {
-        const params = new URLSearchParams(searchParams.toString());
-        
-        // Helper to parse array filters
-        const parseArrayValid = <T extends string>(
-             val: string[] | null,
-             validValues: T[]
-        ): T[] => {
-            if (!val) return [];
-            return val.filter((v): v is T => validValues.includes(v as T));
-        };
+      const params = new URLSearchParams(searchParams.toString());
 
-        const difficultyFilter = parseArrayValid(
-            params.getAll("difficultyFilter"),
-            ["Easy", "Medium", "Hard"]
-        ) as any[];
+      const difficultyFilter = parseArrayValid(
+        params.getAll("difficultyFilter"),
+        ["Easy", "Medium", "Hard"],
+      ) as any[];
 
         const lastAskedFilter = parseArrayValid(params.getAll("lastAskedFilter"), [
             "last_30_days",

@@ -112,41 +112,47 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
     handleGenerateInsights,
   } = useAIFeatures(problem, companySlug);
 
-  const { displayTime } = useMemo(() => {
-     let time = "";
+  const displayTime = useMemo(() => {
+    let time = "";
     if (problem.lastAskedPeriod) {
       // Use deterministic random based on problem ID to prevent hydration mismatch
       const rand = getDeterministicRandom(problem.id);
       switch (problem.lastAskedPeriod) {
-        case "last_30_days": time = `${Math.floor(rand * 30) + 1}d ago`; break;
-        case "within_3_months": time = `${Math.floor(rand * 3) + 1}mo ago`; break;
-        case "within_6_months": time = `${Math.floor(rand * 3) + 3}mo ago`; break;
-        case "older_than_6_months": time = `${Math.floor(rand * 6) + 6}mo ago`; break;
-        default: time = "";
+        case "last_30_days":
+          time = `${Math.floor(rand * 30) + 1}d ago`;
+          break;
+        case "within_3_months":
+          time = `${Math.floor(rand * 3) + 1}mo ago`;
+          break;
+        case "within_6_months":
+          time = `${Math.floor(rand * 3) + 3}mo ago`;
+          break;
+        case "older_than_6_months":
+          time = `${Math.floor(rand * 6) + 6}mo ago`;
+          break;
+        default:
+          time = "";
       }
     }
-    return { displayTime: time };
+    return time;
   }, [problem.lastAskedPeriod, problem.id]);
 
 
   const StatusIcon = statusIcons[currentStatus];
   
-  const difficultyColor = useMemo(() => {
-    switch(problem.difficulty) {
-        case 'Easy': return "text-emerald-500 bg-emerald-500/10 border-emerald-500/20";
-        case 'Medium': return "text-amber-500 bg-amber-500/10 border-amber-500/20";
-        case 'Hard': return "text-rose-500 bg-rose-500/10 border-rose-500/20";
-        default: return "text-slate-500 bg-slate-500/10 border-slate-500/20";
-    }
-  }, [problem.difficulty]);
+  // Optimization: Simple string lookups are faster than useMemo overhead
+  let difficultyColor = "text-slate-500 bg-slate-500/10 border-slate-500/20";
+  switch(problem.difficulty) {
+      case 'Easy': difficultyColor = "text-emerald-500 bg-emerald-500/10 border-emerald-500/20"; break;
+      case 'Medium': difficultyColor = "text-amber-500 bg-amber-500/10 border-amber-500/20"; break;
+      case 'Hard': difficultyColor = "text-rose-500 bg-rose-500/10 border-rose-500/20"; break;
+  }
 
-    const statusColor = useMemo(() => {
-        switch(currentStatus) {
-            case 'solved': return "text-emerald-500";
-            case 'attempted': return "text-amber-500";
-            default: return "text-muted-foreground/40 group-hover:text-muted-foreground/60";
-        }
-    }, [currentStatus]);
+  let statusColor = "text-muted-foreground/40 group-hover:text-muted-foreground/60";
+  switch(currentStatus) {
+      case 'solved': statusColor = "text-emerald-500"; break;
+      case 'attempted': statusColor = "text-amber-500"; break;
+  }
 
   const problemTags = problem.tags || [];
 
