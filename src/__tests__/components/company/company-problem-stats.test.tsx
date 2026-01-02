@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import CompanyProblemStats from '@/components/company/company-problem-stats';
 import { Company } from '@/types';
+import { createMockCompany } from '@/__tests__/factories/data-factories';
 
 // Mock Recharts
 jest.mock('recharts', () => ({
@@ -27,13 +28,9 @@ jest.mock('@/components/problem/tag-badge', () => ({
 }));
 
 describe('CompanyProblemStats', () => {
-  const mockCompany: Company = {
+  const mockCompany = createMockCompany({
     id: '1',
-    slug: 'test-company',
     name: 'Test Company',
-    logo: 'logo.png',
-    problemCount: 10,
-    website: 'https://example.com',
     statsLastUpdatedAt: new Date(),
     difficultyCounts: {
       Easy: 5,
@@ -50,8 +47,7 @@ describe('CompanyProblemStats', () => {
       { tag: 'Array', count: 5 },
       { tag: 'String', count: 3 },
     ],
-    relatedCompanies: [],
-  };
+  });
 
   it('should render problem statistics when data is available', () => {
     render(<CompanyProblemStats company={mockCompany} />);
@@ -70,19 +66,19 @@ describe('CompanyProblemStats', () => {
   });
 
   it('should return null if stats are missing', () => {
-    const companyWithoutStats = {
+    const companyWithoutStats = createMockCompany({
       ...mockCompany,
       statsLastUpdatedAt: undefined,
-    };
+    });
     const { container } = render(<CompanyProblemStats company={companyWithoutStats} />);
     expect(container).toBeEmptyDOMElement();
   });
 
   it('should return null if difficulty counts are missing', () => {
-    const companyWithoutDifficulty = {
+    const companyWithoutDifficulty = createMockCompany({
       ...mockCompany,
       difficultyCounts: undefined,
-    };
+    });
     // @ts-ignore
     const { container } = render(<CompanyProblemStats company={companyWithoutDifficulty} />);
     expect(container).toBeEmptyDOMElement();
