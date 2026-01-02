@@ -3,7 +3,7 @@
 import React from "react";
 import { useFormContext, FormProvider } from "react-hook-form";
 import { z } from "zod";
-import { Card, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Mail,
@@ -12,6 +12,7 @@ import {
   Save,
   X,
   LogOut,
+  BadgeCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,9 +80,10 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
 
   return (
     <Card className="bg-card border border-border rounded-xl mb-8 shadow-sm overflow-hidden relative">
-      <CardHeader className="p-6">
-        <div className="flex flex-col sm:flex-row items-start gap-6">
-          <Avatar className="h-24 w-24 ring-4 ring-primary/10 ring-offset-4 ring-offset-background shadow-lg shrink-0 transition-transform hover:scale-105 duration-300">
+      <div className="h-28 w-full bg-gradient-to-r from-brand-teal/10 via-brand-purple/10 to-background" />
+      <CardContent className="p-6 pt-0 relative z-10">
+        <div className="flex flex-col sm:flex-row items-start gap-6 -mt-12">
+          <Avatar className="h-24 w-24 ring-4 ring-background shadow-lg shrink-0 transition-transform hover:scale-105 duration-300">
             <AvatarImage
               src={user.photoURL || undefined}
               data-ai-hint="profile avatar"
@@ -91,8 +93,8 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
               {getInitials(user.displayName)}
             </AvatarFallback>
           </Avatar>
-          
-          <div className="flex-grow space-y-3 w-full pt-1">
+
+          <div className="flex-grow space-y-3 w-full pt-12 sm:pt-14">
             <div className="flex justify-between items-start gap-4 w-full">
               {!isEditingDisplayName ? (
                 <div className="space-y-1">
@@ -100,10 +102,23 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                     <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                       {user.displayName || "Anonymous User"}
                     </h2>
+                    {user.emailVerified && (
+                      <BadgeCheck className="h-5 w-5 text-brand-teal" aria-label="Verified User" />
+                    )}
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Mail className="h-3.5 w-3.5" />
-                    <span className="truncate max-w-[200px] sm:max-w-none">{user.email}</span>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                      <Mail className="h-3.5 w-3.5" />
+                      <span className="truncate max-w-[200px] sm:max-w-none">
+                        {user.email}
+                      </span>
+                    </div>
+                    {user.metadata.creationTime && (
+                      <div className="flex items-center gap-1.5">
+                        <CalendarDays className="h-3.5 w-3.5" />
+                        <span>Member since {formatDate(user.metadata.creationTime)}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -111,7 +126,9 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                   <FormProvider {...displayNameForm}>
                     <Form {...displayNameForm}>
                       <form
-                        onSubmit={displayNameForm.handleSubmit(onSubmitDisplayName)}
+                        onSubmit={displayNameForm.handleSubmit(
+                          onSubmitDisplayName,
+                        )}
                         className="space-y-3"
                       >
                         <FormField
@@ -140,7 +157,9 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                             size="sm"
                             isLoading={isSubmittingDisplayName}
                           >
-                            {!isSubmittingDisplayName && <Save className="h-3.5 w-3.5 mr-2" />}
+                            {!isSubmittingDisplayName && (
+                              <Save className="h-3.5 w-3.5 mr-2" />
+                            )}
                             Save
                           </Button>
                           <Button
@@ -167,7 +186,10 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                     size="sm"
                     onClick={() => {
                       setIsEditingDisplayName(true);
-                      displayNameForm.setValue("displayName", user.displayName || "");
+                      displayNameForm.setValue(
+                        "displayName",
+                        user.displayName || "",
+                      );
                     }}
                     className="h-9 hover:bg-secondary/50 transition-colors"
                   >
@@ -186,22 +208,6 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                 </Button>
               </div>
             </div>
-            
-            <div className="flex flex-wrap gap-2 pt-2">
-              {user.emailVerified && (
-                <div className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400 border border-green-200 dark:border-green-500/30">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
-                  Verified
-                </div>
-              )}
-
-              {user.metadata.creationTime && (
-                <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary/5 text-primary border border-primary/20">
-                  <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
-                  Member since {formatDate(user.metadata.creationTime)}
-                </div>
-              )}
-            </div>
 
             {/* Mobile Actions (Visible only on small screens) */}
             <div className="sm:hidden pt-4 border-t border-border mt-4 w-full grid grid-cols-2 gap-3">
@@ -210,7 +216,10 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                   variant="outline"
                   onClick={() => {
                     setIsEditingDisplayName(true);
-                    displayNameForm.setValue("displayName", user.displayName || "");
+                    displayNameForm.setValue(
+                      "displayName",
+                      user.displayName || "",
+                    );
                   }}
                   className="w-full"
                 >
@@ -229,7 +238,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
             </div>
           </div>
         </div>
-      </CardHeader>
+      </CardContent>
     </Card>
   );
 };
