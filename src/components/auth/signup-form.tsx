@@ -34,6 +34,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { PasswordStrengthIndicator } from "./password-strength-indicator";
 import { Check } from "lucide-react";
 import { useEffect } from "react";
+import { useOnlineStatus } from "@/hooks/use-online-status";
 
 /**
  * Zod schema for validating the sign-up form fields.
@@ -74,6 +75,7 @@ export default function SignupForm() {
   const [showPassword, setShowPassword] = useState(false);
   const { syncUserProfileIfNeeded } = useAuth();
   const [passwordScore, setPasswordScore] = useState(0);
+  const isOnline = useOnlineStatus();
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupFormSchema),
@@ -99,6 +101,15 @@ export default function SignupForm() {
   }, [password]);
 
   async function onSubmit(data: SignupFormValues) {
+    if (!isOnline) {
+      toast({
+        title: "You are offline",
+        description: "Please check your internet connection and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(
@@ -280,15 +291,19 @@ export default function SignupForm() {
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-500" style={{ animationFillMode: 'both' }}>
           <Button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !isOnline}
             className="w-full h-11 text-base transition-all duration-200 hover:scale-102 shadow-lg hover:shadow-primary/25"
           >
             {isSubmitting ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : !isOnline ? (
+              "You are offline"
             ) : (
-              <UserPlusIcon className="mr-2 h-4 w-4" />
+              <>
+                <UserPlusIcon className="mr-2 h-4 w-4" />
+                Sign Up
+              </>
             )}
-            Sign Up
           </Button>
         </div>
 

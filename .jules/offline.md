@@ -1,9 +1,3 @@
-# Offline Logbook
-
-## 2025-02-18 - Missing Offline Feedback
-**Disconnect:** Users had no visual indication when their network connection dropped.
-**Link:** Implemented `OfflineIndicator` and `useOnlineStatus` to provide real-time feedback.
-
-## 2025-02-18 - Missing Service Worker
-**Disconnect:** The application had no caching strategy for static assets, causing immediate failure when reloading offline or navigating to cached pages.
-**Link:** Implemented Service Worker using `serwist` to cache static assets and provide an offline fallback page.
+## 2024-05-24 - Login Form Silent Failure Disconnect
+Disconnect: When offline, users could still attempt to click "Login" or "Sign Up", leading to a silent failure or an unhandled Firebase network error because `signInWithEmailAndPassword` requires a connection.
+Link: Added `useOnlineStatus` hook to `LoginForm` and `SignupForm` to explicitly disable the submit button and change the text to "You are offline" when `navigator.onLine` is false. This prevents the user from initiating a doomed request and provides immediate feedback.

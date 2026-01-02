@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { GoogleIcon } from "../icons/google-icon";
+import { useOnlineStatus } from "@/hooks/use-online-status";
 
 export default function GoogleAuthButton() {
   const { toast } = useToast();
@@ -16,8 +17,18 @@ export default function GoogleAuthButton() {
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const { syncUserProfileIfNeeded } = useAuth();
+  const isOnline = useOnlineStatus();
 
   const handleGoogleSignIn = async () => {
+    if (!isOnline) {
+      toast({
+        title: "You are offline",
+        description: "Please check your internet connection and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const provider = new GoogleAuthProvider();
@@ -65,14 +76,14 @@ export default function GoogleAuthButton() {
       type="button"
       className="w-full"
       onClick={handleGoogleSignIn}
-      disabled={isLoading}
+      disabled={isLoading || !isOnline}
     >
       {isLoading ? (
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
       ) : (
         <GoogleIcon className="mr-2 h-5 w-5" />
       )}
-      Continue with Google
+      {isOnline ? "Continue with Google" : "Offline"}
     </Button>
   );
 }
