@@ -147,7 +147,10 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
 
   useEffect(() => {
     if (user && !authLoading) {
-      loadSavedStrategy();
+      const timer = setTimeout(() => {
+        loadSavedStrategy();
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [user, authLoading, loadSavedStrategy]);
 
@@ -374,7 +377,7 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
                   </h3>
                   <CardDescription>
                     {hasSavedStrategy &&
-                      `Last saved: ${new Date(strategyData.todoItems[0]?.isCompleted !== undefined && "savedAt" in strategyData ? (strategyData as any).savedAt : Date.now()).toLocaleDateString()}. `}
+                      `Last saved: ${strategyData.todoItems[0]?.isCompleted !== undefined && "savedAt" in strategyData ? new Date((strategyData as any).savedAt).toLocaleDateString() : "Just now"}. `}
                     Tailored for a{" "}
                     {targetRoleLevelOptions
                       .find((opt) => opt.value === selectedRoleLevel)
@@ -414,7 +417,7 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
                   <ListChecks size={20} className="mr-2 text-primary" />
                   Overall Preparation Strategy
                 </h4>
-                <div className="prose prose-sm sm:prose dark:prose-invert max-w-none p-4 bg-muted/30 rounded-md">
+                <div className="prose prose-sm sm:prose dark:prose-invert p-4 bg-muted/30 rounded-md">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {strategyData.preparationStrategy}
                   </ReactMarkdown>
@@ -496,7 +499,7 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
                   </ul>
                   {!hasSavedStrategy && (
                     <p className="text-xs text-muted-foreground mt-2 text-center">
-                      Don't forget to save this strategy to your profile if you
+                      Don&apos;t forget to save this strategy to your profile if you
                       find it useful!
                     </p>
                   )}
@@ -507,7 +510,7 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
         )}
         {!isLoadingSaved && !strategyData && !isAILoading && user && (
           <p className="text-center text-muted-foreground py-6">
-            Click "{generateButtonText}" to get an AI-powered plan for{" "}
+            Click &quot;{generateButtonText}&quot; to get an AI-powered plan for{" "}
             {companyName}.
           </p>
         )}

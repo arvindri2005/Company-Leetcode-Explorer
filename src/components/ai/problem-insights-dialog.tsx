@@ -105,7 +105,7 @@ const InsightsContent = ({
         <AlertTriangle size={48} className="text-destructive" />
         <h3 className="text-xl font-semibold">Insights Not Available</h3>
         <p className="text-muted-foreground max-w-sm">
-          We couldn't generate insights for this problem at the moment. This
+          We couldn&apos;t generate insights for this problem at the moment. This
           could be a temporary issue. Please try again later.
         </p>
       </div>
@@ -153,7 +153,7 @@ const InsightsContent = ({
       )}
       {insights.highLevelHint && (
         <InsightSection title="High-Level Hint" icon={<Lightbulb size={22} />}>
-          <div className="prose prose-sm dark:prose-invert max-w-none bg-background/50 p-3 rounded-md">
+          <div className="prose prose-sm dark:prose-invert bg-background/50 p-3 rounded-md">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {insights.highLevelHint}
             </ReactMarkdown>
@@ -194,7 +194,7 @@ export default function ProblemInsightsDialog({
                 size={28}
                 className="mr-3 text-primary flex-shrink-0 mt-1"
               />
-              <span>AI Insights for "{problemTitle}"</span>
+              <span>AI Insights for &quot;{problemTitle}&quot;</span>
             </DialogTitle>
             <DialogDescription className="text-sm">
               Key concepts, common approaches, and a hint to guide your
@@ -224,7 +224,7 @@ export default function ProblemInsightsDialog({
         <DrawerHeader className="text-left">
           <DrawerTitle className="text-xl font-bold flex items-start">
             <Brain size={24} className="mr-2 text-primary flex-shrink-0 mt-1" />
-            AI Insights for "{problemTitle}"
+            AI Insights for &quot;{problemTitle}&quot;
           </DrawerTitle>
           <DrawerDescription>
             Key concepts, common approaches, and a hint to guide your thinking.
