@@ -24,23 +24,22 @@ export interface ChipProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof chipVariants> {
   selected?: boolean;
+  ref?: React.Ref<HTMLButtonElement>;
 }
 
-const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
-  ({ className, variant, selected, ...props }, ref) => {
-    return (
-      <button
-        aria-pressed={selected}
-        className={cn(
-          chipVariants({ variant: selected ? "selected" : "default" }),
-          className,
-        )}
-        ref={ref}
-        {...props}
-      />
-    );
-  },
-);
+const Chip = ({ className, variant, selected, ref, ...props }: ChipProps) => {
+  return (
+    <button
+      aria-pressed={selected}
+      className={cn(
+        chipVariants({ variant: selected ? "selected" : "default" }),
+        className,
+      )}
+      ref={ref}
+      {...props}
+    />
+  );
+};
 
 Chip.displayName = "Chip";
 
