@@ -60,9 +60,15 @@ const problemRequestSchema = z.object({
  * and a new cursor, or an error response if the request is invalid or an issue occurs.
  */
 export async function GET(request: Request) {
+  const requestId = crypto.randomUUID();
+  const startTime = Date.now();
+  let companyId: string | undefined;
+
   try {
     const { searchParams } = new URL(request.url);
-    const companyId = searchParams.get("companyId") || undefined;
+
+    // Parse parameters
+    companyId = searchParams.get("companyId") || undefined;
     const cursor = searchParams.get("cursor") || undefined;
     const pageSize = parseInt(searchParams.get("pageSize") || "15");
     // SENTINEL: Prevent IDOR by ignoring client-provided userId in public API.
@@ -78,7 +84,7 @@ export async function GET(request: Request) {
       try {
         difficultyCounts = JSON.parse(difficultyCountsParam);
       } catch (e) {
-        Logger.warn("Invalid difficultyCounts param", { error: e });
+        Logger.warn("Invalid difficultyCounts param", { error: e, requestId });
       }
     }
 
@@ -87,9 +93,14 @@ export async function GET(request: Request) {
     const sortKey = (searchParams.get("sortKey") as SortKey) || undefined;
     const difficultyFilter = searchParams.getAll("difficulty") as DifficultyFilter[];
     const lastAskedFilter = searchParams.getAll("lastAsked") as LastAskedFilter[];
-    // statusFilter is not used in getPublicProblems (line 112 note in original file) but we can parse it if needed
-    
-    Logger.info("[API] /api/problems (GET) called", { userId });
+
+    Logger.info("[API] /api/problems (GET) started", {
+      requestId,
+      companyId,
+      cursor,
+      pageSize,
+      filters: { difficultyFilter, lastAskedFilter, searchTerm, sortKey }
+    });
 
     let result;
     if (companyId) {
@@ -133,9 +144,18 @@ export async function GET(request: Request) {
       });
     }
 
+    const durationMs = Date.now() - startTime;
+    Logger.info("[API] /api/problems (GET) completed", {
+      requestId,
+      durationMs,
+      resultCount: result.problems?.length,
+      hasMore: result.hasMore
+    });
+
     return NextResponse.json(result);
   } catch (error) {
-    Logger.error("Error in /api/problems", error);
+    const durationMs = Date.now() - startTime;
+    Logger.error("Error in /api/problems", error, { requestId, durationMs, companyId });
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";
     return NextResponse.json(
