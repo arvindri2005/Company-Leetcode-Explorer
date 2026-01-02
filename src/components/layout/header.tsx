@@ -47,8 +47,8 @@ const Header = React.memo(function Header() {
   // Render a navigation item
   const renderNavItem = useCallback((item: NavigationItem, isMobile: boolean) => {
     const isActive = item.href && pathname === item.href;
-    const baseClasses = `text-gray-200 no-underline hover:text-teal-400 transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${item.className || ''}`;
-    const mobileClasses = `block py-4 border-b border-gray-200/10 font-bold ${isActive ? "text-teal-400" : ""}`;
+    const baseClasses = `text-muted-foreground no-underline hover:text-primary transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${item.className || ''}`;
+    const mobileClasses = `block py-4 border-b border-border font-bold ${isActive ? "text-primary" : ""}`;
 
     const className = isMobile ? `${baseClasses} ${mobileClasses}` : baseClasses;
 
@@ -107,7 +107,7 @@ const Header = React.memo(function Header() {
     () =>
       function AuthLinks(isMobile = false) {
         if (authLoading) {
-          return <span className="text-gray-200">Loading...</span>;
+          return <span className="text-muted-foreground">Loading...</span>;
         }
 
         const items = navigationRegistry.getItems('auth', { user, isLoading: authLoading });
@@ -123,11 +123,11 @@ const Header = React.memo(function Header() {
 
   return (
     <>
-      <nav className="sticky top-0 w-full bg-opacity-95 bg-gray-900 backdrop-blur-lg z-50 py-4 transition-all duration-300 ease-in-out border-b border-gray-200/10">
+      <nav className="sticky top-0 w-full bg-background/95 backdrop-blur-lg z-50 py-4 transition-all duration-300 ease-in-out border-b border-border">
         <div className="container mx-auto flex justify-between items-center px-8">
           <Link
             href="/"
-            className="text-2xl font-bold text-teal-400 no-underline flex items-center gap-2"
+            className="text-2xl font-bold text-primary no-underline flex items-center gap-2"
           >
             <Image
               src="/icon.png"
@@ -153,7 +153,7 @@ const Header = React.memo(function Header() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden text-gray-200 hover:text-white hover:bg-white/10"
+                className="md:hidden text-muted-foreground hover:text-foreground hover:bg-muted"
                 aria-label="Open menu"
               >
                 <Menu className="w-6 h-6" />
@@ -168,7 +168,7 @@ const Header = React.memo(function Header() {
               </SheetHeader>
               <div className="flex flex-col mt-6">
                 <div className="mobile-nav-section">{commonNavLinks(true)}</div>
-                <hr className="my-4 border-gray-200/10" />
+                <hr className="my-4 border-border" />
                 <div className="mobile-nav-section">{authLinks(true)}</div>
               </div>
             </SheetContent>
