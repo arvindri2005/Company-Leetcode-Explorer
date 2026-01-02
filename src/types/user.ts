@@ -4,17 +4,22 @@ import type { ProblemStatus } from "./problem";
 import type { FocusTopic, StrategyTodoItem } from "./ai";
 
 // --- User Authentication and Profile Types ---
+
+/**
+ * @description Zod schema for UserProfile.
+ */
+export const UserProfileSchema = z.object({
+  uid: z.string(),
+  email: z.string().email().nullable(),
+  displayName: z.string().nullable(),
+  createdAt: z.date(),
+  lastSyncedAt: z.date().optional(),
+});
+
 /**
  * @description Represents a user's profile information stored in Firestore.
  */
-export interface UserProfile {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
-  createdAt: Date; // Or Firestore Timestamp if directly from DB
-  lastSyncedAt?: Date;
-  // educationHistory and workHistory will be fetched from subcollections
-}
+export type UserProfile = z.infer<typeof UserProfileSchema>;
 
 /**
  * @description Defines the shape of the authentication context.
