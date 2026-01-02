@@ -2,6 +2,7 @@ import { User } from "firebase/auth";
 import { Auth } from "firebase/auth";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import type { ToastFunction } from "@/hooks/use-toast";
+import React from "react";
 
 export type NavigationPosition = "main" | "auth" | "mobile-bottom";
 
@@ -16,11 +17,16 @@ export interface NavigationActionContext {
   auth: Auth;
 }
 
+export interface NavigationRenderContext extends NavigationContext {
+  isMobile: boolean;
+}
+
 export interface NavigationItem {
   key: string;
   label: string;
   href?: string;
   onClick?: (context: NavigationActionContext) => void | Promise<void>; 
+  render?: (context: NavigationRenderContext) => React.ReactNode;
   position: NavigationPosition;
   order?: number;
   isVisible?: (context: NavigationContext) => boolean;
