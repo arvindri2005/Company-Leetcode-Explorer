@@ -11,3 +11,7 @@
 ## 2025-05-22 - Broken Setup Script
 **Discovery:** The `pnpm setup` command was defined in `package.json` pointing to `scripts/setup.mjs`, but the file was missing. This created a significant friction point for new developers onboarding to the project.
 **Protocol:** Implemented a robust `scripts/setup.mjs` that automates environment configuration (copying `.env.example`), dependency installation, and git hook setup. Always verify entry points defined in `package.json` actually exist.
+
+## 2025-02-18 - CI Parallelization
+**Discovery:** The CI pipeline runs `lint`, `typecheck`, `build`, `storybook`, and `test` sequentially. `build` and `storybook` are slow and independent, causing long wait times for feedback.
+**Protocol:** Split CI into parallel jobs (`quality`, `build-app`, `build-storybook`) using `needs` or parallel execution to reduce wall-clock time by ~50%.
