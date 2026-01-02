@@ -107,7 +107,11 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
                       <FormItem>
                         <FormLabel>School/University</FormLabel>
                         <FormControl>
-                          <Input {...field} autoComplete="organization" />
+                          <Input
+                            {...field}
+                            autoComplete="organization"
+                            autoCapitalize="words"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -120,7 +124,11 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
                       <FormItem>
                         <FormLabel>Degree</FormLabel>
                         <FormControl>
-                          <Input {...field} autoComplete="off" />
+                          <Input
+                            {...field}
+                            autoComplete="off"
+                            autoCapitalize="words"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -133,7 +141,11 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
                       <FormItem>
                         <FormLabel>Major/Field of Study</FormLabel>
                         <FormControl>
-                          <Input {...field} autoComplete="off" />
+                          <Input
+                            {...field}
+                            autoComplete="off"
+                            autoCapitalize="words"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
