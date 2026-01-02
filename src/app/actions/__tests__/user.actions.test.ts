@@ -13,12 +13,16 @@ jest.mock("@/lib/error-handler");
 // Mock Firebase to avoid initialization errors
 jest.mock("@/lib/firebase", () => ({
   db: {},
-  auth: {},
+  auth: {
+    currentUser: {
+      uid: "test-user-id",
+    },
+  },
   app: {},
 }));
 
 describe("User Actions", () => {
-  const mockUserId = simpleFaker.string.uuid();
+  const mockUserId = "test-user-id";
   const mockProblemId = simpleFaker.string.uuid();
   const mockCompanySlug = simpleFaker.helpers.slugify(simpleFaker.company.name());
   const mockProblemSlug = simpleFaker.helpers.slugify(simpleFaker.word.noun() + "-" + simpleFaker.word.noun());
@@ -58,7 +62,7 @@ describe("User Actions", () => {
     it("should return error if required params are missing", async () => {
       // Act & Assert
       expect(await toggleBookmarkProblemAction("", mockProblemId, mockCompanySlug, mockProblemSlug))
-        .toEqual({ success: false, error: expect.stringContaining("User ID is required") });
+        .toEqual({ success: false, error: expect.stringContaining("Unauthorized") });
       
       expect(await toggleBookmarkProblemAction(mockUserId, "", mockCompanySlug, mockProblemSlug))
         .toEqual({ success: false, error: expect.stringContaining("Problem ID is required") });
@@ -145,7 +149,7 @@ describe("User Actions", () => {
      it("should return error if validation fails", async () => {
        // Act & Assert
        expect(await setProblemStatusAction("", mockProblemId, "solved", mockCompanySlug, mockProblemSlug))
-       .toEqual({ success: false, error: expect.stringContaining("User ID is required") });
+       .toEqual({ success: false, error: expect.stringContaining("Unauthorized") });
     });
   });
 
