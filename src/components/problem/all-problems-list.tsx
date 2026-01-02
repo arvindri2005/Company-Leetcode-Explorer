@@ -3,10 +3,14 @@
 import type {
   LeetCodeProblem,
   ProblemListFilters,
-  PaginatedProblemsResponse,
   ProblemStatus,
   SortKey,
 } from "@/types";
+import {
+  DifficultySchema,
+  LastAskedPeriodSchema,
+  ProblemStatusSchema,
+} from "@/types/problem";
 import { useState, useEffect, useCallback, useRef } from "react";
 import ProblemCard from "./problem-card";
 import ErrorBoundary from "@/components/ui/error-boundary";
@@ -18,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { userService } from "@/services/user.service";
+import { parseArrayValid } from "@/lib/utils";
 
 const ProblemListControls = dynamic(() => import("./problem-list-controls"), {
   loading: () => (
@@ -46,9 +51,9 @@ interface AllProblemsListProps {
 const AllProblemsList: React.FC<AllProblemsListProps> = ({
   initialProblems,
   itemsPerPage,
-  initialFilters,
-  totalPages,
-  currentPage,
+  initialFilters,  
+  totalPages,  
+  currentPage,  
   hasMore = false,
   initialNextCursor,
 }) => {
@@ -76,7 +81,7 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
   // -- Filter Handling (URL Sync) --
   const handleFilterChange = useCallback(
     (newFiltersApplied: Partial<ProblemListFilters>) => {
-      let params = new URLSearchParams(searchParams.toString());
+      const params = new URLSearchParams(searchParams.toString());
 
       // Update params based on newFiltersApplied
       Object.entries(newFiltersApplied).forEach(([key, value]) => {
@@ -103,32 +108,20 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
     const fetchFilteredProblems = async () => {
         const params = new URLSearchParams(searchParams.toString());
         
-        // Helper to parse array filters
-        const parseArrayValid = <T extends string>(
-             val: string[] | null,
-             validValues: T[]
-        ): T[] => {
-            if (!val) return [];
-            return val.filter((v): v is T => validValues.includes(v as T));
-        };
-
         const difficultyFilter = parseArrayValid(
             params.getAll("difficultyFilter"),
-            ["Easy", "Medium", "Hard"]
-        ) as any[];
+            DifficultySchema.options
+        );
 
-        const lastAskedFilter = parseArrayValid(params.getAll("lastAskedFilter"), [
-            "last_30_days",
-            "within_3_months",
-            "within_6_months",
-            "older_than_6_months",
-        ]) as any[];
+        const lastAskedFilter = parseArrayValid(
+            params.getAll("lastAskedFilter"),
+            LastAskedPeriodSchema.options
+        );
 
-         const statusFilter = parseArrayValid(params.getAll("statusFilter"), [
-            "solved",
-            "attempted",
-            "todo",
-         ]) as any[];
+         const statusFilter = parseArrayValid(
+            params.getAll("statusFilter"),
+            ProblemStatusSchema.options
+         );
 
         const searchTerm = params.get("searchTerm") || "";
         const sortKey = (params.get("sortKey") || "title") as SortKey;
@@ -195,18 +188,11 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
   // -- Helper to derive current filters from URL --
   const getCurrentFilters = useCallback((): ProblemListFilters => {
      const params = new URLSearchParams(searchParams.toString());
-     const parseArrayValid = <T extends string>(
-             val: string[] | null,
-             validValues: T[]
-        ): T[] => {
-            if (!val) return [];
-            return val.filter((v): v is T => validValues.includes(v as T));
-        };
       
      return {
-        difficultyFilter: parseArrayValid(params.getAll("difficultyFilter"), ["Easy", "Medium", "Hard"]) as any[],
-        lastAskedFilter: parseArrayValid(params.getAll("lastAskedFilter"), ["last_30_days", "within_3_months", "within_6_months", "older_than_6_months"]) as any[],
-        statusFilter: parseArrayValid(params.getAll("statusFilter"), ["solved", "attempted", "todo"]) as any[],
+        difficultyFilter: parseArrayValid(params.getAll("difficultyFilter"), DifficultySchema.options),
+        lastAskedFilter: parseArrayValid(params.getAll("lastAskedFilter"), LastAskedPeriodSchema.options),
+        statusFilter: parseArrayValid(params.getAll("statusFilter"), ProblemStatusSchema.options),
         searchTerm: params.get("searchTerm") || "",
         sortKey: (params.get("sortKey") || "title") as SortKey,
      };
