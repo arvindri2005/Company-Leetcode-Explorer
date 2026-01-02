@@ -137,4 +137,47 @@ describe("UserService Caching", () => {
     expect(result2.solvedProblemIds).toEqual(["p1"]);
     expect(result2.solvedProblemIds).not.toContain("p2");
   });
+
+  it("should evict least recently used item when cache is full", async () => {
+    // Override MAX_CACHE_SIZE for this test
+    // @ts-ignore
+    userService.MAX_CACHE_SIZE = 3;
+    
+    const mockStats = { solvedProblemIds: [], attemptedProblemIds: [], bookmarkedProblemIds: [] };
+    (userRepository.getUserGlobalProblemStats as jest.Mock).mockResolvedValue(mockStats);
+
+    // Fill cache: 1, 2, 3
+    await userService.getUserGlobalProblemStats("user1");
+    await userService.getUserGlobalProblemStats("user2");
+    await userService.getUserGlobalProblemStats("user3");
+    
+    // Check cache size
+    // @ts-ignore
+    expect(userService.globalStatsCache.size).toBe(3);
+
+    // Access user1 (should make it most recently used)
+    await userService.getUserGlobalProblemStats("user1");
+
+    // Add user4 (should trigger eviction)
+    await userService.getUserGlobalProblemStats("user4");
+
+    // Cache size should still be 3
+    // @ts-ignore
+    expect(userService.globalStatsCache.size).toBe(3);
+
+    // user2 should be evicted (least recently used: 2, 3, 1 -> evict 2)
+    // Wait, the order was:
+    // Add 1, Add 2, Add 3.  Order: [1, 2, 3] (1 is oldest)
+    // Access 1.             Order: [2, 3, 1] (2 is oldest)
+    // Add 4.                Order: [3, 1, 4] (evicted 2)
+
+    // @ts-ignore
+    expect(userService.globalStatsCache.has("user2")).toBe(false);
+    // @ts-ignore
+    expect(userService.globalStatsCache.has("user1")).toBe(true);
+    // @ts-ignore
+    expect(userService.globalStatsCache.has("user3")).toBe(true);
+    // @ts-ignore
+    expect(userService.globalStatsCache.has("user4")).toBe(true);
+  });
 });
