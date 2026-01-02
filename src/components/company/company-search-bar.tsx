@@ -68,6 +68,12 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
     setActiveIndex(-1);
   }
 
+  const handleClear = () => {
+    setSearchTermInput("");
+    inputRef.current?.focus();
+    setShowSuggestions(false);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!showSuggestions || suggestions.length === 0) {
       if (e.key === "Enter") {
@@ -107,6 +113,11 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
   ];
   const placeholder = useTypingPlaceholder(companies);
 
+  // Calculate if we need extra padding for the clear button
+  // Standard padding is pr-17 (approx 68px) for just the search button
+  // If clear button is visible, we need more space
+  const inputPaddingClass = searchTermInput ? "pr-28" : "pr-17";
+
   return (
     <section
       className="relative w-full max-w-4xl mx-auto"
@@ -144,7 +155,10 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
             }
             ref={inputRef}
             data-testid="search-input"
-            className="w-full p-5 pr-17 text-lg border border-white/10 rounded-full bg-white/5 text-white backdrop-blur-lg transition-all duration-300 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/30 placeholder:text-white/50"
+            className={cn(
+              "w-full p-5 text-lg border border-white/10 rounded-full bg-white/5 text-white backdrop-blur-lg transition-all duration-300 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/30 placeholder:text-white/50 [&::-webkit-search-cancel-button]:hidden",
+              inputPaddingClass
+            )}
             placeholder={`Search for ${placeholder}|`}
             value={searchTermInput}
             onChange={(e) => setSearchTermInput(e.target.value)}
@@ -154,6 +168,19 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
             }}
             aria-label="Search for companies"
           />
+
+          {/* Clear Button */}
+          {searchTermInput && (
+            <button
+              type="button"
+              onClick={handleClear}
+              aria-label="Clear search"
+              className="absolute right-16 top-1/2 transform -translate-y-1/2 p-2 text-white/50 hover:text-white transition-colors duration-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
+
           <button
             type="submit"
             aria-label="Submit company search"

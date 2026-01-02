@@ -13,3 +13,7 @@
 ## 2025-05-18 - Full Card Clickability
 **Learning:** Making entire cards clickable by nesting an `<a>` tag inside a `<div>` is invalid HTML. The preferred UX pattern is to keep the interactive element (the link/button) distinct but expand its hit area using a CSS overlay (`after:absolute after:inset-0`) on a relative parent container. This maintains semantic validity and allows for nested interactive elements (like bookmark buttons) to sit above the overlay (`z-20`).
 **Action:** Use the "Pseudo-element Overlay" pattern for clickable cards instead of wrapping the whole card in a Link.
+
+## 2025-05-19 - Input Action Density
+**Learning:** When stacking multiple action buttons (like Search + Clear) inside an input field, static padding is insufficient.
+**Action:** Implement dynamic padding classes (e.g., `pr-28` vs `pr-17`) conditioned on the visibility of secondary actions to prevent text from flowing under buttons while maximizing space when actions are hidden.
