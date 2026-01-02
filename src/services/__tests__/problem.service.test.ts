@@ -1,16 +1,7 @@
 
 import { problemService } from "@/services/problem.service";
-import { userService } from "@/services/user.service";
 import { problemRepository } from "@/repositories/problem.repository";
 import { LeetCodeProblem } from "@/types";
-
-// Mock dependencies
-jest.mock("@/services/user.service", () => ({
-  userService: {
-    getBookmarksForIds: jest.fn(),
-    getProblemStatusesForIds: jest.fn(),
-  },
-}));
 
 jest.mock("@/repositories/problem.repository", () => ({
   problemRepository: {
@@ -19,7 +10,7 @@ jest.mock("@/repositories/problem.repository", () => ({
 }));
 
 jest.mock("next/cache", () => ({
-  unstable_cache: (fn: any) => fn, // Simply execute the function immediately
+  unstable_cache: (fn: any) => fn,
 }));
 
 describe("ProblemService", () => {
@@ -61,33 +52,11 @@ describe("ProblemService", () => {
       (problemRepository.getAllProblemsPaginated as jest.Mock).mockResolvedValue(mockPagination);
     });
 
-    it("should return problems without user data if no userId is provided", async () => {
-      const result = await problemService.getAllProblemsPaginated({ userId: undefined });
+    it("should return problems from repository", async () => {
+      const result = await problemService.getAllProblemsPaginated({});
 
-      expect(result.problems[0].isBookmarked).toBeUndefined();
-      expect(result.problems[0].currentStatus).toBeUndefined();
-      expect(userService.getBookmarksForIds).not.toHaveBeenCalled();
-      expect(userService.getProblemStatusesForIds).not.toHaveBeenCalled();
-    });
-
-    it("should enrich problems with user data if userId is provided", async () => {
-      const userId = "test-user";
-      (userService.getBookmarksForIds as jest.Mock).mockResolvedValue(new Set(["1"]));
-      (userService.getProblemStatusesForIds as jest.Mock).mockResolvedValue({
-        "1": { status: "solved" },
-        "2": { status: "attempted" },
-      });
-
-      const result = await problemService.getAllProblemsPaginated({ userId });
-
-      expect(userService.getBookmarksForIds).toHaveBeenCalledWith(userId, ["1", "2"]);
-      expect(userService.getProblemStatusesForIds).toHaveBeenCalledWith(userId, ["1", "2"]);
-
-      expect(result.problems[0].isBookmarked).toBe(true);
-      expect(result.problems[0].currentStatus).toBe("solved");
-      
-      expect(result.problems[1].isBookmarked).toBe(false);
-      expect(result.problems[1].currentStatus).toBe("attempted");
+      expect(problemRepository.getAllProblemsPaginated).toHaveBeenCalled();
+      expect(result.problems).toEqual(mockProblems);
     });
   });
 });

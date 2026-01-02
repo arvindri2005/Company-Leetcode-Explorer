@@ -104,27 +104,6 @@ export class ProblemService {
       return this.getPublicProblems(companySlug, { ...params, companySlug });
   }
 
-  async getUserProblemStatuses(
-      userId: string,
-      problemIds: string[]
-  ): Promise<Record<string, { isBookmarked: boolean; status?: string }>> {
-      const { userService } = await import("../services/user.service");
-      const [userBookmarks, userStatuses] = await Promise.all([
-           userService.getBookmarksForIds(userId, problemIds),
-           userService.getProblemStatusesForIds(userId, problemIds),
-      ]);
-
-      const result: Record<string, { isBookmarked: boolean; status?: string }> = {};
-      problemIds.forEach(id => {
-          const statusInfo = userStatuses[id];
-          result[id] = {
-              isBookmarked: userBookmarks.has(id),
-              status: statusInfo ? statusInfo.status : undefined
-          };
-      });
-      return result;
-  }
-
   async getAllProblemsPaginated(
     params: {
       cursor?: string;
@@ -134,7 +113,6 @@ export class ProblemService {
       lastAskedFilter?: LastAskedFilter[];
       searchTerm?: string;
       sortKey?: SortKey;
-      userId?: string;
     } = {},
   ): Promise<PaginatedProblemsResponse> {
       const {
@@ -177,50 +155,7 @@ export class ProblemService {
         }
       );
 
-      const { problems, totalProblems, hasMore, nextCursor, totalPages, currentPage } = await getCachedProblems();
-
-      if (!params.userId) {
-        return {
-          problems,
-          totalProblems,
-          hasMore,
-          nextCursor,
-          totalPages,
-          currentPage,
-        };
-      }
-
-      const finalProblems = await this.enrichProblemsWithUserData(params.userId, problems);
-
-      return {
-        problems: finalProblems,
-        totalProblems,
-        hasMore,
-        nextCursor,
-        totalPages,
-        currentPage,
-      };
-  }
-
-  private async enrichProblemsWithUserData(
-    userId: string,
-    problems: LeetCodeProblem[]
-  ): Promise<LeetCodeProblem[]> {
-    const { userService } = await import("./user.service");
-    const problemIds = problems.map((p) => p.id);
-    const [userBookmarks, userStatuses] = await Promise.all([
-      userService.getBookmarksForIds(userId, problemIds),
-      userService.getProblemStatusesForIds(userId, problemIds),
-    ]);
-
-    return problems.map((problem) => {
-      const statusInfo = userStatuses[problem.id];
-      return {
-        ...problem,
-        isBookmarked: userBookmarks.has(problem.id),
-        currentStatus: statusInfo ? statusInfo.status : undefined,
-      };
-    });
+      return await getCachedProblems();
   }
 
   async getAllProblems(): Promise<LeetCodeProblem[]> {
