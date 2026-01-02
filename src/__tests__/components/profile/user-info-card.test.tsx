@@ -13,6 +13,7 @@ jest.mock('lucide-react', () => ({
   Save: () => <span data-testid="save-icon" />,
   X: () => <span data-testid="x-icon" />,
   LogOut: () => <span data-testid="logout-icon" />,
+  BadgeCheck: () => <span data-testid="badge-check-icon" />,
 }));
 
 const mockUser = createMockUser({
@@ -22,6 +23,7 @@ const mockUser = createMockUser({
     creationTime: '2023-01-01T00:00:00Z',
     lastSignInTime: '2023-01-02T00:00:00Z',
   },
+  emailVerified: true,
 });
 
 // Wrapper component to provide Form Context
@@ -58,8 +60,9 @@ describe('UserInfoCard', () => {
     // Check email
     expect(screen.getByText('test@example.com')).toBeInTheDocument();
     
-    // Check verified badge
-    expect(screen.getByText('Verified')).toBeInTheDocument();
+    // Check verified badge (via aria-label on the icon or the icon itself)
+    // The previous text "Verified" was removed in favor of an icon
+    expect(screen.getByTestId('badge-check-icon')).toBeInTheDocument();
     
     // Check member since
     expect(screen.getByText(/Member since January 2023/)).toBeInTheDocument();
