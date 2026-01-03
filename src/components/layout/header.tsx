@@ -46,6 +46,16 @@ const Header = React.memo(function Header() {
 
   // Render a navigation item
   const renderNavItem = useCallback((item: NavigationItem, isMobile: boolean) => {
+    // Extensibility Point:
+    // Support custom render functions (Slots) for full UI control
+    if (item.render) {
+        return (
+            <React.Fragment key={item.key}>
+                {item.render({ user, isLoading: authLoading, isMobile })}
+            </React.Fragment>
+        );
+    }
+
     const isActive = item.href && pathname === item.href;
     const baseClasses = `text-muted-foreground no-underline hover:text-primary transition-colors duration-300 font-medium flex items-center py-2 border-none bg-transparent cursor-pointer text-base ${item.className || ''}`;
     const mobileClasses = `block py-4 border-b border-border font-bold ${isActive ? "text-primary" : ""}`;
@@ -89,7 +99,7 @@ const Header = React.memo(function Header() {
     }
 
     return null;
-  }, [pathname, router, toast]);
+  }, [pathname, router, toast, user, authLoading]);
 
   const commonNavLinks = useMemo(
     () =>
