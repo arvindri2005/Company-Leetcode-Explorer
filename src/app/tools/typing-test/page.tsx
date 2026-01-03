@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import TypingTestGame from "@/components/tools/typing-test/typing-test-game";
-import ErrorBoundary from "@/components/ui/error-boundary";
-import TypingTestErrorFallback from "@/components/tools/typing-test/typing-test-error-fallback";
+import TypingTestContainer from "@/components/tools/typing-test/typing-test-container";
 
 export const metadata: Metadata = {
   title: "Speed Coder - Typing Test for Developers | Byte to Offer",
@@ -20,9 +18,7 @@ export default function TypingTestPage() {
         </p>
       </div>
       
-      <ErrorBoundary fallbackRender={(props) => <TypingTestErrorFallback {...props} />}>
-        <TypingTestGame />
-      </ErrorBoundary>
+      <TypingTestContainer />
     </div>
   );
 }

@@ -21,9 +21,10 @@ import EducationExperienceSection from "@/components/profile/education-experienc
 import WorkExperienceSection from "@/components/profile/work-experience-section";
 import ProgressStats from "@/components/profile/progress-stats";
 import ProfileProblemList from "@/components/profile/profile-problem-list";
-import StrategyListsSection from "@/components/profile/strategy-lists-section";
 
 import { ProfilePageSkeleton } from "@/components/skeletons/profile-skeletons";
+import { StrategyListSkeleton } from "@/components/skeletons/strategy-skeleton";
+import dynamic from "next/dynamic";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import ProfileTabErrorFallback from "@/components/profile/profile-tab-error-fallback";
@@ -58,6 +59,13 @@ import { EducationExperienceSchema, WorkExperienceSchema } from "@/types"; // Sc
 import {
   getProblemByCompanySlugAndProblemSlugAction,
 } from "@/app/actions/problem.actions"; // Import from specific file
+
+const StrategyListsSection = dynamic(
+  () => import("@/components/profile/strategy-lists-section"),
+  {
+    loading: () => <StrategyListSkeleton />,
+  },
+);
 
 /**
  * Extends the LeetCodeProblem type to include user-specific status information.
