@@ -128,34 +128,46 @@ export class AIService {
     if (!companyId)
       return { error: "Company ID is required to generate flashcards." };
 
-    const company = await companyService.getCompanyById(companyId);
-    if (!company) return { error: `Company with ID ${companyId} not found.` };
+    const cacheKey = `company-flashcards-${companyId}`;
+    const generate = unstable_cache(
+      async () => {
+        const company = await companyService.getCompanyById(companyId);
+        if (!company) return { error: `Company with ID ${companyId} not found.` };
 
-    const problemsResponse = await problemService.getPublicProblems(companyId);
+        const problemsResponse = await problemService.getPublicProblems(companyId);
 
-    if (
-      !problemsResponse.problems ||
-      problemsResponse.problems.length === 0
-    ) {
-      return { flashcards: [] };
-    }
+        if (
+          !problemsResponse.problems ||
+          problemsResponse.problems.length === 0
+        ) {
+          return { flashcards: [] };
+        }
 
-    const problemInputs: FlashcardProblemInput[] =
-      problemsResponse.problems.map((p) => ({
-        title: p.title,
-        difficulty: p.difficulty,
-        tags: p.tags,
-        lastAskedPeriod: p.lastAskedPeriod as any,
-      }));
+        const problemInputs: FlashcardProblemInput[] =
+          problemsResponse.problems.map((p) => ({
+            title: p.title,
+            difficulty: p.difficulty,
+            tags: p.tags,
+            lastAskedPeriod: p.lastAskedPeriod as any,
+          }));
 
-    return await this.withObservability(
-      "generateFlashcards",
-      () => generateFlashcardsFlow({
-        companyName: company.name,
-        problems: problemInputs,
-      }),
-      { companyId, companyName: company.name, problemCount: problemInputs.length }
+        return await this.withObservability(
+          "generateFlashcards",
+          () => generateFlashcardsFlow({
+            companyName: company.name,
+            problems: problemInputs,
+          }),
+          { companyId, companyName: company.name, problemCount: problemInputs.length }
+        );
+      },
+      [cacheKey],
+      {
+        revalidate: 60 * 60 * 24 * 7, // 7 days
+        tags: [`company-flashcards-${companyId}`],
+      }
     );
+
+    return await generate();
   }
 
   async generateCompanyStrategy(
@@ -166,6 +178,35 @@ export class AIService {
     if (!companyId)
       return { error: "Company ID is required to generate a strategy." };
 
+    // If userId is present, we need to fetch user data and personalize the strategy.
+    // We do NOT cache personalized strategies to ensure privacy and freshness,
+    // unless we implement a complex key strategy. For Nova's scope, we skip caching for personalized.
+    if (userId) {
+      return await this.generateCompanyStrategyCore(companyId, userId, targetRoleLevel);
+    }
+
+    // If no userId, this is a generic strategy request. We can cache this safely.
+    const cacheKey = `company-strategy-${companyId}-${targetRoleLevel || 'general'}`;
+    const generate = unstable_cache(
+      async () => {
+        return await this.generateCompanyStrategyCore(companyId, undefined, targetRoleLevel);
+      },
+      [cacheKey],
+      {
+        revalidate: 60 * 60 * 24 * 7, // 7 days
+        tags: [`company-strategy-${companyId}`],
+      }
+    );
+
+    return await generate();
+  }
+
+  // Refactored core logic to support both cached and uncached paths
+  private async generateCompanyStrategyCore(
+    companyId: string,
+    userId?: string,
+    targetRoleLevel?: TargetRoleLevel
+  ): Promise<GenerateCompanyStrategyOutput | { error: string }> {
     const company = await companyService.getCompanyById(companyId);
     if (!company) return { error: `Company with ID ${companyId} not found.` };
 
