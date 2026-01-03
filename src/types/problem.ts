@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SlugSchema } from "./common";
 
 /**
  * @description Represents the periods when a LeetCode problem was reportedly last asked.
@@ -76,7 +77,7 @@ export const LeetCodeProblemSchema = z.object({
   link: z.string().url(),
   tags: z.array(z.string()),
   companyId: z.string(),
-  companySlug: z.string(),
+  companySlug: SlugSchema,
   companyIds: z.array(z.string()).optional(),
   companies: z.record(
     z.string(),
@@ -85,7 +86,7 @@ export const LeetCodeProblemSchema = z.object({
     })
   ).optional(),
   problemCompanyName: z.string().optional(),
-  slug: z.string(),
+  slug: SlugSchema,
   lastAskedPeriod: LastAskedPeriodSchema.optional(),
   normalizedTitle: z.string(),
   acceptanceRate: z.number().optional(),

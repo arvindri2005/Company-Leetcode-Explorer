@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SlugSchema } from "./common";
 
 /**
  * @description Represents a company entity in the application.
@@ -33,7 +34,7 @@ export const CompanySchema = z.object({
   id: z.string(),
   name: z.string(),
   normalizedName: z.string().optional(),
-  slug: z.string(),
+  slug: SlugSchema,
   logo: z.string().optional(),
   description: z.string().optional(),
   website: z.string().url().optional().or(z.literal("")),
