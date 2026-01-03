@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI layer README and Genkit flow documentation (d41a37e).
 
 ### Changed
+- Enforced strict slug validation with Zod schema for Company and Problem entities (aa38b78).
 - Improved documentation clarity and coverage (ff0ef2e).
 - Improved touch target size for problem status icons to 48px for better mobile accessibility (7b93fbe).
 - Lazy loaded `TypingResults` component to optimize initial bundle size (3135cb2).
