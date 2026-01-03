@@ -30,6 +30,7 @@ import { auth } from "@/lib/firebase";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import GoogleAuthButton from "./google-auth-button";
+import { useOnlineStatus } from "@/hooks/use-online-status";
 
 /**
  * Zod schema for validating the login form fields.
@@ -62,6 +63,7 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const isOnline = useOnlineStatus();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
@@ -72,6 +74,15 @@ export default function LoginForm() {
   });
 
   async function onSubmit(data: LoginFormValues) {
+    if (!isOnline) {
+      toast({
+        title: "You are offline",
+        description: "Please check your internet connection and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await signInWithEmailAndPassword(auth, data.email, data.password);
@@ -214,15 +225,19 @@ export default function LoginForm() {
 
         <Button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || !isOnline}
           className="w-full h-11 text-base transition-all duration-200 hover:scale-102 shadow-lg hover:shadow-primary/25"
         >
           {isSubmitting ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : !isOnline ? (
+            "You are offline"
           ) : (
-            <LogInIcon className="mr-2 h-4 w-4" />
+            <>
+              <LogInIcon className="mr-2 h-4 w-4" />
+              Login
+            </>
           )}
-          Login
         </Button>
 
 
