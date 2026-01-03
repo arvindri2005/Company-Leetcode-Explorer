@@ -8,18 +8,15 @@
 "use client";
 
 import type { LeetCodeProblem, ProblemStatus } from "@/types";
-import React, { useState, Suspense, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Bookmark,
   CheckCircle,
   XCircle,
   Circle,
   ExternalLink,
-  Sparkles,
-  Lightbulb,
   Clock,
   ChevronDown,
   ListTodo,
@@ -33,24 +30,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import TagBadge from "./tag-badge";
 import { useProblemInteractions } from "@/hooks/use-problem-interactions";
-import { useAIFeatures } from "@/hooks/use-ai-features";
 import { useAuth } from "@/contexts/auth-context";
-import dynamic from "next/dynamic";
-import { useToast } from "@/hooks/use-toast";
-
-const SimilarProblemsDialog = dynamic(
-  () => import("@/components/ai/similar-problems-dialog"),
-  {
-    loading: () => <p>Loading dialog...</p>,
-  },
-);
-const ProblemInsightsDialog = dynamic(
-  () => import("@/components/ai/problem-insights-dialog"),
-  {
-    loading: () => <p>Loading dialog...</p>,
-  },
-);
-
+import { ProblemAIActions } from "./problem-ai-actions";
 
 interface ProblemCardProps {
   problem: LeetCodeProblem;
@@ -79,9 +60,16 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
   showCompanies = false,
 }) => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isCompaniesExpanded, setIsCompaniesExpanded] = useState(false);
+  // Optimization: Lazy load AI hooks/components only after first interaction
+  const [wasEverExpanded, setWasEverExpanded] = useState(false);
+
+  const handleToggleExpand = () => {
+    if (!wasEverExpanded) {
+        setWasEverExpanded(true);
+    }
+    setIsExpanded(!isExpanded);
+  };
 
   const {
     isBookmarked,
@@ -98,19 +86,6 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
     onBookmarkChanged,
     onProblemStatusChange,
   );
-
-  const {
-    isLoadingSimilar,
-    similarProblems,
-    isSimilarDialogSharedOpen,
-    setIsSimilarDialogSharedOpen,
-    handleFindSimilar,
-    isLoadingInsights,
-    problemInsights,
-    isInsightsDialogOpen,
-    setIsInsightsDialogOpen,
-    handleGenerateInsights,
-  } = useAIFeatures(problem, companySlug);
 
   const displayTime = useMemo(() => {
     let time = "";
@@ -157,10 +132,10 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
   const problemTags = problem.tags || [];
 
   return (
-      <>
+      <div className="group relative">
           <div 
-            className="group relative flex flex-col bg-card hover:bg-muted/40 border border-border/40 hover:border-border/80 rounded-lg transition-all duration-200 overflow-hidden cursor-pointer"
-            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex flex-col bg-card hover:bg-muted/40 border border-border/40 hover:border-border/80 rounded-lg transition-all duration-200 overflow-hidden cursor-pointer"
+            onClick={handleToggleExpand}
           >
               <div className="flex items-center gap-3 p-3 md:p-4">
                     {/* Status Toggle */}
@@ -253,7 +228,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                             size="icon"
                             onClick={(e) => {
                                 e.stopPropagation();
-                                setIsExpanded(!isExpanded);
+                                handleToggleExpand();
                             }}
                             className={cn("h-11 w-11 md:h-9 md:w-9 text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-transform duration-200", isExpanded && "rotate-180")}
                             aria-label={isExpanded ? "Collapse details" : "Expand details"}
@@ -298,60 +273,25 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                                   <ExternalLink className="h-3.5 w-3.5 mr-2" />
                                   Write Code
                                 </Button>
-                                 <Button
-                                  variant="secondary"
-                                  size="sm"
-                                   className="h-8 text-sm md:text-base flex-1 bg-background hover:bg-muted border border-border/50"
-                                  onClick={() => {
-                                      if (!user) promptLogin();
-                                      else handleFindSimilar();
-                                  }}
-                                  isLoading={isLoadingSimilar}
-                                >
-                                   {!isLoadingSimilar && <Sparkles className="h-3.5 w-3.5 mr-2 text-purple-400" />}
-                                  Similar
-                                </Button>
-                                <Button
-                                  variant="secondary"
-                                  size="sm"
-                                  className="h-8 text-sm md:text-base flex-1 bg-background hover:bg-muted border border-border/50"
-                                  onClick={() => {
-                                      if (!user) promptLogin();
-                                      else handleGenerateInsights();
-                                  }}
-                                  isLoading={isLoadingInsights}
-                                >
-                                  {!isLoadingInsights && <Lightbulb className="h-3.5 w-3.5 mr-2 text-yellow-400" />}
-                                  Hints
-                                </Button>
+                                
+                                {wasEverExpanded ? (
+                                  <ProblemAIActions 
+                                    problem={problem} 
+                                    companySlug={companySlug} 
+                                  />
+                                ) : (
+                                  /* Placeholders to prevent layout shift during expansion animation if loading is slow (though it's sync) */
+                                  <>
+                                     <Button variant="secondary" size="sm" className="h-8 text-sm md:text-base flex-1 bg-background hover:bg-muted border border-border/50" disabled>Similar</Button>
+                                     <Button variant="secondary" size="sm" className="h-8 text-sm md:text-base flex-1 bg-background hover:bg-muted border border-border/50" disabled>Hints</Button>
+                                  </>
+                                )}
                            </div>
                        </div>
                    </div>
               </div>
           </div>
-
-          {/* Dialogs */}
-          <Suspense fallback={null}>
-              {isSimilarDialogSharedOpen && (
-                  <SimilarProblemsDialog
-                      isOpen={isSimilarDialogSharedOpen}
-                      onClose={() => setIsSimilarDialogSharedOpen(false)}
-                      currentProblemTitle={problem.title}
-                      similarProblems={similarProblems || []}
-                      isLoading={isLoadingSimilar}
-                  />
-              )}
-              {isInsightsDialogOpen && (
-                  <ProblemInsightsDialog
-                      isOpen={isInsightsDialogOpen}
-                      onClose={() => setIsInsightsDialogOpen(false)}
-                      problemTitle={problem.title}
-                      insights={problemInsights}
-                      isLoading={isLoadingInsights}
-                  />
-              )}
-          </Suspense>
-      </>
+      </div>
   );
 };
 
