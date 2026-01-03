@@ -21,7 +21,7 @@
     "lint": "eslint .",
     "prepare": "husky",
     "typecheck": "tsc --noEmit",
-    "validate": "pnpm typecheck && pnpm lint && pnpm test",
+    "validate": "concurrently -n \"TYPE,LINT,TEST\" -c \"blue,yellow,magenta\" \"pnpm:typecheck\" \"pnpm:lint\" \"pnpm:test\"",
     "test": "jest --verbose",
     "test:watch": "jest --watch",
     "storybook": "storybook dev -p 6006",
