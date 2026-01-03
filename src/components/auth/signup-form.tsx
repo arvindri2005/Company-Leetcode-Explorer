@@ -22,9 +22,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { Loader2, UserPlusIcon, Eye, EyeOff } from "lucide-react";
+import { Loader2, UserPlusIcon } from "lucide-react";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -72,7 +73,6 @@ export default function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const { syncUserProfileIfNeeded } = useAuth();
   const [passwordScore, setPasswordScore] = useState(0);
   const isOnline = useOnlineStatus();
@@ -256,31 +256,12 @@ export default function SignupForm() {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <Input
-                      type={showPassword ? "text" : "password"}
+                    <PasswordInput
                       placeholder="••••••••"
                       {...field}
                       autoComplete="new-password"
-                      className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50 pr-10"
+                      className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
                     />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <Eye className="h-4 w-4 text-muted-foreground" />
-                      )}
-                      <span className="sr-only">
-                        {showPassword ? "Hide password" : "Show password"}
-                      </span>
-                    </Button>
-                  </div>
                 </FormControl>
                 <PasswordStrengthIndicator score={passwordScore} />
                 <FormMessage />
