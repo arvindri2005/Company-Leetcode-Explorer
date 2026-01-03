@@ -30,8 +30,8 @@ import { AIProblemInput, LeetCodeProblem } from "@/types";
 import { companyService } from "@/services/company.service";
 import { problemService } from "@/services/problem.service";
 import { userService } from "@/services/user.service";
-import { unstable_cache } from "next/cache";
 import { Logger } from "@/lib/logger";
+import { cacheManager, CacheTTL } from "@/lib/cache";
 
 export class AIService {
   private async withObservability<T>(
@@ -234,7 +234,9 @@ export class AIService {
       };
 
     const cacheKey = `problem-insights-${problem.companySlug}-${problem.slug}`;
-    const generate = unstable_cache(
+
+    return await cacheManager.wrap(
+      cacheKey,
       async () => {
         const problemDescriptionForAI = `Problem Title: "${problem.title}" (Difficulty: ${problem.difficulty}). Tags: ${problem.tags.join(", ")}. Link (for context only): ${problem.link}. Analyze this problem to provide key concepts, common data structures, common algorithms, and a high-level hint.`;
 
@@ -251,14 +253,11 @@ export class AIService {
           { problemSlug: problem.slug, companySlug: problem.companySlug }
         );
       },
-      [cacheKey],
       {
-        revalidate: 60 * 60 * 24 * 30, // 30 days
+        revalidate: CacheTTL.STATIC, // 30 days
         tags: [`problem-insights-${problem.slug}`],
       }
     );
-
-    return await generate();
   }
 }
 
