@@ -739,6 +739,7 @@ export class ProblemRepository {
       sortKey = "title",
     } = params;
 
+    const startTime = Date.now();
     const problemsColRef = collection(getFirestore(), "problems");
     const totalProblems = -1; // -1 indicates unknown
 
@@ -813,6 +814,7 @@ export class ProblemRepository {
       limitCount,
       fetched: docs.length,
       hasMore,
+      durationMs: Date.now() - startTime,
     });
 
     return {

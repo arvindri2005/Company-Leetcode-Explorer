@@ -9,6 +9,7 @@ import {
   Company,
 } from "@/types";
 import { unstable_cache } from "next/cache";
+import { Logger } from "@/lib/logger";
 
 export class ProblemService {
   async getPublicProblems(
@@ -58,19 +59,38 @@ export class ProblemService {
     })}`;
 
     const fetchProblems = async () => {
-        return await problemRepository.getProblemsByCompany(companyId, {
-            cursor,
-            page,
-            pageSize,
-            difficultyFilter,
-            lastAskedFilter,
-            searchTerm,
-            sortKey,
-            companySlug,
-            totalProblemCount,
-            difficultyCounts,
-            recencyCounts,
+        const startTime = Date.now();
+        Logger.info(`[Cache MISS] Fetching public problems`, {
+            companyId,
+            params: { page, pageSize, difficultyFilter, lastAskedFilter, searchTerm, sortKey }
         });
+
+        try {
+            const result = await problemRepository.getProblemsByCompany(companyId, {
+                cursor,
+                page,
+                pageSize,
+                difficultyFilter,
+                lastAskedFilter,
+                searchTerm,
+                sortKey,
+                companySlug,
+                totalProblemCount,
+                difficultyCounts,
+                recencyCounts,
+            });
+
+            Logger.info(`[Cache REFRESH] Fetched public problems`, {
+                companyId,
+                durationMs: Date.now() - startTime,
+                resultCount: result.problems.length,
+            });
+
+            return result;
+        } catch (error) {
+            Logger.error(`[Cache FAIL] Failed to fetch public problems`, error, { companyId });
+            throw error;
+        }
     };
 
     const getCachedProblems = unstable_cache(
@@ -173,7 +193,23 @@ export class ProblemService {
   async getProblemDetails(companyId: string, problemId: string): Promise<LeetCodeProblem | undefined> {
     // Problem ID is the slug
     const getCachedProblem = unstable_cache(
-        async () => problemRepository.getProblemDetails(companyId, problemId),
+        async () => {
+            const startTime = Date.now();
+            Logger.info(`[Cache MISS] Fetching problem details`, { companyId, problemId });
+            try {
+                const result = await problemRepository.getProblemDetails(companyId, problemId);
+                Logger.info(`[Cache REFRESH] Fetched problem details`, {
+                    companyId,
+                    problemId,
+                    durationMs: Date.now() - startTime,
+                    found: !!result
+                });
+                return result;
+            } catch (error) {
+                Logger.error(`[Cache FAIL] Failed to fetch problem details`, error, { companyId, problemId });
+                throw error;
+            }
+        },
         [`problem-details-${companyId}-${problemId}`],
         {
             revalidate: 2592000, // 30 days
