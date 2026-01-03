@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { User as FirebaseUser } from "firebase/auth";
+import { ProblemStatusSchema } from "./problem";
 import type { ProblemStatus } from "./problem";
 import type { FocusTopic, StrategyTodoItem } from "./ai";
 
@@ -38,25 +39,39 @@ export interface AuthContextType {
 }
 
 /**
+ * @description Zod schema for bookmarked problem info.
+ */
+export const BookmarkedProblemSchema = z.object({
+  problemId: z.string(),
+  companySlug: z.string(),
+  problemSlug: z.string(),
+  bookmarkedAt: z.date().optional(),
+  isDeleted: z.boolean().optional(),
+  deletedAt: z.date().optional(),
+});
+
+/**
  * @description Information stored for each bookmarked problem, including slugs for link generation.
  */
-export interface BookmarkedProblemInfo {
-  problemId: string;
-  companySlug: string;
-  problemSlug: string;
-  bookmarkedAt?: Date; // Or Firestore Timestamp
-}
+export type BookmarkedProblemInfo = z.infer<typeof BookmarkedProblemSchema>;
+
+/**
+ * @description Zod schema for user problem status info.
+ */
+export const UserProblemStatusSchema = z.object({
+  problemId: z.string(),
+  status: ProblemStatusSchema,
+  companySlug: z.string(),
+  problemSlug: z.string(),
+  updatedAt: z.date().optional(),
+  isDeleted: z.boolean().optional(),
+  deletedAt: z.date().optional(),
+});
 
 /**
  * @description Information stored for each problem a user has marked with a status.
  */
-export interface UserProblemStatusInfo {
-  problemId: string; // Not explicitly stored as key is problemId, but useful for type clarity
-  status: ProblemStatus;
-  companySlug: string;
-  problemSlug: string;
-  updatedAt?: Date; // Or Firestore Timestamp
-}
+export type UserProblemStatusInfo = z.infer<typeof UserProblemStatusSchema>;
 
 // --- User Experience Types ---
 /**

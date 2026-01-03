@@ -55,9 +55,11 @@ export class UserRepository {
             companySlug: data.companySlug,
             problemSlug: data.problemSlug,
             bookmarkedAt: data.bookmarkedAt?.toDate(),
+            isDeleted: data.isDeleted,
+            deletedAt: data.deletedAt?.toDate(),
           } as BookmarkedProblemInfo;
         })
-        .filter((info) => info.companySlug && info.problemSlug);
+        .filter((info) => info.companySlug && info.problemSlug && !info.isDeleted);
     } catch (error) {
       Logger.error(
         `Error fetching bookmarked problems info`,
@@ -98,13 +100,15 @@ export class UserRepository {
       const querySnapshot = await getDocs(q);
       querySnapshot.forEach((docSnap) => {
         const data = docSnap.data();
-        if (data.status && data.companySlug && data.problemSlug) {
+        if (data.status && data.companySlug && data.problemSlug && !data.isDeleted) {
           statuses[docSnap.id] = {
             problemId: docSnap.id,
             status: data.status as ProblemStatus,
             companySlug: data.companySlug,
             problemSlug: data.problemSlug,
             updatedAt: data.updatedAt?.toDate(),
+            isDeleted: data.isDeleted,
+            deletedAt: data.deletedAt?.toDate(),
           };
         }
       });
@@ -135,7 +139,7 @@ export class UserRepository {
 
       for (const docSnap of allDocs) {
         const data = docSnap.data();
-        if (!data.status) continue;
+        if (!data.status || data.isDeleted) continue;
 
         statuses[docSnap.id] = {
           problemId: docSnap.id,
@@ -143,6 +147,8 @@ export class UserRepository {
           companySlug: data.companySlug,
           problemSlug: data.problemSlug,
           updatedAt: data.updatedAt?.toDate(),
+          isDeleted: data.isDeleted,
+          deletedAt: data.deletedAt?.toDate(),
         };
       }
 
@@ -175,7 +181,10 @@ export class UserRepository {
       const allDocs = querySnapshots.flatMap((qs) => qs.docs);
 
       for (const docSnap of allDocs) {
-        bookmarkedIds.add(docSnap.id);
+        const data = docSnap.data();
+        if (!data.isDeleted) {
+          bookmarkedIds.add(docSnap.id);
+        }
       }
 
       return bookmarkedIds;
@@ -381,18 +390,33 @@ export class UserRepository {
       const batch = writeBatch(db);
       let isBookmarked = false;
 
-      if (docSnap.exists()) {
-        batch.delete(bookmarkDocRef);
+      // Soft Delete Implementation:
+      // If it exists and is NOT deleted -> "Delete" it (soft delete).
+      // If it exists and IS deleted -> "Resurrect" it.
+      // If it doesn't exist -> Create it.
+
+      const existsAndActive = docSnap.exists() && !docSnap.data().isDeleted;
+
+      if (existsAndActive) {
+        // Soft delete
+        batch.update(bookmarkDocRef, {
+          isDeleted: true,
+          deletedAt: serverTimestamp()
+        });
         batch.set(aggregateDocRef, {
             bookmarkedProblemIds: arrayRemove(problemId)
         }, { merge: true });
         isBookmarked = false;
       } else {
+        // Create or Resurrect
         batch.set(bookmarkDocRef, {
           bookmarkedAt: serverTimestamp(),
           companySlug: companySlug,
           problemSlug: problemSlug,
-        });
+          isDeleted: false,
+          deletedAt: null
+        }, { merge: true });
+
         batch.set(aggregateDocRef, {
             bookmarkedProblemIds: arrayUnion(problemId)
         }, { merge: true });
@@ -429,14 +453,21 @@ export class UserRepository {
 
       // 1. Update individual problem status
       if (status === "none") {
-        batch.delete(statusDocRef);
+        // Soft Delete
+        batch.set(statusDocRef, {
+          isDeleted: true,
+          deletedAt: serverTimestamp(),
+          status: "none"
+        }, { merge: true });
       } else {
         batch.set(statusDocRef, {
           status: status,
           updatedAt: serverTimestamp(),
           companySlug: companySlug,
           problemSlug: problemSlug,
-        });
+          isDeleted: false,
+          deletedAt: null
+        }, { merge: true });
       }
 
       // 2. Update aggregate stats
