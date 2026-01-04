@@ -49,22 +49,26 @@ export interface ProblemSummaryDTO extends Pick<LeetCodeProblem, "id" | "title" 
 /**
  * @description Zod schema for problem difficulty.
  */
-export const DifficultySchema = z.enum(["Easy", "Medium", "Hard"]);
+export const VALID_DIFFICULTIES = ["Easy", "Medium", "Hard"] as const;
+export const DifficultySchema = z.enum(VALID_DIFFICULTIES);
 
 /**
  * @description Zod schema for last asked period.
  */
-export const LastAskedPeriodSchema = z.enum([
+export const VALID_LAST_ASKED_PERIODS = [
   "last_30_days",
   "within_3_months",
   "within_6_months",
   "older_than_6_months",
-]);
+] as const;
+export const LastAskedPeriodSchema = z.enum(VALID_LAST_ASKED_PERIODS);
 
 /**
  * @description Zod schema for problem status.
  */
-export const ProblemStatusSchema = z.enum(["solved", "attempted", "todo", "none"]);
+export const VALID_STATUSES = ["solved", "attempted", "todo", "none"] as const;
+export const VALID_STATUS_FILTERS = ["solved", "attempted", "todo"] as const;
+export const ProblemStatusSchema = z.enum(VALID_STATUSES);
 
 /**
  * @description Zod schema for a LeetCode problem.
