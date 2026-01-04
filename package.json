@@ -17,6 +17,7 @@
     "clean": "rimraf .next .swc coverage dist out",
     "clean:all": "pnpm clean && rimraf node_modules",
     "start": "next start",
+    "gen:component": "tsx scripts/generate-component.ts",
     "setup": "node scripts/setup.mjs",
     "lint": "eslint .",
     "prepare": "husky",
