@@ -110,7 +110,11 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                       <FormItem>
                         <FormLabel>Job Title</FormLabel>
                         <FormControl>
-                          <Input {...field} autoComplete="organization-title" />
+                          <Input
+                            {...field}
+                            autoComplete="organization-title"
+                            autoCapitalize="words"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -123,7 +127,11 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                       <FormItem>
                         <FormLabel>Company Name</FormLabel>
                         <FormControl>
-                          <Input {...field} autoComplete="organization" />
+                          <Input
+                            {...field}
+                            autoComplete="organization"
+                            autoCapitalize="words"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
