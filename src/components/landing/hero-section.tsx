@@ -7,8 +7,9 @@
  */
 "use client";
 
-import { Rocket, Play } from "lucide-react";
+import { Rocket } from "lucide-react";
 import { FloatingShapes } from "@/components/ui/floating-shapes";
+import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
 /**
@@ -45,13 +46,14 @@ export default function HeroSection() {
           your dream job starts here.
         </p>
         <div className="flex gap-4 justify-center flex-wrap animate-fadeInUp animation-delay-400">
-          <button
-            className="px-8 py-4 border-none rounded-full text-lg font-semibold cursor-pointer transition-all duration-300 no-underline inline-flex items-center gap-2 bg-gradient-to-r from-brand-teal to-brand-purple text-white hover:transform hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,212,170,0.3)]"
+          <Button
+            size="lg"
+            className="h-auto py-4 px-8 rounded-full text-lg font-semibold bg-gradient-to-r from-brand-teal to-brand-purple border-none text-white hover:transform hover:-translate-y-1 hover:shadow-glow [&_svg]:size-5 transition-all duration-300"
             onClick={handleClick}
           >
             <Rocket />
             Start Exploring
-          </button>
+          </Button>
           {/* <button className="px-8 py-4 bg-transparent text-gray-custom-200 border-2 border-gray-custom-700 rounded-full text-lg font-semibold cursor-pointer transition-all duration-300 no-underline inline-flex items-center gap-2 hover:border-brand-teal hover:text-brand-teal">
             <Play />
             Watch Demo
