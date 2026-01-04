@@ -8,6 +8,8 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { companyService } from "@/services/company.service";
+import { Logger } from "@/lib/logger";
+import { randomUUID } from "crypto";
 
 /**
  * Handles POST requests to fetch the next page of companies.
@@ -22,10 +24,18 @@ import { companyService } from "@/services/company.service";
  * a `hasMore` flag, and the new cursor, or an error response.
  */
 export async function POST(request: NextRequest) {
+  const requestId = randomUUID();
+  const startTime = Date.now();
+  let context: Record<string, any> = { requestId };
+
   try {
     const { cursor, pageSize = 9, searchTerm } = await request.json();
+    context = { ...context, cursor, pageSize, searchTerm };
+
+    Logger.info("[API] /api/companies (POST) started", context);
 
     if (cursor && typeof cursor !== "string") {
+      Logger.warn("[API] Invalid cursor format", context);
       return NextResponse.json(
         { error: "Invalid cursor format" },
         { status: 400 },
@@ -35,18 +45,21 @@ export async function POST(request: NextRequest) {
       pageSize &&
       (typeof pageSize !== "number" || pageSize < 1 || pageSize > 50)
     ) {
+      Logger.warn("[API] Invalid pageSize", context);
       return NextResponse.json(
         { error: "Invalid pageSize. Must be between 1 and 50" },
         { status: 400 },
       );
     }
     if (searchTerm && typeof searchTerm !== "string") {
+      Logger.warn("[API] Invalid searchTerm format", context);
       return NextResponse.json(
         { error: "Invalid searchTerm format" },
         { status: 400 },
       );
     }
     if (!cursor) {
+      Logger.warn("[API] Missing cursor", context);
       return NextResponse.json(
         { error: "Cursor is required for pagination" },
         { status: 400 },
@@ -58,9 +71,22 @@ export async function POST(request: NextRequest) {
       pageSize,
       searchTerm: searchTerm?.trim(),
     });
+
+    const durationMs = Date.now() - startTime;
+    Logger.info("[API] /api/companies (POST) completed", {
+      ...context,
+      durationMs,
+      resultCount: result.companies.length,
+      hasMore: result.hasMore,
+    });
+
     return NextResponse.json(result);
   } catch (error) {
-    console.error("Error in companies API route:", error);
+    const durationMs = Date.now() - startTime;
+    Logger.error("Error in /api/companies (POST)", error, {
+      ...context,
+      durationMs,
+    });
     return NextResponse.json(
       { error: "Internal server error", companies: [], hasMore: false },
       { status: 500 },
@@ -80,12 +106,25 @@ export async function POST(request: NextRequest) {
  * a `hasMore` flag, and the new cursor, or an error response.
  */
 export async function GET(request: NextRequest) {
+  const requestId = randomUUID();
+  const startTime = Date.now();
+
   const { searchParams } = new URL(request.url);
   const cursor = searchParams.get("cursor");
   const pageSize = parseInt(searchParams.get("pageSize") || "9");
   const searchTerm = searchParams.get("searchTerm") || undefined;
 
+  const context: Record<string, any> = {
+    requestId,
+    cursor,
+    pageSize,
+    searchTerm,
+  };
+
+  Logger.info("[API] /api/companies (GET) started", context);
+
   if (!cursor) {
+    Logger.warn("[API] Missing cursor parameter", context);
     return NextResponse.json(
       { error: "Cursor parameter is required" },
       { status: 400 },
@@ -98,9 +137,22 @@ export async function GET(request: NextRequest) {
       pageSize,
       searchTerm: searchTerm?.trim(),
     });
+
+    const durationMs = Date.now() - startTime;
+    Logger.info("[API] /api/companies (GET) completed", {
+      ...context,
+      durationMs,
+      resultCount: result.companies.length,
+      hasMore: result.hasMore,
+    });
+
     return NextResponse.json(result);
   } catch (error) {
-    console.error("Error in companies GET API route:", error);
+    const durationMs = Date.now() - startTime;
+    Logger.error("Error in /api/companies (GET)", error, {
+      ...context,
+      durationMs,
+    });
     return NextResponse.json(
       { error: "Internal server error", companies: [], hasMore: false },
       { status: 500 },
