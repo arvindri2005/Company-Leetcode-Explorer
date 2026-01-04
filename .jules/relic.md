@@ -14,3 +14,8 @@
 - **Discovery**: The external library `use-debounce` was used in a single component (`dashboard-header.tsx`), while other components utilized a local `useDebounce` hook.
 - **Action**: Implemented `useDebouncedCallback` within the existing `@/hooks/use-debounce.ts` file and migrated the component to use the local version.
 - **Verification**: Added comprehensive unit tests in `src/hooks/__tests__/use-debounce.test.ts` to verify identical behavior and removed the external dependency.
+
+## 2025-05-24: Finalizing removal of `use-debounce`
+- **Discovery**: The dependency `use-debounce` was still present in `package.json` despite the previous log entry claiming removal.
+- **Action**: Executed `pnpm remove use-debounce` to remove the dead dependency.
+- **Verification**: Ran `src/hooks/__tests__/use-debounce.test.ts` to confirm no regressions.
