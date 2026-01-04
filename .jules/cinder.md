@@ -13,3 +13,19 @@ The `TypingResults` component imports `recharts`, a heavy visualization library.
 ## 🔬 Verification
 - Verified code change using `next/dynamic` with a Skeleton fallback.
 - Confirmed `TypingResults` is the only consumer of `recharts` in this sub-tree.
+
+# 🪵 Cinder: Lazy Load Profile Strategies
+
+## 💡 What
+Implemented Lazy Loading (`next/dynamic`) for the `StrategyListsSection` component in `src/app/profile/page.tsx`.
+
+## 🎯 Why
+The `StrategyListsSection` component imports `react-markdown` and `remark-gfm`, which are heavy dependencies. These were previously included in the main Profile Page bundle, even though the Strategy tab is not the default view.
+
+## 📉 Efficiency
+- **Reduced Initial JS Payload**: `react-markdown` and `remark-gfm` are now split into a separate chunk and only loaded when the user navigates to the "Strategies" tab.
+- **Improved FCP/LCP**: The Profile page loads faster for the majority of users who only check their bookmarks or stats.
+
+## 🔬 Verification
+- Validated build success with `pnpm build`.
+- Confirmed `StrategyListsSection` is the entry point for the heavy dependencies in this route.
