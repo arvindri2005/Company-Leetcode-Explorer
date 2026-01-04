@@ -8,7 +8,7 @@ import {
   LeetCodeProblem,
   Company,
 } from "@/types";
-import { unstable_cache } from "next/cache";
+import { cacheManager, CacheTTL } from "@/lib/cache";
 
 export class ProblemService {
   async getPublicProblems(
@@ -57,32 +57,32 @@ export class ProblemService {
         sortKey,
     })}`;
 
-    const fetchProblems = async () => {
-        return await problemRepository.getProblemsByCompany(companyId, {
-            cursor,
-            page,
-            pageSize,
-            difficultyFilter,
-            lastAskedFilter,
-            searchTerm,
-            sortKey,
-            companySlug,
-            totalProblemCount,
-            difficultyCounts,
-            recencyCounts,
-        });
-    };
-
-    const getCachedProblems = unstable_cache(
-        fetchProblems,
-        [cacheKey],
+    const cachedResult = await cacheManager.wrap(
+        cacheKey,
+        async () => {
+            return await problemRepository.getProblemsByCompany(companyId, {
+                cursor,
+                page,
+                pageSize,
+                difficultyFilter,
+                lastAskedFilter,
+                searchTerm,
+                sortKey,
+                companySlug,
+                totalProblemCount,
+                difficultyCounts,
+                recencyCounts,
+            });
+        },
         {
-            revalidate: 2592000, // 30 days
+            revalidate: CacheTTL.STATIC, // 30 days
             tags: [`problems-company-${companyId}`],
         }
     );
+
+    const { problems, totalProblems, hasMore, nextCursor, totalPages, currentPage } = cachedResult;
     
-    const { problems, totalProblems, hasMore, nextCursor, totalPages, currentPage } = await getCachedProblems();
+    // Apply default pagination logic that might be computed at runtime or missing from older cached entries
     const finalTotalPages = totalPages ?? Math.ceil((totalProblemCount || totalProblems || 0) / pageSize);
     const finalCurrentPage = currentPage ?? (page || 1);
 
@@ -135,7 +135,8 @@ export class ProblemService {
         sortKey,
       })}`;
 
-      const getCachedProblems = unstable_cache(
+      return await cacheManager.wrap(
+        cacheKey,
         async () => {
             return await problemRepository.getAllProblemsPaginated({
                 cursor,
@@ -145,71 +146,63 @@ export class ProblemService {
                 lastAskedFilter,
                 searchTerm,
                 sortKey,
-
             });
         },
-        [cacheKey],
         {
-            revalidate: 2592000, // 30 days
+            revalidate: CacheTTL.STATIC, // 30 days
             tags: ["all-problems-v3"],
         }
       );
-
-      return await getCachedProblems();
   }
 
   async getAllProblems(): Promise<LeetCodeProblem[]> {
-    const getCachedAllProblems = unstable_cache(
+    return await cacheManager.wrap(
+        "all-problems-list",
         async () => problemRepository.getAllProblems(),
-        ["all-problems-list"],
         {
-            revalidate: 2592000, // 30 days
+            revalidate: CacheTTL.STATIC, // 30 days
             tags: ["all-problems"],
         }
     );
-    return await getCachedAllProblems();
   }
 
   async getProblemDetails(companyId: string, problemId: string): Promise<LeetCodeProblem | undefined> {
     // Problem ID is the slug
-    const getCachedProblem = unstable_cache(
+    return await cacheManager.wrap(
+        `problem-details-${companyId}-${problemId}`,
         async () => problemRepository.getProblemDetails(companyId, problemId),
-        [`problem-details-${companyId}-${problemId}`],
         {
-            revalidate: 2592000, // 30 days
+            revalidate: CacheTTL.STATIC, // 30 days
             tags: [`problem-${problemId}`, `company-${companyId}`],
         }
     );
-    return await getCachedProblem();
   }
 
   async getProblemByCompanySlugAndProblemSlug(
     companySlug: string,
     problemSlug: string,
   ): Promise<{ company: Company | undefined; problem: LeetCodeProblem | undefined }> {
-      const getCached = unstable_cache(
+      return await cacheManager.wrap(
+          `problem-by-slugs-${companySlug}-${problemSlug}`,
           async () => problemRepository.getProblemByCompanySlugAndProblemSlug(companySlug, problemSlug),
-          [`problem-by-slugs-${companySlug}-${problemSlug}`],
           {
-              revalidate: 2592000, // 30 days
+              revalidate: CacheTTL.STATIC, // 30 days
               tags: [`company-slug-${companySlug}`, `problem-${problemSlug}`],
           }
       );
-      return await getCached();
   }
 
   async getAllProblemCompanyAndProblemSlugs(): Promise<
     Array<{ companySlug: string; problemSlug: string }>
   > {
-      const getCachedSlugs = unstable_cache(
+      return await cacheManager.wrap(
+          "all-problem-company-slugs",
           async () => problemRepository.getAllProblemCompanyAndProblemSlugs(),
-          ["all-problem-company-slugs"], // Cache Key
           {
-              revalidate: 2592000, // 30 days
+              revalidate: CacheTTL.STATIC, // 30 days
               tags: ["problems-slugs"],
           }
       );
-      return await getCachedSlugs();
   }
 
   async addProblem(

@@ -2,6 +2,7 @@
 import { problemService } from "@/services/problem.service";
 import { problemRepository } from "@/repositories/problem.repository";
 import { LeetCodeProblem } from "@/types";
+import { cacheManager } from "@/lib/cache";
 
 jest.mock("@/repositories/problem.repository", () => ({
   problemRepository: {
@@ -9,8 +10,14 @@ jest.mock("@/repositories/problem.repository", () => ({
   },
 }));
 
-jest.mock("next/cache", () => ({
-  unstable_cache: (fn: any) => fn,
+// Mock the cache manager
+jest.mock("@/lib/cache", () => ({
+  cacheManager: {
+    wrap: jest.fn((key, fn) => fn()),
+  },
+  CacheTTL: {
+    STATIC: 30,
+  },
 }));
 
 describe("ProblemService", () => {
@@ -52,9 +59,10 @@ describe("ProblemService", () => {
       (problemRepository.getAllProblemsPaginated as jest.Mock).mockResolvedValue(mockPagination);
     });
 
-    it("should return problems from repository", async () => {
+    it("should return problems from repository using cacheManager", async () => {
       const result = await problemService.getAllProblemsPaginated({});
 
+      expect(cacheManager.wrap).toHaveBeenCalled();
       expect(problemRepository.getAllProblemsPaginated).toHaveBeenCalled();
       expect(result.problems).toEqual(mockProblems);
     });
