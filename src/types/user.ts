@@ -83,6 +83,28 @@ export const EducationExperienceSchema = z.object({
 export type EducationExperience = z.infer<typeof EducationExperienceSchema>;
 
 /**
+ * Helper to parse date strings (YYYY or MM/YYYY) into a comparable numerical value (months).
+ * YYYY is treated as Jan (start) or Dec (end) of that year.
+ */
+const parseDateValue = (dateStr: string, isEndDate: boolean): number => {
+  // If we can't parse it (should rely on regex first), return safe fallback
+  if (!dateStr) return 0;
+
+  const parts = dateStr.split("/");
+  if (parts.length === 2) {
+    const [month, year] = parts;
+    return parseInt(year, 10) * 12 + parseInt(month, 10);
+  } else if (parts.length === 1) {
+    const year = parts[0];
+    // If just Year:
+    // Start date: assume start of year (Month 1)
+    // End date: assume end of year (Month 12)
+    return parseInt(year, 10) * 12 + (isEndDate ? 12 : 1);
+  }
+  return 0;
+};
+
+/**
  * @description Zod schema for validating work experience data.
  */
 export const WorkExperienceSchema = z.object({
@@ -106,6 +128,18 @@ export const WorkExperienceSchema = z.object({
     .min(10, "Please describe some responsibilities.")
     .optional()
     .or(z.literal("")),
+}).refine((data) => {
+  if (!data.endDate || data.endDate === "Present" || data.endDate === "") {
+    return true;
+  }
+
+  const startVal = parseDateValue(data.startDate, false);
+  const endVal = parseDateValue(data.endDate, true);
+
+  return startVal <= endVal;
+}, {
+  message: "End date must be after start date.",
+  path: ["endDate"],
 });
 /**
  * @description Represents a user's work experience.
