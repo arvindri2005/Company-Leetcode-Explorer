@@ -1,3 +1,3 @@
-## 2024-05-24 - Password Visibility Toggle
-**Learning:** Users often struggle with password entry on mobile or when dealing with complex requirements. A standardized, accessible toggle reduces friction and is an expected pattern. Implementing this as a reusable `PasswordInput` component ensures consistency across all auth forms (Login, Signup, Reset Password) and centralizes accessibility logic (ARIA labels, keyboard focus).
-**Action:** When adding interaction patterns that repeat across forms, encapsulate them in a dedicated UI component rather than duplicating state logic. Ensure the toggle button is excluded from the tab order if it's purely a helper, but reachable if it's the primary way to verify input. (In this case, it is reachable via Tab).
+## 2024-05-23 - Search Bar Clear Button
+**Learning:** Adding a "Clear" button to search inputs significantly improves usability, especially for long queries. It requires careful positioning to avoid overlapping with the search submission button.
+**Action:** When adding clear buttons, always ensure they are keyboard accessible (Tab/Enter), programmatically return focus to the input after clicking, and adjust the input's padding to prevent text overlap.

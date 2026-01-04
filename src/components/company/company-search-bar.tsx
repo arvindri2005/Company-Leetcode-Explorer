@@ -144,7 +144,10 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
             }
             ref={inputRef}
             data-testid="search-input"
-            className="w-full p-5 pr-17 text-lg border border-white/10 rounded-full bg-white/5 text-white backdrop-blur-lg transition-all duration-300 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/30 placeholder:text-white/50"
+            className={cn(
+              "w-full p-5 text-lg border border-white/10 rounded-full bg-white/5 text-white backdrop-blur-lg transition-all duration-300 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/30 placeholder:text-white/50",
+              searchTermInput.length > 0 ? "pr-28" : "pr-17"
+            )}
             placeholder={`Search for ${placeholder}|`}
             value={searchTermInput}
             onChange={(e) => setSearchTermInput(e.target.value)}
@@ -154,6 +157,19 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
             }}
             aria-label="Search for companies"
           />
+          {searchTermInput.length > 0 && (
+            <button
+              type="button"
+              aria-label="Clear search"
+              onClick={() => {
+                setSearchTermInput("");
+                inputRef.current?.focus();
+              }}
+              className="absolute right-16 top-1/2 transform -translate-y-1/2 p-2 rounded-full text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
           <button
             type="submit"
             aria-label="Submit company search"
