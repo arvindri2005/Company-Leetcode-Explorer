@@ -8,13 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+- Component generator script `scripts/generate-component.ts` (99d3264).
+- Caching for expensive AI flows (bb33ec3).
+- `PasswordInput` component with visibility toggle (b61a1b9).
+- Layout-aware skeleton for Problems Page (879d561).
+- Offline safe-guards for auth failures (9663fe7).
+- Structured logging and duration tracking to `/api/problems` (7332b70).
+- Slot pattern in `NavigationRegistry` for dynamic header content (d76d5b3).
+- Modernized `Chip` and `Label` to use React 19 `ref` prop (96975d7).
+- Lazy loading for AI features in `ProblemCard` (8fdb6e8).
+- Strict slug validation with Zod schema (e734ca0).
+- Clear button to Company Search Bar (4ee5032).
 - Polished Profile page UI with improved `UserInfoCard` styling and empty states for problem lists (3c49a4f).
 - Expanded touch targets for `Checkbox` and `RadioGroup` components to improve mobile accessibility (1b23b69).
 - Documented Event-Driven Architecture and Observer patterns in `guide/advanced-patterns.md` (4f5ce36).
 - `inputMode` attributes to form fields for optimized mobile keyboards (ad88787).
 - Caching for global user problem stats in `UserService` (4ebf1b6).
 - User Activity Event System for tracking actions (3d9e6b4).
-- Soft delete support for User Bookmarks (3976dbc).
+- Soft delete support for User Bookmarks (6134c0d).
 - Twitter card metadata to company pages for better sharing (3f8e312).
 - Unit tests for User Server Actions (85e3e3d).
 - Job Application Tracker MVP and RFC (2684409).
@@ -30,6 +42,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI layer README and Genkit flow documentation (d41a37e).
 
 ### Changed
+
+- Refactored `ProblemRepository` to use shared query builders (50eb934).
+- Enforced pnpm v9 and Node v20 via engines and Corepack (0ce5faa).
+- Refactored Hero button to use UI component and tokens (920d49c).
+- Replaced `use-debounce` dependency with local hook (df6ac74).
+- Improved observability for `/api/companies` (3534d55).
+- Optimized `URLSearchParams` usage in `ProblemList` (5b5e616).
+- Enforced chronological dates in `WorkExperience` (224f46d).
+- Stabilized callback props for `ProblemListControls` (e12e059).
+- Improved mobile typing for work experience form (aeff34c).
+- Enhanced `Switch` touch targets (231e0c2).
+- Refactored problem filters to use type-safe constants (4b561d9).
+- Refactored services to use shared `cacheManager` abstraction (483120d).
+- Lazy loaded `StrategyListsSection` in profile page (d0c7039).
+- Added cache miss and duration logs to problem service (cc4315f).
 - Improved documentation clarity and coverage (ff0ef2e).
 - Improved touch target size for problem status icons to 48px for better mobile accessibility (7b93fbe).
 - Lazy loaded `TypingResults` component to optimize initial bundle size (3135cb2).
@@ -65,6 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed unused `problemCount` prop from `ProblemList` to prevent unnecessary re-renders (3f720a9).
 
 ### Fixed
+
 - Reduced toast notification removal delay from 16m to 5s to prevent memory leaks (3b66c44).
 - Outdated documentation in Getting Started guide and README (7451759).
 - Added `lastSyncedAt` to `UserProfile` to resolve type mismatch (8941d05).
@@ -75,17 +103,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Broken links in README and missing architecture diagram (1b343cc).
 
 ### Security
+
 - Fixed JSON-LD XSS vulnerability by introducing `safeJsonLd` helper (0fca276).
 
 ## [0.1.0] - 2024-12-24
+
 ### Added
+
 - `src/components/icons/google-icon.tsx` to replace `FcGoogle`.
 
 ### Changed
+
 - Replaced `react-icons` with `lucide-react` across the codebase (ff09671).
 - Updated `HeroSection`, `ShineButton`, `CompanySearchBar`, and `FEATURES` to use Lucide icons.
 
 ### Removed
+
 - `react-icons` dependency.
 
 [Unreleased]: https://github.com/arvindri2005/Byte-to-Offer/compare/v0.1.0...HEAD
