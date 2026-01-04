@@ -7,6 +7,9 @@ import type {
   ProblemListFilters,
   ProblemStatus,
   SortKey,
+  DifficultyFilter,
+  LastAskedFilter,
+  StatusFilter,
 } from "@/types";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import ProblemCard from "./problem-card";
@@ -128,6 +131,37 @@ const ProblemList: React.FC<ProblemListProps> = ({
       router.push(pathname + "?" + params.toString(), { scroll: false });
     },
     [router, pathname, searchParams]
+  );
+
+  // -- Optimized Handlers for ProblemListControls --
+  // These stable callbacks prevent ProblemListControls from re-rendering
+  // when ProblemList re-renders (e.g. during infinite scroll)
+  const handleDifficultyChange = useCallback(
+    (value: DifficultyFilter[]) => {
+      handleFilterChange({ difficultyFilter: value });
+    },
+    [handleFilterChange]
+  );
+
+  const handleSortKeyChange = useCallback(
+    (value: SortKey) => {
+      handleFilterChange({ sortKey: value });
+    },
+    [handleFilterChange]
+  );
+
+  const handleLastAskedChange = useCallback(
+    (value: LastAskedFilter[]) => {
+      handleFilterChange({ lastAskedFilter: value });
+    },
+    [handleFilterChange]
+  );
+
+  const handleStatusChange = useCallback(
+    (value: StatusFilter[]) => {
+      handleFilterChange({ statusFilter: value });
+    },
+    [handleFilterChange]
   );
 
   // -- Client-Side Fetch on Params Change --
@@ -409,21 +443,13 @@ const ProblemList: React.FC<ProblemListProps> = ({
       <h2 className="sr-only">Problems</h2>
       <ProblemListControls
         difficultyFilter={currentFilters.difficultyFilter}
-        onDifficultyFilterChange={(value) =>
-          handleFilterChange({ difficultyFilter: value })
-        }
+        onDifficultyFilterChange={handleDifficultyChange}
         sortKey={currentFilters.sortKey}
-        onSortKeyChange={(value) =>
-          handleFilterChange({ sortKey: value as SortKey })
-        }
+        onSortKeyChange={handleSortKeyChange}
         lastAskedFilter={currentFilters.lastAskedFilter}
-        onLastAskedFilterChange={(value) =>
-          handleFilterChange({ lastAskedFilter: value })
-        }
+        onLastAskedFilterChange={handleLastAskedChange}
         statusFilter={currentFilters.statusFilter}
-        onStatusFilterChange={(value) =>
-          handleFilterChange({ statusFilter: value })
-        }
+        onStatusFilterChange={handleStatusChange}
         showStatusFilter={!!user}
       />
 
