@@ -38,6 +38,11 @@ import { navigationRegistry, NavigationItem } from "@/lib/navigation-registry";
  * @returns {JSX.Element} The rendered header component.
  */
 const Header = React.memo(function Header() {
+  // CHAOS TEST INJECTION
+  if (typeof window !== 'undefined') {
+      throw new Error("Chaos Test: Header Failure");
+  }
+
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
