@@ -283,13 +283,66 @@ export class ProblemRepository {
       sortKey = "title",
     } = params;
 
-    const problemsColRef = collection(getFirestore(), "problems");
-
-    // Base constraints
-    const constraints: QueryConstraint[] = [
+    const baseConstraints: QueryConstraint[] = [
       where("companyIds", "array-contains", companyId),
     ];
 
+    const {
+      constraints,
+      residualDifficultyFilter,
+      residualLastAskedFilter,
+    } = this.buildQueryConstraints(params, baseConstraints, companyId);
+
+    const canUseOptimizedPath = this.canUseOptimizedPath(
+      residualDifficultyFilter,
+      residualLastAskedFilter,
+      searchTerm,
+      sortKey,
+    );
+
+    if (canUseOptimizedPath) {
+      try {
+        return await this.fetchProblemsByCompanyOptimized(
+          companyId,
+          params,
+          constraints,
+          residualDifficultyFilter,
+          residualLastAskedFilter,
+        );
+      } catch (error: unknown) {
+        if (isFirestoreIndexError(error)) {
+          Logger.warn(
+            "Optimized path failed, falling back to semi-optimized",
+            undefined,
+            { message: (error as any).message },
+          );
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    return await this.fetchProblemsByCompanySemiOptimized(
+      companyId,
+      params,
+      constraints,
+      residualDifficultyFilter,
+      residualLastAskedFilter,
+    );
+  }
+
+  private buildQueryConstraints(
+    params: FetchProblemsParams,
+    baseConstraints: QueryConstraint[] = [],
+    companyId?: string,
+  ) {
+    const {
+      difficultyFilter = [],
+      lastAskedFilter = [],
+      searchTerm = "",
+    } = params;
+
+    const constraints = [...baseConstraints];
     let usedInOperator = false;
     let residualDifficultyFilter: DifficultyFilter[] = [];
     let residualLastAskedFilter: LastAskedFilter[] = [];
@@ -308,13 +361,23 @@ export class ProblemRepository {
 
     // Apply LastAsked Filter
     if (lastAskedFilter.length > 0) {
-      const fieldPath = `companies.${companyId}.lastAskedPeriod`;
-      if (lastAskedFilter.length === 1) {
-        constraints.push(where(fieldPath, "==", lastAskedFilter[0]));
-      } else if (!usedInOperator) {
-        constraints.push(where(fieldPath, "in", lastAskedFilter));
-        usedInOperator = true;
+      // If companyId is provided, we filter by company-specific period
+      // Otherwise we filter by global period (for generic lists)
+      // Note: The original 'fetchAllProblemsCore' logic treated lastAsked as fully residual.
+      // We preserve that behavior if companyId is missing for now, or adapt as needed.
+      if (companyId) {
+        const fieldPath = `companies.${companyId}.lastAskedPeriod`;
+        if (lastAskedFilter.length === 1) {
+          constraints.push(where(fieldPath, "==", lastAskedFilter[0]));
+        } else if (!usedInOperator) {
+          constraints.push(where(fieldPath, "in", lastAskedFilter));
+          usedInOperator = true;
+        } else {
+          residualLastAskedFilter = lastAskedFilter;
+        }
       } else {
+        // For global lists, we currently treat lastAsked as residual
+        // (matching original fetchAllProblemsCore implementation)
         residualLastAskedFilter = lastAskedFilter;
       }
     }
@@ -328,51 +391,29 @@ export class ProblemRepository {
       );
     }
 
+    return {
+      constraints,
+      residualDifficultyFilter,
+      residualLastAskedFilter,
+    };
+  }
+
+  private canUseOptimizedPath(
+    residualDifficultyFilter: DifficultyFilter[],
+    residualLastAskedFilter: LastAskedFilter[],
+    searchTerm: string,
+    sortKey: SortKey = "title",
+  ): boolean {
     const hasResidualFilters =
       residualDifficultyFilter.length > 0 || residualLastAskedFilter.length > 0;
-    // Note: searchTerm is now handled via constraints, so it's not a residual filter.
-    // However, if we search, we MUST sort by normalizedTitle first.
-    // If the user requests sorting by 'difficulty', we can't use the Optimized Path
-    // because Firestore requires inequality fields to be the first orderBy.
 
     const isSortCompatibleWithSearch =
       searchTerm.trim() !== "" ? sortKey === "title" : true;
 
     const isSupportedSort = sortKey === "title" || sortKey === "difficulty";
 
-    if (
-      !hasResidualFilters &&
-      isSupportedSort &&
-      isSortCompatibleWithSearch
-    ) {
-      try {
-        return await this.fetchProblemsByCompanyOptimized(
-          companyId,
-          params,
-          constraints,
-          residualDifficultyFilter,
-          residualLastAskedFilter,
-        );
-      } catch (error: unknown) {
-        if (isFirestoreIndexError(error)) {
-          Logger.warn(
-            "Optimized path failed, falling back to semi-optimized",
-            undefined,
-            { message: (error as any).message },
-          );
-          // Fall through to semi-optimized path
-        } else {
-          throw error;
-        }
-      }
-    }
-
-    return await this.fetchProblemsByCompanySemiOptimized(
-      companyId,
-      params,
-      constraints,
-      residualDifficultyFilter,
-      residualLastAskedFilter,
+    return (
+      !hasResidualFilters && isSupportedSort && isSortCompatibleWithSearch
     );
   }
 
@@ -658,45 +699,18 @@ export class ProblemRepository {
       sortKey = "title",
     } = params;
 
-    const constraints: QueryConstraint[] = [];
-    let usedInOperator = false;
-    let residualDifficultyFilter: DifficultyFilter[] = [];
+    const {
+      constraints,
+      residualDifficultyFilter,
+      residualLastAskedFilter,
+    } = this.buildQueryConstraints(params);
 
-    if (difficultyFilter.length > 0) {
-      if (difficultyFilter.length === 1) {
-        constraints.push(where("difficulty", "==", difficultyFilter[0]));
-      } else if (!usedInOperator) {
-        constraints.push(where("difficulty", "in", difficultyFilter));
-        usedInOperator = true;
-      } else {
-        residualDifficultyFilter = difficultyFilter;
-      }
-    }
-
-    const residualLastAskedFilter = lastAskedFilter;
-
-    // Optimization: Use Firestore range queries for search
-    if (searchTerm.trim() !== "") {
-      const lowercasedSearchTerm = searchTerm.toLowerCase().trim();
-      constraints.push(where("normalizedTitle", ">=", lowercasedSearchTerm));
-      constraints.push(
-        where("normalizedTitle", "<=", lowercasedSearchTerm + "\uf8ff"),
-      );
-    }
-
-    const hasResidualFilters =
-      residualDifficultyFilter.length > 0 || residualLastAskedFilter.length > 0;
-
-    const isSortCompatibleWithSearch =
-      searchTerm.trim() !== "" ? sortKey === "title" : true;
-
-    const isDefaultSort = sortKey === "title";
-
-    // Optimized Path: Use DB Limits if possible
-    const canUseOptimizedPath =
-      !hasResidualFilters &&
-      (isDefaultSort || sortKey === "difficulty") &&
-      isSortCompatibleWithSearch;
+    const canUseOptimizedPath = this.canUseOptimizedPath(
+      residualDifficultyFilter,
+      residualLastAskedFilter,
+      searchTerm,
+      sortKey,
+    );
 
     if (canUseOptimizedPath) {
       try {
@@ -708,7 +722,6 @@ export class ProblemRepository {
             undefined,
             { message: (error as any).message },
           );
-          // Fall through to full fetch
         } else {
           throw error;
         }
