@@ -83,28 +83,27 @@ const ProblemList: React.FC<ProblemListProps> = ({
   const [areGlobalStatsLoaded, setAreGlobalStatsLoaded] = useState(false);
 
   // -- Helper to derive current filters from URL --
+  // Optimization: Use searchParams directly instead of redundant cloning
   const getCurrentFilters = useCallback((): ProblemListFilters => {
-    const params = new URLSearchParams(searchParams.toString());
-
     return {
-      difficultyFilter: parseArrayValid(params.getAll("difficultyFilter"), [
+      difficultyFilter: parseArrayValid(searchParams.getAll("difficultyFilter"), [
         "Easy",
         "Medium",
         "Hard",
       ]) as any[],
-      lastAskedFilter: parseArrayValid(params.getAll("lastAskedFilter"), [
+      lastAskedFilter: parseArrayValid(searchParams.getAll("lastAskedFilter"), [
         "last_30_days",
         "within_3_months",
         "within_6_months",
         "older_than_6_months",
       ]) as any[],
-      statusFilter: parseArrayValid(params.getAll("statusFilter"), [
+      statusFilter: parseArrayValid(searchParams.getAll("statusFilter"), [
         "solved",
         "attempted",
         "todo",
       ]) as any[],
-      searchTerm: params.get("searchTerm") || "",
-      sortKey: (params.get("sortKey") || "title") as SortKey,
+      searchTerm: searchParams.get("searchTerm") || "",
+      sortKey: (searchParams.get("sortKey") || "title") as SortKey,
     };
   }, [searchParams]);
 
@@ -167,28 +166,27 @@ const ProblemList: React.FC<ProblemListProps> = ({
   // -- Client-Side Fetch on Params Change --
   useEffect(() => {
     const fetchFilteredProblems = async () => {
-      const params = new URLSearchParams(searchParams.toString());
-
+      // Optimization: Use searchParams directly to avoid redundant URLSearchParams instantiation
       const difficultyFilter = parseArrayValid(
-        params.getAll("difficultyFilter"),
+        searchParams.getAll("difficultyFilter"),
         ["Easy", "Medium", "Hard"],
       ) as any[];
 
-        const lastAskedFilter = parseArrayValid(params.getAll("lastAskedFilter"), [
+        const lastAskedFilter = parseArrayValid(searchParams.getAll("lastAskedFilter"), [
             "last_30_days",
             "within_3_months",
             "within_6_months",
             "older_than_6_months",
         ]) as any[];
 
-         const statusFilter = parseArrayValid(params.getAll("statusFilter"), [
+         const statusFilter = parseArrayValid(searchParams.getAll("statusFilter"), [
             "solved",
             "attempted",
             "todo",
          ]) as any[];
 
-        const searchTerm = params.get("searchTerm") || "";
-        const sortKey = (params.get("sortKey") || "title") as SortKey;
+        const searchTerm = searchParams.get("searchTerm") || "";
+        const sortKey = (searchParams.get("sortKey") || "title") as SortKey;
 
         // Check if current filters are "default" (matching initial props)
         const isDefault = 
