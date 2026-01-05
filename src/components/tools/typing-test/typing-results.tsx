@@ -127,16 +127,18 @@ export default function TypingResults({
                                 <YAxis domain={['dataMin - 10', 'dataMax + 10']} hide />
                                 <Tooltip 
                                     cursor={{ stroke: 'hsl(var(--primary))', strokeWidth: 1, strokeDasharray: '4 4' }}
-                                    contentStyle={{ 
-                                        backgroundColor: 'hsl(var(--popover))', 
-                                        borderColor: 'hsl(var(--border))', 
-                                        borderRadius: '12px',
-                                        padding: '8px 12px',
-                                        boxShadow: '0 10px 30px -10px rgba(0,0,0,0.5)' 
+                                    content={({ active, payload }) => {
+                                        if (active && payload && payload.length) {
+                                            return (
+                                                <div className="bg-popover border border-border rounded-xl px-3 py-2 shadow-xl">
+                                                    <p className="text-primary font-bold text-sm">
+                                                        {`${payload[0].value} WPM`}
+                                                    </p>
+                                                </div>
+                                            );
+                                        }
+                                        return null;
                                     }}
-                                    itemStyle={{ color: 'hsl(var(--primary))', fontWeight: 'bold', fontSize: '14px' }}
-                                    labelStyle={{ display: 'none' }}
-                                    formatter={(value: any) => [value ? `${value} WPM` : '', '']}
                                 />
                                 <Line 
                                     type="monotone" 
