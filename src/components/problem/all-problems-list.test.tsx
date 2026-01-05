@@ -12,13 +12,15 @@ jest.mock("next/navigation", () => ({
   usePathname: () => "/problems",
 }));
 
-// Mock server actions
-jest.mock("@/app/actions/user.actions", () => ({
-  getUserGlobalProblemStatsAction: jest.fn().mockResolvedValue({
+// Mock user service
+jest.mock("@/services/user.service", () => ({
+  userService: {
+    getUserGlobalProblemStats: jest.fn().mockResolvedValue({
       solvedProblemIds: [],
       attemptedProblemIds: [],
       bookmarkedProblemIds: []
-  }),
+    })
+  }
 }));
 
 // Mock dynamic imports or actions used inside
@@ -102,7 +104,7 @@ describe("AllProblemsList", () => {
     );
 
     
-    // Wait for the async getUserGlobalProblemStatsAction to be called and processed
+    // Wait for the async getUserGlobalProblemStats to be called and processed
     await waitFor(() => {
         expect(screen.getByText("Two Sum")).toBeInTheDocument();
     });
