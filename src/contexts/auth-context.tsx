@@ -12,6 +12,7 @@ import React, {
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { userService } from "@/services/user.service";
+import { Logger } from "@/lib/logger";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -46,10 +47,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // User profile synced successfully
           setIsUserProfileSynced(true);
         } else {
-          console.error("Failed to sync user profile:", result.error);
+          Logger.error("Failed to sync user profile", result.error, {
+            userId: firebaseUser.uid,
+          });
         }
       } catch (error) {
-        console.error("Error calling syncUserProfile action:", error);
+        Logger.error("Error calling syncUserProfile action", error, {
+          userId: firebaseUser.uid,
+        });
       }
     }
   };
