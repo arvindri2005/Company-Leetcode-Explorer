@@ -51,9 +51,9 @@ interface AllProblemsListProps {
 const AllProblemsList: React.FC<AllProblemsListProps> = ({
   initialProblems,
   itemsPerPage,
-  initialFilters,  
-  totalPages,  
-  currentPage,  
+  // initialFilters, // unused in body
+  // totalPages, // unused in body
+  // currentPage, // unused in body
   hasMore = false,
   initialNextCursor,
 }) => {
@@ -77,6 +77,15 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
 
   // Observer ref
   const observerTarget = useRef<HTMLDivElement>(null);
+
+  // Lifecycle ref to prevent updates on unmounted component
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // -- Filter Handling (URL Sync) --
   const handleFilterChange = useCallback(
@@ -105,6 +114,8 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
 
   // -- Client-Side Fetch on Params Change --
   useEffect(() => {
+    let ignore = false;
+
     const fetchFilteredProblems = async () => {
         const params = new URLSearchParams(searchParams.toString());
         
@@ -136,6 +147,7 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
 
         if (isDefault) {
             // If default, we can use the initial props (which are static/SSR'd default)
+            if (ignore) return;
             setDisplayedProblems(initialProblems);
             setCursor(initialNextCursor);
             setHasMoreState(hasMore);
@@ -144,12 +156,13 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
             return;
         }
 
+        if (ignore) return;
         setIsLoadingMore(true); 
-        // Using isLoadingMore for loading indicator might be confusing if it shows "Loading more..." 
-        // but for now it's fine or we add isFiltering state.
         
         try {
             const { fetchProblemsAction } = await import("@/app/actions/problem.actions");
+            if (ignore) return;
+
             const result = await fetchProblemsAction({
                 difficultyFilter,
                 lastAskedFilter,
@@ -158,11 +171,14 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
                 sortKey
             }, itemsPerPage); // fetch first page
 
+            if (ignore) return;
+
             setDisplayedProblems(result.problems);
             setCursor(result.nextCursor);
             setHasMoreState(result.hasMore ?? false);
             hydratedIdsRef.current.clear();
         } catch (error) {
+            if (ignore) return;
             console.error("Failed to fetch filtered problems", error);
             toast({
                 title: "Error",
@@ -170,19 +186,18 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
                 variant: "destructive",
             });
         } finally {
-            setIsLoadingMore(false);
+            if (!ignore) {
+                setIsLoadingMore(false);
+            }
         }
     };
 
     fetchFilteredProblems();
+
+    return () => {
+        ignore = true;
+    };
   }, [searchParams, initialProblems, initialNextCursor, hasMore, itemsPerPage, toast]);
-
-  // Sync state with props when filters change (server re-renders) -- REMOVED as we handle via searchParams now
-  // However, we still want to reset if initialProblems change (e.g. revalidation)
-  // The above effect depends on [searchParams], which changes on nav.
-  // It also depends on [initialProblems]. If initialProblems changes (revalidation), it re-runs.
-  // If params are default, it sets to initialProblems. Correct.
-
 
 
   // -- Helper to derive current filters from URL --
@@ -200,6 +215,8 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
 
   // -- Infinite Scroll Loader --
   const loadMore = useCallback(async () => {
+    // If not mounted, abort early
+    if (!isMountedRef.current) return;
     if (isLoadingMore || !hasMoreState || !cursor) return;
 
     setIsLoadingMore(true);
@@ -213,6 +230,9 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
           itemsPerPage
       );
       
+      // Check mount status again after await
+      if (!isMountedRef.current) return;
+
       if (result.problems.length > 0) {
         setDisplayedProblems((prev) => [...prev, ...result.problems]);
         setCursor(result.nextCursor);
@@ -221,6 +241,7 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
         setHasMoreState(false);
       }
     } catch (error) {
+      if (!isMountedRef.current) return;
       console.error("Failed to load more problems", error);
       toast({
           title: "Error",
@@ -228,7 +249,9 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
           variant: "destructive",
       });
     } finally {
-      setIsLoadingMore(false);
+      if (isMountedRef.current) {
+         setIsLoadingMore(false);
+      }
     }
   }, [cursor, hasMoreState, isLoadingMore, getCurrentFilters, itemsPerPage, toast]);
 
@@ -266,6 +289,11 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
     const fetchGlobalStats = async () => {
         try {
             const result = await userService.getUserGlobalProblemStats(user.uid);
+            // Check if still mounted (unlikely to unmount this fast, but good practice)
+            // Ideally we'd use ignore pattern here too, but this is less critical as it's fire-and-forget logic usually
+            // However, setting state on unmounted is bad.
+            if (!isMountedRef.current) return;
+
             setSolvedProblemIds(new Set(result.solvedProblemIds));
             setAttemptedProblemIds(new Set(result.attemptedProblemIds));
             setBookmarkedProblemIds(new Set(result.bookmarkedProblemIds));
@@ -283,8 +311,6 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
     hydratedIdsRef.current.clear();
   }, [user?.uid]);
 
-  // BOLT OPTIMIZATION: Removed the O(N) useEffect that mutated `displayedProblems`
-  // when statuses changed. Instead, we derive status during render.
 
   const handleProblemBookmarkChange = useCallback(
     (problemId: string, newIsBookmarked: boolean) => {
