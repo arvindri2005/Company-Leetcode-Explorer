@@ -24,18 +24,15 @@ export function OfflineImage({
   const [imgSrc, setImgSrc] = useState(src);
   const [fallbackFailed, setFallbackFailed] = useState(false);
 
-  const [prevSrc, setPrevSrc] = useState(src);
-
-  if (src !== prevSrc) {
-    setPrevSrc(src);
+  // Sync internal state when src prop changes
+  useEffect(() => {
     setImgSrc(src);
     setError(false);
     setFallbackFailed(false);
-  }
+  }, [src]);
 
   const handleError = () => {
     setError(true);
-    // If we have a fallback source, try to load that
     if (fallbackSrc) {
       setImgSrc(fallbackSrc);
     }
@@ -45,55 +42,102 @@ export function OfflineImage({
     setFallbackFailed(true);
   };
 
-  // 1. Initial Load: Show primary src
-  // 2. Primary Error: Show fallbackSrc
-  // 3. Fallback Error (or no fallbackSrc): Show Icon
+  // Extract props that should NOT be passed to the fallback div
+  const {
+    fill,
+    priority,
+    loading,
+    sizes,
+    quality,
+    loader,
+    placeholder,
+    blurDataURL,
+    unoptimized,
+    onLoadingComplete,
+    width,
+    height,
+    style,
+    ...divProps
+  } = props;
 
-  // If we are in an error state
+  // Prepare style for the fallback div to respect width/height if provided (and not fill)
+  const divStyle = {
+    ...style,
+    ...(width !== undefined && { width }),
+    ...(height !== undefined && { height }),
+  };
+
   if (error) {
-    // Case 3: Fallback failed or no fallback provided -> Show Icon
     if (fallbackFailed || !fallbackSrc) {
-        return (
-          <div
-            className={cn(
-              "flex items-center justify-center bg-muted text-muted-foreground",
-              className
-            )}
-            role="img"
-            aria-label={alt || "Image not available"}
-          >
-            {fallbackIcon ? (
-                fallbackIcon
-            ) : (
-                 !isOnline ? <WifiOff className="h-6 w-6" /> : <span className="text-xs">Image Error</span>
-            )}
-          </div>
-        );
+      return (
+        <div
+          className={cn(
+            "flex items-center justify-center bg-muted text-muted-foreground",
+            fill && "absolute inset-0 h-full w-full",
+            className
+          )}
+          style={divStyle}
+          role="img"
+          aria-label={alt || "Image not available"}
+          {...divProps}
+        >
+          {fallbackIcon ? (
+            fallbackIcon
+          ) : !isOnline ? (
+            <WifiOff className="h-6 w-6" />
+          ) : (
+            <span className="text-xs">Image Error</span>
+          )}
+        </div>
+      );
     }
 
-    // Case 2: Primary failed, trying fallback
-    // Note: We check `imgSrc === fallbackSrc` to ensure we are actually rendering the fallback
     if (imgSrc === fallbackSrc) {
-        return (
-            <Image
-                src={fallbackSrc}
-                alt={alt || "Fallback image"}
-                className={cn(className, !isOnline && "grayscale opacity-80")}
-                onError={handleFallbackError}
-                {...props}
-            />
-        )
+      return (
+        <Image
+          src={fallbackSrc}
+          alt={alt || "Fallback image"}
+          className={cn(className, !isOnline && "grayscale opacity-80")}
+          onError={handleFallbackError}
+          fill={fill}
+          priority={priority}
+          loading={loading}
+          sizes={sizes}
+          quality={quality}
+          loader={loader}
+          placeholder={placeholder}
+          blurDataURL={blurDataURL}
+          unoptimized={unoptimized}
+          onLoadingComplete={onLoadingComplete}
+          width={width}
+          height={height}
+          style={style}
+          {...divProps}
+        />
+      );
     }
   }
 
-  // Case 1: Standard render
   return (
     <Image
       src={imgSrc}
       alt={alt}
-      className={cn(className, !isOnline && "opacity-90")} // Slight opacity drop if offline to hint status if cached
+      className={cn(className, !isOnline && "opacity-90")}
       onError={handleError}
-      {...props}
+      fill={fill}
+      priority={priority}
+      loading={loading}
+      sizes={sizes}
+      quality={quality}
+      loader={loader}
+      placeholder={placeholder}
+      blurDataURL={blurDataURL}
+      unoptimized={unoptimized}
+      onLoadingComplete={onLoadingComplete}
+      width={width}
+      height={height}
+      style={style}
+      {...divProps}
     />
   );
 }

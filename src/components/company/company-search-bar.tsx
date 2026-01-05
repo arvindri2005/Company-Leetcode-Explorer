@@ -6,8 +6,8 @@
  * component, with its state managed by a parent component.
  */
 import React, { useState, useRef } from "react";
-import { Loader2, Building2, Search, X } from "lucide-react";
-import Image from "next/image";
+import { Loader2, Building2, Search } from "lucide-react";
+import { OfflineImage } from "@/components/ui/offline-image";
 import { getLogoUrl, cn } from "@/lib/utils";
 import { useTypingPlaceholder } from "@/hooks/use-typing-placeholder";
 
@@ -202,17 +202,17 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
                   idx !== suggestions.length - 1 && "border-b border-white/10",
                 )}
               >
-                {suggestion.logo ? (
-                  <Image
-                    src={getLogoUrl(suggestion.logo) as string}
-                    alt={suggestion.name}
-                    width={32}
-                    height={32}
-                    className="rounded-full bg-white/20"
-                  />
-                ) : (
-                  <Building2 className="h-8 w-8 text-gray-custom-500 bg-white/10 rounded-full p-1" />
-                )}
+                <OfflineImage
+                  src={getLogoUrl(suggestion.logo) || "/icon.png"}
+                  fallbackSrc="/icon.png"
+                  fallbackIcon={
+                    <Building2 className="h-8 w-8 text-gray-custom-500 bg-white/10 rounded-full p-1" />
+                  }
+                  alt={suggestion.name}
+                  width={32}
+                  height={32}
+                  className="rounded-full bg-white/20"
+                />
                 <span className="font-medium text-lg">{suggestion.name}</span>
               </div>
             ))

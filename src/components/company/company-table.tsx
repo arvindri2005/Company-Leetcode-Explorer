@@ -1,9 +1,8 @@
 import React from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { Company } from "@/types";
 import { getLogoUrl } from "@/lib/utils";
-import { Star } from "lucide-react";
+import { OfflineImage } from "@/components/ui/offline-image";
 
 interface CompanyTableProps {
   companies: Company[];
@@ -48,8 +47,9 @@ function CompanyRow({ company }: { company: Company }) {
       <td className="p-4">
         <div className="flex items-center gap-3">
           <div className="relative w-10 h-10 bg-white rounded-lg p-1.5 flex items-center justify-center flex-shrink-0 overflow-hidden">
-            <Image
+            <OfflineImage
               src={imgSrc}
+              fallbackSrc="/icon.png"
               alt={`${company.name} logo`}
               width={32}
               height={32}

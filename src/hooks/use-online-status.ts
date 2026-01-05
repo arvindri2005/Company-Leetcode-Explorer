@@ -1,10 +1,12 @@
+"use client";
+
 import { useState, useEffect } from "react";
 
 export function useOnlineStatus() {
   const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
-    // Check initial status
+    // Check initial status only on mount
     if (typeof window !== 'undefined') {
       setIsOnline(navigator.onLine);
     }
@@ -19,7 +21,8 @@ export function useOnlineStatus() {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
   return isOnline;
 }
