@@ -33,7 +33,9 @@ export const useTypingGame = () => {
   const [totalMistakes, setTotalMistakes] = useState(0);
 
   // Stats History
-  const [wpmHistory, setWpmHistory] = useState<{ time: number; wpm: number }[]>([]);
+  const [wpmHistory, setWpmHistoryState] = useState<{ time: number; wpm: number }[]>([]);
+  // Use a ref for live history tracking to avoid re-renders every second
+  const wpmHistoryRef = useRef<{ time: number; wpm: number }[]>([]);
 
   // Refs
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -48,7 +50,8 @@ export const useTypingGame = () => {
     setWpm(0);
     setAccuracy(100);
     setTotalMistakes(0);
-    setWpmHistory([]);
+    setWpmHistoryState([]);
+    wpmHistoryRef.current = [];
     if(inputRef.current) {
         inputRef.current.focus();
         // Reset selection to 0
@@ -94,7 +97,8 @@ export const useTypingGame = () => {
       interval = setInterval(() => {
         const timeElapsed = Math.round((Date.now() - startTime) / 1000);
         const currentWpm = calculateWPM(startTime, Date.now(), userInputLengthRef.current);
-        setWpmHistory(prev => [...prev, { time: timeElapsed, wpm: currentWpm }]);
+        // Push to ref instead of state to avoid re-render
+        wpmHistoryRef.current.push({ time: timeElapsed, wpm: currentWpm });
       }, 1000);
     }
     return () => clearInterval(interval);
@@ -202,7 +206,11 @@ export const useTypingGame = () => {
          setIsFinished(true);
          const finalWpm = calculateWPM(startTime || Date.now(), end, value.length);
          setWpm(finalWpm);
-         setWpmHistory(prev => [...prev, { time: Math.round((end - (startTime || end))/1000), wpm: finalWpm }]);
+
+         const finalTime = Math.round((end - (startTime || end))/1000);
+         wpmHistoryRef.current.push({ time: finalTime, wpm: finalWpm });
+         // Update state once at the end
+         setWpmHistoryState([...wpmHistoryRef.current]);
     }
     
     // Calculate Live Stats
@@ -222,7 +230,8 @@ export const useTypingGame = () => {
       setSelectedLanguage, // Expose the wrapper instead of state setter
       currentSnippet,
       userInput, setUserInput,
-      wpm, accuracy, wpmHistory,
+      wpm, accuracy,
+      wpmHistory, // This is the state version, updated only at end
       isFinished, isFocused,
       setIsFocused,
       inputRef, codeContainerRef, cursorRef,
