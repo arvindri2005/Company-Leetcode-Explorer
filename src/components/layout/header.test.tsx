@@ -14,6 +14,9 @@ jest.mock('@/lib/navigation-registry', () => ({
     getItems: jest.fn(() => []),
   },
 }));
+jest.mock('@/hooks/use-toast', () => ({
+  useToast: () => ({ toast: jest.fn() }),
+}));
 
 describe('Header Accessibility', () => {
   beforeEach(() => {

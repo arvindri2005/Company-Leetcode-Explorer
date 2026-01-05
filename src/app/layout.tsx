@@ -22,6 +22,8 @@ import { Analytics } from "@vercel/analytics/next";
 import { CooldownStateProvider } from "@/hooks/use-ai-cooldown";
 import StructuredData from "@/components/seo/structured-data";
 import { COLORS } from "@/constants/colors";
+import ErrorBoundary from "@/components/ui/error-boundary";
+import { HeaderErrorFallback } from "@/components/layout/header-error-fallback";
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -176,7 +178,9 @@ export default function RootLayout({
           <AuthProvider>
             <CooldownStateProvider>
               <div className="flex flex-col min-h-screen w-full">
-                <Header />
+                <ErrorBoundary fallback={<HeaderErrorFallback />}>
+                   <Header />
+                </ErrorBoundary>
                 <main id="main-content" tabIndex={-1} className="flex-1 w-full">
                   {children}
                   <SpeedInsights />

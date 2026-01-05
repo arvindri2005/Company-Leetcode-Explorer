@@ -38,6 +38,8 @@ import { navigationRegistry, NavigationItem } from "@/lib/navigation-registry";
  * @returns {JSX.Element} The rendered header component.
  */
 const Header = React.memo(function Header() {
+
+
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
