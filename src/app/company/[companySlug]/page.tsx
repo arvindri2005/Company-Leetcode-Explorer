@@ -12,7 +12,7 @@ import type { Metadata } from "next";
 import CompanyNotFound from "@/components/company/page/company-not-found";
 import CompanyPage from "@/components/company/page/company-page";
 import { getLogoUrl, capitalizeWords } from "@/lib/utils";
-import { Company } from "@/types";
+import { Company, ProblemSummaryDTO, LeetCodeProblem } from "@/types";
 import { env } from "@/env";
 
 import StructuredData from "@/components/seo/structured-data";
@@ -28,7 +28,10 @@ interface CompanyPageProps {
   params: Promise<{ companySlug: string }>;
 }
 
-function getStructuredData(company: Company): Array<Record<string, any>> {
+function getStructuredData(
+  company: Company,
+  problems: (LeetCodeProblem | ProblemSummaryDTO)[],
+): Array<Record<string, any>> {
   const breadcrumbList = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -99,7 +102,21 @@ function getStructuredData(company: Company): Array<Record<string, any>> {
     ],
   };
 
-  return [organizationSchema, breadcrumbList, faqSchema];
+  const itemListSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `${companyName} Interview Problems`,
+    description: `A list of coding interview problems asked by ${companyName}.`,
+    numberOfItems: problems.length,
+    itemListElement: problems.map((problem, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: problem.title,
+      url: problem.link,
+    })),
+  };
+
+  return [organizationSchema, breadcrumbList, faqSchema, itemListSchema];
 }
 
 /**
@@ -229,7 +246,7 @@ export default async function CompanyPageWrapper(props: CompanyPageProps) {
   // const userStatuses = await problemService.getUserProblemStatuses(userId, problemsResponse.problems.map(p => p.id));
   // merge(problemsResponse.problems, userStatuses);
   
-  const structuredData = getStructuredData(company);
+  const structuredData = getStructuredData(company, problemsResponse.problems);
 
   return (
     <>
