@@ -17,6 +17,8 @@ import {
   type CompanyStrategyProblemInput as ImportedCompanyStrategyProblemInput,
   type TargetRoleLevel as ImportedTargetRoleLevel,
 } from "@/types";
+import { retryWithBackoff, truncateText, sanitizeInput } from "@/ai/utils";
+import { companyStrategyCache } from "@/ai/cache";
 
 export type CompanyStrategyProblemInput = ImportedCompanyStrategyProblemInput;
 export type TargetRoleLevel = ImportedTargetRoleLevel;
@@ -249,6 +251,13 @@ const generateCompanyStrategyFlow = ai.defineFlow(
     outputSchema: GenerateCompanyStrategyOutputSchema,
   },
   async (input) => {
+    // Nova Guardrail: Cache Check
+    const cacheKey = companyStrategyCache.generateKey(input);
+    const cachedResult = companyStrategyCache.get(cacheKey);
+    if (cachedResult) {
+      return cachedResult;
+    }
+
     // Nova Guardrail: Token Optimization & Cost Control
     // Limit the number of problems sent to the model to prevent context explosion and reduce costs.
     const MAX_PROBLEMS_FOR_CONTEXT = 25;
@@ -262,15 +271,18 @@ const generateCompanyStrategyFlow = ai.defineFlow(
     if (input.workHistory) {
       safeWorkHistory = input.workHistory
         .slice(0, MAX_HISTORY_ITEMS)
-        .map((work) => ({
-          ...work,
-          responsibilities:
-            work.responsibilities &&
-            work.responsibilities.length > MAX_RESPONSIBILITIES_LENGTH
-              ? work.responsibilities.slice(0, MAX_RESPONSIBILITIES_LENGTH) +
-                "...(truncated)"
-              : work.responsibilities,
-        }));
+        .map((work) => {
+          // Nova Guardrail: Sanitization
+          const sanitizedResponsibilities = work.responsibilities ? sanitizeInput(work.responsibilities) : "";
+
+          return {
+            ...work,
+            responsibilities:
+              sanitizedResponsibilities.length > MAX_RESPONSIBILITIES_LENGTH
+                ? truncateText(sanitizedResponsibilities, MAX_RESPONSIBILITIES_LENGTH)
+                : sanitizedResponsibilities,
+          };
+        });
     }
 
     // Sanitize Education History
@@ -287,17 +299,25 @@ const generateCompanyStrategyFlow = ai.defineFlow(
       educationHistory: safeEducationHistory,
     };
 
-    const { output } = await prompt(safeInput);
-    if (
-      !output ||
-      !output.preparationStrategy ||
-      !output.focusTopics ||
-      !output.todoItems
-    ) {
-      throw new Error(
-        "AI failed to generate a complete company-specific strategy. The output was incomplete or invalid.",
-      );
-    }
+    // Nova Guardrail: Retry with Exponential Backoff
+    const output = await retryWithBackoff(async () => {
+        const { output } = await prompt(safeInput);
+        if (
+          !output ||
+          !output.preparationStrategy ||
+          !output.focusTopics ||
+          !output.todoItems
+        ) {
+          throw new Error(
+            "AI failed to generate a complete company-specific strategy. The output was incomplete or invalid.",
+          );
+        }
+        return output;
+    });
+
+    // Cache the successful result
+    companyStrategyCache.set(cacheKey, output);
+
     return output;
   },
 );

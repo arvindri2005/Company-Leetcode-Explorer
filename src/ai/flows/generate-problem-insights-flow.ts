@@ -14,6 +14,8 @@
 import { ai } from "@/ai/genkit";
 import { getModelForIntent } from "@/ai/model-registry";
 import { z } from "genkit";
+import { retryWithBackoff, truncateText, sanitizeInput } from "@/ai/utils";
+import { problemInsightsCache } from "@/ai/cache";
 
 const GenerateProblemInsightsInputSchema = z.object({
   title: z.string().describe("The title of the coding problem."),
@@ -139,29 +141,20 @@ const generateProblemInsightsFlow = ai.defineFlow(
     outputSchema: GenerateProblemInsightsOutputSchema,
   },
   async (input) => {
+    // Nova Guardrail: Cache Check
+    const cacheKey = problemInsightsCache.generateKey(input);
+    const cachedResult = problemInsightsCache.get(cacheKey);
+    if (cachedResult) {
+      return cachedResult;
+    }
+
     // Nova Guardrail: Token Optimization & Cost Control
     // Truncate description to ~2000 chars to prevent context explosion and reduce costs.
     const MAX_DESCRIPTION_LENGTH = 2000;
-    let safeDescription = input.problemDescription;
 
-    if (safeDescription.length > MAX_DESCRIPTION_LENGTH) {
-      // Smart Truncation: Cut at the last sentence boundary to preserve context integrity.
-      const truncated = safeDescription.slice(0, MAX_DESCRIPTION_LENGTH);
-      const lastSentenceEnd = Math.max(
-        truncated.lastIndexOf("."),
-        truncated.lastIndexOf("!"),
-        truncated.lastIndexOf("?"),
-        truncated.lastIndexOf("\n")
-      );
-      
-      // If we found a sentence boundary reasonably close to the limit (e.g. within last 200 chars), use it.
-      // Otherwise, just hard chop to avoid losing too much context.
-      if (lastSentenceEnd > MAX_DESCRIPTION_LENGTH - 200) {
-        safeDescription = truncated.slice(0, lastSentenceEnd + 1) + " ...(truncated)";
-      } else {
-        safeDescription = truncated + "...(truncated)";
-      }
-    }
+    // Nova Guardrail: Sanitization
+    const sanitizedDescription = sanitizeInput(input.problemDescription);
+    const safeDescription = truncateText(sanitizedDescription, MAX_DESCRIPTION_LENGTH);
 
     // Create a safe input object with truncated description
     const safeInput = {
@@ -169,13 +162,21 @@ const generateProblemInsightsFlow = ai.defineFlow(
       problemDescription: safeDescription,
     };
 
-    const { output } = await prompt(safeInput);
-    if (!output || !output.highLevelHint || output.keyConcepts.length === 0) {
-      // Fallback or throw error
-      throw new Error(
-        "AI failed to generate complete problem insights. The output was incomplete or invalid.",
-      );
-    }
+    // Nova Guardrail: Retry with Exponential Backoff
+    const output = await retryWithBackoff(async () => {
+        const { output } = await prompt(safeInput);
+        if (!output || !output.highLevelHint || output.keyConcepts.length === 0) {
+          // Fallback or throw error
+          throw new Error(
+            "AI failed to generate complete problem insights. The output was incomplete or invalid.",
+          );
+        }
+        return output;
+    });
+
+    // Cache the successful result
+    problemInsightsCache.set(cacheKey, output);
+
     return output;
   },
 );
