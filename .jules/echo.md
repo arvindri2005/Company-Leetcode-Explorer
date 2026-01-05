@@ -1,19 +1,25 @@
-# Echo's Journal 🔊
+# Echo's Journal
 
-## Critical Discoveries
+## Daily Process
+- 🔍 LISTEN: Hunt for UX and A11y friction.
+- 🔊 SELECT: Choose the BEST opportunity.
+- 🔧 RESONATE: Implement with precision.
+- ✅ VERIFY: Test the experience.
+- 🎁 PRESENT: Share your clarity.
 
-### Unique UI Patterns
-- **Full-Card Clickability via CSS Overlay**: `CompanyCard` and `TechCompanyCard` use a `Link` with `after:absolute after:inset-0 after:z-10` to make the entire card clickable. This is a valid accessible pattern as long as the card contains no other interactive elements. It avoids invalid HTML nesting (`<a>` inside `<a>` or `<button>`).
-  - *Verification*: The focus ring correctly highlights the "View Problems" button (or "View" link), which is the semantic anchor.
+## Discoveries
 
-### Components that are "Keyboard Traps" or Barriers
-- **ToastClose Missing Label**: The `ToastClose` component in `src/components/ui/toast.tsx` used an icon-only button without screen-reader text. This makes it impossible for blind users to know what the button does.
-  - *Fix*: Added `<span className="sr-only">Close</span>`.
+### Initial Exploration
+- `src/components/ui/shine-button.tsx`: Icon is decorative (next to text) but lacks `aria-hidden="true"`.
+- `src/components/ui/floating-shapes.tsx`: Purely decorative background. Outer div has no role.
+- `src/app/layout.tsx`: "Skip to content" link exists and is implemented correctly.
 
-### Potential Improvements (Backlog)
-- **Filter Groups**: `ProblemListControls` uses a list of `Chip` buttons. These should be wrapped in a container with `role="group"` and `aria-label` to provide context (e.g., "Filter by difficulty").
-- **AutoFocus**: The `LoginForm` and `SignupForm` use `autoFocus` on the first input. While convenient for sighted users, this can be disorienting for screen reader users who might miss the page context (Header, Title) as focus jumps immediately to the input.
-- **Search Roles**: `CompanySearchBar` uses `role="combobox"` but could be further enhanced with better `aria-activedescendant` management for the dropdown options.
+### Implemented Improvements
+1. **ShineButton Icon Accessibility**:
+   - **Issue**: The icon in `ShineButton` was rendered without `aria-hidden="true"`, potentially causing screen readers to announce it as an image or read its filename/internal text if the SVG had titles (though Lucide icons are usually clean, it's best practice to hide decorative icons).
+   - **Fix**: Added `aria-hidden="true"` to the `Icon` component.
+   - **Verification**: Verified via test that the attribute is present.
 
-## Lessons Learned
-- **CSS-only Overlays**: Using CSS pseudo-elements to expand click targets is a robust way to handle "clickable cards" without breaking semantic HTML rules.
+### Future Opportunities
+- **Offline Indicator**: `src/components/ui/offline-indicator.tsx` uses `role="status"` and `aria-live="polite"`. This is good.
+- **Toasts**: Ensure `destructive` toasts use `role="alert"`.
