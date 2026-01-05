@@ -4,7 +4,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useDebouncedCallback } from "@/hooks/use-debounce";
+import { useDebouncedCallback } from "use-debounce";
 
 import { useTypingPlaceholder } from "@/hooks/use-typing-placeholder";
 
