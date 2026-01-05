@@ -1,4 +1,4 @@
-import type { Company, LeetCodeProblem, PaginatedProblemsResponse } from "@/types";
+import type { Company, LeetCodeProblem, PaginatedProblemsResponse, UserProfile } from "@/types";
 import type { User as FirebaseUser } from "firebase/auth";
 
 // Seedable PRNG (Mulberry32)
@@ -153,6 +153,17 @@ export const createMockUser = (overrides: Partial<FirebaseUser> = {}): FirebaseU
     toJSON: jest.fn(),
     phoneNumber: null,
     providerId: 'firebase',
+    ...overrides,
+  };
+};
+
+export const createMockUserProfile = (overrides: Partial<UserProfile> = {}): UserProfile => {
+  return {
+    uid: simpleFaker.string.uuid(),
+    email: simpleFaker.internet.email(),
+    displayName: simpleFaker.person.fullName(),
+    createdAt: simpleFaker.date.recent(),
+    lastSyncedAt: simpleFaker.date.recent(),
     ...overrides,
   };
 };

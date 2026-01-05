@@ -1,59 +1,45 @@
 import { z } from "zod";
 import { UserProfileSchema } from "../user";
+import { createMockUserProfile } from "@/__tests__/factories/data-factories";
 
 describe("UserProfileSchema", () => {
   it("validates a valid user profile", () => {
-    const validProfile = {
-      uid: "user123",
-      email: "test@example.com",
-      displayName: "Test User",
-      createdAt: new Date(),
-      lastSyncedAt: new Date(),
-    };
-
+    const validProfile = createMockUserProfile();
     const result = UserProfileSchema.safeParse(validProfile);
     expect(result.success).toBe(true);
   });
 
   it("validates a user profile with minimal required fields", () => {
-    const validProfile = {
-      uid: "user123",
+    const validProfile = createMockUserProfile({
       email: null,
       displayName: null,
-      createdAt: new Date(),
-    };
+      lastSyncedAt: undefined,
+    });
 
     const result = UserProfileSchema.safeParse(validProfile);
     expect(result.success).toBe(true);
   });
 
   it("fails validation when uid is missing", () => {
-    const invalidProfile = {
-      email: "test@example.com",
-      displayName: "Test User",
-      createdAt: new Date(),
-    };
+    const validProfile = createMockUserProfile();
+    const invalidProfile = { ...validProfile, uid: undefined };
 
     const result = UserProfileSchema.safeParse(invalidProfile);
     expect(result.success).toBe(false);
   });
 
   it("fails validation when createdAt is missing", () => {
-    const invalidProfile = {
-      uid: "user123",
-      email: "test@example.com",
-      displayName: "Test User",
-    };
+    const validProfile = createMockUserProfile();
+    const invalidProfile = { ...validProfile, createdAt: undefined };
 
     const result = UserProfileSchema.safeParse(invalidProfile);
     expect(result.success).toBe(false);
   });
 
   it("fails validation when createdAt is not a Date object (e.g. Timestamp)", () => {
+     const validProfile = createMockUserProfile();
      const timestampProfile = {
-       uid: "user123",
-       email: "test@example.com",
-       displayName: "Test User",
+       ...validProfile,
        createdAt: { seconds: 1678900000, nanoseconds: 0 }
      };
 
