@@ -13,3 +13,7 @@ Service: Added `dev:all` script using `concurrently` to run both servers in para
 ## 2025-05-27 - [Slow Pre-commit Hook]
 Friction: The pre-commit hook was running `pnpm test`, which executes the entire test suite on every commit. This takes ~14s currently and will only get slower, discouraging frequent commits.
 Service: Updated `lint-staged` configuration to run `jest --findRelatedTests` only on changed files and removed the global `pnpm test` from the pre-commit hook.
+
+## 2025-05-27 - [Smart Env Sync]
+Friction: Developers often face crashes when new environment variables are added to `.env.example` but are missing from their local `.env.local`, requiring manual diffing.
+Service: Updated `scripts/setup.mjs` to automatically detect and append missing keys from `.env.example` to `.env.local` during setup, preserving existing values.
