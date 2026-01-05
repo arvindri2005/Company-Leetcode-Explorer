@@ -12,44 +12,37 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Brain, Target, Users } from "lucide-react";
 import ProblemList from "@/components/problem/problem-list";
 import type { Company, LeetCodeProblem, ProblemListFilters } from "@/types";
+import {
+  CompanyAIFeatureSkeleton,
+  CompanyStrategySkeleton,
+  CompanyStatsSkeleton,
+} from "@/components/skeletons/company-ai-skeletons";
 
 const AIGroupingSection = dynamic(
   () => import("@/components/ai/ai-grouping-section"),
   {
-    loading: () => (
-      <div className="animate-pulse h-48 bg-muted rounded-lg p-4 text-center text-sm text-muted-foreground">
-        Loading AI Grouping...
-      </div>
-    ),
+    loading: () => <CompanyAIFeatureSkeleton />,
   },
 );
 
 const DynamicFlashcardGenerator = dynamic(
   () => import("@/components/ai/flashcard-generator"),
   {
-    loading: () => (
-      <div className="animate-pulse h-48 bg-muted rounded-lg p-4 text-center text-sm text-muted-foreground">
-        Loading Flashcards...
-      </div>
-    ),
+    loading: () => <CompanyAIFeatureSkeleton />,
   },
 );
 
 const CompanyStrategyGenerator = dynamic(
   () => import("@/components/ai/company-strategy-generator"),
   {
-    loading: () => (
-      <div className="animate-pulse h-48 bg-muted rounded-lg p-4 text-center text-sm text-muted-foreground">
-        Loading Strategy Generator...
-      </div>
-    ),
+    loading: () => <CompanyStrategySkeleton />,
   },
 );
 
 const CompanyProblemStats = dynamic(
   () => import("@/components/company/company-problem-stats"),
   {
-    loading: () => <div className="animate-pulse h-36 bg-muted rounded-lg" />,
+    loading: () => <CompanyStatsSkeleton />,
   },
 );
 
@@ -123,9 +116,7 @@ export default function CompanyTabs({
           />
         </TabsContent>
         <TabsContent value="stats" className="mt-0 transition-all duration-300 ease-in-out">
-          <Suspense
-            fallback={<div className="animate-pulse h-36 bg-muted rounded-lg" />}
-          >
+          <Suspense fallback={<CompanyStatsSkeleton />}>
             <CompanyProblemStats company={company} />
           </Suspense>
         </TabsContent>

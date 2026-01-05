@@ -32,6 +32,7 @@ import { problemService } from "@/services/problem.service";
 import { userService } from "@/services/user.service";
 import { Logger } from "@/lib/logger";
 import { cacheManager, CacheTTL } from "@/lib/cache";
+import { unstable_cache } from "next/cache";
 
 export class AIService {
   private async withObservability<T>(
