@@ -216,13 +216,15 @@ export class UserRepository {
       const educationColRef = collection(db, "users", userId, "educationHistory");
       const q = query(educationColRef, orderBy("createdAt", "desc"));
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(
-        (docSnap) =>
-          ({
-            id: docSnap.id,
-            ...docSnap.data(),
-          }) as EducationExperience,
-      );
+      return querySnapshot.docs
+        .map(
+          (docSnap) =>
+            ({
+              id: docSnap.id,
+              ...docSnap.data(),
+            }) as EducationExperience,
+        )
+        .filter((edu) => !edu.isDeleted);
     } catch (error) {
       Logger.error(
         `Error fetching education history`,
@@ -239,16 +241,72 @@ export class UserRepository {
       const workColRef = collection(db, "users", userId, "workExperience");
       const q = query(workColRef, orderBy("createdAt", "desc"));
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(
-        (docSnap) =>
-          ({
-            id: docSnap.id,
-            ...docSnap.data(),
-          }) as WorkExperience,
-      );
+      return querySnapshot.docs
+        .map(
+          (docSnap) =>
+            ({
+              id: docSnap.id,
+              ...docSnap.data(),
+            }) as WorkExperience,
+        )
+        .filter((work) => !work.isDeleted);
     } catch (error) {
       Logger.error(`Error fetching work experience`, error, { userId });
       return [];
+    }
+  }
+
+  async softDeleteUserEducation(
+    userId: string,
+    educationId: string,
+  ): Promise<{ success: boolean; error?: string }> {
+    if (!userId || !educationId) {
+      return { success: false, error: "User ID and Education ID are required." };
+    }
+    try {
+      const educationDocRef = doc(
+        db,
+        "users",
+        userId,
+        "educationHistory",
+        educationId,
+      );
+      await updateDoc(educationDocRef, {
+        isDeleted: true,
+        deletedAt: serverTimestamp(),
+      });
+      return { success: true };
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to delete education experience.";
+      Logger.error("Error soft deleting education", error);
+      return { success: false, error: message };
+    }
+  }
+
+  async softDeleteUserWorkExperience(
+    userId: string,
+    workId: string,
+  ): Promise<{ success: boolean; error?: string }> {
+    if (!userId || !workId) {
+      return { success: false, error: "User ID and Work ID are required." };
+    }
+    try {
+      const workDocRef = doc(db, "users", userId, "workExperience", workId);
+      await updateDoc(workDocRef, {
+        isDeleted: true,
+        deletedAt: serverTimestamp(),
+      });
+      return { success: true };
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to delete work experience.";
+      Logger.error("Error soft deleting work experience", error);
+      return { success: false, error: message };
     }
   }
 
