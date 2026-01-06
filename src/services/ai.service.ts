@@ -33,6 +33,14 @@ import { userService } from "@/services/user.service";
 import { Logger } from "@/lib/logger";
 import { cacheManager, CacheTTL } from "@/lib/cache";
 import { unstable_cache } from "next/cache";
+import { aiFlowRegistry } from "@/ai/flow-registry";
+
+// Register default flows
+aiFlowRegistry.register("groupQuestions", groupQuestionsFlow);
+aiFlowRegistry.register("findSimilarQuestions", findSimilarQuestionsFlow);
+aiFlowRegistry.register("generateFlashcards", generateFlashcardsFlow);
+aiFlowRegistry.register("generateCompanyStrategy", generateCompanyStrategyFlow);
+aiFlowRegistry.register("generateProblemInsights", generateProblemInsightsFlow);
 
 export class AIService {
   private async withObservability<T>(
@@ -84,9 +92,11 @@ export class AIService {
       })),
     };
     
+    const flow = aiFlowRegistry.get<GroupQuestionsInput, GroupQuestionsOutput>("groupQuestions");
+
     return await this.withObservability(
       "groupQuestions",
-      () => groupQuestionsFlow(input),
+      () => flow(input),
       { problemCount: problems.length }
     );
   }
@@ -116,9 +126,11 @@ export class AIService {
       },
     };
 
+    const flow = aiFlowRegistry.get<FindSimilarQuestionsInput, FindSimilarQuestionsOutput>("findSimilarQuestions");
+
     return await this.withObservability(
       "findSimilarQuestions",
-      () => findSimilarQuestionsFlow(input),
+      () => flow(input),
       { currentProblemSlug, currentProblemCompanySlug }
     );
   }
@@ -152,9 +164,11 @@ export class AIService {
             lastAskedPeriod: p.lastAskedPeriod as any,
           }));
 
+        const flow = aiFlowRegistry.get<any, GenerateFlashcardsOutput>("generateFlashcards");
+
         return await this.withObservability(
           "generateFlashcards",
-          () => generateFlashcardsFlow({
+          () => flow({
             companyName: company.name,
             problems: problemInputs,
           }),
@@ -253,9 +267,11 @@ export class AIService {
        if (Array.isArray(workResult)) workHistory = workResult;
     }
 
+    const flow = aiFlowRegistry.get<any, GenerateCompanyStrategyOutput>("generateCompanyStrategy");
+
     return await this.withObservability(
       "generateCompanyStrategy",
-      () => generateCompanyStrategyFlow({
+      () => flow({
         companyName: company.name,
         problems: problemInputs,
         targetRoleLevel,
@@ -289,9 +305,11 @@ export class AIService {
           problemDescription: problemDescriptionForAI,
         };
         
+        const flow = aiFlowRegistry.get<GenerateProblemInsightsInput, GenerateProblemInsightsOutput>("generateProblemInsights");
+
         return await this.withObservability(
           "generateProblemInsights",
-          () => generateProblemInsightsFlow(input),
+          () => flow(input),
           { problemSlug: problem.slug, companySlug: problem.companySlug }
         );
       },

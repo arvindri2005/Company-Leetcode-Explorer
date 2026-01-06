@@ -1,20 +1,17 @@
-# Apex Journal: Extensibility & Platform Improvements
+# Apex Journal
 
-## 🏔️ Apex: Navigation Registry Slot Support
+## 2024-05-21: AI Service Extension Registry
 
-### 💡 What
-Implemented a "Slot" pattern (Render Prop) in the `NavigationRegistry` and `Header` component.
-- Added `render?: (context: NavigationRenderContext) => React.ReactNode` to the `NavigationItem` interface.
-- Updated `Header.tsx` to execute this render function if present, passing `user`, `isLoading`, and `isMobile` as context.
+### Discovery
+The `AIService` (`src/services/ai.service.ts`) was tightly coupled to specific AI flow implementations. Adding a new AI capability required modifying the service class, violating the Open-Closed Principle. This rigidity made it difficult to A/B test different flow implementations or add experimental features without code churn in the core service.
 
-### 🎯 Why
-Previously, the `Header` component could only render standard text links or buttons based on a static schema. Adding rich UI elements like User Avatars, Notification Bells, or "Pro" badges required modifying the core `Header.tsx` file.
-This change allows any module to inject arbitrary React components into the navigation bar by registering them in the `navigationRegistry`. This effectively "opens" the `Header` for extension while keeping it "closed" for modification.
+### Improvement
+Refactored `AIService` to use a `AIFlowRegistry` (`src/ai/flow-registry.ts`).
 
-### 🏗️ Scalability
-- **Type:** Slot-based UI Extension
-- **Impact:** Decouples navigation content from the navigation container.
-- **Example:** A "Gamification" plugin can now inject a "Streak Counter" into the header just by registering a new item, without touching the layout code.
+- **What:** Introduced a singleton registry where AI flows are registered by name. The `AIService` now looks up flows from this registry instead of importing them directly.
+- **Why:** This decouples the service from the implementation. Flows can be swapped at runtime (e.g., for testing or different environments) or added dynamically.
+- **Scalability:** New AI features can be added by registering a new flow. While `AIService` currently has specific methods for type safety, this pattern paves the way for a more generic `executeFlow` method if needed.
+- **Verification:** Added `src/services/__tests__/ai-extensibility.test.ts` which demonstrates how to override a core flow (`groupQuestions`) with a mock implementation without touching the service code.
 
-### 🔬 Verification
-- Created `src/components/layout/header.extensibility.test.tsx` verifying that a custom component registered with a `render` function appears in the DOM and receives the correct authentication and device context.
+### Lessons
+- **Type Safety vs. Extensibility:** The main challenge was maintaining strict input/output typing while using a generic registry. We kept the specific methods in `AIService` to preserve the API contract but delegated the execution to the registered flow. A fully generic `execute` method would require more complex type mapping.
