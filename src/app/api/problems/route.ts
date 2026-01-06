@@ -128,6 +128,7 @@ export async function GET(request: Request) {
         companySlug: companySlugToUse,
         totalProblemCount: totalProblemCountToUse,
         difficultyCounts: difficultyCountsToUse,
+        requestId,
       });
     } else {
       // Fetch all problems if no companyId is provided
@@ -141,6 +142,7 @@ export async function GET(request: Request) {
         searchTerm,
         sortKey,
         userId,
+        requestId,
       });
     }
 
