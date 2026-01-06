@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle, Home } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useDebounce } from "@/hooks/use-debounce";
+import { useDebounce } from "use-debounce";
 import { fetchCompanySuggestionsAction } from "@/app/actions/company.actions";
 import CompnaySearchBar from "@/components/company/company-search-bar";
 import type { Company } from "@/types";
@@ -37,7 +37,7 @@ export default function NotFound() {
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const debouncedSearchTerm = useDebounce(searchTermInput, 300);
+  const [debouncedSearchTerm] = useDebounce(searchTermInput, 300);
 
   useEffect(() => {
     const fetchSuggestions = async () => {

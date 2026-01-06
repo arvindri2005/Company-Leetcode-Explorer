@@ -14,7 +14,7 @@ import CompanyCard from "./company-card";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import CompanyCardErrorFallback from "./company-card-error-fallback";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { useDebounce } from "@/hooks/use-debounce";
+import { useDebounce } from "use-debounce";
 import { fetchCompanySuggestionsAction } from "@/app/actions";
 import CompanySearchBar from "./company-search-bar";
 import { useCursorPagination } from "@/hooks/use-cursor-pagination";
@@ -68,7 +68,7 @@ const CompanyList: React.FC<CompanyListProps> = ({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const debouncedSearchTerm = useDebounce(searchTermInput, 300);
+  const [debouncedSearchTerm] = useDebounce(searchTermInput, 300);
   const [displayedCompanies, setDisplayedCompanies] =
     useState<Company[]>(initialCompanies);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
