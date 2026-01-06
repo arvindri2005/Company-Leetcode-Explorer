@@ -16,6 +16,8 @@
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
 import type { FlashcardProblemInput as ImportedFlashcardProblemInput } from "@/types";
+import { retryWithBackoff, sanitizeInput } from "@/ai/utils";
+import { flashcardsCache } from "@/ai/cache";
 
 export type FlashcardProblemInput = ImportedFlashcardProblemInput;
 
@@ -149,16 +151,38 @@ const generateFlashcardsFlow = ai.defineFlow(
     const MAX_PROBLEMS_FOR_CONTEXT = 20;
     const safeProblems = input.problems.slice(0, MAX_PROBLEMS_FOR_CONTEXT);
 
+    // Nova Guardrail: Sanitization
+    // Sanitize the company name to remove potential PII or injection attempts.
+    const safeCompanyName = sanitizeInput(input.companyName);
+
     const safeInput = {
       ...input,
+      companyName: safeCompanyName,
       problems: safeProblems,
     };
 
-    const { output } = await prompt(safeInput);
-    if (!output || !output.flashcards || output.flashcards.length === 0) {
-      // Fallback to an empty array if AI doesn't produce valid output or no flashcards.
-      return { flashcards: [] };
+    // Nova Guardrail: Cache Check
+    // Check if we have already generated flashcards for this exact input combination.
+    // We use safeInput to ensure that we cache based on what the model actually sees (e.g. truncated lists).
+    const cacheKey = flashcardsCache.generateKey(safeInput);
+    const cachedResult = flashcardsCache.get(cacheKey);
+    if (cachedResult) {
+      return cachedResult;
     }
+
+    // Nova Guardrail: Retry with Exponential Backoff
+    const output = await retryWithBackoff(async () => {
+      const { output } = await prompt(safeInput);
+      if (!output || !output.flashcards || output.flashcards.length === 0) {
+        // Instead of returning empty array immediately, throw error to trigger retry
+        throw new Error("AI failed to generate valid flashcards.");
+      }
+      return output;
+    });
+
+    // Cache the successful result
+    flashcardsCache.set(cacheKey, output);
+
     return output;
   },
 );
