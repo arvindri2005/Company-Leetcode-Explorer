@@ -91,7 +91,7 @@ class Logger {
 
   static debug(message: string, context?: Record<string, any>) {
     // Only log debug in development or if enabled via env
-    if (process.env.NODE_ENV === "development" || (typeof process !== "undefined" && env.LOG_LEVEL === "DEBUG")) {
+    if (env.NODE_ENV === "development" || (typeof process !== "undefined" && env.LOG_LEVEL === "DEBUG")) {
       this.log("DEBUG", message, context);
     }
   }

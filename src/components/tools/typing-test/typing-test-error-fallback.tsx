@@ -1,7 +1,7 @@
 "use client";
 
+import { env } from "@/env";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
 interface TypingTestErrorFallbackProps {
@@ -36,7 +36,7 @@ export default function TypingTestErrorFallback({
       </Button>
 
       {/* Dev only details */}
-      {process.env.NODE_ENV === 'development' && (
+      {env.NODE_ENV === 'development' && (
         <div className="mt-8 p-4 bg-black/5 rounded text-left w-full max-w-lg overflow-auto text-xs font-mono text-muted-foreground">
             <p className="font-bold text-destructive mb-1">Error Details:</p>
             {error.message}

@@ -1,11 +1,14 @@
 import { z } from "zod";
 
+const sharedSchema = z.object({
+  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  LOG_LEVEL: z.enum(["DEBUG", "INFO", "WARN", "ERROR"]).optional(),
+});
+
 const serverSchema = z.object({
   GEMINI_API_KEY: z.string().optional(),
   GOOGLE_API_KEY: z.string().optional(),
-  LOG_LEVEL: z.enum(["DEBUG", "INFO", "WARN", "ERROR"]).optional(),
-  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-});
+}).merge(sharedSchema);
 
 const clientSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url(),
@@ -20,7 +23,7 @@ const clientSchema = z.object({
   NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: z.string().optional(),
   // LOGO_API is exposed to the client via next.config.ts `env` property
   LOGO_API: z.string().optional(),
-});
+}).merge(sharedSchema);
 
 const clientEnv = {
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
@@ -34,6 +37,8 @@ const clientEnv = {
   NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
   NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
   LOGO_API: process.env.LOGO_API,
+  NODE_ENV: process.env.NODE_ENV,
+  LOG_LEVEL: process.env.LOG_LEVEL,
 };
 
 const formatErrors = (errors: z.ZodFormattedError<Map<string, string>, string>) =>
