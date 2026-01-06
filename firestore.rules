@@ -28,8 +28,17 @@ service cloud.firestore {
     }
 
     // Contact Messages: Public Create, No Read/Update/Delete
+    // Added validation to prevent spam and invalid data
     match /contact-messages/{messageId} {
-      allow create: if true;
+      allow create: if true
+        && request.resource.data.keys().hasOnly(['name', 'email', 'message', 'createdAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
+        && request.resource.data.email is string
+        && request.resource.data.email.size() > 0 && request.resource.data.email.size() <= 100
+        && request.resource.data.message is string
+        && request.resource.data.message.size() > 0 && request.resource.data.message.size() <= 2000
+        && request.resource.data.createdAt is timestamp;
       allow read, update, delete: if false;
     }
   }
