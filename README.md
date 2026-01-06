@@ -62,6 +62,7 @@ New to the project? Check out our detailed **[Developer Guide](./guide)** for ev
 -   **[Coding Standards](./guide/coding-standards.md)**: Naming conventions and style guide.
 -   **[Adding Features](./guide/feature-workflow.md)**: Step-by-step workflow.
 -   **[Data Layer Patterns](./guide/data-layer.md)**: Repositories, validation, and persistence.
+-   **[Filter Registry](./guide/filter-registry.md)**: How to implement complex filters combining DB and memory logic.
 -   **[UI Guidelines](./guide/ui-guidelines.md)**: Colors, typography, and component usage.
 -   **[Advanced Patterns](./guide/advanced-patterns.md)**: Event bus, SOLID principles, and error handling.
 
