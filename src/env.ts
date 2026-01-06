@@ -22,7 +22,10 @@ const clientSchema = z.object({
   NEXT_PUBLIC_FIREBASE_APP_ID: z.string().min(1),
   NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: z.string().optional(),
   // LOGO_API is exposed to the client via next.config.ts `env` property
-  LOGO_API: z.string().optional(),
+  // It should be a token (e.g. for logo.dev), NOT a full URL.
+  LOGO_API: z.string()
+    .refine((val) => !val.startsWith("http"), "LOGO_API must be a token, not a URL")
+    .optional(),
 }).merge(sharedSchema);
 
 const clientEnv = {
