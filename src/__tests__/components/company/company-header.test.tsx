@@ -9,9 +9,14 @@ jest.mock('next/image', () => ({
 }));
 
 // Mock utils
-jest.mock('@/lib/utils', () => ({
-  getLogoUrl: jest.fn((logo) => logo ? `/images/${logo}` : null),
-}));
+// Mock utils
+jest.mock('@/lib/utils', () => {
+  const actual = jest.requireActual('@/lib/utils');
+  return {
+    ...actual,
+    getLogoUrl: jest.fn((logo) => logo ? `/images/${logo}` : null),
+  };
+});
 
 // Mock Breadcrumb components
 jest.mock('@/components/ui/breadcrumb', () => ({
@@ -50,16 +55,16 @@ describe('CompanyHeader', () => {
     expect(link.closest('a')).toHaveAttribute('href', 'https://example.com');
   });
 
-  it('should render fallback icon if no logo is provided', () => {
+  it('should render default image if no logo is provided', () => {
     const companyWithoutLogo = createMockCompany({
       ...mockCompany,
       logo: undefined,
     });
     render(<CompanyHeader company={companyWithoutLogo} />);
 
-    expect(screen.queryByAltText('Test Company Logo')).not.toBeInTheDocument();
-    // Check for the fallback container or icon logic if possible, 
-    // but since Lucide icons render as SVGs, we can check for the container class
-    // or just ensure no image is rendered.
+    // Expect the default image (fallbackSrc) to be rendered
+    const img = screen.getByAltText('Test Company Logo');
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveAttribute('src', '/icon.png');
   });
 });

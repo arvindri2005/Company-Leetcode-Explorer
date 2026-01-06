@@ -32,6 +32,10 @@ describe("useOnlineStatus", () => {
     const { result } = renderHook(() => useOnlineStatus());
 
     act(() => {
+      Object.defineProperty(navigator, "onLine", {
+        configurable: true,
+        value: false,
+      });
       window.dispatchEvent(new Event("offline"));
     });
 
@@ -46,6 +50,10 @@ describe("useOnlineStatus", () => {
     const { result } = renderHook(() => useOnlineStatus());
 
     act(() => {
+      Object.defineProperty(navigator, "onLine", {
+        configurable: true,
+        value: true,
+      });
       window.dispatchEvent(new Event("online"));
     });
 

@@ -1,8 +1,8 @@
 import React from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { Company } from "@/types";
 import { getLogoUrl } from "@/lib/utils";
+import { OfflineImage } from "@/components/ui/offline-image";
 
 interface TechCompanyCardProps {
   company: Company;
@@ -15,8 +15,9 @@ export function TechCompanyCard({ company, priority = false }: TechCompanyCardPr
   return (
     <div className="relative bg-brand-surface border border-white/5 rounded-xl p-6 flex items-start gap-4 hover:border-white/10 transition-colors group">
       <div className="relative w-16 h-16 flex-shrink-0 bg-white rounded-xl p-2 flex items-center justify-center overflow-hidden">
-        <Image
+        <OfflineImage
           src={imgSrc}
+          fallbackSrc="/icon.png"
           alt={`${company.name} logo`}
           width={48}
           height={48}

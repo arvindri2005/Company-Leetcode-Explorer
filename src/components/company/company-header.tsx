@@ -7,9 +7,9 @@
  */
 import type { Company } from "@/types";
 import { Building2, ExternalLink } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { getLogoUrl } from "@/lib/utils";
+import { OfflineImage } from "@/components/ui/offline-image";
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -63,19 +63,19 @@ export default function CompanyHeader({ company }: CompanyHeaderProps) {
             <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
             <div className="relative z-10 flex flex-row md:flex-row items-center gap-3 md:gap-8 transition-all duration-300 ease-in-out">
                 <div className="relative h-16 w-16 md:h-24 md:w-24 flex-shrink-0 border-2 md:border-4 border-border rounded-full shadow transition-all duration-300 ease-in-out">
-                    {company.logo ? (
-                        <Image
-                            src={getLogoUrl(company.logo) as string}
-                            alt={`${company.name} Logo`}
-                            fill
-                            sizes="(max-width: 768px) 64px, 96px"
-                            className="rounded-full object-contain bg-white p-2"
-                        />
-                    ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-muted rounded-full">
-                            <Building2 className="h-12 w-12 text-muted-foreground" />
-                        </div>
-                    )}
+                    <OfflineImage
+                        src={getLogoUrl(company.logo) || "/icon.png"}
+                        fallbackSrc="/icon.png"
+                        fallbackIcon={
+                             <div className="flex h-full w-full items-center justify-center bg-muted rounded-full">
+                                <Building2 className="h-8 w-8 md:h-12 md:w-12 text-muted-foreground" />
+                            </div>
+                        }
+                        alt={`${company.name} Logo`}
+                        fill
+                        sizes="(max-width: 768px) 64px, 96px"
+                        className="rounded-full object-contain bg-white p-2"
+                    />
                 </div>
                 <div className="text-left transition-all duration-300 ease-in-out w-full flex flex-col justify-center">
                     <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-foreground tracking-tight transition-all duration-300 ease-in-out break-words capitalize">
