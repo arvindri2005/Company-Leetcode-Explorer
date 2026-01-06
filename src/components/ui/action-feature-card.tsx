@@ -43,7 +43,7 @@ export const ActionFeatureCard: React.FC<ActionFeatureCardProps> = ({
   <Card className="flex flex-col h-full shadow-lg hover:shadow-xl transition-shadow duration-300">
     <CardHeader className="flex flex-row items-start gap-4 pb-4">
       <div className="p-3 rounded-md bg-primary/10 text-primary">
-        <Icon className="h-8 w-8" />
+        <Icon className="h-8 w-8" aria-hidden="true" />
       </div>
       <div>
         <CardTitle className="text-xl mb-1">{title}</CardTitle>
