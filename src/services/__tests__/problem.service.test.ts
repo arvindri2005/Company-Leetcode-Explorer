@@ -7,6 +7,7 @@ import { cacheManager } from "@/lib/cache";
 jest.mock("@/repositories/problem.repository", () => ({
   problemRepository: {
     getAllProblemsPaginated: jest.fn(),
+    getProblemsByCompany: jest.fn(),
   },
 }));
 
@@ -21,6 +22,21 @@ jest.mock("@/lib/cache", () => ({
 }));
 
 describe("ProblemService", () => {
+  const mockPagination = {
+    problems: [],
+    totalProblems: 0,
+    hasMore: false,
+    nextCursor: undefined,
+    totalPages: 0,
+    currentPage: 1,
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (problemRepository.getAllProblemsPaginated as jest.Mock).mockResolvedValue(mockPagination);
+    (problemRepository.getProblemsByCompany as jest.Mock).mockResolvedValue(mockPagination);
+  });
+
   describe("getAllProblemsPaginated", () => {
     const mockProblems: LeetCodeProblem[] = [
       {
@@ -45,7 +61,7 @@ describe("ProblemService", () => {
       } as any,
     ];
 
-    const mockPagination = {
+    const mockPaginationResult = {
       problems: mockProblems,
       totalProblems: 2,
       hasMore: false,
@@ -54,17 +70,75 @@ describe("ProblemService", () => {
       currentPage: 1,
     };
 
-    beforeEach(() => {
-      jest.clearAllMocks();
-      (problemRepository.getAllProblemsPaginated as jest.Mock).mockResolvedValue(mockPagination);
-    });
-
     it("should return problems from repository using cacheManager", async () => {
+      (problemRepository.getAllProblemsPaginated as jest.Mock).mockResolvedValue(mockPaginationResult);
+
       const result = await problemService.getAllProblemsPaginated({});
 
       expect(cacheManager.wrap).toHaveBeenCalled();
       expect(problemRepository.getAllProblemsPaginated).toHaveBeenCalled();
       expect(result.problems).toEqual(mockProblems);
+    });
+
+    it("should generate canonical cache keys for filters", async () => {
+      // Call 1: ['Easy', 'Medium']
+      await problemService.getAllProblemsPaginated({
+        difficultyFilter: ["Easy", "Medium"],
+      });
+
+      // Call 2: ['Medium', 'Easy']
+      await problemService.getAllProblemsPaginated({
+        difficultyFilter: ["Medium", "Easy"],
+      });
+
+      const calls = (cacheManager.wrap as jest.Mock).mock.calls;
+      const lastCallKey = calls[calls.length - 1][0];
+      const secondLastCallKey = calls[calls.length - 2][0];
+
+      expect(lastCallKey).toBe(secondLastCallKey);
+      expect(lastCallKey).toContain('"difficultyFilter":["Easy","Medium"]');
+    });
+
+    it("should handle empty/undefined parameters gracefully", async () => {
+      // This ensures no runtime error if params are empty
+      await expect(problemService.getAllProblemsPaginated({})).resolves.not.toThrow();
+
+      // Also check undefined
+      // @ts-ignore - calling with undefined to simulate JS behavior or missed optional
+      await expect(problemService.getAllProblemsPaginated(undefined)).resolves.not.toThrow();
+    });
+  });
+
+  describe("getPublicProblems", () => {
+    it("should generate the same cache key for different orders of difficulty filters", async () => {
+      const companyId = "google";
+
+      // Call 1: ['Easy', 'Medium']
+      await problemService.getPublicProblems(companyId, {
+        difficultyFilter: ["Easy", "Medium"],
+      });
+
+      // Call 2: ['Medium', 'Easy']
+      await problemService.getPublicProblems(companyId, {
+        difficultyFilter: ["Medium", "Easy"],
+      });
+
+      const calls = (cacheManager.wrap as jest.Mock).mock.calls;
+      expect(calls.length).toBe(2);
+
+      const key1 = calls[0][0];
+      const key2 = calls[1][0];
+
+      expect(key1).toBe(key2);
+      expect(key1).toContain('"difficultyFilter":["Easy","Medium"]');
+    });
+
+    it("should handle empty/undefined parameters gracefully", async () => {
+       const companyId = "google";
+       await expect(problemService.getPublicProblems(companyId, {})).resolves.not.toThrow();
+
+       // @ts-ignore
+       await expect(problemService.getPublicProblems(companyId, undefined)).resolves.not.toThrow();
     });
   });
 });

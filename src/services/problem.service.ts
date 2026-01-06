@@ -46,13 +46,18 @@ export class ProblemService {
         recencyCounts,
     } = params;
 
+    // Canonicalize filters for caching consistency
+    const sortedDifficultyFilter = [...difficultyFilter].sort();
+    const sortedLastAskedFilter = [...lastAskedFilter].sort();
+
     // Unified caching for all queries (default + filtered)
+    // Keys are explicitly ordered in the object to ensure JSON.stringify consistency across calls
     const cacheKey = `problems-public-${companyId}-${JSON.stringify({
         cursor,
         page,
         pageSize,
-        difficultyFilter,
-        lastAskedFilter,
+        difficultyFilter: sortedDifficultyFilter,
+        lastAskedFilter: sortedLastAskedFilter,
         searchTerm,
         sortKey,
     })}`;
@@ -125,12 +130,16 @@ export class ProblemService {
         sortKey = "title",
       } = params;
       
+      // Canonicalize filters
+      const sortedDifficultyFilter = [...difficultyFilter].sort();
+      const sortedLastAskedFilter = [...lastAskedFilter].sort();
+
       const cacheKey = `all-problems-v3-${JSON.stringify({
         cursor,
         page,
         pageSize,
-        difficultyFilter,
-        lastAskedFilter,
+        difficultyFilter: sortedDifficultyFilter,
+        lastAskedFilter: sortedLastAskedFilter,
         searchTerm,
         sortKey,
       })}`;
