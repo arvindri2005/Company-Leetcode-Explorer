@@ -214,15 +214,22 @@ export class UserRepository {
     if (!userId) return [];
     try {
       const educationColRef = collection(db, "users", userId, "educationHistory");
+      // Use client-side filtering to support legacy data (where isDeleted is undefined)
+      // and avoid composite index requirements for small subcollections.
       const q = query(educationColRef, orderBy("createdAt", "desc"));
+
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(
-        (docSnap) =>
-          ({
+      return querySnapshot.docs
+        .map((docSnap) => {
+          const data = docSnap.data();
+          return {
             id: docSnap.id,
-            ...docSnap.data(),
-          }) as EducationExperience,
-      );
+            ...data,
+            // Convert Firestore Timestamp to Date if present
+            deletedAt: data.deletedAt?.toDate ? data.deletedAt.toDate() : data.deletedAt,
+          } as EducationExperience;
+        })
+        .filter((item) => !item.isDeleted);
     } catch (error) {
       Logger.error(
         `Error fetching education history`,
@@ -237,19 +244,58 @@ export class UserRepository {
     if (!userId) return [];
     try {
       const workColRef = collection(db, "users", userId, "workExperience");
+      // Use client-side filtering to support legacy data (where isDeleted is undefined)
+      // and avoid composite index requirements for small subcollections.
       const q = query(workColRef, orderBy("createdAt", "desc"));
+
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(
-        (docSnap) =>
-          ({
+      return querySnapshot.docs
+        .map((docSnap) => {
+          const data = docSnap.data();
+          return {
             id: docSnap.id,
-            ...docSnap.data(),
-          }) as WorkExperience,
-      );
+            ...data,
+            // Convert Firestore Timestamp to Date if present
+            deletedAt: data.deletedAt?.toDate ? data.deletedAt.toDate() : data.deletedAt,
+          } as WorkExperience;
+        })
+        .filter((item) => !item.isDeleted);
     } catch (error) {
       Logger.error(`Error fetching work experience`, error, { userId });
       return [];
     }
+  }
+
+  async softDeleteUserEducation(userId: string, educationId: string): Promise<{ success: boolean; error?: string }> {
+      if (!userId || !educationId) return { success: false, error: "User ID and Education ID are required." };
+      try {
+          const docRef = doc(db, "users", userId, "educationHistory", educationId);
+          await updateDoc(docRef, {
+              isDeleted: true,
+              deletedAt: serverTimestamp(),
+          });
+          return { success: true };
+      } catch (error) {
+          const message = error instanceof Error ? error.message : "Failed to delete education experience.";
+          Logger.error("Error soft-deleting education experience", error);
+          return { success: false, error: message };
+      }
+  }
+
+  async softDeleteUserWorkExperience(userId: string, workId: string): Promise<{ success: boolean; error?: string }> {
+      if (!userId || !workId) return { success: false, error: "User ID and Work ID are required." };
+      try {
+          const docRef = doc(db, "users", userId, "workExperience", workId);
+          await updateDoc(docRef, {
+              isDeleted: true,
+              deletedAt: serverTimestamp(),
+          });
+          return { success: true };
+      } catch (error) {
+          const message = error instanceof Error ? error.message : "Failed to delete work experience.";
+          Logger.error("Error soft-deleting work experience", error);
+          return { success: false, error: message };
+      }
   }
 
   async getUserStrategyTodoLists(userId: string): Promise<SavedStrategyTodoList[]> {

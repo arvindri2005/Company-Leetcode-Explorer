@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { User as FirebaseUser } from "firebase/auth";
 import type { ProblemStatus } from "./problem";
 import type { FocusTopic, StrategyTodoItem } from "./ai";
+import { SoftDeletableSchema } from "./soft-delete";
 
 // --- User Authentication and Profile Types ---
 
@@ -76,7 +77,7 @@ export const EducationExperienceSchema = z.object({
     .regex(/^\d+(\.\d{1,2})?$/, "GPA must be a number (e.g. 3.5, 4.0)")
     .optional()
     .or(z.literal("")), // Keep as string to allow various formats or N/A
-});
+}).merge(SoftDeletableSchema);
 /**
  * @description Represents a user's educational experience.
  */
@@ -128,7 +129,7 @@ export const WorkExperienceSchema = z.object({
     .min(10, "Please describe some responsibilities.")
     .optional()
     .or(z.literal("")),
-}).refine((data) => {
+}).merge(SoftDeletableSchema).refine((data) => {
   if (!data.endDate || data.endDate === "Present" || data.endDate === "") {
     return true;
   }

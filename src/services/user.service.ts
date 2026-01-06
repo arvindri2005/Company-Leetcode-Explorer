@@ -236,6 +236,20 @@ export class UserService {
     return await userRepository.addUserWorkExperience(userId, workData);
   }
 
+  async softDeleteUserEducation(
+    userId: string,
+    educationId: string,
+  ): Promise<{ success: boolean; error?: string }> {
+    return await userRepository.softDeleteUserEducation(userId, educationId);
+  }
+
+  async softDeleteUserWorkExperience(
+    userId: string,
+    workId: string,
+  ): Promise<{ success: boolean; error?: string }> {
+    return await userRepository.softDeleteUserWorkExperience(userId, workId);
+  }
+
   async saveStrategyTodoList(
     userId: string,
     companyId: string,
