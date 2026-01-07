@@ -15,6 +15,8 @@
 
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
+import { retryWithBackoff, sanitizeInput, truncateText } from "@/ai/utils";
+import { findSimilarQuestionsCache } from "@/ai/cache";
 
 const CurrentProblemInputSchema = z.object({
   title: z.string().describe("The title of the current coding problem."),
@@ -27,7 +29,7 @@ const CurrentProblemInputSchema = z.object({
   slug: z
     .string()
     .optional()
-    .describe("The slug of the current problem, if available."), // Added optional slug
+    .describe("The slug of the current problem, if available."),
 });
 
 const FindSimilarQuestionsInputSchema = z.object({
@@ -89,26 +91,59 @@ const prompt = ai.definePrompt({
   name: "findSimilarQuestionsFromPlatformsPrompt",
   input: { schema: FindSimilarQuestionsInputSchema },
   output: { schema: FindSimilarQuestionsOutputSchema },
-  prompt: `You are an expert coding interview coach and programming problem curator.
-Your task is to identify up to 5 problems from various online coding platforms (like LeetCode, CodingNinjas, GeeksforGeeks, HackerRank, etc.) that are conceptually similar to a given current problem.
-Focus on similarity in terms of underlying algorithms, data structures, problem-solving techniques, or core concepts.
+  config: {
+    temperature: 0.3, // Lower temperature for more deterministic/factual matches
+  },
+  prompt: `
+<system_protocol>
+You are "Nova", an expert algorithm curator.
+Your task is to identify 1-5 problems from major coding platforms (LeetCode, GeeksforGeeks, CodingNinjas, HackerRank) that are *conceptually* identical or highly similar to the user's problem.
+
+**CORE DIRECTIVES:**
+1.  **Similarity over Keyword**: Do not just match words. Match the *underlying technique* (e.g., "Sliding Window", "Monotonic Stack", "Topological Sort").
+2.  **Diverse Sources**: Try to find problems from different platforms if possible.
+3.  **Accuracy**: The link MUST be valid if possible, or at least point to a real problem title.
+4.  **Defensive**: If the input problem is generic (e.g. "Array Sum"), provide the most canonical examples (e.g. "Two Sum").
+</system_protocol>
+
+<few_shot_example>
+**Input:**
+- Title: "Course Schedule"
+- Difficulty: "Medium"
+- Tags: ["Graph", "Topological Sort"]
+
+**Desired Output:**
+{
+  "similarProblems": [
+    {
+      "title": "Detect Cycle in a Directed Graph",
+      "platform": "GeeksforGeeks",
+      "link": "https://practice.geeksforgeeks.org/problems/detect-cycle-in-a-directed-graph/1",
+      "difficulty": "Medium",
+      "similarityReason": "Both problems essentially ask you to detect a cycle or determine valid ordering in a DAG using DFS or BFS."
+    },
+    {
+      "title": "Course Schedule II",
+      "platform": "LeetCode",
+      "link": "https://leetcode.com/problems/course-schedule-ii/",
+      "difficulty": "Medium",
+      "similarityReason": "Direct extension where you must return the actual ordering, not just validity."
+    }
+  ]
+}
+</few_shot_example>
 
 Current Problem:
 Title: {{currentProblem.title}}
 Difficulty: {{currentProblem.difficulty}}
 Tags: {{#if currentProblem.tags.length}}{{currentProblem.tags}}{{else}}No specific tags{{/if}}
 
-Based on the current problem, identify up to 5 similar problems. For each similar problem you identify:
-1.  Provide its "title".
-2.  Specify the "platform" where it can be found (e.g., "LeetCode", "CodingNinjas", "GeeksforGeeks").
-3.  Provide a direct "link" to the problem.
-4.  If known, state its "difficulty" (Easy, Medium, Hard).
-5.  If known, list relevant "tags".
-6.  Provide a concise "similarityReason" (1-2 sentences) explaining *why* it's similar (e.g., "Uses a similar sliding window approach", "Requires dynamic programming with a similar state transition", "Both involve graph traversal (DFS/BFS) on a grid").
+Identify up to 5 similar problems.
+For each:
+1.  Title, Platform, Link, Difficulty.
+2.  Concise "similarityReason" (why is the core logic the same?).
 
-Return your findings in the specified JSON format with a "similarProblems" array.
-If no truly similar problems are found, return an empty "similarProblems" array.
-Ensure the links provided are accurate and lead directly to the problem page if possible.
+Return valid JSON.
 `,
 });
 
@@ -119,11 +154,41 @@ const findSimilarQuestionsFlow = ai.defineFlow(
     outputSchema: FindSimilarQuestionsOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    if (!output) {
-      // If AI returns nothing, default to empty array as per prompt instructions.
-      return { similarProblems: [] };
+    // Nova Guardrail: Sanitization
+    const safeTitle = sanitizeInput(input.currentProblem.title);
+    // Truncate title if it's absurdly long to prevent token waste
+    const truncatedTitle = truncateText(safeTitle, 200);
+
+    // Sanitize tags
+    const safeTags = input.currentProblem.tags.map(t => sanitizeInput(t)).slice(0, 10); // Limit tag count
+
+    const safeInput = {
+      currentProblem: {
+        ...input.currentProblem,
+        title: truncatedTitle,
+        tags: safeTags
+      }
+    };
+
+    // Nova Guardrail: Cache Check
+    const cacheKey = findSimilarQuestionsCache.generateKey(safeInput);
+    const cachedResult = findSimilarQuestionsCache.get(cacheKey);
+    if (cachedResult) {
+      return cachedResult;
     }
+
+    // Nova Guardrail: Retry with Exponential Backoff
+    const output = await retryWithBackoff(async () => {
+      const { output } = await prompt(safeInput);
+      if (!output || !output.similarProblems) {
+         throw new Error("AI failed to return a valid list of similar problems.");
+      }
+      return output;
+    });
+
+    // Cache the successful result
+    findSimilarQuestionsCache.set(cacheKey, output);
+
     return output;
   },
 );
