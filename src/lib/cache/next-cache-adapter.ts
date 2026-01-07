@@ -21,12 +21,32 @@ export class NextCacheAdapter implements CacheAdapter {
 
     const cachedFn = unstable_cache(
       async () => {
-        // This execution happens on cache MISS
-        // Logger.debug(`[Cache] MISS: Executing source function for ${key}`);
+        const startTime = Date.now();
+        // This execution happens on cache MISS (or revalidation)
         try {
-          return await fn();
+          const result = await fn();
+          const durationMs = Date.now() - startTime;
+
+          // Log the "MISS" / Refresh event with duration
+          // This helps identify slow data sources or frequent cache misses
+          Logger.info(`[Cache] MISS: Refreshed data for ${key}`, {
+            key,
+            durationMs,
+            tags,
+          });
+
+          return result;
         } catch (error) {
-          Logger.error(`[Cache] Error executing source function for ${key}`, error);
+          const durationMs = Date.now() - startTime;
+          Logger.error(
+            `[Cache] FAIL: Error executing source function for ${key}`,
+            error,
+            {
+              key,
+              durationMs,
+              tags,
+            }
+          );
           throw error;
         }
       },
