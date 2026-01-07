@@ -19,7 +19,10 @@ import { STATS } from "@/constants/features";
  */
 export default function StatsSection() {
   return (
-    <section className="bg-black/30 py-12 px-8 my-12">
+    <section className="bg-black/30 py-12 px-8 my-12" aria-labelledby="stats-heading">
+      <h2 id="stats-heading" className="sr-only">
+        Key Statistics
+      </h2>
       <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
         {STATS.map((stat, index) => (
           <StatItem key={index} number={stat.number} label={stat.label} />
