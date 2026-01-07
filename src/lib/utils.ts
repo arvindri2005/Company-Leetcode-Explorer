@@ -36,6 +36,7 @@ export function slugify(text: string): string {
 /**
  * @function getLogoUrl
  * @description Appends a token query parameter to the logo URL if the LOGO_API environment variable is set.
+ * Securely checks if the URL is allowed to receive the token.
  * @param {string | undefined} url - The original logo URL.
  * @returns {string | undefined} The URL with the token appended, or the original URL.
  * @returns {string | undefined} The URL with the token appended, or the original URL.
@@ -44,8 +45,27 @@ export function getLogoUrl(url: string | undefined): string | undefined {
   if (!url) return url;
   if (!env.LOGO_API) return url;
 
-  const separator = url.includes("?") ? "&" : "?";
-  return `${url}${separator}token=${env.LOGO_API}`;
+  // Allowed domains for appending the token
+  const allowedDomains = ["img.logo.dev", "logo.clearbit.com"];
+
+  try {
+    // If it's a relative URL, it's safe (internal)
+    if (url.startsWith("/")) {
+      return url;
+    }
+
+    const urlObj = new URL(url);
+    if (!allowedDomains.includes(urlObj.hostname)) {
+      // Return original URL if domain is not trusted
+      return url;
+    }
+
+    urlObj.searchParams.set("token", env.LOGO_API);
+    return urlObj.toString();
+  } catch {
+    // If URL parsing fails, return original string to be safe
+    return url;
+  }
 }
 
 /**
