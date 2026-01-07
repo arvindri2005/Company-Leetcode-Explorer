@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
     /* config options here */
     /* config options here */
     env: {
+        // WARNING: This exposes LOGO_API to the client. Ensure it is a public key.
         LOGO_API: process.env.LOGO_API,
     },
     images: {
