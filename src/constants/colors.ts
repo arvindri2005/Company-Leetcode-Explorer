@@ -1,6 +1,7 @@
 export const COLORS = {
   brand: {
     teal: "#00d4aa",
+    tealDark: "#0f766e",
     purple: "#7c3aed",
     yellow: "#F7BC2D",
     yellowDark: "#201A13",

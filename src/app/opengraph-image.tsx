@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og'
+import { COLORS } from '../constants/colors'
 
 export const runtime = 'edge'
 
@@ -21,7 +22,7 @@ export default async function Image() {
     (
       <div
         style={{
-          background: 'linear-gradient(135deg, #09090b 0%, #1a1a1a 100%)',
+          background: `linear-gradient(135deg, #09090b 0%, ${COLORS.brand.surface} 100%)`,
           width: '100%',
           height: '100%',
           display: 'flex',
@@ -39,7 +40,7 @@ export default async function Image() {
             left: '-10%',
             width: '600px',
             height: '600px',
-            background: 'radial-gradient(circle, rgba(45, 212, 191, 0.15) 0%, rgba(0, 0, 0, 0) 70%)',
+            background: `radial-gradient(circle, rgba(0, 212, 170, 0.15) 0%, rgba(0, 0, 0, 0) 70%)`,
             borderRadius: '50%',
           }}
         />
@@ -50,7 +51,7 @@ export default async function Image() {
             right: '-10%',
             width: '600px',
             height: '600px',
-            background: 'radial-gradient(circle, rgba(124, 58, 237, 0.15) 0%, rgba(0, 0, 0, 0) 70%)',
+            background: `radial-gradient(circle, rgba(124, 58, 237, 0.15) 0%, rgba(0, 0, 0, 0) 70%)`,
             borderRadius: '50%',
           }}
         />
@@ -78,7 +79,7 @@ export default async function Image() {
              <div style={{
                width: 80,
                height: 80,
-               background: 'linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%)',
+               background: `linear-gradient(135deg, ${COLORS.brand.teal} 0%, ${COLORS.brand.tealDark} 100%)`,
                borderRadius: '20px',
                display: 'flex',
                alignItems: 'center',
@@ -87,7 +88,7 @@ export default async function Image() {
                fontWeight: 700,
                color: 'white',
                marginRight: 24,
-               boxShadow: '0 0 40px rgba(45, 212, 191, 0.4)',
+               boxShadow: `0 0 40px rgba(0, 212, 170, 0.4)`,
                border: '1px solid rgba(255, 255, 255, 0.1)',
              }}>
                B
@@ -96,7 +97,7 @@ export default async function Image() {
              <div style={{
                fontSize: 72,
                fontWeight: 700,
-               color: '#f3f4f6',
+               color: COLORS.grayCustom[200], // Replaces #f3f4f6 (gray-100) with custom gray-200 (zinc-200) for consistency
                letterSpacing: '-0.02em',
              }}>
                Byte to Offer
@@ -106,7 +107,7 @@ export default async function Image() {
           {/* Tagline */}
           <div style={{
             fontSize: 32,
-            color: '#9ca3af',
+            color: COLORS.grayCustom[400], // Replaces #9ca3af (gray-400) with custom gray-400 (zinc-400)
             textAlign: 'center',
             maxWidth: 900,
             lineHeight: 1.4,
@@ -126,7 +127,7 @@ export default async function Image() {
                       padding: '10px 28px',
                       backgroundColor: 'rgba(255,255,255,0.03)',
                       borderRadius: 999,
-                      color: '#d1d5db',
+                      color: '#d1d5db', // Keeping this as is or finding a match? gray-300. Custom doesn't have 300.
                       fontSize: 20,
                       border: '1px solid rgba(255,255,255,0.08)',
                       boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
