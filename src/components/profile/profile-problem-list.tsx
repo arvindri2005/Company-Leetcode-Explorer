@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import type { LeetCodeProblem, ProblemStatus } from "@/types";
-import ProblemCard from "@/components/problem/problem-card";
+import { ProblemCard } from "@/features/problems";
 import { ProblemCardSkeleton } from "@/components/skeletons/problem-skeletons";
 import { ClipboardList } from "lucide-react";
 

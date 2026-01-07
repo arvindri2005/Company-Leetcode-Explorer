@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @fileoverview A client-side component to display redesigned, graphical statistics about a company's problems.
  *
  * This component visualizes pre-calculated statistics for a company's coding
@@ -19,7 +19,7 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ListChecks, CalendarClock, TagsIcon } from "lucide-react";
-import TagBadge from "@/components/problem/tag-badge";
+import { TagBadge } from "@/features/problems";
 
 /**
  * Props for the CompanyProblemStats component.

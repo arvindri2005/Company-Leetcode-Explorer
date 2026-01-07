@@ -1,5 +1,5 @@
-import { problemService } from "@/services/problem.service";
-import AllProblemsList from "@/components/problem/all-problems-list";
+﻿import { problemService } from "@/services/problem.service";
+import { AllProblemsList } from "@/features/problems";
 import StructuredData from "@/components/seo/structured-data";
 import { env } from "@/env";
 

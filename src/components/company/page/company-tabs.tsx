@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @fileoverview A redesigned client-side component that organizes company details into interactive tabs.
  *
  * This component features a modern, minimalist design with horizontal tabs,
@@ -10,7 +10,7 @@ import { Suspense } from "react";
 import dynamic from "next/dynamic";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Brain, Target, Users } from "lucide-react";
-import ProblemList from "@/components/problem/problem-list";
+import { ProblemList } from "@/features/problems";
 import type { Company, LeetCodeProblem, ProblemListFilters } from "@/types";
 import {
   CompanyAIFeatureSkeleton,

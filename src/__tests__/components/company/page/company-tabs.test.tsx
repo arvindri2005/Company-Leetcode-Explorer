@@ -1,10 +1,9 @@
 import { render, screen, waitFor, act } from '@testing-library/react';
 import CompanyTabs from '@/components/company/page/company-tabs';
 
-// Mock child components
-jest.mock('@/components/problem/problem-list', () => ({
-  __esModule: true,
-  default: () => <div data-testid="problem-list">Problem List</div>,
+// Mock child components - use the correct import paths
+jest.mock('@/features/problems', () => ({
+  ProblemList: () => <div data-testid="problem-list">Problem List</div>,
 }));
 
 jest.mock('@/components/ui/tabs', () => ({

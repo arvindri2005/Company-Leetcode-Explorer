@@ -22,9 +22,8 @@ jest.mock('lucide-react', () => ({
 }));
 
 // Mock TagBadge
-jest.mock('@/components/problem/tag-badge', () => ({
-  __esModule: true,
-  default: ({ tag }: { tag: string }) => <div data-testid="tag-badge">{tag}</div>,
+jest.mock('@/features/problems', () => ({
+  TagBadge: ({ tag }: { tag: string }) => <div data-testid="tag-badge">{tag}</div>,
 }));
 
 describe('CompanyProblemStats', () => {

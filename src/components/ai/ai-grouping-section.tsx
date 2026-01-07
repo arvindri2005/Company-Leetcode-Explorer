@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @fileoverview A client-side component that provides an AI-powered feature to group coding problems.
  *
  * This component displays a button that, when clicked, sends a list of coding
@@ -27,7 +27,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import ProblemCard from "@/components/problem/problem-card";
+import { ProblemCard } from "@/features/problems";
 import { Sparkles, Loader2, LogIn, Info, AlertCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/auth-context";

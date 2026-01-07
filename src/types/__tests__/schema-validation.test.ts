@@ -1,4 +1,4 @@
-import { LeetCodeProblemSchema } from "../problem";
+import { LeetCodeProblemSchema } from "..";
 import { CompanySchema } from "../company";
 
 describe("LeetCodeProblemSchema", () => {

@@ -1,11 +1,11 @@
-/**
+﻿/**
  * @fileoverview Defines the page for users to submit a new coding interview problem.
  *
  * This file exports a Next.js page component that provides a form for users
  * to contribute new coding problems to the platform. It fetches a list of all
  * companies to populate a dropdown in the form and includes metadata for SEO.
  */
-import ProblemSubmissionForm from "@/components/problem/problem-submission-form";
+import { ProblemSubmissionForm } from "@/features/problems";
 import { companyService } from "@/services/company.service";
 import type { Company } from "@/types";
 import { Separator } from "@/components/ui/separator";

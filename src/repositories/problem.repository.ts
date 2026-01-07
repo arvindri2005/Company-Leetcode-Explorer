@@ -30,11 +30,11 @@ import { slugify } from "@/lib/utils";
 import { Logger } from "@/lib/logger";
 import { companyRepository } from "./company.repository";
 import { userRepository } from "./user.repository";
-import { problemFilterRegistry } from "@/lib/problem-filters/registry";
+import { problemFilterRegistry } from "@/features/problems/utils/problem-filters/registry";
 import {
   DifficultyFilterImplementation,
   LastAskedFilterImplementation,
-} from "@/lib/problem-filters/implementations";
+} from "@/features/problems/utils/problem-filters/implementations";
 
 // Register Core Filters
 problemFilterRegistry.register(new DifficultyFilterImplementation());

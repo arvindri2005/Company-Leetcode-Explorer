@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react';
-import DifficultyBadge from '@/components/problem/difficulty-badge';
+﻿import { render, screen } from '@testing-library/react';
+import { DifficultyBadge } from '@/features/problems';
 
 describe('DifficultyBadge', () => {
   it('should render Easy badge', () => {

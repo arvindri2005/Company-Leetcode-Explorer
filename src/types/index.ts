@@ -3,7 +3,8 @@
 // and provide a centralized import point if preferred.
 
 export * from "./common";
-export * from "./problem";
+// Re-export problem types from feature
+export * from "../features/problems/types";
 export * from "./company";
 export * from "./user";
 export * from "./ai";

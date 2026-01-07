@@ -28,9 +28,8 @@ jest.mock('@/components/ai/similar-problems-dialog', () => ({
   default: () => <div data-testid="similar-problems-dialog">Similar Problems Dialog</div>,
 }));
 
-jest.mock('@/components/problem/problem-card', () => ({
-  __esModule: true,
-  default: () => <div data-testid="problem-card">Problem Card</div>,
+jest.mock('@/features/problems', () => ({
+  ProblemCard: () => <div data-testid="problem-card">Problem Card</div>,
 }));
 
 // Mock AI actions

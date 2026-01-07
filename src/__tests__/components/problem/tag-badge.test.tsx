@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react';
-import TagBadge from '@/components/problem/tag-badge';
+﻿import { render, screen } from '@testing-library/react';
+import { TagBadge } from '@/features/problems';
 
 describe('TagBadge', () => {
   it('should render tag name', () => {

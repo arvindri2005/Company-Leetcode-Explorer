@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @fileoverview A responsive dialog/drawer component for displaying AI-generated similar coding problems.
  *
  * This component adapts its presentation based on the viewport size, using a
@@ -35,8 +35,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import DifficultyBadge from "@/components/problem/difficulty-badge";
-import TagBadge from "@/components/problem/tag-badge";
+import { DifficultyBadge } from "@/features/problems";
+import { TagBadge } from "@/features/problems";
 import Link from "next/link";
 import {
   ExternalLink,

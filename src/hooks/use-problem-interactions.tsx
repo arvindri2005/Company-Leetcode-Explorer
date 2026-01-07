@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth-context";
 import { userService } from "@/services/user.service";
 import type { LeetCodeProblem, ProblemStatus } from "@/types";
-import { PROBLEM_STATUS_OPTIONS } from "@/constants/problem-constants";
+import { PROBLEM_STATUS_OPTIONS } from "@/features/problems/constants";
 import { useRouter, usePathname } from "next/navigation";
 import { ToastAction } from "@/components/ui/toast";
 

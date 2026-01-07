@@ -27,7 +27,7 @@ import type {
 import { userService } from "@/services/user.service";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
-import { ProblemStatusSchema } from "@/types/problem";
+import { ProblemStatusSchema } from "@/types";
 import { Logger } from "@/lib/logger";
 import { auth } from "@/lib/firebase";
 
