@@ -17,3 +17,20 @@
 - Deleted `src/hooks/use-debounce.ts`
 - Deleted `src/hooks/__tests__/use-debounce.test.ts`
 - Updated 4 components to use the library.
+
+## [2026-01-08] Modernization: Refactored `useMediaQuery` to `useSyncExternalStore`
+
+**What:** Replaced the legacy `useState`/`useEffect` pattern in `src/hooks/use-media-query.ts` with the modern `useSyncExternalStore` API (React 18 standard). Also deleted the unused `src/hooks/use-network.ts` hook.
+
+**Why:**
+- **Modernization:** `useSyncExternalStore` avoids tearing in concurrent rendering and is the recommended way to subscribe to external stores like `matchMedia`.
+- **Performance:** Correctly implemented with `useCallback` to prevent unnecessary re-subscriptions on every render.
+- **Cleanup:** Removed dead code (`useNetwork`) which was untested and unused.
+
+**Cleanup:**
+- Deleted `src/hooks/use-network.ts`
+- Added thorough tests for `useMediaQuery` covering reactivity.
+
+**Verification:**
+- Verified behavior is identical (returns boolean based on media query).
+- Verified tests pass with 100% coverage for the hook.
