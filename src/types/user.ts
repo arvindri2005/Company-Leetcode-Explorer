@@ -1,7 +1,8 @@
 import { z } from "zod";
 import type { User as FirebaseUser } from "firebase/auth";
-import type { ProblemStatus } from "./problem";
-import type { FocusTopic, StrategyTodoItem } from "./ai";
+import { ProblemStatusSchema } from "./problem";
+import { FocusTopicSchema, StrategyTodoItemSchema } from "./ai";
+import { SlugSchema } from "./common";
 
 // --- User Authentication and Profile Types ---
 
@@ -38,25 +39,36 @@ export interface AuthContextType {
 }
 
 /**
+ * @description Zod schema for information stored for each bookmarked problem.
+ */
+export const BookmarkedProblemInfoSchema = z.object({
+  problemId: z.string(),
+  companySlug: SlugSchema,
+  problemSlug: SlugSchema,
+  bookmarkedAt: z.date().optional(), // Or Firestore Timestamp
+});
+
+/**
  * @description Information stored for each bookmarked problem, including slugs for link generation.
  */
-export interface BookmarkedProblemInfo {
-  problemId: string;
-  companySlug: string;
-  problemSlug: string;
-  bookmarkedAt?: Date; // Or Firestore Timestamp
-}
+export type BookmarkedProblemInfo = z.infer<typeof BookmarkedProblemInfoSchema>;
+
+
+/**
+ * @description Zod schema for information stored for each problem a user has marked with a status.
+ */
+export const UserProblemStatusInfoSchema = z.object({
+  problemId: z.string(), // Not explicitly stored as key is problemId, but useful for type clarity
+  status: ProblemStatusSchema,
+  companySlug: SlugSchema,
+  problemSlug: SlugSchema,
+  updatedAt: z.date().optional(), // Or Firestore Timestamp
+});
 
 /**
  * @description Information stored for each problem a user has marked with a status.
  */
-export interface UserProblemStatusInfo {
-  problemId: string; // Not explicitly stored as key is problemId, but useful for type clarity
-  status: ProblemStatus;
-  companySlug: string;
-  problemSlug: string;
-  updatedAt?: Date; // Or Firestore Timestamp
-}
+export type UserProblemStatusInfo = z.infer<typeof UserProblemStatusInfoSchema>;
 
 // --- User Experience Types ---
 /**
@@ -147,14 +159,19 @@ export const WorkExperienceSchema = z.object({
 export type WorkExperience = z.infer<typeof WorkExperienceSchema>;
 
 /**
+ * @description Zod schema for a saved strategy todo list.
+ */
+export const SavedStrategyTodoListSchema = z.object({
+  companyId: z.string(),
+  companyName: z.string(),
+  savedAt: z.date(), // Or Firestore Timestamp
+  preparationStrategy: z.string(),
+  focusTopics: z.array(FocusTopicSchema),
+  items: z.array(StrategyTodoItemSchema),
+});
+
+/**
  * @description Represents a saved strategy todo list for a user and a company.
  * This now also includes the preparation strategy and focus topics.
  */
-export interface SavedStrategyTodoList {
-  companyId: string; // The ID of the company this list is for
-  companyName: string;
-  savedAt: Date; // Or Firestore Timestamp
-  preparationStrategy: string;
-  focusTopics: FocusTopic[];
-  items: StrategyTodoItem[]; // 'items' is used for the todo list for consistency with previous naming
-}
+export type SavedStrategyTodoList = z.infer<typeof SavedStrategyTodoListSchema>;
