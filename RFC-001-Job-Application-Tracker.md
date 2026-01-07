@@ -1,5 +1,8 @@
 # RFC-001: Job Application Tracker
 
+> **Status:** Deferred / Unimplemented
+> **Note:** The data model described here (`JobApplication`) exists in `src/types` but is currently unused ("zombie code"). This RFC serves as a reference for future implementation.
+
 ## 1. Summary
 A dedicated Job Application Tracker to help users manage their job search directly within the platform. This feature allows users to track applications, status changes (Applied, Interviewing, Offer, etc.), and link them to the companies they are practicing for.
 

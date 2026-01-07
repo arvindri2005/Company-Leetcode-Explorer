@@ -61,6 +61,8 @@ New to the project? Check out our detailed **[Developer Guide](./guide)** for ev
 -   **[Project Structure](./guide/project-structure.md)**: Architecture and directory layout.
 -   **[Coding Standards](./guide/coding-standards.md)**: Naming conventions and style guide.
 -   **[Adding Features](./guide/feature-workflow.md)**: Step-by-step workflow.
+-   **[Testing Guidelines](./guide/testing.md)**: Best practices for unit and component testing.
+-   **[AI Architecture](./src/ai/README.md)**: Overview of Genkit flows and AI integration.
 -   **[Data Layer Patterns](./guide/data-layer.md)**: Repositories, validation, and persistence.
 -   **[Filter Registry](./guide/filter-registry.md)**: How to implement complex filters combining DB and memory logic.
 -   **[UI Guidelines](./guide/ui-guidelines.md)**: Colors, typography, and component usage.

@@ -104,5 +104,5 @@ test('fetches data successfully', async () => {
 
 ## 6. Running Tests
 
-*   Run all tests: `npm test`
-*   Run in watch mode: `npm test -- --watch`
+*   Run all tests: `pnpm test`
+*   Run in watch mode: `pnpm test -- --watch`
