@@ -20,6 +20,9 @@ import { slugify } from "@/lib/utils";
 import { handleServerActionError } from "@/lib/error-handler";
 import type { ProblemListFilters } from "@/types";
 
+// SENTINEL: Maximum page size allowed to prevent DoS/Resource Exhaustion
+export const MAX_PAGE_SIZE = 50;
+
 /**
  * Adds a new coding problem to the database or updates an existing one.
  *
@@ -200,9 +203,12 @@ export async function loadMoreProblemsAction(
   pageSize: number = 10
 ) {
   try {
+    // SENTINEL: Clamp pageSize to prevent DoS
+    const safePageSize = Math.min(pageSize, MAX_PAGE_SIZE);
+
     return await problemService.getPublicProblems(companyId, {
       cursor: cursor ?? undefined,
-      pageSize,
+      pageSize: safePageSize,
       difficultyFilter: filters.difficultyFilter,
       lastAskedFilter: filters.lastAskedFilter,
       searchTerm: filters.searchTerm,
@@ -232,9 +238,12 @@ export async function loadMoreAllProblemsAction(
   pageSize: number = 50
 ) {
   try {
+    // SENTINEL: Clamp pageSize to prevent DoS
+    const safePageSize = Math.min(pageSize, MAX_PAGE_SIZE);
+
     return await problemService.getAllProblemsPaginated({
       cursor,
-      pageSize,
+      pageSize: safePageSize,
       difficultyFilter: filters.difficultyFilter,
       lastAskedFilter: filters.lastAskedFilter,
       searchTerm: filters.searchTerm,
@@ -259,9 +268,12 @@ export async function fetchProblemsAction(
   cursor?: string
 ) {
   try {
+    // SENTINEL: Clamp pageSize to prevent DoS
+    const safePageSize = Math.min(pageSize, MAX_PAGE_SIZE);
+
     return await problemService.getAllProblemsPaginated({
       cursor,
-      pageSize,
+      pageSize: safePageSize,
       difficultyFilter: filters.difficultyFilter,
       lastAskedFilter: filters.lastAskedFilter,
       searchTerm: filters.searchTerm,
