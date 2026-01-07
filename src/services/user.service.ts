@@ -9,20 +9,16 @@ import {
   GenerateCompanyStrategyOutput,
 } from "@/types";
 import { appEvents, AppEventKey, AppEventHandler } from "@/services/event-bus";
+import { SimpleLRUCache } from "@/lib/lru-cache";
 
 interface CachedGlobalStats {
-  data: {
-    solvedProblemIds: string[];
-    attemptedProblemIds: string[];
-    bookmarkedProblemIds: string[];
-  };
-  timestamp: number;
+  solvedProblemIds: string[];
+  attemptedProblemIds: string[];
+  bookmarkedProblemIds: string[];
 }
 
 export class UserService {
-  private globalStatsCache: Map<string, CachedGlobalStats> = new Map();
-  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-  private readonly MAX_CACHE_SIZE = 1000; // Max number of users in cache
+  private globalStatsCache = new SimpleLRUCache<CachedGlobalStats>(1000, 5 * 60 * 1000); // 1000 items, 5 mins TTL
 
   /**
    * Subscribe to user-related events.
@@ -36,34 +32,20 @@ export class UserService {
   }
 
   async getUserGlobalProblemStats(userId: string): Promise<{ solvedProblemIds: string[], attemptedProblemIds: string[], bookmarkedProblemIds: string[] }> {
-    const now = Date.now();
     const cached = this.globalStatsCache.get(userId);
 
-    if (cached && now - cached.timestamp < this.CACHE_TTL) {
-      // Refresh LRU position by deleting and re-setting
-      this.globalStatsCache.delete(userId);
-      this.globalStatsCache.set(userId, cached);
-
+    if (cached) {
       // Return a copy to prevent mutation of the cache by consumers
       return {
-        solvedProblemIds: [...cached.data.solvedProblemIds],
-        attemptedProblemIds: [...cached.data.attemptedProblemIds],
-        bookmarkedProblemIds: [...cached.data.bookmarkedProblemIds],
+        solvedProblemIds: [...cached.solvedProblemIds],
+        attemptedProblemIds: [...cached.attemptedProblemIds],
+        bookmarkedProblemIds: [...cached.bookmarkedProblemIds],
       };
     }
 
     const data = await userRepository.getUserGlobalProblemStats(userId);
     
-    // Memory management: LRU Eviction
-    if (this.globalStatsCache.size >= this.MAX_CACHE_SIZE) {
-      // Remove the oldest item (first key in the iterator)
-      const oldestKey = this.globalStatsCache.keys().next().value;
-      if (oldestKey) {
-        this.globalStatsCache.delete(oldestKey);
-      }
-    }
-    
-    this.globalStatsCache.set(userId, { data, timestamp: now });
+    this.globalStatsCache.set(userId, data);
     
     // Return a copy even on fresh fetch to be consistent
     return {
@@ -130,20 +112,20 @@ export class UserService {
       // Update cache
       const cached = this.globalStatsCache.get(userId);
       if (cached) {
-        const { bookmarkedProblemIds } = cached.data;
-        let newBookmarked = [...bookmarkedProblemIds];
+        let { bookmarkedProblemIds } = cached;
+        bookmarkedProblemIds = [...bookmarkedProblemIds];
         
         if (result.isBookmarked) {
-          if (!newBookmarked.includes(problemId)) {
-            newBookmarked.push(problemId);
+          if (!bookmarkedProblemIds.includes(problemId)) {
+            bookmarkedProblemIds.push(problemId);
           }
         } else {
-          newBookmarked = newBookmarked.filter(id => id !== problemId);
+          bookmarkedProblemIds = bookmarkedProblemIds.filter(id => id !== problemId);
         }
         
         this.globalStatsCache.set(userId, {
           ...cached,
-          data: { ...cached.data, bookmarkedProblemIds: newBookmarked },
+          bookmarkedProblemIds,
         });
       }
 
@@ -179,7 +161,7 @@ export class UserService {
       // Update cache
       const cached = this.globalStatsCache.get(userId);
       if (cached) {
-        let { solvedProblemIds, attemptedProblemIds } = cached.data;
+        let { solvedProblemIds, attemptedProblemIds } = cached;
         
         // Clone arrays to ensure immutability
         solvedProblemIds = [...solvedProblemIds];
@@ -198,7 +180,8 @@ export class UserService {
         
         this.globalStatsCache.set(userId, {
           ...cached,
-          data: { ...cached.data, solvedProblemIds, attemptedProblemIds },
+          solvedProblemIds,
+          attemptedProblemIds,
         });
       }
 

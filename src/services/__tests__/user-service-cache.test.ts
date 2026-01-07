@@ -8,14 +8,13 @@ jest.mock("@/lib/logger");
 describe("UserService Caching", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // @ts-ignore - Accessing private property for test cleanup if needed, 
-    // or we can rely on creating a new instance if we weren't using the singleton.
-    // Since we export a singleton, we need to manually clear the cache if we can't recreate it.
-    // However, for this test file, we can just rely on the fact that mocks are cleared.
-    // Ideally, we'd add a clearCache method for testing or export the class.
     
-    // Hack to clear private cache:
-    (userService as any).globalStatsCache = new Map();
+    // Clear the cache using the new method
+    // @ts-ignore - Accessing private property for test cleanup
+    if (userService.globalStatsCache && typeof userService.globalStatsCache.clear === 'function') {
+        // @ts-ignore
+        userService.globalStatsCache.clear();
+    }
   });
 
   it("should cache getUserGlobalProblemStats results", async () => {
@@ -139,9 +138,12 @@ describe("UserService Caching", () => {
   });
 
   it("should evict least recently used item when cache is full", async () => {
-    // Override MAX_CACHE_SIZE for this test
+    // Override maxEntries for this test
     // @ts-ignore
-    userService.MAX_CACHE_SIZE = 3;
+    if (userService.globalStatsCache) {
+         // @ts-ignore
+        userService.globalStatsCache.maxEntries = 3;
+    }
     
     const mockStats = { solvedProblemIds: [], attemptedProblemIds: [], bookmarkedProblemIds: [] };
     (userRepository.getUserGlobalProblemStats as jest.Mock).mockResolvedValue(mockStats);
@@ -166,11 +168,7 @@ describe("UserService Caching", () => {
     expect(userService.globalStatsCache.size).toBe(3);
 
     // user2 should be evicted (least recently used: 2, 3, 1 -> evict 2)
-    // Wait, the order was:
-    // Add 1, Add 2, Add 3.  Order: [1, 2, 3] (1 is oldest)
-    // Access 1.             Order: [2, 3, 1] (2 is oldest)
-    // Add 4.                Order: [3, 1, 4] (evicted 2)
-
+    
     // @ts-ignore
     expect(userService.globalStatsCache.has("user2")).toBe(false);
     // @ts-ignore
