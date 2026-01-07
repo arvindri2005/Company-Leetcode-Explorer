@@ -33,7 +33,7 @@ export default function CompanyNotFound({ companySlug }: CompanyNotFoundProps) {
       <Building2 className="h-12 w-12 text-muted-foreground mb-3" />
       <h1 className="text-xl font-semibold mb-2">Company Not Found</h1>
       <p className="text-muted-foreground text-sm mb-4 max-w-sm">
-        The company you're looking for (slug: {companySlug}) doesn't exist or
+        The company you&apos;re looking for (slug: {companySlug}) doesn&apos;t exist or
         may have been removed.
       </p>
       <Button asChild variant="outline" size="sm">

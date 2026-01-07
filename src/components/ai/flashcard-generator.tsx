@@ -244,7 +244,7 @@ const FlashcardGenerator: React.FC<FlashcardGeneratorProps> = ({
         {flashcards && flashcards.length === 0 && !isAILoading && (
           <p className="text-center text-muted-foreground">
             No flashcards were generated. This might happen if there are no
-            problems associated with {companyName} or the AI couldn't find
+            problems associated with {companyName} or the AI couldn&apos;t find
             suitable concepts.
           </p>
         )}

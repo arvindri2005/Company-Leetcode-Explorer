@@ -27,9 +27,8 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Lint
-        # Continuing on error because of existing technical debt (unescaped entities, hooks warnings)
+        # Enforcing quality gates now that legacy issues are addressed
         run: pnpm lint
-        continue-on-error: true
 
       - name: Typecheck
         # Continuing on error because of existing technical debt (test types, missing definitions)
