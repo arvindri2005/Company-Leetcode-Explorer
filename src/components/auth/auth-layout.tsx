@@ -27,6 +27,7 @@ export default function AuthLayout({
         <div className="p-6 md:p-8 space-y-2 text-center">
              <div className="mx-auto w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-6">
             <svg
+              aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
               fill="none"

@@ -25,7 +25,7 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { Loader2, LogInIcon } from "lucide-react";
+import { LogInIcon } from "lucide-react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -208,11 +208,10 @@ export default function LoginForm() {
         <Button
           type="submit"
           disabled={isSubmitting || !isOnline}
+          isLoading={isSubmitting}
           className="w-full h-11 text-base transition-all duration-200 hover:scale-102 shadow-lg hover:shadow-primary/25"
         >
-          {isSubmitting ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : !isOnline ? (
+          {isSubmitting ? null : !isOnline ? (
             "You are offline"
           ) : (
             <>
