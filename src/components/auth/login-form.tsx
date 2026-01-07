@@ -32,6 +32,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import GoogleAuthButton from "./google-auth-button";
 import { useOnlineStatus } from "@/hooks/use-online-status";
+import { Logger } from "@/lib/logger";
 
 /**
  * Zod schema for validating the login form fields.
@@ -97,7 +98,7 @@ export default function LoginForm() {
         router.push("/profile");
       }
     } catch (error) {
-      console.error("Login error:", error);
+      Logger.error("Login error:", error);
       let errorMessage = "An unknown error occurred. Please try again.";
 
       if (error instanceof Error && "code" in error) {

@@ -10,6 +10,7 @@ import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { GoogleIcon } from "../icons/google-icon";
 import { useOnlineStatus } from "@/hooks/use-online-status";
+import { Logger } from "@/lib/logger";
 
 export default function GoogleAuthButton() {
   const { toast } = useToast();
@@ -50,7 +51,7 @@ export default function GoogleAuthButton() {
         router.push("/profile");
       }
     } catch (error: any) {
-      console.error("Google Sign-In Error:", error);
+      Logger.error("Google Sign-In Error:", error);
       let errorMessage = "An unknown error occurred. Please try again.";
       if (error.code === "auth/popup-closed-by-user") {
         errorMessage = "Sign-in cancelled.";
