@@ -47,12 +47,13 @@ export class ProblemService {
     } = params;
 
     // Unified caching for all queries (default + filtered)
+    // Sort array filters to ensure consistent cache keys regardless of selection order
     const cacheKey = `problems-public-${companyId}-${JSON.stringify({
         cursor,
         page,
         pageSize,
-        difficultyFilter,
-        lastAskedFilter,
+        difficultyFilter: [...difficultyFilter].sort(),
+        lastAskedFilter: [...lastAskedFilter].sort(),
         searchTerm,
         sortKey,
     })}`;
@@ -129,8 +130,8 @@ export class ProblemService {
         cursor,
         page,
         pageSize,
-        difficultyFilter,
-        lastAskedFilter,
+        difficultyFilter: [...difficultyFilter].sort(),
+        lastAskedFilter: [...lastAskedFilter].sort(),
         searchTerm,
         sortKey,
       })}`;
