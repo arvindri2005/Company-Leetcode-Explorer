@@ -1,4 +1,5 @@
 import { groupQuestions, GroupQuestionsInput } from '../group-questions';
+import { groupQuestionsCache } from '@/ai/cache';
 
 // Mock next/cache
 jest.mock("next/cache", () => ({
@@ -42,9 +43,10 @@ describe('groupQuestions', () => {
         ],
       },
     });
+    groupQuestionsCache.clear();
   });
 
-  it('should call the AI prompt with the correct input', async () => {
+  it('should call the AI prompt with the safe input', async () => {
     const input: GroupQuestionsInput = {
       questions: [
         {
@@ -58,7 +60,19 @@ describe('groupQuestions', () => {
 
     await groupQuestions(input);
 
-    expect(mockPrompt).toHaveBeenCalledWith(input);
+    // Expect the prompt to be called with the object structure that has 'questions'
+    // and verify truncation/sanitization logic if applied.
+    // In this case, "Two Sum" is short so it won't be truncated.
+    expect(mockPrompt).toHaveBeenCalledWith({
+      questions: [
+        {
+            title: 'Two Sum',
+            difficulty: 'Easy',
+            link: 'https://leetcode.com/problems/two-sum',
+            tags: ['Array', 'Hash Table'],
+        }
+      ]
+    });
   });
 
   it('should return grouped questions correctly', async () => {
@@ -81,8 +95,9 @@ describe('groupQuestions', () => {
     expect(result.groups[0].questions[0].title).toBe('Two Sum');
   });
 
-  it('should throw an error if AI returns no output', async () => {
-    mockPrompt.mockResolvedValueOnce({}); // No output
+  it('should throw an error if AI returns no output after retries', async () => {
+    // Mock the prompt to always return empty/invalid output to trigger retries and final failure
+    mockPrompt.mockResolvedValue({});
 
     const input: GroupQuestionsInput = {
         questions: [
@@ -96,7 +111,7 @@ describe('groupQuestions', () => {
       };
 
     await expect(groupQuestions(input)).rejects.toThrow(
-      'AI did not return an output for question grouping.'
+      'AI did not return a valid grouping output.'
     );
   });
 });

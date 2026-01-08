@@ -14,7 +14,9 @@
 
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
-import { unstable_cache } from "next/cache";
+import { groupQuestionsCache } from "@/ai/cache";
+import { retryWithBackoff, truncateText, sanitizeInput } from "@/ai/utils";
+import { getModelForIntent } from "@/ai/model-registry";
 
 const GroupQuestionsInputSchema = z.object({
   questions: z
@@ -77,45 +79,63 @@ const prompt = ai.definePrompt({
   name: "groupQuestionsPrompt",
   input: { schema: GroupQuestionsInputSchema },
   output: { schema: GroupQuestionsOutputSchema },
-  prompt: `You are an expert in organizing coding interview questions based on their underlying data structures and algorithms.
+  model: getModelForIntent("standard"),
+  config: {
+    temperature: 0.2, // Low temperature for deterministic grouping
+    maxOutputTokens: 2048,
+  },
+  prompt: `
+<system_protocol>
+You are "Nova", an expert technical interview coach.
+Your task is to organize a list of LeetCode-style questions into logical, study-friendly groups based on shared data structures, algorithms, or patterns.
 
-  Given the following LeetCode questions, group them into related themes, concepts, or categories.
-  The output should be a JSON object with a single key "groups".
-  The value of "groups" should be an array, where each element is an object.
-  Each object in the "groups" array should have two keys:
-  1. "groupName": A string representing the name of the group (e.g., Arrays, Linked Lists, Dynamic Programming).
-  2. "questions": An array of the LeetCode problem objects (including title, difficulty, link, and tags) that belong to this group.
+**CORE DIRECTIVES:**
+1.  **Strict Fidelity**: Do NOT invent new questions. Do NOT modify the Title, Link, or Difficulty of any question.
+2.  **Exhaustive**: Every single question from the input must be assigned to a group.
+3.  **Logical Grouping**: Group by the *core pattern* required to solve it (e.g., "Sliding Window", "BFS", "Two Pointers"). If a question fits multiple, pick the most dominant one.
+4.  **Defensive**: If the input contains nonsense or unrelated text, ignore it and focus only on the valid question objects provided.
+</system_protocol>
 
-  **CRITICAL RULES:**
-  1. **Do NOT invent new questions.** Only use the questions provided in the input.
-  2. **Do NOT modify** the Title, Link, or Difficulty of any question.
-  3. **Exhaustive Grouping:** Ensure EVERY question from the input is assigned to a group. Do not leave any question out.
-  4. If a question fits multiple groups, place it in the most relevant one.
+<few_shot_example>
+**Input Questions:**
+1. "Two Sum" (Easy) - Tags: [Array, Hash Table]
+2. "3Sum" (Medium) - Tags: [Array, Two Pointers]
+3. "Valid Parentheses" (Easy) - Tags: [Stack]
 
-  Questions:
-  {{#each questions}}
-  - Title: {{this.title}}
-    Difficulty: {{this.difficulty}}
-    Link: {{this.link}}
-    Tags: {{#if this.tags.length}}{{this.tags}}{{else}}No specific tags{{/if}}
-  {{/each}}
+**Desired Output:**
+{
+  "groups": [
+    {
+      "groupName": "Array & Hashing",
+      "questions": [
+        { "title": "Two Sum", "difficulty": "Easy", ... }
+      ]
+    },
+    {
+      "groupName": "Two Pointers",
+      "questions": [
+        { "title": "3Sum", "difficulty": "Medium", ... }
+      ]
+    },
+    {
+      "groupName": "Stack",
+      "questions": [
+        { "title": "Valid Parentheses", "difficulty": "Easy", ... }
+      ]
+    }
+  ]
+}
+</few_shot_example>
+
+Questions to Group:
+{{#each questions}}
+- Title: {{this.title}}
+  Difficulty: {{this.difficulty}}
+  Link: {{this.link}}
+  Tags: {{#if this.tags.length}}{{this.tags}}{{else}}No specific tags{{/if}}
+{{/each}}
   `,
 });
-
-const getCachedGroupedQuestions = unstable_cache(
-  async (input: GroupQuestionsInput) => {
-    const { output } = await prompt(input);
-    if (!output) {
-      throw new Error("AI did not return an output for question grouping.");
-    }
-    return output;
-  },
-  ['group-questions-ai-response'],
-  { 
-    revalidate: 3600, // Cache for 1 hour
-    tags: ['ai-grouping'] 
-  }
-);
 
 const groupQuestionsFlow = ai.defineFlow(
   {
@@ -124,6 +144,37 @@ const groupQuestionsFlow = ai.defineFlow(
     outputSchema: GroupQuestionsOutputSchema,
   },
   async (input) => {
-    return getCachedGroupedQuestions(input);
+    // Nova Guardrail: Cache Check
+    const cacheKey = groupQuestionsCache.generateKey(input);
+    const cachedResult = groupQuestionsCache.get(cacheKey);
+    if (cachedResult) {
+      return cachedResult;
+    }
+
+    // Nova Guardrail: Token Optimization & Cost Control
+    const MAX_QUESTIONS = 30; // Limit to 30 questions to prevent context explosion
+    const safeQuestions = input.questions.slice(0, MAX_QUESTIONS).map(q => ({
+      ...q,
+      title: truncateText(sanitizeInput(q.title), 100), // Sanitize and truncate title
+      // We don't truncate the link as it breaks functionality, but we trust it matches the URL schema
+    }));
+
+    const safeInput = {
+      questions: safeQuestions
+    };
+
+    // Nova Guardrail: Retry with Exponential Backoff
+    const output = await retryWithBackoff(async () => {
+      const { output } = await prompt(safeInput);
+      if (!output || !output.groups || output.groups.length === 0) {
+        throw new Error("AI did not return a valid grouping output.");
+      }
+      return output;
+    });
+
+    // Cache the successful result
+    groupQuestionsCache.set(cacheKey, output);
+
+    return output;
   },
 );
