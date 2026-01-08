@@ -23,7 +23,7 @@ import { CooldownStateProvider } from "@/hooks/use-ai-cooldown";
 import StructuredData from "@/components/seo/structured-data";
 import { COLORS } from "@/constants/colors";
 import ErrorBoundary from "@/components/ui/error-boundary";
-import { HeaderErrorFallback } from "@/components/layout/header-error-fallback";
+import { HeaderErrorFallback } from "@/components/layout/header";
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
