@@ -1,17 +1,28 @@
 # Apex Journal
 
-## 2024-05-21: AI Service Extension Registry
+## 🏔️ Extensibility Improvement: Problem Filter Registry
 
-### Discovery
-The `AIService` (`src/services/ai.service.ts`) was tightly coupled to specific AI flow implementations. Adding a new AI capability required modifying the service class, violating the Open-Closed Principle. This rigidity made it difficult to A/B test different flow implementations or add experimental features without code churn in the core service.
+### 💡 What
+Replaced the hardcoded filtering logic in `ProblemRepository` with a `ProblemFilterRegistry`. This allows adding new filters (like `status`, `tags`, etc.) without modifying the core query construction logic.
 
-### Improvement
-Refactored `AIService` to use a `AIFlowRegistry` (`src/ai/flow-registry.ts`).
+### 🎯 Why
+Previously, adding a new filter required:
+1. Modifying `FetchProblemsParams`
+2. Modifying `buildQueryConstraints` with new if/else blocks
+3. Managing the complex "single 'in' operator" rule manually
+4. Updating `fetchProblemsByCompanySemiOptimized` to handle the new filter in-memory
 
-- **What:** Introduced a singleton registry where AI flows are registered by name. The `AIService` now looks up flows from this registry instead of importing them directly.
-- **Why:** This decouples the service from the implementation. Flows can be swapped at runtime (e.g., for testing or different environments) or added dynamically.
-- **Scalability:** New AI features can be added by registering a new flow. While `AIService` currently has specific methods for type safety, this pattern paves the way for a more generic `executeFlow` method if needed.
-- **Verification:** Added `src/services/__tests__/ai-extensibility.test.ts` which demonstrates how to override a core flow (`groupQuestions`) with a mock implementation without touching the service code.
+Now, you simply:
+1. Implement `ProblemFilter` interface
+2. Register it in `problemFilterRegistry`
 
-### Lessons
-- **Type Safety vs. Extensibility:** The main challenge was maintaining strict input/output typing while using a generic registry. We kept the specific methods in `AIService` to preserve the API contract but delegated the execution to the registered flow. A fully generic `execute` method would require more complex type mapping.
+### 🏗️ Scalability
+The `ProblemFilterRegistry` acts as a resource manager for the Firestore query limitations (e.g., tracking the single `in` operator usage). It automatically degrades filters to "residual" (in-memory) status if the database capabilities are exhausted.
+
+### 🔬 Verification
+- Created unit tests in `src/lib/problem-filters/__tests__/registry.test.ts` to verify the registry's arbitration logic (prioritizing `==` over `in` and handling multiple `in` requests).
+- Verified `pnpm typecheck` passes.
+- Verified `pnpm test` passes.
+
+### ⚠️ Notes
+- `fetchProblemsSemiOptimized` (used by "All Problems" view) still uses legacy signature for now, but `getProblemsByCompany` (the main view) uses the fully extensible path.

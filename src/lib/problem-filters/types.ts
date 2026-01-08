@@ -1,6 +1,17 @@
 import { QueryConstraint } from "firebase/firestore";
 import { ProblemSummaryDTO } from "@/types";
 
+export interface FilterContext {
+  companyId: string;
+  canUseInOperator: boolean;
+}
+
+export interface FilterResult {
+  constraints: QueryConstraint[];
+  applied: boolean;
+  usesInOperator: boolean;
+}
+
 /**
  * Interface for implementing a problem filter.
  * T = The type of the filter value (e.g., string[], number, etc.)
@@ -10,13 +21,12 @@ export interface ProblemFilter<T = unknown> {
   
   /**
    * Generates Firestore query constraints based on the filter value.
-   * If the filter cannot be applied at the DB level (e.g., requires in-memory filtering), 
-   * return an empty array.
+   * Respected the context to determine if 'in' operator can be used.
    * 
    * @param value The value of the filter (e.g. ["Easy", "Medium"])
-   * @param companyId The ID of the company context
+   * @param context The filter context containing companyId and query capabilities
    */
-  getConstraints(value: T, companyId: string): QueryConstraint[];
+  getConstraints(value: T, context: FilterContext): FilterResult;
 
   /**
    * Checks if a problem matches the filter in memory.

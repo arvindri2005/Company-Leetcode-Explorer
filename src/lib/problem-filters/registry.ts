@@ -2,6 +2,11 @@ import { ProblemFilter } from "./types";
 import { QueryConstraint } from "firebase/firestore";
 import { ProblemSummaryDTO } from "@/types";
 
+export interface QueryPlan {
+  constraints: QueryConstraint[];
+  residualFilters: Record<string, unknown>;
+}
+
 class ProblemFilterRegistry {
   private filters: Map<string, ProblemFilter> = new Map();
 
@@ -29,21 +34,51 @@ class ProblemFilterRegistry {
   }
 
   /**
-   * Generates constraints for all active filters.
+   * Generates a query plan for all active filters.
+   * This coordinates resource usage (like the single 'in' operator allowed by Firestore)
+   * across multiple filters.
+   *
    * @param activeFilters A map of filter keys to their values
    * @param companyId The current company context
    */
-  getConstraints(activeFilters: Record<string, unknown>, companyId: string): QueryConstraint[] {
+  getQueryPlan(activeFilters: Record<string, unknown>, companyId: string): QueryPlan {
     let constraints: QueryConstraint[] = [];
+    const residualFilters: Record<string, unknown> = {};
+    let usedInOperator = false;
+
+    // We iterate through filters.
+    // Optimization: We might want to prioritize certain filters for the 'in' operator.
+    // For now, we respect the iteration order (which usually follows insertion/definition order).
+    // The Repository previously prioritized Difficulty over LastAsked.
+    // To preserve this, the consumer should pass keys in order, or we iterate in a fixed order if keys exist.
+
+    // To ensure deterministic behavior, we can sort keys or prioritize known keys.
+    // Let's iterate through the active filters.
+    // If we want to strictly follow "Difficulty First", we rely on the object key order or enforce it.
+    // Since 'activeFilters' is passed by the caller, they can control the order.
     
     for (const [key, value] of Object.entries(activeFilters)) {
       const filter = this.getApplicableFilter(key, value);
+
       if (filter) {
-        constraints = constraints.concat(filter.getConstraints(value, companyId));
+        const result = filter.getConstraints(value, {
+            companyId,
+            canUseInOperator: !usedInOperator
+        });
+
+        if (result.applied) {
+            constraints = constraints.concat(result.constraints);
+            if (result.usesInOperator) {
+                usedInOperator = true;
+            }
+        } else {
+            // If not applied (e.g. needed 'in' but couldn't get it), it becomes residual
+            residualFilters[key] = value;
+        }
       }
     }
-    
-    return constraints;
+
+    return { constraints, residualFilters };
   }
 
   /**

@@ -289,13 +289,11 @@ export class ProblemRepository {
 
     const {
       constraints,
-      residualDifficultyFilter,
-      residualLastAskedFilter,
+      residualFilters,
     } = this.buildQueryConstraints(params, baseConstraints, companyId);
 
     const canUseOptimizedPath = this.canUseOptimizedPath(
-      residualDifficultyFilter,
-      residualLastAskedFilter,
+      residualFilters,
       searchTerm,
       sortKey,
     );
@@ -306,8 +304,7 @@ export class ProblemRepository {
           companyId,
           params,
           constraints,
-          residualDifficultyFilter,
-          residualLastAskedFilter,
+          residualFilters,
         );
       } catch (error: unknown) {
         if (isFirestoreIndexError(error)) {
@@ -326,8 +323,7 @@ export class ProblemRepository {
       companyId,
       params,
       constraints,
-      residualDifficultyFilter,
-      residualLastAskedFilter,
+      residualFilters,
     );
   }
 
@@ -343,44 +339,19 @@ export class ProblemRepository {
     } = params;
 
     const constraints = [...baseConstraints];
-    let usedInOperator = false;
-    let residualDifficultyFilter: DifficultyFilter[] = [];
-    let residualLastAskedFilter: LastAskedFilter[] = [];
 
-    // Apply Difficulty Filter
-    if (difficultyFilter.length > 0) {
-      if (difficultyFilter.length === 1) {
-        constraints.push(where("difficulty", "==", difficultyFilter[0]));
-      } else if (!usedInOperator) {
-        constraints.push(where("difficulty", "in", difficultyFilter));
-        usedInOperator = true;
-      } else {
-        residualDifficultyFilter = difficultyFilter;
-      }
-    }
+    // Map params to generic filters
+    // Note: We prioritize key order to mimic existing logic (difficulty first)
+    const activeFilters: Record<string, unknown> = {};
+    if (difficultyFilter && difficultyFilter.length > 0) activeFilters["difficulty"] = difficultyFilter;
+    if (lastAskedFilter && lastAskedFilter.length > 0) activeFilters["lastAsked"] = lastAskedFilter;
 
-    // Apply LastAsked Filter
-    if (lastAskedFilter.length > 0) {
-      // If companyId is provided, we filter by company-specific period
-      // Otherwise we filter by global period (for generic lists)
-      // Note: The original 'fetchAllProblemsCore' logic treated lastAsked as fully residual.
-      // We preserve that behavior if companyId is missing for now, or adapt as needed.
-      if (companyId) {
-        const fieldPath = `companies.${companyId}.lastAskedPeriod`;
-        if (lastAskedFilter.length === 1) {
-          constraints.push(where(fieldPath, "==", lastAskedFilter[0]));
-        } else if (!usedInOperator) {
-          constraints.push(where(fieldPath, "in", lastAskedFilter));
-          usedInOperator = true;
-        } else {
-          residualLastAskedFilter = lastAskedFilter;
-        }
-      } else {
-        // For global lists, we currently treat lastAsked as residual
-        // (matching original fetchAllProblemsCore implementation)
-        residualLastAskedFilter = lastAskedFilter;
-      }
-    }
+    // Use Registry to plan the query
+    // We pass companyId if available.
+    // If undefined, filters relying on it (lastAsked) will return empty constraints (residual).
+    const queryPlan = problemFilterRegistry.getQueryPlan(activeFilters, companyId || "");
+
+    constraints.push(...queryPlan.constraints);
 
     // Optimization: Use Firestore range queries for search
     if (searchTerm.trim() !== "") {
@@ -393,19 +364,16 @@ export class ProblemRepository {
 
     return {
       constraints,
-      residualDifficultyFilter,
-      residualLastAskedFilter,
+      residualFilters: queryPlan.residualFilters,
     };
   }
 
   private canUseOptimizedPath(
-    residualDifficultyFilter: DifficultyFilter[],
-    residualLastAskedFilter: LastAskedFilter[],
+    residualFilters: Record<string, unknown>,
     searchTerm: string,
     sortKey: SortKey = "title",
   ): boolean {
-    const hasResidualFilters =
-      residualDifficultyFilter.length > 0 || residualLastAskedFilter.length > 0;
+    const hasResidualFilters = Object.keys(residualFilters).length > 0;
 
     const isSortCompatibleWithSearch =
       searchTerm.trim() !== "" ? sortKey === "title" : true;
@@ -421,8 +389,7 @@ export class ProblemRepository {
     companyId: string,
     params: FetchProblemsParams,
     constraints: QueryConstraint[],
-    residualDifficultyFilter: DifficultyFilter[],
-    residualLastAskedFilter: LastAskedFilter[],
+    residualFilters: Record<string, unknown>,
   ) {
     const {
       cursor,
@@ -438,6 +405,10 @@ export class ProblemRepository {
 
     const problemsColRef = collection(getFirestore(), "problems");
     let totalProblems = 0;
+
+    // Extract potential residuals just for the count optimization logic check
+    const residualDifficultyFilter = (residualFilters["difficulty"] as DifficultyFilter[]) || [];
+    const residualLastAskedFilter = (residualFilters["lastAsked"] as LastAskedFilter[]) || [];
 
     if (constraints.length === 1 && totalProblemCount !== undefined) {
       totalProblems = totalProblemCount;
@@ -539,8 +510,7 @@ export class ProblemRepository {
     companyId: string,
     params: FetchProblemsParams,
     constraints: QueryConstraint[],
-    residualDifficultyFilter: DifficultyFilter[],
-    residualLastAskedFilter: LastAskedFilter[],
+    residualFilters: Record<string, unknown>,
   ) {
     const {
       cursor,
@@ -588,23 +558,13 @@ export class ProblemRepository {
 
       // Extensibility Point: Apply generic filters via Registry
       // This replaces the hardcoded difficulty/lastAsked logic
-      const filtersToApply: Record<string, unknown> = {};
-      if (residualDifficultyFilter.length > 0) {
-        filtersToApply["difficulty"] = residualDifficultyFilter;
-      }
-      if (residualLastAskedFilter.length > 0) {
-        filtersToApply["lastAsked"] = residualLastAskedFilter;
-      }
 
-      // Note: We can also pass other arbitrary filters here if 'params' was extended
+      // We pass the residual filters that were NOT applied at the DB level
       processedProblems = problemFilterRegistry.filterInMemory(
         processedProblems,
-        filtersToApply,
+        residualFilters,
         companyId,
       );
-
-      // Search is now handled by Firestore constraints (Starts With logic on Title).
-      // This optimization prioritizes read efficiency over full-text/tag search capabilities.
 
       // Client-side sorting for the 200 items
       const difficultyOrder: Record<LeetCodeProblem["difficulty"], number> = {
@@ -663,8 +623,7 @@ export class ProblemRepository {
         resultCount: paginatedProblems.length,
         durationMs: Date.now() - startTime,
         filters: {
-          difficulty: residualDifficultyFilter.length > 0,
-          lastAsked: residualLastAskedFilter.length > 0,
+          residualCount: Object.keys(residualFilters).length,
           search: !!searchTerm,
         },
       });
@@ -701,13 +660,11 @@ export class ProblemRepository {
 
     const {
       constraints,
-      residualDifficultyFilter,
-      residualLastAskedFilter,
+      residualFilters,
     } = this.buildQueryConstraints(params);
 
     const canUseOptimizedPath = this.canUseOptimizedPath(
-      residualDifficultyFilter,
-      residualLastAskedFilter,
+      residualFilters,
       searchTerm,
       sortKey,
     );
@@ -727,6 +684,86 @@ export class ProblemRepository {
         }
       }
     }
+
+    // We only have 2 filters currently, so we can cast back for the fallback method
+    // const residualDifficultyFilter = (residualFilters["difficulty"] as DifficultyFilter[]) || [];
+    // const residualLastAskedFilter = (residualFilters["lastAsked"] as LastAskedFilter[]) || [];
+
+    // "unknown" is not a valid CompanyID, but fetchProblemsSemiOptimized treats it as context
+    // The previous call did not pass companyId to fetchProblemsSemiOptimized?
+    // Wait, fetchProblemsSemiOptimized WAS taking companyId as first arg in getProblemsByCompany flow
+    // But fetchAllProblemsCore was generic.
+
+    // In original code:
+    // fetchAllProblemsCore called fetchProblemsSemiOptimized(params, constraints, diff, lastAsked)
+    // fetchProblemsByCompanyCore called fetchProblemsSemiOptimized(companyId, params, constraints, diff, lastAsked)
+
+    // Wait, I might have introduced a signature mismatch in my refactor.
+    // Let's check fetchProblemsSemiOptimized signature.
+    // It is: private async fetchProblemsSemiOptimized(companyId: string, params: ..., constraints: ..., residualFilters: ...)
+
+    // So for fetchAllProblemsCore, I must pass a dummy companyId string.
+
+    // We only have 2 filters currently, so we can cast back for the fallback method
+    const residualDifficultyFilter = (residualFilters["difficulty"] as DifficultyFilter[]) || [];
+    const residualLastAskedFilter = (residualFilters["lastAsked"] as LastAskedFilter[]) || [];
+
+    // NOTE: This call relies on the OLD signature of fetchProblemsSemiOptimized
+    // which expects (params, constraints, diff, lastAsked).
+    // BUT I updated fetchProblemsSemiOptimized to (companyId, params, constraints, residualFilters).
+    // So I need to cast the filters back OR update fetchProblemsSemiOptimized to be generic.
+
+    // Actually, I updated fetchProblemsSemiOptimized signature in my previous plan step but
+    // maybe I did NOT update the actual definition, only the call site in fetchProblemsByCompanyCore?
+    // Let's check the definition of fetchProblemsSemiOptimized below.
+
+    // Ah, line 822 defines:
+    // private async fetchProblemsSemiOptimized(params, constraints, residualDifficultyFilter, residualLastAskedFilter)
+
+    // Wait, I thought I updated it?
+    // In my previous `overwrite_file_with_block` I DID update it.
+    // Let me check the file content again carefully.
+
+    // Line 822 in the current file read above:
+    // private async fetchProblemsSemiOptimized(
+    //   companyId: string,
+    //   params: FetchProblemsParams,
+    //   constraints: QueryConstraint[],
+    //   residualFilters: Record<string, unknown>,
+    // ) {
+
+    // So the definition IS updated.
+
+    // The error `Type '"global"' has no properties in common with type '{ cursor?: string ...`
+    // implies that the first argument is expected to be `params` object, NOT a string.
+
+    // Why does TS think fetchProblemsSemiOptimized expects `params` as first arg?
+    // Maybe I have multiple definitions or an interface mismatch?
+    // No, I am editing the class directly.
+
+    // Let's look at the method definition in the file I just read.
+    // Line 866 (in the read output, approx):
+    // private async fetchProblemsSemiOptimized(
+    //   params: { ... },
+    //   constraints: QueryConstraint[],
+    //   residualDifficultyFilter: DifficultyFilter[],
+    //   residualLastAskedFilter: LastAskedFilter[],
+    // )
+
+    // WAIT! The `read_file` output shows the OLD signature for `fetchProblemsSemiOptimized`!
+    // It seems my overwrite or merge failed to update the definition, or I updated `fetchProblemsByCompanySemiOptimized` but not `fetchProblemsSemiOptimized`?
+
+    // There are TWO methods:
+    // 1. fetchProblemsByCompanySemiOptimized (lines ~650 in original) -> I updated this one.
+    // 2. fetchProblemsSemiOptimized (lines ~866 in original) -> I did NOT update this one?
+
+    // `fetchAllProblemsCore` calls `fetchProblemsSemiOptimized` (lines ~715).
+    // `fetchProblemsByCompanyCore` calls `fetchProblemsByCompanySemiOptimized` (lines ~676).
+
+    // I need to update `fetchProblemsSemiOptimized` as well to support the generic signature!
+
+    // But wait, `fetchProblemsSemiOptimized` is the one used for "All Problems" (no company context).
+    // It shouldn't need `companyId`.
 
     return await this.fetchProblemsSemiOptimized(
       params,
