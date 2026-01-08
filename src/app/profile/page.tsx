@@ -16,18 +16,18 @@ import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
-import UserInfoCard from "@/components/profile/user-info-card";
-import EducationExperienceSection from "@/components/profile/education-experience-section";
-import WorkExperienceSection from "@/components/profile/work-experience-section";
-import ProgressStats from "@/components/profile/progress-stats";
-import ProfileProblemList from "@/components/profile/profile-problem-list";
+import UserInfoCard from "@/features/profile/components/user-info-card";
+import EducationExperienceSection from "@/features/profile/components/education-experience-section";
+import WorkExperienceSection from "@/features/profile/components/work-experience-section";
+import ProgressStats from "@/features/profile/components/progress-stats";
+import ProfileProblemList from "@/features/profile/components/profile-problem-list";
 
 import { ProfilePageSkeleton } from "@/components/skeletons/profile-skeletons";
 import { StrategyListSkeleton } from "@/components/skeletons/strategy-skeleton";
 import dynamic from "next/dynamic";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ErrorBoundary from "@/components/ui/error-boundary";
-import ProfileTabErrorFallback from "@/components/profile/profile-tab-error-fallback";
+import ProfileTabErrorFallback from "@/features/profile/components/profile-tab-error-fallback";
 import {
   Bookmark,
   CheckCircle2,
@@ -61,7 +61,7 @@ import {
 } from "@/app/actions/problem.actions"; // Import from specific file
 
 const StrategyListsSection = dynamic(
-  () => import("@/components/profile/strategy-lists-section"),
+  () => import("@/features/profile/components/strategy-lists-section"),
   {
     loading: () => <StrategyListSkeleton />,
   },

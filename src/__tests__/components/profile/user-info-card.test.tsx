@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import UserInfoCard from '@/components/profile/user-info-card';
+import UserInfoCard from '@/features/profile/components/user-info-card';
 import { FormProvider, useForm } from 'react-hook-form';
 import { createMockUser } from '@/__tests__/factories/data-factories';
 
