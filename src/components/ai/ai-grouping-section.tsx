@@ -8,9 +8,9 @@
  */
 "use client";
 
-import type { LeetCodeProblem, AIProblemInput, ProblemSummaryDTO } from "@/types";
+import type { LeetCodeProblem, AIProblemInput } from "@/types";
 import type { GroupQuestionsOutput } from "@/ai/flows/group-questions";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { performQuestionGrouping } from "@/app/actions/ai.actions";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +35,7 @@ import { useAICooldown } from "@/hooks/use-ai-cooldown";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { slugify } from "@/lib/utils";
+import { useCompanyAIProblems } from "@/hooks/use-company-ai-problems";
 
 /**
  * Props for the AIGroupingSection component.
@@ -53,7 +54,7 @@ interface AIGroupingSectionProps {
  *
  * This component manages the entire lifecycle of the AI grouping feature:
  * - Checks if the user is logged in and prompts them to log in if not.
- * - Fetches the problems for the company lazily when mounted.
+ * - Fetches the problems for the company lazily when mounted (and caches them).
  * - Manages a cooldown period for the AI feature to prevent abuse.
  * - Displays loading indicators while the AI is processing.
  * - Shows success or error notifications (toasts) based on the outcome.
@@ -77,30 +78,8 @@ const AIGroupingSection: React.FC<AIGroupingSectionProps> = ({
   const [isAILoading, setIsAILoading] = useState(false);
   const { toast } = useToast();
   
-  // Local state for fetched problems
-  const [problems, setProblems] = useState<LeetCodeProblem[] | ProblemSummaryDTO[]>([]);
-  const [isFetchingProblems, setIsFetchingProblems] = useState(false);
-  const [hasFetchError, setHasFetchError] = useState(false);
-
-  useEffect(() => {
-    async function fetchAIProblems() {
-      if (!companyId) return;
-
-      setIsFetchingProblems(true);
-      try {
-        const response = await fetch(`/api/companies/${companyId}/ai-problems`);
-        if (!response.ok) throw new Error("Failed to fetch AI problems");
-        const data = await response.json();
-        setProblems(data);
-      } catch (error) {
-        console.error("Failed to fetch problems for AI features:", error);
-        setHasFetchError(true);
-      } finally {
-        setIsFetchingProblems(false);
-      }
-    }
-    fetchAIProblems();
-  }, [companyId]);
+  // Use the new hook to fetch problems with caching
+  const { problems, isLoading: isFetchingProblems, error: fetchError } = useCompanyAIProblems(companyId);
 
   const handleGroupQuestions = async () => {
     if (!user) {
@@ -120,7 +99,7 @@ const AIGroupingSection: React.FC<AIGroupingSectionProps> = ({
       return;
     }
 
-    if (problems.length === 0) {
+    if (!problems || problems.length === 0) {
         toast({
             title: "No Problems Found",
             description: "There are no problems to group for this company.",
@@ -172,11 +151,11 @@ const AIGroupingSection: React.FC<AIGroupingSectionProps> = ({
     );
   }
 
-  if (hasFetchError) {
-      return null; // Or a retry button/message
+  if (fetchError) {
+      return null; // Or a retry button/message. Using null to match previous behavior for now.
   }
 
-  if (problems.length === 0) {
+  if (!problems || problems.length === 0) {
     return null; // Don't render if no problems
   }
 
