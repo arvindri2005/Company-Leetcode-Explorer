@@ -5,8 +5,8 @@
  * for initiating a password reset. It uses `AuthLayout` for consistency and
  * `ForgotPasswordForm` for the functionality.
  */
-import ForgotPasswordForm from "@/components/auth/forgot-password-form";
-import AuthLayout from "@/components/auth/auth-layout";
+import ForgotPasswordForm from "@/features/auth/components/forgot-password-form";
+import AuthLayout from "@/features/auth/components/auth-layout";
 
 /**
  * Metadata for the Forgot Password page.

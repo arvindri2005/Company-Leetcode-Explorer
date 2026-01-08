@@ -5,8 +5,8 @@
  * for creating a new account. It includes metadata for SEO and renders the
  * `SignupForm` component, which contains the actual registration logic and UI.
  */
-import SignupForm from "@/components/auth/signup-form";
-import AuthLayout from "@/components/auth/auth-layout";
+import SignupForm from "@/features/auth/components/signup-form";
+import AuthLayout from "@/features/auth/components/auth-layout";
 
 /**
  * Metadata for the Sign Up page.

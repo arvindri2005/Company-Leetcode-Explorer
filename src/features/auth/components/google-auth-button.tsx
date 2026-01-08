@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
-import { GoogleIcon } from "../icons/google-icon";
+import { GoogleIcon } from "@/components/icons/google-icon";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { Logger } from "@/lib/logger";
 
