@@ -1,9 +1,7 @@
-# Pilot's Log
+## 2024-05-23 - Next.js Build Cache Missing
+Discovery: The CI pipeline was running `next build` without restoring `.next/cache`. This means every build was starting from scratch, significantly slowing down feedback loops.
+Protocol: Added `actions/cache` for `.next/cache` with a key based on lockfile and source files.
 
-## 2026-01-06 - CI Pipeline Reliability
-Discovery: The CI pipeline (`.github/workflows/ci.yml`) has `continue-on-error: true` for both Lint and Typecheck jobs. This causes the CI to report "Success" even when there are code quality issues, eroding trust in the pipeline.
-Protocol: Fix the underlying lint errors (or adjust rule severity for legacy debt) and remove the `continue-on-error` flag to enforce quality gates.
-
-## 2026-01-06 - Missing Dependency Automation
-Discovery: No Dependabot configuration found. Dependencies are updated manually.
-Protocol: Add `.github/dependabot.yml` to automate security updates and dependency refresh.
+## 2024-05-23 - Redundant ESLint Config
+Discovery: The project contained both `.eslintrc.json` and `eslint.config.mjs`. Since Next.js and ESLint 9+ prioritize the flat config (`.mjs`), the JSON config was dead code and potentially confusing for developers.
+Protocol: Removed `.eslintrc.json` to enforce a single source of truth for linting rules.
