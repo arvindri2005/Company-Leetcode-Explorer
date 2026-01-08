@@ -111,11 +111,21 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({
                 axisLine={false}
               />
               <Tooltip
-                cursor={{ fill: "rgba(128, 128, 128, 0.1)" }}
-                contentStyle={{
-                  background: COLORS.grayCustom[800],
-                  border: `1px solid ${COLORS.grayCustom[700]}`,
-                  borderRadius: "0.5rem",
+                cursor={{ fill: "hsl(var(--muted)/0.3)" }}
+                content={({ active, payload, label }) => {
+                  if (active && payload && payload.length) {
+                    return (
+                      <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-md">
+                        <p className="font-medium text-popover-foreground text-sm">
+                          {label}
+                        </p>
+                        <p className="text-primary font-bold text-sm">
+                          {payload[0].value}
+                        </p>
+                      </div>
+                    );
+                  }
+                  return null;
                 }}
               />
               <Bar dataKey="count" barSize={20} radius={[0, 4, 4, 0]}>
@@ -150,11 +160,21 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({
                 axisLine={false}
               />
               <Tooltip
-                cursor={{ fill: "rgba(128, 128, 128, 0.1)" }}
-                contentStyle={{
-                  background: COLORS.grayCustom[800],
-                  border: `1px solid ${COLORS.grayCustom[700]}`,
-                  borderRadius: "0.5rem",
+                cursor={{ fill: "hsl(var(--muted)/0.3)" }}
+                content={({ active, payload, label }) => {
+                  if (active && payload && payload.length) {
+                    return (
+                      <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-md">
+                        <p className="font-medium text-popover-foreground text-sm">
+                          {label}
+                        </p>
+                        <p className="text-primary font-bold text-sm">
+                          {payload[0].value}
+                        </p>
+                      </div>
+                    );
+                  }
+                  return null;
                 }}
               />
               <Bar dataKey="count" barSize={20} radius={[0, 4, 4, 0]}>
