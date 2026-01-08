@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import CompanyNotFound from '@/components/company/page/company-not-found';
+import CompanyNotFound from '@/features/companies/components/page/company-not-found';
 
 describe('CompanyNotFound', () => {
   it('should render "Company Not Found" message', () => {

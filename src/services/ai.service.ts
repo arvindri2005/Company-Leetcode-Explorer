@@ -27,7 +27,7 @@ import {
   generateProblemInsights as generateProblemInsightsFlow,
 } from "@/ai/flows/generate-problem-insights-flow";
 import { AIProblemInput, LeetCodeProblem } from "@/types";
-import { companyService } from "@/services/company.service";
+import { companyService } from "@/features/companies/services/company.service";
 import { problemService } from "@/services/problem.service";
 import { userService } from "@/services/user.service";
 import { Logger } from "@/lib/logger";

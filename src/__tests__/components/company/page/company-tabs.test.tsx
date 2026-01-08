@@ -1,5 +1,5 @@
 import { render, screen, waitFor, act } from '@testing-library/react';
-import CompanyTabs from '@/components/company/page/company-tabs';
+import CompanyTabs from '@/features/companies/components/page/company-tabs';
 
 // Mock child components - use the correct import paths
 jest.mock('@/features/problems', () => ({
@@ -28,7 +28,7 @@ jest.mock('@/components/ai/company-strategy-generator', () => ({
   default: () => <div data-testid="company-strategy-generator">Strategy Generator</div>,
 }));
 
-jest.mock('@/components/company/company-problem-stats', () => ({
+jest.mock('@/features/companies/components/company-problem-stats', () => ({
   __esModule: true,
   default: () => <div data-testid="company-problem-stats">Problem Stats</div>,
 }));

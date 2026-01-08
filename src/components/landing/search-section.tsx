@@ -12,7 +12,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useDebounce } from "use-debounce";
 import { fetchCompanySuggestionsAction } from "@/app/actions";
-import CompnaySearchBar from "@/components/company/company-search-bar";
+import CompanySearchBar from "@/features/companies/components/company-search-bar";
 import type { Company } from "@/types";
 
 interface Suggestion extends Pick<Company, "id" | "name" | "slug" | "logo"> {}
@@ -99,7 +99,7 @@ export default function SearchSection() {
         <p className="text-xl mb-8 text-gray-custom-400">
           Search for problems by name, topic, or difficulty level
         </p>
-        <CompnaySearchBar
+        <CompanySearchBar
           searchTermInput={searchTermInput}
           setSearchTermInput={setSearchTermInput}
           isLoadingSuggestions={isLoadingSuggestions}

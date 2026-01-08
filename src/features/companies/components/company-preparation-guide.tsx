@@ -6,7 +6,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Company } from "@/types";
+import { Company } from "@/features/companies/types";
 import { Lightbulb, HelpCircle, BookOpen, CheckCircle2 } from "lucide-react";
 import { capitalizeWords } from "@/lib/utils";
 

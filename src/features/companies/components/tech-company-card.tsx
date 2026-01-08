@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Company } from "@/types";
+import { Company } from "@/features/companies/types";
 import { getLogoUrl } from "@/lib/utils";
 import { OfflineImage } from "@/components/ui/offline-image";
 

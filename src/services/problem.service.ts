@@ -1,5 +1,5 @@
 import { problemRepository } from "@/repositories/problem.repository";
-import { companyService } from "@/services/company.service";
+import { companyService } from "@/features/companies/services/company.service";
 import {
   DifficultyFilter,
   LastAskedFilter,

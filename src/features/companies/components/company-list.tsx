@@ -8,7 +8,7 @@
  */
 "use client";
 
-import type { Company } from "@/types";
+import type { Company } from "@/features/companies/types";
 import { useState, useEffect, useRef, useCallback } from "react";
 import CompanyCard from "./company-card";
 import ErrorBoundary from "@/components/ui/error-boundary";

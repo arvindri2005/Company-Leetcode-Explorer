@@ -1,34 +1,34 @@
 import { render, screen } from '@testing-library/react';
-import CompanyPage from '@/components/company/page/company-page';
+import CompanyPage from '@/features/companies/components/page/company-page';
 import { createMockCompany, createMockProblemsResponse, createMockProblem } from '@/__tests__/factories/data-factories';
 
 // Mock child components
-jest.mock('@/components/company/company-header', () => ({
+jest.mock('@/features/companies/components/company-header', () => ({
   __esModule: true,
   default: () => <div data-testid="company-header">Company Header</div>,
 }));
 
-jest.mock('@/components/company/page/company-tabs', () => ({
+jest.mock('@/features/companies/components/page/company-tabs', () => ({
   __esModule: true,
   default: () => <div data-testid="company-tabs">Company Tabs</div>,
 }));
 
-jest.mock('@/components/company/page/problem-load-error', () => ({
+jest.mock('@/features/companies/components/page/problem-load-error', () => ({
   __esModule: true,
   default: ({ error }: { error: string }) => <div data-testid="problem-load-error">{error}</div>,
 }));
 
-jest.mock('@/components/company/page/no-problems-available', () => ({
+jest.mock('@/features/companies/components/page/no-problems-available', () => ({
   __esModule: true,
   default: () => <div data-testid="no-problems-available">No Problems Available</div>,
 }));
 
-jest.mock('@/components/company/related-companies', () => ({
+jest.mock('@/features/companies/components/related-companies', () => ({
   __esModule: true,
   default: () => <div data-testid="related-companies">Related Companies</div>,
 }));
 
-jest.mock('@/components/company/company-preparation-guide', () => ({
+jest.mock('@/features/companies/components/company-preparation-guide', () => ({
   __esModule: true,
   default: () => <div data-testid="company-preparation-guide">Preparation Guide</div>,
 }));
@@ -38,7 +38,7 @@ jest.mock('@/components/ads/ad-placeholder', () => ({
   default: () => <div data-testid="ad-placeholder">Ad Placeholder</div>,
 }));
 
-jest.mock('@/services/company.service', () => ({
+jest.mock('@/features/companies/services/company.service', () => ({
   companyService: {},
 }));
 

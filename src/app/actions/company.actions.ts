@@ -10,7 +10,7 @@
 "use server";
 
 import type { Company } from "@/types";
-import { companyService } from "@/services/company.service";
+import { companyService } from "@/features/companies/services/company.service";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { slugify } from "@/lib/utils";
 import { handleServerActionError } from "@/lib/error-handler";

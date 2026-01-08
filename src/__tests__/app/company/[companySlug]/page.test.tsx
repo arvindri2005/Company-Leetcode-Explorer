@@ -1,11 +1,11 @@
 import { render, screen } from '@testing-library/react';
 import CompanyPageWrapper, { generateMetadata, generateStaticParams } from '@/app/company/[companySlug]/page';
-import { companyService } from '@/services/company.service';
+import { companyService } from '@/features/companies/services/company.service';
 import { problemService } from '@/services/problem.service';
 import { createMockCompany, createMockProblemsResponse, createMockProblem } from '@/__tests__/factories/data-factories';
 
 // Mock the services
-jest.mock('@/services/company.service', () => ({
+jest.mock('@/features/companies/services/company.service', () => ({
   companyService: {
     getCompanyBySlug: jest.fn(),
     getAllCompanySlugs: jest.fn(),
@@ -19,12 +19,12 @@ jest.mock('@/services/problem.service', () => ({
 }));
 
 // Mock child components
-jest.mock('@/components/company/page/company-not-found', () => ({
+jest.mock('@/features/companies/components/page/company-not-found', () => ({
   __esModule: true,
   default: ({ companySlug }: { companySlug: string }) => <div data-testid="company-not-found">{companySlug}</div>,
 }));
 
-jest.mock('@/components/company/page/company-page', () => ({
+jest.mock('@/features/companies/components/page/company-page', () => ({
   __esModule: true,
   default: ({ company }: { company: any }) => <div data-testid="company-page">{company.name}</div>,
 }));

@@ -5,7 +5,8 @@
 export * from "./common";
 // Re-export problem types from feature
 export * from "../features/problems/types";
-export * from "./company";
+// Re-export company types from feature
+export * from "../features/companies/types";
 export * from "./user";
 export * from "./ai";
 export * from "./job-application";

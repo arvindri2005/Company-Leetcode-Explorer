@@ -1,4 +1,4 @@
-import { companyService } from "../company.service";
+import { companyService } from "@/features/companies/services/company.service";
 import { companyRepository } from "@/repositories/company.repository";
 import { cacheManager } from "@/lib/cache";
 import { CacheTTL } from "@/lib/cache/types";

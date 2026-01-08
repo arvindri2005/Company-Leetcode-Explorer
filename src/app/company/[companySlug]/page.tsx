@@ -6,11 +6,11 @@
  * retrieves the initial list of associated problems, and renders the main page layout.
  * It also includes `generateStaticParams` to pre-render pages for known companies at build time.
  */
-import { companyService } from "@/services/company.service";
+import { companyService } from "@/features/companies/services/company.service";
 import { problemService } from "@/services/problem.service";
 import type { Metadata } from "next";
-import CompanyNotFound from "@/components/company/page/company-not-found";
-import CompanyPage from "@/components/company/page/company-page";
+import CompanyNotFound from "@/features/companies/components/page/company-not-found";
+import CompanyPage from "@/features/companies/components/page/company-page";
 import { getLogoUrl, capitalizeWords } from "@/lib/utils";
 import { Company, ProblemSummaryDTO, LeetCodeProblem } from "@/types";
 import { env } from "@/env";

@@ -6,7 +6,7 @@ import { groupQuestions } from "@/ai/flows/group-questions";
 jest.mock("@/lib/logger");
 jest.mock("@/ai/flows/group-questions");
 jest.mock("@/services/problem.service");
-jest.mock("@/services/company.service");
+jest.mock("@/features/companies/services/company.service");
 jest.mock("@/services/user.service");
 
 // Helper to check if Logger was called with specific content

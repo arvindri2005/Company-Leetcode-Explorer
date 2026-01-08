@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @fileoverview A client-side component to display redesigned, graphical statistics about a company's problems.
  *
  * This component visualizes pre-calculated statistics for a company's coding

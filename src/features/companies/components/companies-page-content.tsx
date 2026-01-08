@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Company } from "@/types";
-import { DashboardHeader } from "@/components/company/dashboard-header";
-import { TechCompanyCard } from "@/components/company/tech-company-card";
-import { CompanyTable } from "@/components/company/company-table";
+import { Company } from "@/features/companies/types";
+import { DashboardHeader } from "./dashboard-header";
+import { TechCompanyCard } from "./tech-company-card";
+import { CompanyTable } from "./company-table";
 import { CompanyTableSkeleton } from "@/components/skeletons/companies-skeletons";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -17,7 +17,7 @@ import {
 import { HelpCircle } from "lucide-react";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { fetchCompaniesAction } from "@/app/actions/company.actions";
-import Footer from "@/components/landing/footer";
+
 
 const ITEMS_PER_PAGE = 30;
 
@@ -264,7 +264,7 @@ export function CompaniesPageContent({
         )}
       </div>
       
-      <Footer />
+
     </main>
   );
 }

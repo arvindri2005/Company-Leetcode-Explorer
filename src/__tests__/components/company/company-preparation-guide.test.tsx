@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import CompanyPreparationGuide from '@/components/company/company-preparation-guide';
+import CompanyPreparationGuide from '@/features/companies/components/company-preparation-guide';
 
 // Mock Accordion to avoid Radix UI complexity in tests
 jest.mock('@/components/ui/accordion', () => ({

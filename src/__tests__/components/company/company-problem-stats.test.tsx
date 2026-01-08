@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import CompanyProblemStats from '@/components/company/company-problem-stats';
+import CompanyProblemStats from '@/features/companies/components/company-problem-stats';
 import { Company } from '@/types';
 import { createMockCompany } from '@/__tests__/factories/data-factories';
 

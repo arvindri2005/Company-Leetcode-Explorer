@@ -7,7 +7,7 @@
  * validation and calls a data-layer function to retrieve the companies.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { companyService } from "@/services/company.service";
+import { companyService } from "@/features/companies/services/company.service";
 import { Logger } from "@/lib/logger";
 import { randomUUID } from "crypto";
 

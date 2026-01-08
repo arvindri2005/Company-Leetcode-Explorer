@@ -1,5 +1,5 @@
-import { CompaniesPageContent } from "@/components/company/companies-page-content";
-import { companyService } from "@/services/company.service";
+import { CompaniesPageContent } from "@/features/companies/components/companies-page-content";
+import { companyService } from "@/features/companies/services/company.service";
 import StructuredData from "@/components/seo/structured-data";
 import { env } from "@/env";
 

@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import ProblemLoadError from '@/components/company/page/problem-load-error';
+import ProblemLoadError from '@/features/companies/components/page/problem-load-error';
 import { reloadPage } from '@/lib/utils';
 
 // Mock utils

@@ -12,9 +12,9 @@ import type {
   StatusFilter,
 } from "@/types";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import ProblemCard from "./problem-card";
+import ProblemCard from "@/features/problems/components/problem-card/problem-card";
 import ErrorBoundary from "@/components/ui/error-boundary";
-import ProblemCardErrorFallback from "./problem-card-error-fallback";
+import ProblemCardErrorFallback from "@/features/problems/components/problem-card/problem-card-error-fallback";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import dynamic from "next/dynamic";
@@ -26,7 +26,7 @@ import { loadMoreProblemsAction } from "@/app/actions/problem.actions";
 import { Loader2 } from "lucide-react";
 import { parseArrayValid } from "@/lib/utils";
 
-const ProblemListControls = dynamic(() => import("./problem-list-controls"), {
+const ProblemListControls = dynamic(() => import("@/features/problems/components/problem-list-controls/problem-list-controls"), {
   loading: () => (
     <div className="mb-6 p-4 space-y-4 bg-card rounded-lg shadow">
       <Skeleton className="h-10 w-full rounded-md" />

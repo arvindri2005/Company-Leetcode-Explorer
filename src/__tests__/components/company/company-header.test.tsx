@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import CompanyHeader from '@/components/company/company-header';
+import CompanyHeader from '@/features/companies/components/company-header';
 import { createMockCompany } from '@/__tests__/factories/data-factories';
 
 // Mock next/image

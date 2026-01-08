@@ -14,7 +14,7 @@ import type {
   ProblemSummaryDTO,
 } from "@/types";
 import { problemService } from "@/services/problem.service";
-import { companyService } from "@/services/company.service";
+import { companyService } from "@/features/companies/services/company.service";
 import { revalidateTag, revalidatePath } from "next/cache";
 import { slugify } from "@/lib/utils";
 import { handleServerActionError } from "@/lib/error-handler";

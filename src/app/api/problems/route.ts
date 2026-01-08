@@ -111,7 +111,7 @@ export async function GET(request: Request) {
 
       if (!companySlugToUse || totalProblemCountToUse === undefined || !difficultyCountsToUse) {
          // Fetch company to get optimization data (counts, slug)
-         const { companyService } = await import("@/services/company.service");
+         const { companyService } = await import("@/features/companies/services/company.service");
          const company = await companyService.getCompanyById(companyId);
          companySlugToUse = company?.slug;
          totalProblemCountToUse = company?.problemCount;

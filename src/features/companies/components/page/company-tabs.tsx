@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @fileoverview A redesigned client-side component that organizes company details into interactive tabs.
  *
  * This component features a modern, minimalist design with horizontal tabs,
@@ -40,7 +40,7 @@ const CompanyStrategyGenerator = dynamic(
 );
 
 const CompanyProblemStats = dynamic(
-  () => import("@/components/company/company-problem-stats"),
+  () => import("../company-problem-stats"),
   {
     loading: () => <CompanyStatsSkeleton />,
   },

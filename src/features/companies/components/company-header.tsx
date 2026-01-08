@@ -5,7 +5,7 @@
  * featuring its logo, name, website, and a brief description. It's designed
  * with a modern aesthetic to create a strong visual anchor for the page.
  */
-import type { Company } from "@/types";
+import type { Company } from "@/features/companies/types";
 import { Building2, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { getLogoUrl } from "@/lib/utils";

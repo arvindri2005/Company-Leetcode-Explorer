@@ -33,7 +33,7 @@ import type { AIProblemInput, LeetCodeProblem } from "@/types";
 import { aiService } from "@/services/ai.service";
 import { revalidateTag } from "next/cache";
 import { auth } from "@/lib/firebase"; // For current user ID
-import { companyService } from "@/services/company.service"; // needed for revalidate lookup
+import { companyService } from "@/features/companies/services/company.service"; // needed for revalidate lookup
 import { Logger } from "@/lib/logger";
 
 // SENTINEL: Maximum number of problems allowed for AI grouping to prevent DoS/Cost spikes.

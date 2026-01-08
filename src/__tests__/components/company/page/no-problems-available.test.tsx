@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import NoProblemsAvailable from '@/components/company/page/no-problems-available';
+import NoProblemsAvailable from '@/features/companies/components/page/no-problems-available';
 
 describe('NoProblemsAvailable', () => {
   const mockProps = {

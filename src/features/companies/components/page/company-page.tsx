@@ -7,7 +7,7 @@
  */
 import {
   companyService
-} from "@/services/company.service";
+} from "@/features/companies/services/company.service";
 
 import type {
   Company,
@@ -19,12 +19,12 @@ import type {
   SortKey,
 } from "@/types";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
-import CompanyHeader from "@/components/company/company-header";
-import CompanyTabs from "@/components/company/page/company-tabs";
-import ProblemLoadError from "@/components/company/page/problem-load-error";
-import NoProblemsAvailable from "@/components/company/page/no-problems-available";
-import RelatedCompanies from "@/components/company/related-companies";
-import CompanyPreparationGuide from "@/components/company/company-preparation-guide";
+import CompanyHeader from "../company-header";
+import CompanyTabs from "./company-tabs";
+import ProblemLoadError from "./problem-load-error";
+import NoProblemsAvailable from "./no-problems-available";
+import RelatedCompanies from "../related-companies";
+import CompanyPreparationGuide from "../company-preparation-guide";
 
 
 const INITIAL_ITEMS_PER_PAGE = 40;

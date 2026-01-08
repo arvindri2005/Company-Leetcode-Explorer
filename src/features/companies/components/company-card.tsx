@@ -7,7 +7,7 @@
  */
 import React from "react";
 import Link from "next/link";
-import type { Company } from "@/types";
+import type { Company } from "@/features/companies/types";
 import { getLogoUrl } from "@/lib/utils";
 import { OfflineImage } from "@/components/ui/offline-image";
 

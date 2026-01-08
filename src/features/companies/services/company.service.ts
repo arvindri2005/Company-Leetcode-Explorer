@@ -1,5 +1,5 @@
 import { companyRepository, GetCompaniesParams, PaginatedCompaniesResponse } from "@/repositories/company.repository";
-import { Company } from "@/types";
+import { Company } from "@/features/companies/types";
 import { Logger } from "@/lib/logger";
 import { cacheManager, CacheTTL } from "@/lib/cache";
 

@@ -1,4 +1,4 @@
-import { companyService } from "@/services/company.service";
+import { companyService } from "@/features/companies/services/company.service";
 import { env } from "@/env";
 
 const APP_URL = env.NEXT_PUBLIC_APP_URL;

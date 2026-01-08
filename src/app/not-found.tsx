@@ -15,7 +15,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useDebounce } from "use-debounce";
 import { fetchCompanySuggestionsAction } from "@/app/actions/company.actions";
-import CompnaySearchBar from "@/components/company/company-search-bar";
+import CompanySearchBar from "@/features/companies/components/company-search-bar";
 import type { Company } from "@/types";
 
 interface Suggestion extends Pick<Company, "id" | "name" | "slug" | "logo"> {}
@@ -101,7 +101,7 @@ export default function NotFound() {
         The page you&apos;re looking for doesn&apos;t exist or has been moved.
       </p>
 
-      <CompnaySearchBar
+      <CompanySearchBar
         searchTermInput={searchTermInput}
         setSearchTermInput={setSearchTermInput}
         isLoadingSuggestions={isLoadingSuggestions}
