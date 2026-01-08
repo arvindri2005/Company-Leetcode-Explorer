@@ -83,8 +83,9 @@ const ProblemList: React.FC<ProblemListProps> = ({
   const [areGlobalStatsLoaded, setAreGlobalStatsLoaded] = useState(false);
 
   // -- Helper to derive current filters from URL --
-  // Optimization: Use searchParams directly instead of redundant cloning
-  const getCurrentFilters = useCallback((): ProblemListFilters => {
+  // Optimization: Memoize currentFilters to prevent ProblemListControls re-renders
+  // on local state updates (like infinite scroll or bookmark toggling).
+  const currentFilters = useMemo((): ProblemListFilters => {
     return {
       difficultyFilter: parseArrayValid(searchParams.getAll("difficultyFilter"), [
         "Easy",
@@ -106,8 +107,6 @@ const ProblemList: React.FC<ProblemListProps> = ({
       sortKey: (searchParams.get("sortKey") || "title") as SortKey,
     };
   }, [searchParams]);
-
-  const currentFilters = getCurrentFilters();
 
   // -- Filter Handling (URL Sync) --
   const handleFilterChange = useCallback(
@@ -166,87 +165,74 @@ const ProblemList: React.FC<ProblemListProps> = ({
   // -- Client-Side Fetch on Params Change --
   useEffect(() => {
     const fetchFilteredProblems = async () => {
-      // Optimization: Use searchParams directly to avoid redundant URLSearchParams instantiation
-      const difficultyFilter = parseArrayValid(
-        searchParams.getAll("difficultyFilter"),
-        ["Easy", "Medium", "Hard"],
-      ) as any[];
+      const { difficultyFilter, lastAskedFilter, statusFilter, searchTerm, sortKey } = currentFilters;
 
-        const lastAskedFilter = parseArrayValid(searchParams.getAll("lastAskedFilter"), [
-            "last_30_days",
-            "within_3_months",
-            "within_6_months",
-            "older_than_6_months",
-        ]) as any[];
+      // Check if current filters are "default" (matching initial props)
+      const isDefault =
+        difficultyFilter.length === 0 &&
+        lastAskedFilter.length === 0 &&
+        statusFilter.length === 0 &&
+        searchTerm === "" &&
+        sortKey === "title";
 
-         const statusFilter = parseArrayValid(searchParams.getAll("statusFilter"), [
-            "solved",
-            "attempted",
-            "todo",
-         ]) as any[];
+      if (isDefault) {
+        // If default, we can use the initial props (which are static/SSR'd default)
+        setDisplayedProblems(initialProblems);
+        setHasMore(initialHasMore);
+        setNextCursor(initialNextCursor);
+        return;
+      }
 
-        const searchTerm = searchParams.get("searchTerm") || "";
-        const sortKey = (searchParams.get("sortKey") || "title") as SortKey;
+      setIsLoadingMore(true);
 
-        // Check if current filters are "default" (matching initial props)
-        const isDefault = 
-            difficultyFilter.length === 0 &&
-            lastAskedFilter.length === 0 &&
-            statusFilter.length === 0 &&
-            searchTerm === "" &&
-            sortKey === "title";
+      try {
+        // Using loadMoreProblemsAction with null cursor to start fresh
+        const result = await loadMoreProblemsAction(
+          companyId,
+          null,
+          {
+            difficultyFilter,
+            lastAskedFilter,
+            statusFilter,
+            searchTerm,
+            sortKey,
+          },
+          itemsPerPage
+        );
 
-        if (isDefault) {
-             // If default, we can use the initial props (which are static/SSR'd default)
-            setDisplayedProblems(initialProblems);
-             setHasMore(initialHasMore);
-             setNextCursor(initialNextCursor);
-            return;
+        if ("error" in result) {
+          toast({
+            title: "Error",
+            description: "Failed to load filtered problems.",
+            variant: "destructive",
+          });
+        } else {
+          setDisplayedProblems(result.problems);
+          setNextCursor(result.nextCursor);
+          setHasMore(result.hasMore ?? false);
         }
-
-        setIsLoadingMore(true);
-        
-        try {
-            // Using loadMoreProblemsAction with null cursor to start fresh
-            const result = await loadMoreProblemsAction(
-                companyId,
-                null,
-                {
-                  difficultyFilter,
-                  lastAskedFilter,
-                  statusFilter,
-                  searchTerm,
-                  sortKey
-                },
-                itemsPerPage
-            );
-
-            if ("error" in result) {
-                 toast({
-                     title: "Error",
-                     description: "Failed to load filtered problems.",
-                     variant: "destructive",
-                 });
-            } else {
-                 setDisplayedProblems(result.problems);
-                 setNextCursor(result.nextCursor);
-                 setHasMore(result.hasMore ?? false);
-            }
-
-        } catch (error) {
-            console.error("Failed to fetch filtered problems", error);
-            toast({
-                title: "Error",
-                description: "Failed to load filtered problems.",
-                variant: "destructive",
-            });
-        } finally {
-            setIsLoadingMore(false);
-        }
+      } catch (error) {
+        console.error("Failed to fetch filtered problems", error);
+        toast({
+          title: "Error",
+          description: "Failed to load filtered problems.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingMore(false);
+      }
     };
 
     fetchFilteredProblems();
-  }, [searchParams, initialProblems, initialHasMore, initialNextCursor, companyId, itemsPerPage, toast, initialFilters]);
+  }, [
+    currentFilters,
+    initialProblems,
+    initialHasMore,
+    initialNextCursor,
+    companyId,
+    itemsPerPage,
+    toast,
+  ]);
 
   // -- Optimized User Data Hydration (Aggregate Pattern) --
 
