@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @fileoverview A client-side form for submitting a new coding problem.
  *
  * This component provides a comprehensive form for users to contribute new coding
@@ -148,7 +148,7 @@ export default function ProblemSubmissionForm({
         ? `"${result.data.title}" already existed and its 'last asked' time has been updated.`
         : `"${result.data.title}" has been added successfully.`;
       toast({
-        title: result.updated ? "Problem Updated! ✅" : "Problem Submitted! 🎉",
+        title: result.updated ? "Problem Updated! ?" : "Problem Submitted! ??",
         description: message,
       });
       form.reset();
@@ -346,3 +346,9 @@ export default function ProblemSubmissionForm({
     </Form>
   );
 }
+
+
+
+
+
+

@@ -198,3 +198,9 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({
 };
 
 export default CompanyProblemStats;
+
+
+
+
+
+

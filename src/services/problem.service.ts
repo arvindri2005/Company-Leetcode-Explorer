@@ -8,7 +8,7 @@ import {
   LeetCodeProblem,
   Company,
 } from "@/types";
-import { cacheManager, CacheTTL } from "@/lib/cache";
+import { cacheManager, CacheTTL } from "@/lib/utils/cache";
 
 export class ProblemService {
   async getPublicProblems(
@@ -218,3 +218,9 @@ export class ProblemService {
 }
 
 export const problemService = new ProblemService();
+
+
+
+
+
+

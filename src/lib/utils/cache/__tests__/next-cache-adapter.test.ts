@@ -50,3 +50,9 @@ describe("NextCacheAdapter", () => {
     expect(revalidateTag).toHaveBeenCalledWith("tag");
   });
 });
+
+
+
+
+
+

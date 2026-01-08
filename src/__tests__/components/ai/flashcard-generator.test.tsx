@@ -71,3 +71,9 @@ describe('FlashcardGenerator', () => {
     expect(screen.getByText(/AI-Powered Study Flashcards/i)).toBeInTheDocument();
   });
 });
+
+
+
+
+
+

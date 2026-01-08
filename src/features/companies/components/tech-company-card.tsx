@@ -45,3 +45,9 @@ export function TechCompanyCard({ company, priority = false }: TechCompanyCardPr
     </div>
   );
 }
+
+
+
+
+
+

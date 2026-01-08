@@ -102,3 +102,9 @@ export default function CompanyHeader({ company }: CompanyHeaderProps) {
         </section>
     );
 }
+
+
+
+
+
+

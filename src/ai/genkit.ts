@@ -22,3 +22,9 @@ export const ai = genkit({
   plugins: [googleAI()],
   model: AI_MODELS.STANDARD,
 });
+
+
+
+
+
+

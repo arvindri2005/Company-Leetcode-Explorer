@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { applyActionCode } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth } from "@/lib/api/firebase";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import Link from "next/link";
@@ -84,3 +84,9 @@ export default function VerifyEmail({ oobCode }: VerifyEmailProps) {
     </div>
   );
 }
+
+
+
+
+
+

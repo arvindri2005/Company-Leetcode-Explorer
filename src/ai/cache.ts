@@ -1,4 +1,4 @@
-import { SimpleLRUCache } from "@/lib/lru-cache";
+import { SimpleLRUCache } from "@/lib/utils/lru-cache";
 
 // Export the class from here as well for backward compatibility if needed, 
 // though direct import from lib is preferred.
@@ -8,3 +8,9 @@ export { SimpleLRUCache };
 export const problemInsightsCache = new SimpleLRUCache<any>(50, 24 * 3600000); // 24 hours
 export const companyStrategyCache = new SimpleLRUCache<any>(20, 24 * 3600000); // 24 hours
 export const flashcardsCache = new SimpleLRUCache<any>(50, 7 * 24 * 3600000); // 7 days
+
+
+
+
+
+

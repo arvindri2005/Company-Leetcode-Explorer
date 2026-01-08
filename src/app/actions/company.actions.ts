@@ -13,7 +13,7 @@ import type { Company } from "@/types";
 import { companyService } from "@/features/companies/services/company.service";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { slugify } from "@/lib/utils";
-import { handleServerActionError } from "@/lib/error-handler";
+import { handleServerActionError } from "@/lib/utils/error-handler";
 
 /**
  * Adds a new company to the database after validating and cleaning the input data.
@@ -192,3 +192,9 @@ export async function fetchCompanySuggestionsAction(
     return { error: errorMessage };
   }
 }
+
+
+
+
+
+

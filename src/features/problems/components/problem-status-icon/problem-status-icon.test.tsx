@@ -1,4 +1,4 @@
-﻿import { render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { ProblemStatusIcon } from "./problem-status-icon";
 
 // Mock ResizeObserver for Radix UI Tooltip
@@ -32,3 +32,9 @@ describe("ProblemStatusIcon", () => {
     expect(container).toBeEmptyDOMElement();
   });
 });
+
+
+
+
+
+

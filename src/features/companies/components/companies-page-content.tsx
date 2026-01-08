@@ -268,3 +268,9 @@ export function CompaniesPageContent({
     </main>
   );
 }
+
+
+
+
+
+

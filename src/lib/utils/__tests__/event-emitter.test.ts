@@ -1,7 +1,7 @@
-import { TypedEventEmitter } from "@/lib/event-emitter";
-import { Logger } from "@/lib/logger";
+import { TypedEventEmitter } from "@/lib/utils/event-emitter";
+import { Logger } from "@/lib/utils/logger";
 
-jest.mock("@/lib/logger");
+jest.mock("@/lib/utils/logger");
 
 describe("TypedEventEmitter", () => {
   type TestEventMap = {
@@ -57,3 +57,9 @@ describe("TypedEventEmitter", () => {
     expect(Logger.error).toHaveBeenCalled();
   });
 });
+
+
+
+
+
+

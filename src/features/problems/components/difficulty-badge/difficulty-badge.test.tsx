@@ -1,4 +1,4 @@
-﻿import { render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 
 import DifficultyBadge from "./difficulty-badge";
 
@@ -30,3 +30,9 @@ describe("DifficultyBadge", () => {
     expect(badge).toHaveClass("custom-class");
   });
 });
+
+
+
+
+
+

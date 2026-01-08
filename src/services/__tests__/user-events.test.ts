@@ -4,7 +4,7 @@ import { userRepository } from "@/repositories/user.repository";
 
 // Mock dependencies
 jest.mock("@/repositories/user.repository");
-jest.mock("@/lib/logger");
+jest.mock("@/lib/utils/logger");
 
 describe("UserService Event System", () => {
   beforeEach(() => {
@@ -131,3 +131,9 @@ describe("UserService Event System", () => {
     expect(successListener).toHaveBeenCalled();
   });
 });
+
+
+
+
+
+

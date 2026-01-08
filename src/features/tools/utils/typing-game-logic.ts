@@ -80,3 +80,9 @@ export function countCurrentMistakes(userInput: string, code: string): number {
     }
     return count;
 }
+
+
+
+
+
+

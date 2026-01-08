@@ -9,7 +9,7 @@ jest.mock('next/navigation', () => ({
   usePathname: jest.fn(),
   useRouter: jest.fn(),
 }));
-jest.mock('@/lib/navigation-registry', () => ({
+jest.mock('@/lib/config/navigation', () => ({
   navigationRegistry: {
     getItems: jest.fn(() => []),
   },
@@ -32,3 +32,9 @@ describe('Header Accessibility', () => {
     expect(menuButton).toBeInTheDocument();
   });
 });
+
+
+
+
+
+

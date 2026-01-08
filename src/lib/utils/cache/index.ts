@@ -6,7 +6,7 @@ import { CacheAdapter } from "./types";
  * Currently uses the Next.js Cache Adapter.
  * 
  * Usage:
- * import { cacheManager, CacheTTL } from "@/lib/cache";
+ * import { cacheManager, CacheTTL } from "@/lib/utils/cache";
  * 
  * const data = await cacheManager.wrap(
  *   "my-unique-key",
@@ -17,3 +17,9 @@ import { CacheAdapter } from "./types";
 export const cacheManager: CacheAdapter = new NextCacheAdapter();
 
 export * from "./types";
+
+
+
+
+
+

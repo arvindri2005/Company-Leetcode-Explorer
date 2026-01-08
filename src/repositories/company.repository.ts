@@ -1,5 +1,5 @@
 import { Company, CompanySchema } from "@/types";
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/api/firebase";
 import {
   collection,
   getDocs,
@@ -20,7 +20,7 @@ import {
   QueryConstraint,
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
-import { Logger } from "@/lib/logger";
+import { Logger } from "@/lib/utils/logger";
 
 // Make sure db is initialized
 function getFirestore(): Firestore {
@@ -485,3 +485,9 @@ export class CompanyRepository {
 }
 
 export const companyRepository = new CompanyRepository();
+
+
+
+
+
+

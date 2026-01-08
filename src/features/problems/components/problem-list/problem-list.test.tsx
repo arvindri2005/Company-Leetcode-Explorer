@@ -1,4 +1,4 @@
-﻿import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import ProblemList from "./problem-list";
 import { LeetCodeProblem } from "../../types";
 import { userService } from "@/services/user.service";
@@ -150,3 +150,9 @@ describe("ProblemList", () => {
       expect(userService.getUserGlobalProblemStats).toHaveBeenCalled();
   });
 });
+
+
+
+
+
+

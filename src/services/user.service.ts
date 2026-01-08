@@ -9,7 +9,7 @@ import {
   GenerateCompanyStrategyOutput,
 } from "@/types";
 import { appEvents, AppEventKey, AppEventHandler } from "@/services/event-bus";
-import { SimpleLRUCache } from "@/lib/lru-cache";
+import { SimpleLRUCache } from "@/lib/utils/lru-cache";
 
 interface CachedGlobalStats {
   solvedProblemIds: string[];
@@ -259,3 +259,9 @@ export class UserService {
 }
 
 export const userService = new UserService();
+
+
+
+
+
+

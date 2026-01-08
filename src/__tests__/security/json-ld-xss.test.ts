@@ -41,3 +41,9 @@ describe('JSON-LD XSS Vulnerability', () => {
     expect(safeString).toContain('\\u003c/script\\u003e');
   });
 });
+
+
+
+
+
+

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import Header from './header';
-import { navigationRegistry } from '@/lib/navigation-registry';
+import { navigationRegistry } from '@/lib/config/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { usePathname } from 'next/navigation';
 
@@ -33,7 +33,7 @@ jest.mock('@/components/ui/sheet', () => ({
 // Mock Header to bypass chaos injection but keep registry logic
 jest.mock('./header', () => {
     const React = require('react');
-    const { navigationRegistry } = require('@/lib/navigation-registry');
+    const { navigationRegistry } = require('@/lib/config/navigation');
     const { useAuth } = require('@/contexts/auth-context');
     
     
@@ -137,3 +137,9 @@ describe('Header Extensibility', () => {
     });
   });
 });
+
+
+
+
+
+

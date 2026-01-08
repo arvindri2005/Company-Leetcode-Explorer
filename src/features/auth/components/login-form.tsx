@@ -27,12 +27,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Loader2, LogInIcon } from "lucide-react";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth } from "@/lib/api/firebase";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import GoogleAuthButton from "./google-auth-button";
 import { useOnlineStatus } from "@/hooks/use-online-status";
-import { Logger } from "@/lib/logger";
+import { Logger } from "@/lib/utils/logger";
 
 /**
  * Zod schema for validating the login form fields.
@@ -243,3 +243,9 @@ export default function LoginForm() {
     </Form>
   );
 }
+
+
+
+
+
+

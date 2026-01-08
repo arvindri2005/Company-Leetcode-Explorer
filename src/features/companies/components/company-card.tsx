@@ -81,3 +81,9 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company, priority = false }) 
 };
 
 export default React.memo(CompanyCard);
+
+
+
+
+
+

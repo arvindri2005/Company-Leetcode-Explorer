@@ -9,7 +9,7 @@ import {
   LastAskedPeriod,
   Company,
 } from "@/types";
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/api/firebase";
 import {
   collection,
   getDocs,
@@ -27,7 +27,7 @@ import {
   QueryConstraint,
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
-import { Logger } from "@/lib/logger";
+import { Logger } from "@/lib/utils/logger";
 import { companyRepository } from "./company.repository";
 import { userRepository } from "./user.repository";
 import { problemFilterRegistry } from "@/features/problems/utils/problem-filters/registry";
@@ -1037,3 +1037,9 @@ export class ProblemRepository {
 }
 
 export const problemRepository = new ProblemRepository();
+
+
+
+
+
+

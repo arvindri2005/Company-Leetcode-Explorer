@@ -28,3 +28,9 @@ describe('RelatedCompanies', () => {
     expect(microsoftLink).toHaveAttribute('href', '/company/microsoft');
   });
 });
+
+
+
+
+
+

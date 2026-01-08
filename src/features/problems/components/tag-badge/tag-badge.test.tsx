@@ -1,4 +1,4 @@
-﻿import { render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import TagBadge from "./tag-badge";
 
 describe("TagBadge", () => {
@@ -14,3 +14,9 @@ describe("TagBadge", () => {
     expect(badge).toHaveClass("custom-class");
   });
 });
+
+
+
+
+
+

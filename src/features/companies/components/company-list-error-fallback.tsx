@@ -36,3 +36,9 @@ export default function CompanyListErrorFallback() {
     </Card>
   );
 }
+
+
+
+
+
+

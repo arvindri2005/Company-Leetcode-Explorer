@@ -78,3 +78,9 @@ function CompanyRow({ company }: { company: Company }) {
     </tr>
   );
 }
+
+
+
+
+
+

@@ -22,3 +22,9 @@ describe("Badge", () => {
     expect(badge).toHaveClass("text-foreground");
   });
 });
+
+
+
+
+
+

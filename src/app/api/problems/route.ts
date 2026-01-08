@@ -8,7 +8,7 @@
  */
 import { NextResponse } from "next/server";
 import { problemService } from "@/services/problem.service";
-import { Logger } from "@/lib/logger";
+import { Logger } from "@/lib/utils/logger";
 import { z } from "zod";
 import type {
   DifficultyFilter,
@@ -164,3 +164,9 @@ export async function GET(request: Request) {
     );
   }
 }
+
+
+
+
+
+

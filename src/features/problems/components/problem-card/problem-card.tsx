@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @fileoverview A redesigned, modern component for displaying a single coding problem.
  *
  * This component presents problem details in a clean, table-row-like format,
@@ -296,3 +296,9 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
 };
 
 export default React.memo(ProblemCard);
+
+
+
+
+
+

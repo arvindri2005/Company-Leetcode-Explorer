@@ -1,4 +1,4 @@
-﻿import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import ProblemSubmissionForm from "./problem-submission-form";
 
 // Mock server actions
@@ -37,3 +37,9 @@ describe("ProblemSubmissionForm", () => {
     expect(screen.getByText(/Cannot submit problem: No companies found/)).toBeInTheDocument();
   });
 });
+
+
+
+
+
+

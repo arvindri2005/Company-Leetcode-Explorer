@@ -42,3 +42,9 @@ interface SpeechRecognitionEvent extends Event {
 interface SpeechRecognitionErrorEvent extends Event {
   readonly error: string;
 }
+
+
+
+
+
+

@@ -541,3 +541,9 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
 };
 
 export default CompanyStrategyGenerator;
+
+
+
+
+
+

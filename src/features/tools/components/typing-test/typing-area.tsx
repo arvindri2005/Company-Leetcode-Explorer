@@ -197,3 +197,9 @@ export default function TypingArea({
       </div>
   );
 }
+
+
+
+
+
+

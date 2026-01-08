@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @fileoverview A component for displaying the difficulty of a coding problem.
  *
  * This component renders a colored badge (e.g., green for Easy, yellow for Medium,
@@ -57,3 +57,9 @@ const DifficultyBadgeComponent: React.FC<DifficultyBadgeProps> = ({
  */
 const DifficultyBadge = React.memo(DifficultyBadgeComponent);
 export default DifficultyBadge;
+
+
+
+
+
+

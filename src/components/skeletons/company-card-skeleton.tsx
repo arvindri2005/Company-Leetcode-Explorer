@@ -33,3 +33,9 @@ const CompanyCardSkeleton = () => {
 };
 
 export default CompanyCardSkeleton;
+
+
+
+
+
+

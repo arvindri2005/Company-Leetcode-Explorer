@@ -17,7 +17,7 @@ import { problemService } from "@/services/problem.service";
 import { companyService } from "@/features/companies/services/company.service";
 import { revalidateTag, revalidatePath } from "next/cache";
 import { slugify } from "@/lib/utils";
-import { handleServerActionError } from "@/lib/error-handler";
+import { handleServerActionError } from "@/lib/utils/error-handler";
 import type { ProblemListFilters } from "@/types";
 
 /**
@@ -272,3 +272,9 @@ export async function fetchProblemsAction(
     throw new Error("Failed to fetch problems");
   }
 }
+
+
+
+
+
+

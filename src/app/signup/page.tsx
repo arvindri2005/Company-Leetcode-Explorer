@@ -41,3 +41,9 @@ export default function SignupPage() {
     </AuthLayout>
   );
 }
+
+
+
+
+
+

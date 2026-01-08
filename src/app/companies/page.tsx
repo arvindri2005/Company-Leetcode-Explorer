@@ -75,3 +75,9 @@ export default function CompaniesPage() {
     </ErrorBoundary>
   );
 }
+
+
+
+
+
+

@@ -65,3 +65,9 @@ export const STATS: Stat[] = [
   { number: "95%", label: "Success Rate" },
   { number: "500+", label: "Companies Covered" },
 ];
+
+
+
+
+
+

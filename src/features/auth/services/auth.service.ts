@@ -4,9 +4,9 @@ import {
   GoogleAuthProvider,
   User as FirebaseUser 
 } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth } from "@/lib/api/firebase";
 import { userService } from "@/services/user.service";
-import { Logger } from "@/lib/logger";
+import { Logger } from "@/lib/utils/logger";
 import type { AuthServiceResponse } from "../types";
 
 /**
@@ -112,3 +112,9 @@ export class AuthService {
 }
 
 export const authService = new AuthService();
+
+
+
+
+
+

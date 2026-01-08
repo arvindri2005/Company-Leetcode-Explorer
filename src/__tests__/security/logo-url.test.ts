@@ -58,3 +58,9 @@ describe('getLogoUrl Security Check', () => {
     expect(result).toBe('/images/logo.png');
  });
 });
+
+
+
+
+
+

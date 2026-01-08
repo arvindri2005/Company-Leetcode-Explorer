@@ -239,3 +239,9 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
 };
 
 export default EducationExperienceSection;
+
+
+
+
+
+

@@ -145,3 +145,9 @@ export default function CompanyTabs({
     </Tabs>
   );
 }
+
+
+
+
+
+

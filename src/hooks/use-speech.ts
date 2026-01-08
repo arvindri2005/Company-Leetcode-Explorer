@@ -164,3 +164,9 @@ export function useSpeech(onTranscriptUpdate: (transcript: string) => void) {
     speakText,
   };
 }
+
+
+
+
+
+

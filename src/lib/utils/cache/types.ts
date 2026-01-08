@@ -59,3 +59,9 @@ export interface CacheAdapter {
    */
   revalidateTag(tag: string): void;
 }
+
+
+
+
+
+

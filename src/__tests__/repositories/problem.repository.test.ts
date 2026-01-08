@@ -22,7 +22,7 @@ jest.mock("firebase/firestore", () => ({
   documentId: jest.fn(),
 }));
 
-jest.mock("@/lib/firebase", () => ({
+jest.mock("@/lib/api/firebase", () => ({
   db: {},
 }));
 
@@ -104,3 +104,9 @@ describe("ProblemRepository.getProblemsByCompany", () => {
     expect(getCountFromServer).not.toHaveBeenCalled();
   });
 });
+
+
+
+
+
+

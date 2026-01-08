@@ -14,3 +14,9 @@ export function StatItem({ number, label }: StatItemProps) {
     </div>
   );
 }
+
+
+
+
+
+

@@ -68,3 +68,9 @@ describe('CompanyHeader', () => {
     expect(img).toHaveAttribute('src', '/icon.png');
   });
 });
+
+
+
+
+
+

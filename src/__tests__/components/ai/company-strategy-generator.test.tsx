@@ -78,3 +78,9 @@ describe('CompanyStrategyGenerator', () => {
     await waitFor(() => expect(userService.getStrategyTodoListForCompany).toHaveBeenCalledWith('123', '1'));
   });
 });
+
+
+
+
+
+

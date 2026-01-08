@@ -22,3 +22,9 @@ function getServerSnapshot() {
 export function useOnlineStatus() {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
+
+
+
+
+
+

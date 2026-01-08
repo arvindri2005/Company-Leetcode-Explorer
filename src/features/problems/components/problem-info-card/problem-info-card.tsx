@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @fileoverview A new card component for displaying problem details in the global problem list.
  *
  * This component displays comprehensive information about a problem, including:
@@ -246,3 +246,9 @@ const ProblemInfoCard: React.FC<ProblemInfoCardProps> = ({
 };
 
 export default ProblemInfoCard;
+
+
+
+
+
+

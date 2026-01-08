@@ -8,7 +8,7 @@ import {
   processTabKey,
   processEnterKey,
   countCurrentMistakes
-} from "@/lib/typing-game-logic";
+} from "@/features/tools/utils/typing-game-logic";
 
 export const useTypingGame = () => {
   // Game State
@@ -245,3 +245,9 @@ export const useTypingGame = () => {
       }, [userInput, currentSnippet])
   };
 };
+
+
+
+
+
+

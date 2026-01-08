@@ -1,5 +1,5 @@
 import { ProblemStatus } from "@/types";
-import { TypedEventEmitter } from "@/lib/event-emitter";
+import { TypedEventEmitter } from "@/lib/utils/event-emitter";
 
 export interface AppEventMap {
   "user:problem_status_changed": {
@@ -32,3 +32,9 @@ export type AppEventHandler<K extends AppEventKey> = (
  * See `guide/advanced-patterns.md` for usage examples.
  */
 export const appEvents = new TypedEventEmitter<AppEventMap>();
+
+
+
+
+
+

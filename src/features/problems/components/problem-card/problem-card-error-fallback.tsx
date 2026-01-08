@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { AlertTriangle } from "lucide-react";
 
 /**
@@ -18,3 +18,9 @@ const ProblemCardErrorFallback = () => {
 };
 
 export default ProblemCardErrorFallback;
+
+
+
+
+
+

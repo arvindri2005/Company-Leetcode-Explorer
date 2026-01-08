@@ -272,3 +272,9 @@ const FlashcardGenerator: React.FC<FlashcardGeneratorProps> = ({
 };
 
 export default FlashcardGenerator;
+
+
+
+
+
+

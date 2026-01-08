@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @fileoverview A simple component for displaying a tag associated with a problem.
  *
  * This component renders a styled badge, typically used to display keywords or
@@ -37,3 +37,9 @@ const TagBadgeComponent: React.FC<TagBadgeProps> = ({ tag, className }) => {
  */
 const TagBadge = React.memo(TagBadgeComponent);
 export default TagBadge;
+
+
+
+
+
+

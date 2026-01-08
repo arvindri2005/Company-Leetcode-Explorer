@@ -15,3 +15,9 @@ describe('CompanyNotFound', () => {
     expect(link).toHaveAttribute('href', '/companies');
   });
 });
+
+
+
+
+
+

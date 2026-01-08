@@ -5,7 +5,7 @@ import {
   processTabKey,
   processEnterKey,
   countCurrentMistakes
-} from "../typing-game-logic";
+} from "../utils/typing-game-logic";
 
 describe("Typing Game Logic", () => {
   describe("calculateWPM", () => {
@@ -129,3 +129,9 @@ describe("Typing Game Logic", () => {
       });
   });
 });
+
+
+
+
+
+

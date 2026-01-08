@@ -32,9 +32,9 @@ import type { GenerateProblemInsightsOutput } from "@/ai/flows/generate-problem-
 import type { AIProblemInput, LeetCodeProblem } from "@/types";
 import { aiService } from "@/services/ai.service";
 import { revalidateTag } from "next/cache";
-import { auth } from "@/lib/firebase"; // For current user ID
+import { auth } from "@/lib/api/firebase"; // For current user ID
 import { companyService } from "@/features/companies/services/company.service"; // needed for revalidate lookup
-import { Logger } from "@/lib/logger";
+import { Logger } from "@/lib/utils/logger";
 
 // SENTINEL: Maximum number of problems allowed for AI grouping to prevent DoS/Cost spikes.
 const MAX_PROBLEMS_FOR_GROUPING = 50;
@@ -250,3 +250,9 @@ export async function generateProblemInsightsAction(
     };
   }
 }
+
+
+
+
+
+

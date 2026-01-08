@@ -45,3 +45,9 @@ export default function CompanyNotFound({ companySlug }: CompanyNotFoundProps) {
     </div>
   );
 }
+
+
+
+
+
+

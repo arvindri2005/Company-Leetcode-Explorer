@@ -2,16 +2,16 @@
 import { toggleBookmarkProblemAction, setProblemStatusAction, getUserProblemStatusesForIdsAction } from "../user.actions";
 import { userService } from "@/services/user.service";
 import { revalidateTag } from "next/cache";
-import { handleServerActionError } from "@/lib/error-handler";
+import { handleServerActionError } from "@/lib/utils/error-handler";
 import { simpleFaker } from "@/__tests__/factories/data-factories";
 
 // Mock dependencies
 jest.mock("@/services/user.service");
 jest.mock("next/cache");
-jest.mock("@/lib/error-handler");
+jest.mock("@/lib/utils/error-handler");
 
 // Mock Firebase to avoid initialization errors
-jest.mock("@/lib/firebase", () => ({
+jest.mock("@/lib/api/firebase", () => ({
   db: {},
   auth: {
     currentUser: {
@@ -177,3 +177,9 @@ describe("User Actions", () => {
     });
   });
 });
+
+
+
+
+
+

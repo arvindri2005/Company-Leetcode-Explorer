@@ -1,9 +1,9 @@
 import { sendContactMessage } from "../contact.actions";
 import { contactService } from "@/services/contact.service";
-import { Logger } from "@/lib/logger";
+import { Logger } from "@/lib/utils/logger";
 
 jest.mock("@/services/contact.service");
-jest.mock("@/lib/logger");
+jest.mock("@/lib/utils/logger");
 
 describe("Contact Actions Error Handling", () => {
   beforeEach(() => {
@@ -51,3 +51,9 @@ describe("Contact Actions Error Handling", () => {
     });
   });
 });
+
+
+
+
+
+

@@ -9,9 +9,9 @@ import React, {
   ReactNode,
 } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth } from "@/lib/api/firebase";
 import { authService } from "../services/auth.service";
-import { Logger } from "@/lib/logger";
+import { Logger } from "@/lib/utils/logger";
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -88,3 +88,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     </AuthContext.Provider>
   );
 };
+
+
+
+
+
+

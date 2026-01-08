@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @fileoverview A responsive dialog/drawer component for displaying AI-generated similar coding problems.
  *
  * This component adapts its presentation based on the viewport size, using a
@@ -255,3 +255,9 @@ const SimilarProblemsDialog: React.FC<SimilarProblemsDialogProps> = ({
 };
 
 export default SimilarProblemsDialog;
+
+
+
+
+
+

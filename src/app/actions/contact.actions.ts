@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { contactService } from "@/services/contact.service";
-import { handleServerActionError } from "@/lib/error-handler";
+import { handleServerActionError } from "@/lib/utils/error-handler";
 
 /**
  * Zod schema for validating the contact form data.
@@ -76,3 +76,9 @@ export async function sendContactMessage(
     };
   }
 }
+
+
+
+
+
+

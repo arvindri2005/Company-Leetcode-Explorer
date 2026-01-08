@@ -170,3 +170,9 @@ export default function TypingResults({
     </div>
   );
 }
+
+
+
+
+
+

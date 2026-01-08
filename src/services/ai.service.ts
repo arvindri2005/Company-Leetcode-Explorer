@@ -30,8 +30,8 @@ import { AIProblemInput, LeetCodeProblem } from "@/types";
 import { companyService } from "@/features/companies/services/company.service";
 import { problemService } from "@/services/problem.service";
 import { userService } from "@/services/user.service";
-import { Logger } from "@/lib/logger";
-import { cacheManager, CacheTTL } from "@/lib/cache";
+import { Logger } from "@/lib/utils/logger";
+import { cacheManager, CacheTTL } from "@/lib/utils/cache";
 import { unstable_cache } from "next/cache";
 import { aiFlowRegistry } from "@/ai/flow-registry";
 
@@ -322,3 +322,9 @@ export class AIService {
 }
 
 export const aiService = new AIService();
+
+
+
+
+
+

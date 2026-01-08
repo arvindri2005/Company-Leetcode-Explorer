@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { auth } from "@/lib/firebase";
+import { auth } from "@/lib/api/firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -10,7 +10,7 @@ import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { GoogleIcon } from "@/components/icons/google-icon";
 import { useOnlineStatus } from "@/hooks/use-online-status";
-import { Logger } from "@/lib/logger";
+import { Logger } from "@/lib/utils/logger";
 
 export default function GoogleAuthButton() {
   const { toast } = useToast();
@@ -88,3 +88,9 @@ export default function GoogleAuthButton() {
     </Button>
   );
 }
+
+
+
+
+
+

@@ -17,3 +17,9 @@ const CompanyCardErrorFallback = () => {
 };
 
 export default CompanyCardErrorFallback;
+
+
+
+
+
+

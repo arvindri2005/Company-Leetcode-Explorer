@@ -113,3 +113,9 @@ describe('UserInfoCard', () => {
     expect(mockProps.setIsEditingDisplayName).toHaveBeenCalledWith(true);
   });
 });
+
+
+
+
+
+

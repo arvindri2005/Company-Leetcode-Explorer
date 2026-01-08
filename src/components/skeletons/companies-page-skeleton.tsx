@@ -53,3 +53,9 @@ export function CompaniesPageSkeleton() {
     </main>
   );
 }
+
+
+
+
+
+

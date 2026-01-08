@@ -92,3 +92,9 @@ if (typeof window === "undefined") {
 const serverData = _serverEnv.success ? _serverEnv.data : ({} as z.infer<typeof serverSchema>);
 
 export const env = { ...clientData, ...serverData };
+
+
+
+
+
+

@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 import type { User as FirebaseUser } from "firebase/auth";
 import type { ProblemStatus } from ".";
 import type { FocusTopic, StrategyTodoItem } from "./ai";
@@ -158,3 +158,9 @@ export interface SavedStrategyTodoList {
   focusTopics: FocusTopic[];
   items: StrategyTodoItem[]; // 'items' is used for the todo list for consistency with previous naming
 }
+
+
+
+
+
+

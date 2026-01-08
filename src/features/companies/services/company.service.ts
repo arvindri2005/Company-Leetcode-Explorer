@@ -1,7 +1,7 @@
 import { companyRepository, GetCompaniesParams, PaginatedCompaniesResponse } from "@/repositories/company.repository";
 import { Company } from "@/features/companies/types";
-import { Logger } from "@/lib/logger";
-import { cacheManager, CacheTTL } from "@/lib/cache";
+import { Logger } from "@/lib/utils/logger";
+import { cacheManager, CacheTTL } from "@/lib/utils/cache";
 
 export class CompanyService {
   async getCompanies(params: GetCompaniesParams = {}): Promise<PaginatedCompaniesResponse> {
@@ -170,3 +170,9 @@ export class CompanyService {
 }
 
 export const companyService = new CompanyService();
+
+
+
+
+
+

@@ -1,4 +1,4 @@
-import { parseArrayValid } from '../utils';
+import { parseArrayValid } from '..';
 
 describe('parseArrayValid', () => {
   const validValues = ['a', 'b', 'c'];
@@ -32,3 +32,9 @@ describe('parseArrayValid', () => {
     expect(result).toEqual(['Easy', 'Medium']);
   });
 });
+
+
+
+
+
+

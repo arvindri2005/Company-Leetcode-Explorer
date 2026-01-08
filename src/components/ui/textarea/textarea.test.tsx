@@ -32,3 +32,9 @@ describe("Textarea", () => {
     expect(ref.current).toHaveAttribute("placeholder", "Ref test");
   });
 });
+
+
+
+
+
+

@@ -1,9 +1,9 @@
 import { addCompany, fetchCompaniesAction, fetchCompanySuggestionsAction } from "../company.actions";
 import { companyService } from "@/features/companies/services/company.service";
-import { Logger } from "@/lib/logger";
+import { Logger } from "@/lib/utils/logger";
 
 jest.mock("@/features/companies/services/company.service");
-jest.mock("@/lib/logger");
+jest.mock("@/lib/utils/logger");
 jest.mock("next/cache", () => ({
   revalidateTag: jest.fn(),
   revalidatePath: jest.fn(),
@@ -54,3 +54,9 @@ describe("Company Actions Error Handling", () => {
     });
   });
 });
+
+
+
+
+
+

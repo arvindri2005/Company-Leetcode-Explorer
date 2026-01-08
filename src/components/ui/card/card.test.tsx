@@ -36,3 +36,9 @@ describe("Card", () => {
     expect(ref.current).toBeInstanceOf(HTMLDivElement);
   });
 });
+
+
+
+
+
+

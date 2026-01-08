@@ -65,3 +65,9 @@ describe('generateProblemInsightsFlow', () => {
     expect(calledInput.problemDescription.length).toBeLessThanOrEqual(2050); // Allowing some buffer if we add "..."
   });
 });
+
+
+
+
+
+

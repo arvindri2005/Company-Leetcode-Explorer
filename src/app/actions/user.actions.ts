@@ -28,10 +28,10 @@ import { userService } from "@/services/user.service";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { ProblemStatusSchema } from "@/types";
-import { Logger } from "@/lib/logger";
-import { auth } from "@/lib/firebase";
+import { Logger } from "@/lib/utils/logger";
+import { auth } from "@/lib/api/firebase";
 
-import { handleServerActionError } from "@/lib/error-handler";
+import { handleServerActionError } from "@/lib/utils/error-handler";
 
 const ActionInputSchema = z.object({
   userId: z.string().min(1, "User ID is required"),
@@ -278,3 +278,9 @@ export async function getUserProblemStatusesForIdsAction(
     return { error: message };
   }
 }
+
+
+
+
+
+

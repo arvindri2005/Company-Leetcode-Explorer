@@ -230,3 +230,9 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
 };
 
 export default CompanySearchBar;
+
+
+
+
+
+

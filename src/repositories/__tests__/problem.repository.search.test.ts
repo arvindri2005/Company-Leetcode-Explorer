@@ -11,7 +11,7 @@ import {
 } from "firebase/firestore";
 
 // Mock Firebase dependencies
-jest.mock("@/lib/firebase", () => ({
+jest.mock("@/lib/api/firebase", () => ({
   db: {}, // Mock db object
 }));
 
@@ -19,7 +19,7 @@ jest.mock("@/lib/utils", () => ({
   slugify: (str: string) => str.toLowerCase().replace(/\s+/g, "-"),
 }));
 
-jest.mock("@/lib/logger", () => ({
+jest.mock("@/lib/utils/logger", () => ({
   Logger: {
     info: jest.fn(),
     warn: jest.fn(),
@@ -124,3 +124,9 @@ describe("ProblemRepository Search Optimization", () => {
     });
   });
 });
+
+
+
+
+
+

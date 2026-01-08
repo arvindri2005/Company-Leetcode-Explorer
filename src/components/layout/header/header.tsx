@@ -11,7 +11,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Menu } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
-import { auth } from "@/lib/firebase";
+import { auth } from "@/lib/api/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, usePathname } from "next/navigation";
 import {
@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import React, { useState, useCallback, useMemo } from "react";
-import { navigationRegistry, NavigationItem } from "@/lib/navigation-registry";
+import { navigationRegistry, NavigationItem } from "@/lib/config/navigation";
 
 /**
  * Renders the main application header and navigation bar.
@@ -192,3 +192,9 @@ const Header = React.memo(function Header() {
 });
 
 export default Header;
+
+
+
+
+
+

@@ -1,4 +1,4 @@
-﻿import { problemService } from "@/services/problem.service";
+import { problemService } from "@/services/problem.service";
 import { AllProblemsList } from "@/features/problems";
 import StructuredData from "@/components/seo/structured-data";
 import { env } from "@/env";
@@ -67,3 +67,9 @@ export default async function ProblemListContainer() {
     </>
   );
 }
+
+
+
+
+
+

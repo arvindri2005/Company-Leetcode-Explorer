@@ -1,4 +1,4 @@
-﻿import { render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import ProblemInfoCard from "./problem-info-card";
 import { LeetCodeProblem } from "../../types";
 
@@ -51,3 +51,9 @@ describe("ProblemInfoCard", () => {
     expect(screen.getByText("last 30 days")).toBeInTheDocument();
   });
 });
+
+
+
+
+
+

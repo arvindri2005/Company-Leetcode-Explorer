@@ -1,7 +1,7 @@
 import { ContactRepository, contactMessageSchema } from "../repositories/contact.repository";
 
 // Mock Firebase
-jest.mock("@/lib/firebase", () => ({
+jest.mock("@/lib/api/firebase", () => ({
   db: {},
 }));
 
@@ -73,3 +73,9 @@ describe("ContactRepository", () => {
     await expect(repository.createContactMessage(invalidData)).rejects.toThrow("Invalid contact message data");
   });
 });
+
+
+
+
+
+

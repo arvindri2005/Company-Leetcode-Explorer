@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import type { Company } from "@/types";
-import { Logger } from "@/lib/logger";
+import { Logger } from "@/lib/utils/logger";
 
 interface CompaniesResponse {
   companies: Company[];
@@ -93,3 +93,9 @@ export const useCursorPagination = () => {
 
   return { fetchCompaniesWithCursor };
 };
+
+
+
+
+
+

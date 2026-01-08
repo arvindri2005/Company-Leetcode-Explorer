@@ -1,8 +1,8 @@
 import { handleServerActionError } from "../error-handler";
-import { Logger } from "@/lib/logger";
+import { Logger } from "@/lib/utils/logger";
 
 // Mock the Logger
-jest.mock("@/lib/logger", () => ({
+jest.mock("@/lib/utils/logger", () => ({
   Logger: {
     error: jest.fn(),
   },
@@ -62,3 +62,9 @@ describe("handleServerActionError", () => {
     );
   });
 });
+
+
+
+
+
+

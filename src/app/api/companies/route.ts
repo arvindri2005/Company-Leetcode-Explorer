@@ -8,7 +8,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { companyService } from "@/features/companies/services/company.service";
-import { Logger } from "@/lib/logger";
+import { Logger } from "@/lib/utils/logger";
 import { randomUUID } from "crypto";
 
 /**
@@ -159,3 +159,9 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+
+
+
+
+

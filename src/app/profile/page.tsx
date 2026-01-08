@@ -41,7 +41,7 @@ import {
   signOut,
   updateProfile as updateFirebaseAuthProfile,
 } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth } from "@/lib/api/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { userService } from "@/services/user.service";
 
@@ -768,3 +768,9 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+
+
+
+
+

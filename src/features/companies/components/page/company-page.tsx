@@ -152,3 +152,9 @@ export default async function CompanyPage({ company, initialPaginatedProblems }:
     </div>
   );
 }
+
+
+
+
+
+

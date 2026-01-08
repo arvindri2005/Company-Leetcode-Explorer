@@ -1,4 +1,4 @@
-import { Logger } from "@/lib/logger";
+import { Logger } from "@/lib/utils/logger";
 
 /**
  * Represents a generic AI flow function.
@@ -59,3 +59,9 @@ class AIFlowRegistry {
 }
 
 export const aiFlowRegistry = new AIFlowRegistry();
+
+
+
+
+
+

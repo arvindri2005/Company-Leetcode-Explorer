@@ -1,4 +1,4 @@
-﻿import { render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { AITooltipContent } from "./ai-tooltip-content";
 import { User } from "firebase/auth";
 
@@ -26,3 +26,9 @@ describe("AITooltipContent", () => {
     expect(screen.getByText("Login to use AI features")).toBeInTheDocument();
   });
 });
+
+
+
+
+
+

@@ -12,3 +12,9 @@ export function FloatingShapes() {
     </div>
   );
 }
+
+
+
+
+
+

@@ -1,7 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore, enableMultiTabIndexedDbPersistence, initializeFirestore, CACHE_SIZE_UNLIMITED } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import { Logger } from "./logger";
+import { Logger } from "@/lib/utils/logger";
 import { env } from "@/env";
 
 const firebaseConfig = {
@@ -32,3 +32,9 @@ if (typeof window !== 'undefined') {
 }
 
 export { app, auth, db };
+
+
+
+
+
+

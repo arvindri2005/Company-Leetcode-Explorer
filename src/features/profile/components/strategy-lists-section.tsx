@@ -196,3 +196,9 @@ const StrategyListsSection: React.FC<StrategyListsSectionProps> = ({
 };
 
 export default StrategyListsSection;
+
+
+
+
+
+

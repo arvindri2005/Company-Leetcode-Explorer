@@ -22,3 +22,9 @@ export default function TypingTestPage() {
     </div>
   );
 }
+
+
+
+
+
+

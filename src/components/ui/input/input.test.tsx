@@ -37,3 +37,9 @@ describe("Input", () => {
     expect(ref.current).toHaveAttribute("placeholder", "Ref test");
   });
 });
+
+
+
+
+
+

@@ -12,12 +12,12 @@ jest.mock("firebase/firestore", () => ({
   orderBy: jest.fn(),
 }));
 
-jest.mock("@/lib/firebase", () => ({
+jest.mock("@/lib/api/firebase", () => ({
   db: {},
   auth: {},
 }));
 
-jest.mock("@/lib/logger", () => ({
+jest.mock("@/lib/utils/logger", () => ({
   Logger: {
     error: jest.fn(),
   },
@@ -120,3 +120,9 @@ describe("UserRepository", () => {
     });
   });
 });
+
+
+
+
+
+

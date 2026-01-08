@@ -24,3 +24,9 @@ export const useNavbarScroll = () => {
 
   return navbarBg;
 };
+
+
+
+
+
+

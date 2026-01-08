@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { Loader2, LockKeyhole, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { confirmPasswordReset, verifyPasswordResetCode } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth } from "@/lib/api/firebase";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -260,3 +260,9 @@ export default function ResetPasswordForm({ oobCode }: ResetPasswordFormProps) {
     </div>
   );
 }
+
+
+
+
+
+

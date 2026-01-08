@@ -65,3 +65,9 @@ export const CompanySchema = z.object({
   relatedCompanies: z.array(z.string()).optional(),
   statsLastUpdatedAt: z.date().optional(),
 });
+
+
+
+
+
+

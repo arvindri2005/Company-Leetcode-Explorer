@@ -45,3 +45,9 @@ export default function CompaniesLoading() {
     </main>
   );
 }
+
+
+
+
+
+

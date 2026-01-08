@@ -1,9 +1,9 @@
 import { aiService } from "../ai.service";
-import { Logger } from "@/lib/logger";
+import { Logger } from "@/lib/utils/logger";
 import { groupQuestions } from "@/ai/flows/group-questions";
 
 // Mock dependencies
-jest.mock("@/lib/logger");
+jest.mock("@/lib/utils/logger");
 jest.mock("@/ai/flows/group-questions");
 jest.mock("@/services/problem.service");
 jest.mock("@/features/companies/services/company.service");
@@ -99,3 +99,9 @@ describe("AIService Observability", () => {
     });
   });
 });
+
+
+
+
+
+

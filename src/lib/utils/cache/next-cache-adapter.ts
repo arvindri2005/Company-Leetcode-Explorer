@@ -1,6 +1,6 @@
 import { unstable_cache, revalidateTag as nextRevalidateTag } from "next/cache";
 import { CacheAdapter, CacheOptions, CacheTTL } from "./types";
-import { Logger } from "@/lib/logger";
+import { Logger } from "@/lib/utils/logger";
 
 /**
  * Implementation of CacheAdapter using Next.js 'unstable_cache'.
@@ -52,3 +52,9 @@ export class NextCacheAdapter implements CacheAdapter {
     }
   }
 }
+
+
+
+
+
+

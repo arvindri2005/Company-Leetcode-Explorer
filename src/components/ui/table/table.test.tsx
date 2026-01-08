@@ -30,3 +30,9 @@ describe("Table", () => {
     expect(screen.getByText("Cell")).toBeInTheDocument();
   });
 });
+
+
+
+
+
+

@@ -41,3 +41,8 @@ describe("Avatar", () => {
     expect(img).toHaveAttribute("src", "https://github.com/shadcn.png");
   });
 });
+
+
+
+
+

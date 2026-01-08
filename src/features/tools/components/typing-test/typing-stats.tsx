@@ -45,3 +45,9 @@ export default function TypingStats({ wpm, accuracy, mistakes }: { wpm: number; 
     </div>
   );
 }
+
+
+
+
+
+

@@ -1,4 +1,4 @@
-﻿import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { createMockProblem } from '@/__tests__/factories/data-factories';
 
 // Mock the feature module with all needed components
@@ -99,3 +99,8 @@ describe('ProblemCard', () => {
     expect(screen.getByText('Two Sum')).toBeInTheDocument();
   });
 });
+
+
+
+
+

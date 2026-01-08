@@ -1,4 +1,4 @@
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/api/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { z } from "zod";
 
@@ -35,3 +35,9 @@ export class ContactRepository {
 }
 
 export const contactRepository = new ContactRepository();
+
+
+
+
+
+

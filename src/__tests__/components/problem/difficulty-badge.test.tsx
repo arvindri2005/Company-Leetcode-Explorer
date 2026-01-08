@@ -1,4 +1,4 @@
-﻿import { render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { DifficultyBadge } from '@/features/problems';
 
 describe('DifficultyBadge', () => {
@@ -17,3 +17,9 @@ describe('DifficultyBadge', () => {
     expect(screen.getByText('Hard')).toBeInTheDocument();
   });
 });
+
+
+
+
+
+

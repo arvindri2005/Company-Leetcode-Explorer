@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { problemService } from "@/services/problem.service";
-import { Logger } from "@/lib/logger";
+import { Logger } from "@/lib/utils/logger";
 
 export async function GET(
   request: NextRequest,

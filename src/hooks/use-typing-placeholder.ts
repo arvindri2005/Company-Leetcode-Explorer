@@ -38,3 +38,9 @@ export function useTypingPlaceholder(companies: string[]) {
 
   return placeholder;
 }
+
+
+
+
+
+

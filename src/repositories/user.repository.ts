@@ -12,7 +12,7 @@ import {
   EducationExperienceSchema,
   WorkExperienceSchema,
 } from "@/types";
-import { db, auth } from "@/lib/firebase";
+import { db, auth } from "@/lib/api/firebase";
 import {
   collection,
   getDocs,
@@ -33,7 +33,7 @@ import {
   Query,
   CollectionReference,
 } from "firebase/firestore";
-import { Logger } from "@/lib/logger";
+import { Logger } from "@/lib/utils/logger";
 
 /**
  * Repository for User-related data access.
@@ -699,3 +699,9 @@ export class UserRepository {
 }
 
 export const userRepository = new UserRepository();
+
+
+
+
+
+

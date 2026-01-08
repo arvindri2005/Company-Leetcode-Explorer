@@ -52,3 +52,9 @@ export const JOB_APPLICATION_STATUS_OPTIONS: ReadonlyArray<{
   { value: "Offer", label: "Offer" },
   { value: "Rejected", label: "Rejected" },
 ] as const;
+
+
+
+
+
+

@@ -23,3 +23,9 @@ describe("Company AI Skeletons", () => {
     expect(container.querySelector(".grid")).toBeInTheDocument();
   });
 });
+
+
+
+
+
+

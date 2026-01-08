@@ -76,3 +76,9 @@ export function CompanyTableSkeleton() {
     </div>
   );
 }
+
+
+
+
+
+

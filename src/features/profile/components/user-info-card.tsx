@@ -245,3 +245,9 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
 };
 
 export default UserInfoCard;
+
+
+
+
+
+

@@ -1,4 +1,4 @@
-﻿import { render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { TagBadge } from '@/features/problems';
 
 describe('TagBadge', () => {
@@ -12,3 +12,9 @@ describe('TagBadge', () => {
     expect(container.firstChild).toHaveClass('custom-class');
   });
 });
+
+
+
+
+
+

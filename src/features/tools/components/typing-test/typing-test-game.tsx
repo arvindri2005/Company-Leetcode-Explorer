@@ -92,3 +92,9 @@ export default function TypingTestGame() {
     </div>
   );
 }
+
+
+
+
+
+

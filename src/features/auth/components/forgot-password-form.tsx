@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Loader2, MailIcon, ArrowLeft } from "lucide-react";
 import { sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth } from "@/lib/api/firebase";
 import Link from "next/link";
 
 const forgotPasswordSchema = z.object({
@@ -155,3 +155,9 @@ export default function ForgotPasswordForm() {
     </Form>
   );
 }
+
+
+
+
+
+

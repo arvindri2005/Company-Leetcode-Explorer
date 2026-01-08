@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import { useAICooldown } from "@/hooks/use-ai-cooldown";
@@ -22,3 +22,9 @@ const AITooltipContentComponent: React.FC<{
 };
 
 export const AITooltipContent = React.memo(AITooltipContentComponent);
+
+
+
+
+
+

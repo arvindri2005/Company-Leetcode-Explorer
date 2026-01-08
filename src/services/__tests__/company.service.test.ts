@@ -1,11 +1,11 @@
 import { companyService } from "@/features/companies/services/company.service";
 import { companyRepository } from "@/repositories/company.repository";
-import { cacheManager } from "@/lib/cache";
-import { CacheTTL } from "@/lib/cache/types";
+import { cacheManager } from "@/lib/utils/cache";
+import { CacheTTL } from "@/lib/utils/cache/types";
 
 // Mock dependencies
 jest.mock("@/repositories/company.repository");
-jest.mock("@/lib/cache", () => ({
+jest.mock("@/lib/utils/cache", () => ({
   cacheManager: {
     wrap: jest.fn(),
     revalidateTag: jest.fn(),
@@ -62,3 +62,9 @@ describe("CompanyService (with Cache)", () => {
     expect(cacheManager.revalidateTag).toHaveBeenCalledWith("company-slug-slug-v2");
   });
 });
+
+
+
+
+
+

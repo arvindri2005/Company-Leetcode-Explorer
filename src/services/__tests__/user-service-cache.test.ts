@@ -3,7 +3,7 @@ import { userRepository } from "@/repositories/user.repository";
 
 // Mock repository
 jest.mock("@/repositories/user.repository");
-jest.mock("@/lib/logger");
+jest.mock("@/lib/utils/logger");
 
 describe("UserService Caching", () => {
   beforeEach(() => {
@@ -179,3 +179,9 @@ describe("UserService Caching", () => {
     expect(userService.globalStatsCache.has("user4")).toBe(true);
   });
 });
+
+
+
+
+
+

@@ -3,7 +3,7 @@ import { useCursorPagination } from "../use-cursor-pagination";
 import { createMockCompany } from "@/__tests__/factories/data-factories";
 
 // Mock Logger to prevent console noise during tests
-jest.mock("@/lib/logger", () => ({
+jest.mock("@/lib/utils/logger", () => ({
   Logger: {
     error: jest.fn(),
   },
@@ -109,3 +109,9 @@ describe("useCursorPagination", () => {
     expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 });
+
+
+
+
+
+

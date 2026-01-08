@@ -1,4 +1,4 @@
-﻿import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import ProblemListControls from "./problem-list-controls";
 
 describe("ProblemListControls", () => {
@@ -42,3 +42,9 @@ describe("ProblemListControls", () => {
     expect(handleDifficultyChange).toHaveBeenCalledWith(["Easy"]);
   });
 });
+
+
+
+
+
+

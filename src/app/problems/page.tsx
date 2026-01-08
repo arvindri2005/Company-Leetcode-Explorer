@@ -1,4 +1,4 @@
-﻿import { Suspense } from "react";
+import { Suspense } from "react";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { Metadata } from "next";
 import { env } from "@/env";
@@ -81,3 +81,9 @@ export default function AllProblemsPage() {
     </div>
   );
 }
+
+
+
+
+
+

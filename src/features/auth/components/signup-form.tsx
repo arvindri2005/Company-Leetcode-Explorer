@@ -27,7 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Loader2, UserPlusIcon } from "lucide-react";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth } from "@/lib/api/firebase";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import GoogleAuthButton from "./google-auth-button";
@@ -307,3 +307,9 @@ export default function SignupForm() {
     </Form>
   );
 }
+
+
+
+
+
+

@@ -2,7 +2,7 @@
 import { problemService } from "@/services/problem.service";
 import { problemRepository } from "@/repositories/problem.repository";
 import { LeetCodeProblem } from "@/types";
-import { cacheManager } from "@/lib/cache";
+import { cacheManager } from "@/lib/utils/cache";
 
 jest.mock("@/repositories/problem.repository", () => ({
   problemRepository: {
@@ -11,7 +11,7 @@ jest.mock("@/repositories/problem.repository", () => ({
 }));
 
 // Mock the cache manager
-jest.mock("@/lib/cache", () => ({
+jest.mock("@/lib/utils/cache", () => ({
   cacheManager: {
     wrap: jest.fn((key, fn) => fn()),
   },
@@ -68,3 +68,9 @@ describe("ProblemService", () => {
     });
   });
 });
+
+
+
+
+
+
