@@ -11,7 +11,7 @@ import type { FocusTopic, StrategyTodoItem } from "./ai";
 export const UserProfileSchema = z.object({
   uid: z.string(),
   email: z.string().email().nullable(),
-  displayName: z.string().nullable(),
+  displayName: z.string().trim().min(2, "Display name must be at least 2 characters.").nullable(),
   createdAt: z.date(),
   lastSyncedAt: z.date().optional(),
 });
@@ -69,7 +69,7 @@ export const EducationExperienceSchema = z.object({
   school: z.string().min(2, "School name is required."),
   graduationYear: z
     .string()
-    .regex(/^\d{4}$/, "Invalid year format (YYYY).")
+    .regex(/^(19|20)\d{2}$/, "Year must be between 1900 and 2099.")
     .optional()
     .or(z.literal("")),
   gpa: z.string()
