@@ -10,6 +10,14 @@ import {
   countCurrentMistakes
 } from "@/lib/typing-game-logic";
 
+/**
+ * @function useTypingGame
+ * @description The core engine for the Typing Test mini-game.
+ * It manages the game loop, tracking user input, calculating real-time statistics (WPM, Accuracy),
+ * handling timer logic, and processing keyboard events (Tab, Enter) for code editing.
+ *
+ * @returns {Object} All game state (wpm, accuracy, input, etc.) and control functions (reset, nextSnippet).
+ */
 export const useTypingGame = () => {
   // Game State
   const [selectedLanguage, setSelectedLanguageState] = useState<Language>("javascript");

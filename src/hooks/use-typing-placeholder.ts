@@ -1,5 +1,14 @@
 import { useState, useEffect } from "react";
 
+/**
+ * @function useTypingPlaceholder
+ * @description Creates an animated "typewriter" effect for input placeholders.
+ * It cycles through a list of strings (e.g., company names), typing them out character by character,
+ * waiting, and then deleting them to type the next one.
+ *
+ * @param {string[]} companies - The list of strings to cycle through.
+ * @returns {string} The current animated placeholder text.
+ */
 export function useTypingPlaceholder(companies: string[]) {
   const [placeholder, setPlaceholder] = useState("");
   const [isTyping, setIsTyping] = useState(true);

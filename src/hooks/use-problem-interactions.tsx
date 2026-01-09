@@ -9,6 +9,21 @@ import { PROBLEM_STATUS_OPTIONS } from "@/constants/problem-constants";
 import { useRouter, usePathname } from "next/navigation";
 import { ToastAction } from "@/components/ui/toast";
 
+/**
+ * @function useProblemInteractions
+ * @description Manages user interactions for a specific problem, including bookmarking and status updates.
+ * It implements optimistic UI updates (updating state immediately) and handles rollback on error.
+ * It also acts as an Auth Guard, prompting the user to login if they attempt these actions while anonymous.
+ *
+ * @param {LeetCodeProblem} problem - The problem object.
+ * @param {string} companySlug - The company context.
+ * @param {boolean} initialIsBookmarked - Initial bookmark state from the server.
+ * @param {ProblemStatus} problemStatus - Initial problem status (e.g., "solved", "todo") from the server.
+ * @param {Function} [onBookmarkChanged] - Optional callback when bookmark state changes.
+ * @param {Function} [onProblemStatusChange] - Optional callback when status changes.
+ *
+ * @returns {Object} State and handlers for bookmarks and status.
+ */
 export function useProblemInteractions(
   problem: LeetCodeProblem,
   companySlug: string,

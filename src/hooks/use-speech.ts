@@ -10,6 +10,15 @@ const SpeechRecognition =
 const speechSynthesis =
   typeof window !== "undefined" ? window.speechSynthesis : null;
 
+/**
+ * @function useSpeech
+ * @description A custom hook that wraps the Web Speech API to provide Speech-to-Text (STT)
+ * and Text-to-Speech (TTS) capabilities.
+ *
+ * @param {Function} onTranscriptUpdate - Callback function that receives the live transcript string.
+ *
+ * @returns {Object} An object containing recording state, permission status, and functions to control recording and speech.
+ */
 export function useSpeech(onTranscriptUpdate: (transcript: string) => void) {
   const { toast } = useToast();
   const [isRecording, setIsRecording] = useState(false);

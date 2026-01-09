@@ -14,6 +14,17 @@ import type {
   LeetCodeProblem,
 } from "@/types";
 
+/**
+ * @function useAIFeatures
+ * @description Manages the state and execution logic for AI-powered features on the problem details page.
+ * It coordinates "Find Similar Problems" and "Generate Insights" actions, handling loading states,
+ * cooldown checks, and dialog visibility.
+ *
+ * @param {LeetCodeProblem} problem - The current problem being viewed.
+ * @param {string} companySlug - The slug of the company context (for logging/filtering).
+ *
+ * @returns {Object} An object containing handlers and state for AI features.
+ */
 export function useAIFeatures(problem: LeetCodeProblem, companySlug: string) {
   const { toast } = useToast();
   const { user } = useAuth();
