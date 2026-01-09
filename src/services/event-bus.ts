@@ -18,6 +18,12 @@ export interface AppEventMap {
     problemSlug: string;
     timestamp: Date;
   };
+  "contact:message_received": {
+    name: string;
+    email: string;
+    message: string;
+    timestamp: Date;
+  };
 }
 
 export type AppEventKey = keyof AppEventMap;
