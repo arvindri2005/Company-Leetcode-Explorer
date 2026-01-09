@@ -10,7 +10,7 @@ export default function TypingStats({ wpm, accuracy, mistakes }: { wpm: number; 
   }, [wpm]);
 
   return (
-    <div className="flex gap-3 sm:gap-6 bg-background/40 backdrop-blur-md px-6 py-3 rounded-full border border-white/10 shadow-lg">
+    <div className="flex gap-3 sm:gap-6 bg-background/40 backdrop-blur-md px-6 py-3 rounded-full border border-border shadow-lg">
       <div className="flex items-center gap-2">
         <Zap className="w-4 h-4 text-amber-500" />
         <div className="flex flex-col leading-none">

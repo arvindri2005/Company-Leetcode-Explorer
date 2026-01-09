@@ -124,7 +124,7 @@ export default function TypingArea({
               </div>
            )}
 
-           <CardHeader className="bg-muted/5 border-b border-white/5 pb-4 select-none backdrop-blur-sm">
+           <CardHeader className="bg-muted/5 border-b border-border/50 pb-4 select-none backdrop-blur-sm">
                <div className="flex justify-between items-start">
                    <div className="space-y-1">
                       <div className="flex items-center gap-3">
@@ -183,9 +183,9 @@ export default function TypingArea({
                />
            </CardContent>
            
-           <CardFooter className="border-t border-white/5 bg-muted/5 py-3 px-6 text-xs text-muted-foreground flex justify-between items-center select-none backdrop-blur-sm">
+           <CardFooter className="border-t border-border/50 bg-muted/5 py-3 px-6 text-xs text-muted-foreground flex justify-between items-center select-none backdrop-blur-sm">
               <div className="flex gap-4">
-                  <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 border border-white/10 rounded bg-background/50 shadow-sm text-xxs font-mono">TAB</kbd> for indent</span>
+                  <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 border border-border rounded bg-background/50 shadow-sm text-xxs font-mono">TAB</kbd> for indent</span>
               </div>
               <div className="flex items-center gap-2 font-mono opacity-60">
                 <span>{userInput.length}</span>

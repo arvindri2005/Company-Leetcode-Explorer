@@ -48,7 +48,7 @@ export default function TypingResults({
 
   return (
     <div className="absolute inset-0 z-50 bg-background/60 backdrop-blur-xl flex items-center justify-center animate-in fade-in zoom-in-95 duration-500 p-4">
-        <div className="bg-card w-full max-w-4xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden relative">
+        <div className="bg-card w-full max-w-4xl border border-border shadow-2xl rounded-3xl overflow-hidden relative">
             {/* Glossy gradient overlay */}
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-80" />
             <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/10 blur-[80px] rounded-full pointer-events-none" />
@@ -68,14 +68,14 @@ export default function TypingResults({
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-muted/30 p-5 rounded-2xl border border-white/5 hover:border-primary/20 transition-all group">
+                        <div className="bg-muted/30 p-5 rounded-2xl border border-border/50 hover:border-primary/20 transition-all group">
                             <div className="flex items-center gap-2 text-muted-foreground mb-2">
                                 <Zap className="w-4 h-4 group-hover:text-amber-500 transition-colors" />
                                 <span className="text-xxs font-bold uppercase tracking-wider">WPM</span>
                             </div>
                             <div className="text-4xl font-black text-foreground tracking-tighter group-hover:scale-105 origin-left transition-transform">{wpm}</div>
                         </div>
-                        <div className="bg-muted/30 p-5 rounded-2xl border border-white/5 hover:border-primary/20 transition-all group">
+                        <div className="bg-muted/30 p-5 rounded-2xl border border-border/50 hover:border-primary/20 transition-all group">
                             <div className="flex items-center gap-2 text-muted-foreground mb-2">
                                 <Target className="w-4 h-4 group-hover:text-blue-500 transition-colors" />
                                 <span className="text-xxs font-bold uppercase tracking-wider">Accuracy</span>
@@ -84,14 +84,14 @@ export default function TypingResults({
                                 {accuracy}%
                             </div>
                         </div>
-                        <div className="bg-muted/30 p-4 rounded-xl border border-white/5">
+                        <div className="bg-muted/30 p-4 rounded-xl border border-border/50">
                             <div className="flex items-center gap-2 text-muted-foreground mb-1">
                                 <Clock className="w-3.5 h-3.5" />
                                 <span className="text-xxs font-bold uppercase tracking-wider">Time</span>
                             </div>
                             <div className="text-xl font-bold text-foreground">{totalTime}s</div>
                         </div>
-                         <div className="bg-muted/30 p-4 rounded-xl border border-white/5">
+                         <div className="bg-muted/30 p-4 rounded-xl border border-border/50">
                             <div className="flex items-center gap-2 text-muted-foreground mb-1">
                                 <AlertCircle className="w-3.5 h-3.5" />
                                 <span className="text-xxs font-bold uppercase tracking-wider">Mistakes</span>
@@ -103,7 +103,7 @@ export default function TypingResults({
 
                 {/* Right Side: Graph & Actions */}
                 <div className="lg:col-span-7 flex flex-col justify-between gap-8">
-                     <div className="bg-muted/10 rounded-2xl border border-white/5 p-6 flex flex-col h-[280px]">
+                     <div className="bg-muted/10 rounded-2xl border border-border/50 p-6 flex flex-col h-[280px]">
                         <div className="flex items-center justify-between mb-6">
                             <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
                                 <BarChart2 className="w-3.5 h-3.5" /> Speed Trend
