@@ -81,21 +81,30 @@ export class SimpleLRUCache<T> {
    * Sorts object keys to ensure consistent hashing.
    */
   generateKey(input: any): string {
-    const sortedStringify = (obj: any): string => {
-        if (typeof obj !== 'object' || obj === null) {
-            return JSON.stringify(obj);
-        }
-        if (Array.isArray(obj)) {
-            return JSON.stringify(obj.map(item => JSON.parse(sortedStringify(item))));
-        }
-        const sortedKeys = Object.keys(obj).sort();
-        const result: any = {};
-        sortedKeys.forEach(key => {
-            result[key] = JSON.parse(sortedStringify(obj[key]));
-        });
-        return JSON.stringify(result);
+    const sortKeys = (obj: any): any => {
+      // Handle primitives (string, number, boolean, null, undefined)
+      if (typeof obj !== 'object' || obj === null) {
+        return obj;
+      }
+
+      // Handle Arrays: recursively sort items
+      if (Array.isArray(obj)) {
+        return obj.map(sortKeys);
+      }
+
+      // Handle Objects: sort keys and recursively sort values
+      const sortedKeys = Object.keys(obj).sort();
+      const result: any = {};
+      sortedKeys.forEach(key => {
+        const val = obj[key];
+        // Only assign if not undefined (mimic JSON.stringify behavior for object props)
+        // Actually, if we assign undefined to a key, JSON.stringify(result) later will just omit it.
+        // So it is safe to assign.
+        result[key] = sortKeys(val);
+      });
+      return result;
     };
 
-    return createHash("sha256").update(sortedStringify(input)).digest("hex");
+    return createHash("sha256").update(JSON.stringify(sortKeys(input))).digest("hex");
   }
 }

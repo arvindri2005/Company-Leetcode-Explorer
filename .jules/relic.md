@@ -1,19 +1,10 @@
-# Relic's Journal
+### 🏺 Relic: Modernization Log
 
-## [2026-01-05] Modernization: Replaced local `useDebounce` with `use-debounce` package
+#### CRITICAL DISCOVERIES
+- **Trapped Dependency**: `SimpleLRUCache` depends on `crypto` (Node.js), making it strictly server-side. Attempts to use it in client components will break the build unless polyfilled.
+- **Legacy Pattern**: Found `JSON.parse(JSON.stringify(...))` recursion in `SimpleLRUCache.generateKey`. This was inefficient (O(N*Depth)) and crashed on `undefined` values.
+- **Fix**: Replaced with O(N) `sortKeys` recursion + single `JSON.stringify`.
 
-**What:** Replaced the custom local implementation of `useDebounce` and `useDebouncedCallback` (in `src/hooks/use-debounce.ts`) with the standard `use-debounce` package, which was already installed but unused.
-
-**Why:**
-- **Standardization:** Using a well-maintained community library instead of a custom implementation.
-- **Code Deletion:** Removed ~70 lines of redundant code and its associated test file.
-- **Consistency:** Ensures consistent debouncing behavior across the application.
-
-**Learnings:**
-- **API Differences:** The `use-debounce` library's `useDebounce` hook returns a tuple `[value, control]`, whereas our local implementation returned the value directly. This required updating all call sites to destructure the return value: `const [debouncedValue] = useDebounce(value, delay)`.
-- **Ghost Pattern:** The project had a "Ghost Pattern" where a library was installed (`use-debounce`) but a local "polyfill" was used instead. Always check installed dependencies before writing custom helpers.
-
-**Cleanup:**
-- Deleted `src/hooks/use-debounce.ts`
-- Deleted `src/hooks/__tests__/use-debounce.test.ts`
-- Updated 4 components to use the library.
+#### LESSONS
+- **JSON Stability**: `JSON.stringify` on objects with sorted keys is a reliable way to generate stable cache keys in JS, but requires manual handling of `undefined` if you're building the object manually.
+- **Behavior Preservation**: `JSON.stringify` omits `undefined` values. The legacy implementation crashed. Modernizing fixed the crash.
