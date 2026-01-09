@@ -31,9 +31,8 @@ jobs:
         run: pnpm lint
 
       - name: Typecheck
-        # Continuing on error because of existing technical debt (test types, missing definitions)
+        # Enforcing type safety now that technical debt is addressed
         run: pnpm typecheck
-        continue-on-error: true
 
       - name: Run Tests
         # We only run unit tests here.
