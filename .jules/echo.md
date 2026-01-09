@@ -1,11 +1,15 @@
-# Echo's Journal
+# Echo's Journal 🔊
 
-## Critical Discoveries
+## Discovery: Hidden Content in Pagination
+**Date:** [Current Date]
+**Component:** `src/components/ui/pagination.tsx`
+**Issue:** The `PaginationEllipsis` component applies `aria-hidden` to its root container.
+**Impact:** This hides the inner `<span className="sr-only">More pages</span>` from screen readers, causing them to skip the ellipsis entirely. Users relying on screen readers may not realize there are skipped pages in the pagination sequence.
+**Fix:** Remove `aria-hidden` from the container and apply `aria-hidden="true"` only to the decorative icon.
 
-### Unique UI Patterns
--   **Decorative Icons in Action Cards:** The `ActionFeatureCard` component used decorative icons without `aria-hidden="true"`. This caused screen readers to potentially announce them redundantly or as "image", creating noise for users. We fixed this by adding `aria-hidden="true"` to the icon wrapper.
--   **Semantic Headings in Cards:** The `CardTitle` component was defaulting to a `div`, stripping semantic meaning from card titles. This forced screen reader users to navigate without the benefit of heading hierarchy. We upgraded `CardTitle` to default to `h3`, improving navigation structure across the application.
-
-### Lessons Learned
--   **Base UI Components are High Leverage:** Fixing `CardTitle` in the base UI library (`src/components/ui/card.tsx`) instantly improved semantics for all cards in the application. Always check the base primitives first.
--   **Playwright for Attribute Verification:** Even without a full running app, Playwright can be used with synthesized HTML to verify that specific DOM attributes (like `aria-hidden`) are correctly rendered by React components.
+## Discovery: Unhidden Decorative Icons
+**Date:** [Current Date]
+**Components:** `Sheet`, `Toast`, `Accordion`, `Checkbox`, `Pagination`
+**Issue:** Many UI components use SVG icons (like `X`, `ChevronDown`) alongside text or as standalone buttons with `sr-only` labels, but fail to explicitly hide the SVG from assistive technology using `aria-hidden="true"`.
+**Impact:** While often ignored, these icons can sometimes cause "noisy" announcements (e.g., "image", "graphic") or redundant focus targets depending on the screen reader / browser combination.
+**Fix:** Systematically add `aria-hidden="true"` to all purely decorative icons in `src/components/ui`.
