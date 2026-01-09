@@ -105,23 +105,28 @@ const parseDateValue = (dateStr: string, isEndDate: boolean): number => {
 };
 
 /**
+ * @description Shared Zod schema for validating date strings in YYYY or MM/YYYY format.
+ * Enforces month to be 01-12.
+ */
+export const DateStringSchema = z
+  .string()
+  .regex(
+    /^(\d{4}|(0[1-9]|1[0-2])\/\d{4})$/,
+    "Date must be in YYYY or MM/YYYY format."
+  );
+
+/**
  * @description Zod schema for validating work experience data.
  */
 export const WorkExperienceSchema = z.object({
   id: z.string().optional(), // Firestore document ID
   jobTitle: z.string().min(2, "Job title is required."),
   companyName: z.string().min(2, "Company name is required."),
-  startDate: z
-    .string()
-    .min(4, "Start date is required.")
-    .regex(
-      /^(\d{4}|(0[1-9]|1[0-2])\/\d{4})$/,
-      "Start date must be in YYYY or MM/YYYY format."
-    ),
+  startDate: DateStringSchema.min(4, "Start date is required."),
   endDate: z.union([
     z.literal(""),
     z.literal("Present"),
-    z.string().regex(/^(\d{4}|(0[1-9]|1[0-2])\/\d{4})$/, "End date must be 'Present', YYYY, or MM/YYYY.")
+    DateStringSchema
   ]).optional(),
   responsibilities: z
     .string()

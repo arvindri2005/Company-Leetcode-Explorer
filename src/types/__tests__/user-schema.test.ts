@@ -25,7 +25,7 @@ describe("WorkExperienceSchema", () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       const messages = result.error.issues.map(e => e.message);
-      expect(messages).toContain("Start date must be in YYYY or MM/YYYY format.");
+      expect(messages).toContain("Date must be in YYYY or MM/YYYY format.");
     }
   });
 
