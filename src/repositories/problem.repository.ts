@@ -30,15 +30,7 @@ import { slugify } from "@/lib/utils";
 import { Logger } from "@/lib/logger";
 import { companyRepository } from "./company.repository";
 import { userRepository } from "./user.repository";
-import { problemFilterRegistry } from "@/lib/problem-filters/registry";
-import {
-  DifficultyFilterImplementation,
-  LastAskedFilterImplementation,
-} from "@/lib/problem-filters/implementations";
-
-// Register Core Filters
-problemFilterRegistry.register(new DifficultyFilterImplementation());
-problemFilterRegistry.register(new LastAskedFilterImplementation());
+import { problemFilterRegistry } from "@/lib/problem-filters";
 
 function getFirestore(): Firestore {
   if (!db) {
