@@ -1,11 +1,7 @@
-## 2024-05-23 - [Unified Env Configuration]
-Risk: [Config/Security insight] Scattered `process.env` usage and redundant fallbacks/magic strings created risk of inconsistency and hidden failures. `LOG_LEVEL` was missing from validation.
-Protocol: [Safety measure for next time] Always use `src/env.ts` for all environment variables. Audit `process.env` usage periodically. Ensure `LOG_LEVEL` is documented and validated.
+## 2024-05-25 - LOGO_API Manual Exposure
+Risk: The `LOGO_API` variable is exposed to the client bundle via `next.config.ts`'s `env` property, even though it lacks the `NEXT_PUBLIC_` prefix.
+Protocol: This manual exposure is intentional to inject the token into the client build. However, developers must be aware that `LOGO_API` is *publicly visible* in the browser source code. We've added a strict Zod refinement in `src/env.ts` to ensure this variable is a token (e.g. for `logo.dev`) and never a full URL, preventing accidental leaks of other secrets if the variable were misused.
 
-## 2024-05-24 - [Strict Config Validation]
-Risk: [Config/Security insight] Hardcoded defaults in `src/env.ts` for critical URLs and IDs masked missing environment variables, potentially leading to silent failures or incorrect environments (e.g., using prod AdSense ID in dev).
-Protocol: [Safety measure for next time] Remove `.default()` for infrastructure-critical variables (URLs, Keys). Use `optional()` for feature flags. Enforce explicit configuration in `.env`.
-
-## 2025-05-27 - [Secret Leak in Example]
-Risk: [Config/Security insight] `NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID` contained a real production ID in `.env.example`, encouraging developers to use production credentials in development.
-Protocol: [Safety measure for next time] Regularly scan `.env.example` for value patterns that look like real keys (e.g., `ca-pub-`, `sk_live_`). Use CI checks or pre-commit hooks to validate example files contain only placeholders.
+## 2024-05-25 - Global ProcessEnv Typing
+Risk: Direct usage of `process.env` (e.g., in scripts or config files) lacked type safety, increasing the risk of typos or using undefined variables.
+Protocol: We implemented `src/types/env.d.ts` which augments `NodeJS.ProcessEnv` with the types inferred from our Zod schemas in `src/env.ts`. This provides IntelliSense and type checking for `process.env` usage across the codebase, ensuring alignment with our defined configuration.

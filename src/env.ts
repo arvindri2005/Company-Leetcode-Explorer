@@ -1,16 +1,16 @@
 import { z } from "zod";
 
-const sharedSchema = z.object({
+export const sharedSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   LOG_LEVEL: z.enum(["DEBUG", "INFO", "WARN", "ERROR"]).optional(),
 });
 
-const serverSchema = z.object({
+export const serverSchema = z.object({
   GEMINI_API_KEY: z.string().optional(),
   GOOGLE_API_KEY: z.string().optional(),
 }).merge(sharedSchema);
 
-const clientSchema = z.object({
+export const clientSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url(),
   NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID: z.string().optional(),
   NEXT_PUBLIC_GOOGLE_ADSENSE_SLOT_ID: z.string().optional(),
