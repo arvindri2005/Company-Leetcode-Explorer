@@ -3,7 +3,7 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTypingGame } from "@/hooks/use-typing-game";
+import { useTypingGame } from "@/features/tools/hooks/use-typing-game";
 import TypingArea from "./typing-area";
 import TypingStats from "./typing-stats";
 import TypingControls from "./typing-controls";

@@ -5,9 +5,9 @@ import { groupQuestions } from "@/ai/flows/group-questions";
 // Mock dependencies
 jest.mock("@/lib/utils/logger");
 jest.mock("@/ai/flows/group-questions");
-jest.mock("@/services/problem.service");
+jest.mock("@/features/problems/services/problem.service");
 jest.mock("@/features/companies/services/company.service");
-jest.mock("@/services/user.service");
+jest.mock("@/features/profile/services/user.service");
 
 // Helper to check if Logger was called with specific content
 const expectLog = (level: "info" | "error", messagePartial: string, contextPartial: object) => {

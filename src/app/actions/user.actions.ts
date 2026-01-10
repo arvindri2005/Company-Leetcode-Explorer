@@ -24,7 +24,7 @@
 import type {
   ProblemStatus,
 } from "@/types";
-import { userService } from "@/services/user.service";
+import { userService } from "@/features/profile/services/user.service";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { ProblemStatusSchema } from "@/types";

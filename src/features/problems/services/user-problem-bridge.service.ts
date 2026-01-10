@@ -1,5 +1,5 @@
 import { LeetCodeProblem } from "@/types";
-import { userService } from "./user.service";
+import { userService } from "@/features/profile/services/user.service";
 import { problemService } from "./problem.service";
 import { PaginatedProblemsResponse, ProblemSummaryDTO } from "@/types";
 

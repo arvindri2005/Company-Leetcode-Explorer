@@ -1,4 +1,4 @@
-import { userRepository } from "@/repositories/user.repository";
+import { userRepository } from "../repositories/user.repository";
 import {
   BookmarkedProblemInfo,
   UserProblemStatusInfo,

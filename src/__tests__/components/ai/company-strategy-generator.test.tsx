@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import CompanyStrategyGenerator from '@/components/ai/company-strategy-generator';
-import { userService } from '@/services/user.service';
+import { userService } from '@/features/profile/services/user.service';
 
 jest.mock('react-markdown', () => ({
   __esModule: true,
@@ -35,7 +35,7 @@ jest.mock('@/app/actions/ai.actions', () => ({
 }));
 
 // Mock UserService
-jest.mock('@/services/user.service', () => ({
+jest.mock('@/features/profile/services/user.service', () => ({
   userService: {
     getStrategyTodoListForCompany: jest.fn().mockResolvedValue(null),
   },

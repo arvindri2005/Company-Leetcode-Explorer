@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/providers";
-import { userService } from "@/services/user.service";
+import { userService } from "@/features/profile/services/user.service";
 import type { LeetCodeProblem, ProblemStatus } from "@/types";
 import { PROBLEM_STATUS_OPTIONS } from "@/features/problems/constants";
 import { useRouter, usePathname } from "next/navigation";

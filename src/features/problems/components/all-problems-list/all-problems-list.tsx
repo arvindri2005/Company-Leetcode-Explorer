@@ -21,7 +21,7 @@ import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { userService } from "@/services/user.service";
+import { userService } from "@/features/profile/services/user.service";
 import { parseArrayValid } from "@/lib/utils";
 
 const ProblemListControls = dynamic(() => import("../problem-list-controls/problem-list-controls"), {

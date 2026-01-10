@@ -11,7 +11,7 @@ jest.mock("@/hooks/use-toast", () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 
-jest.mock("@/hooks/use-problem-interactions", () => ({
+jest.mock("@/features/problems/hooks/use-problem-interactions", () => ({
   useProblemInteractions: () => ({
     isBookmarked: false,
     isTogglingBookmark: false,

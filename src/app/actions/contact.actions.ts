@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { contactService } from "@/services/contact.service";
+import { contactService } from "@/features/contact/services/contact.service";
 import { handleServerActionError } from "@/lib/utils/error-handler";
 
 /**

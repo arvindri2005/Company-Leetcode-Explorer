@@ -80,6 +80,23 @@ app/
 └── sw.ts                # Service worker
 ```
 
+### Action Layer (`src/app/actions/`)
+
+Server Actions are functions that run on the server and can be called directly from Client Components.
+
+**Responsibilities:**
+- Validate user inputs before processing
+- Perform authentication and authorization checks
+- Call the **Service Layer** to execute business logic
+- Handle errors and return appropriate responses
+
+**Available Server Actions:**
+- `ai.actions.ts` - AI feature actions (insights, flashcards, grouping)
+- `company.actions.ts` - Company data operations
+- `contact.actions.ts` - Contact form submissions
+- `problem.actions.ts` - Problem submissions and updates
+- `user.actions.ts` - User profile and preference updates
+
 ### `src/components/` - Shared Components
 
 ```
@@ -147,25 +164,33 @@ features/
 │   ├── api/
 │   ├── components/
 │   ├── hooks/
-│   ├── services/
+│   ├── repositories/      # NEW: Company repository
+│   ├── services/          # NEW: Company service
 │   ├── types/
 │   └── index.ts
 ├── contact/             # Contact form feature
 │   ├── components/
+│   ├── repositories/      # NEW: Contact repository
+│   ├── services/          # NEW: Contact service
 │   └── index.ts
 ├── problems/            # Interview problems
 │   ├── components/
 │   ├── constants/
-│   ├── hooks/
+│   ├── hooks/             # NEW: Problem interaction hooks
+│   ├── repositories/      # NEW: Problem repository
+│   ├── services/          # NEW: Problem services
 │   ├── types/
 │   ├── utils/
 │   └── index.ts
 ├── profile/             # User profile management
 │   ├── components/
+│   ├── repositories/      # NEW: User repository
+│   ├── services/          # NEW: User service
 │   └── index.ts
 └── tools/               # Developer tools
     ├── __tests__/
     ├── components/
+    ├── hooks/             # NEW: Typing game hooks
     ├── utils/
     └── index.ts
 ```
@@ -181,6 +206,8 @@ ai/
 │   ├── generate-flashcards-flow.ts
 │   ├── generate-problem-insights-flow.ts
 │   └── group-questions.ts
+├── services/            # AI service orchestration
+│   └── ai.service.ts
 ├── cache.ts             # AI response caching
 ├── dev.ts               # Flow registration for dev UI
 ├── flow-registry.ts     # Flow registry
@@ -209,27 +236,17 @@ lib/
 
 ### `src/repositories/` - Data Access Layer
 
-```
-repositories/
-├── __tests__/
-├── company.repository.ts   # Company Firestore queries
-├── contact.repository.ts   # Contact form submissions
-├── problem.repository.ts   # Problem Firestore queries
-└── user.repository.ts      # User Firestore queries
-```
+**Note:** Repositories have been moved to their respective feature directories. See the `src/features/` section for feature-specific repositories.
 
-### `src/services/` - Business Logic
+### `src/services/` - Shared Business Logic
 
 ```
 services/
 ├── __tests__/
-├── ai.service.ts              # AI flow orchestration
-├── contact.service.ts         # Contact form logic
-├── event-bus.ts               # Event bus for cross-feature communication
-├── problem.service.ts         # Problem business logic
-├── user-problem-bridge.service.ts # User-problem relationship logic
-└── user.service.ts            # User business logic
+└── event-bus.ts               # Event bus for cross-feature communication
 ```
+
+**Note:** Most services have been moved to their respective feature directories. See the `src/features/` section for feature-specific services.
 
 ### `src/hooks/` - Global Custom Hooks
 
@@ -298,15 +315,43 @@ __tests__/
 
 ## Data Flow
 
-```
-┌─────────────┐     ┌─────────────┐     ┌──────────────┐     ┌──────────┐
-│  Component  │ ──▶ │   Service   │ ──▶ │  Repository  │ ──▶ │ Firebase │
-└─────────────┘     └─────────────┘     └──────────────┘     └──────────┘
-       │                   │
-       │                   ▼
-       │            ┌─────────────┐
-       └──────────▶ │   AI Flow   │ (for AI features)
-                    └─────────────┘
+```mermaid
+graph TD
+    User((User))
+
+    subgraph Presentation ["Presentation Layer (src/app, src/components)"]
+        Page["Page (Server Component)"]
+        Component["Client Component"]
+    end
+
+    subgraph Action ["Action Layer (src/app/actions)"]
+        ServerAction["Server Action"]
+    end
+
+    subgraph Service ["Service Layer (src/features/*/services)"]
+        BusinessLogic["Business Logic Service"]
+    end
+
+    subgraph Repository ["Repository Layer (src/features/*/repositories)"]
+        DataAccess["Data Access Repository"]
+    end
+
+    subgraph AI_Layer ["AI Layer (src/ai)"]
+        GenkitFlow["Genkit Flow"]
+    end
+
+    subgraph Data ["Data Source"]
+        DB[(Firestore)]
+    end
+
+    User --> Page
+    User --> Component
+    Page --> BusinessLogic
+    Component --> ServerAction
+    ServerAction --> BusinessLogic
+    BusinessLogic --> DataAccess
+    BusinessLogic --> GenkitFlow
+    DataAccess --> DB
 ```
 
 ## Import Conventions

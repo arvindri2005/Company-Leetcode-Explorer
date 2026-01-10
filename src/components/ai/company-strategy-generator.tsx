@@ -18,7 +18,7 @@ import type {
 import { targetRoleLevelOptions } from "@/types";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { userService } from "@/services/user.service";
+import { userService } from "@/features/profile/services/user.service";
 import { generateCompanyStrategyAction } from "@/app/actions/ai.actions";
 import { useToast } from "@/hooks/use-toast";
 import {

@@ -1,10 +1,10 @@
 
-import { problemService } from "@/services/problem.service";
-import { problemRepository } from "@/repositories/problem.repository";
+import { problemService } from "@/features/problems/services/problem.service";
+import { problemRepository } from "@/features/problems/repositories/problem.repository";
 import { LeetCodeProblem } from "@/types";
 import { cacheManager } from "@/lib/utils/cache";
 
-jest.mock("@/repositories/problem.repository", () => ({
+jest.mock("@/features/problems/repositories/problem.repository", () => ({
   problemRepository: {
     getAllProblemsPaginated: jest.fn(),
   },

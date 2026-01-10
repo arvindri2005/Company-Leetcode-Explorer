@@ -7,7 +7,7 @@
  * It also includes `generateStaticParams` to pre-render pages for known companies at build time.
  */
 import { companyService } from "@/features/companies/services/company.service";
-import { problemService } from "@/services/problem.service";
+import { problemService } from "@/features/problems/services/problem.service";
 import type { Metadata } from "next";
 import CompanyNotFound from "@/features/companies/components/page/company-not-found";
 import CompanyPage from "@/features/companies/components/page/company-page";

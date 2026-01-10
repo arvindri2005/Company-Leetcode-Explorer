@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
 
-import { useTypingPlaceholder } from "@/hooks/use-typing-placeholder";
+import { useTypingPlaceholder } from "@/features/tools/hooks/use-typing-placeholder";
 
 export function DashboardHeader() {
   const router = useRouter();

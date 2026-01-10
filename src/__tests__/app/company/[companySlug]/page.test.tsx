@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import CompanyPageWrapper, { generateMetadata, generateStaticParams } from '@/app/company/[companySlug]/page';
 import { companyService } from '@/features/companies/services/company.service';
-import { problemService } from '@/services/problem.service';
+import { problemService } from '@/features/problems/services/problem.service';
 import { createMockCompany, createMockProblemsResponse, createMockProblem } from '@/__tests__/factories/data-factories';
 
 // Mock the services
@@ -12,7 +12,7 @@ jest.mock('@/features/companies/services/company.service', () => ({
   },
 }));
 
-jest.mock('@/services/problem.service', () => ({
+jest.mock('@/features/problems/services/problem.service', () => ({
   problemService: {
     getProblemsByCompanySlug: jest.fn(),
   },

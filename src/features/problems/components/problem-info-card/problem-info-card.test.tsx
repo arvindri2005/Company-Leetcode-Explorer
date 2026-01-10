@@ -7,7 +7,7 @@ jest.mock("@/providers", () => ({
   useAuth: () => ({ user: { uid: "test-user" } }),
 }));
 
-jest.mock("@/hooks/use-problem-interactions", () => ({
+jest.mock("@/features/problems/hooks/use-problem-interactions", () => ({
   useProblemInteractions: () => ({
     isBookmarked: false,
     isTogglingBookmark: false,

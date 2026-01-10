@@ -28,8 +28,8 @@ import {
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
 import { Logger } from "@/lib/utils/logger";
-import { companyRepository } from "./company.repository";
-import { userRepository } from "./user.repository";
+import { companyRepository } from "@/features/companies/repositories/company.repository";
+import { userRepository } from "@/features/profile/repositories/user.repository";
 import { problemFilterRegistry } from "@/features/problems/utils/problem-filters/registry";
 import {
   DifficultyFilterImplementation,

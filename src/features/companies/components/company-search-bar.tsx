@@ -9,7 +9,7 @@ import React, { useState, useRef } from "react";
 import { Loader2, Building2, Search } from "lucide-react";
 import { OfflineImage } from "@/components/ui/offline-image";
 import { getLogoUrl, cn } from "@/lib/utils";
-import { useTypingPlaceholder } from "@/hooks/use-typing-placeholder";
+import { useTypingPlaceholder } from "@/features/tools/hooks/use-typing-placeholder";
 
 /**
  * Represents the structure of a single search suggestion item.

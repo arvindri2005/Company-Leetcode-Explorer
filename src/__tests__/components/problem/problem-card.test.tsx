@@ -15,7 +15,7 @@ jest.mock('@/features/problems', () => ({
 // Import after mocking
 const { ProblemCard } = require('@/features/problems');
 
-jest.mock('@/hooks/use-problem-interactions', () => ({
+jest.mock('@/features/problems/hooks/use-problem-interactions', () => ({
   useProblemInteractions: () => ({
     isBookmarked: false,
     isTogglingBookmark: false,

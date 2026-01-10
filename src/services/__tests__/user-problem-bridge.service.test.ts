@@ -1,17 +1,17 @@
 
-import { userProblemBridgeService } from "@/services/user-problem-bridge.service";
-import { problemService } from "@/services/problem.service";
-import { userService } from "@/services/user.service";
+import { userProblemBridgeService } from "@/features/problems/services/user-problem-bridge.service";
+import { problemService } from "@/features/problems/services/problem.service";
+import { userService } from "@/features/profile/services/user.service";
 import { LeetCodeProblem } from "@/types";
 
 // Mock dependencies
-jest.mock("@/services/problem.service", () => ({
+jest.mock("@/features/problems/services/problem.service", () => ({
   problemService: {
     getAllProblemsPaginated: jest.fn(),
   },
 }));
 
-jest.mock("@/services/user.service", () => ({
+jest.mock("@/features/profile/services/user.service", () => ({
   userService: {
     getBookmarksForIds: jest.fn(),
     getProblemStatusesForIds: jest.fn(),

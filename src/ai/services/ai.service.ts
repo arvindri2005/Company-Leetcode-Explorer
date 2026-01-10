@@ -28,8 +28,8 @@ import {
 } from "@/ai/flows/generate-problem-insights-flow";
 import { AIProblemInput, LeetCodeProblem } from "@/types";
 import { companyService } from "@/features/companies/services/company.service";
-import { problemService } from "@/services/problem.service";
-import { userService } from "@/services/user.service";
+import { problemService } from "@/features/problems/services/problem.service";
+import { userService } from "@/features/profile/services/user.service";
 import { Logger } from "@/lib/utils/logger";
 import { cacheManager, CacheTTL } from "@/lib/utils/cache";
 import { unstable_cache } from "next/cache";

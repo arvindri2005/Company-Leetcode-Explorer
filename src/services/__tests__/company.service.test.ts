@@ -1,10 +1,10 @@
 import { companyService } from "@/features/companies/services/company.service";
-import { companyRepository } from "@/repositories/company.repository";
+import { companyRepository } from "@/features/companies/repositories/company.repository";
 import { cacheManager } from "@/lib/utils/cache";
 import { CacheTTL } from "@/lib/utils/cache/types";
 
 // Mock dependencies
-jest.mock("@/repositories/company.repository");
+jest.mock("@/features/companies/repositories/company.repository");
 jest.mock("@/lib/utils/cache", () => ({
   cacheManager: {
     wrap: jest.fn(),

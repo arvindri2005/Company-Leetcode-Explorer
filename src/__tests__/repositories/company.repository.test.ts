@@ -1,5 +1,5 @@
 
-import { companyRepository } from "@/repositories/company.repository";
+import { companyRepository } from "@/features/companies/repositories/company.repository";
 import { 
   getDocs, 
   getDoc, 

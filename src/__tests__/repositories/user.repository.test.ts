@@ -1,4 +1,4 @@
-import { UserRepository } from "@/repositories/user.repository";
+import { UserRepository } from "@/features/profile/repositories/user.repository";
 import { getDocs } from "firebase/firestore";
 import { createMockFirestoreDoc, createMockTimestamp } from "../factories/data-factories";
 

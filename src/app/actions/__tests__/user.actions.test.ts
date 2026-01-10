@@ -1,12 +1,12 @@
 
 import { toggleBookmarkProblemAction, setProblemStatusAction, getUserProblemStatusesForIdsAction } from "../user.actions";
-import { userService } from "@/services/user.service";
+import { userService } from "@/features/profile/services/user.service";
 import { revalidateTag } from "next/cache";
 import { handleServerActionError } from "@/lib/utils/error-handler";
 import { simpleFaker } from "@/__tests__/factories/data-factories";
 
 // Mock dependencies
-jest.mock("@/services/user.service");
+jest.mock("@/features/profile/services/user.service");
 jest.mock("next/cache");
 jest.mock("@/lib/utils/error-handler");
 

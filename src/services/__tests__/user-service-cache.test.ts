@@ -1,8 +1,8 @@
-import { userService } from "@/services/user.service";
-import { userRepository } from "@/repositories/user.repository";
+import { userService } from "@/features/profile/services/user.service";
+import { userRepository } from "@/features/profile/repositories/user.repository";
 
 // Mock repository
-jest.mock("@/repositories/user.repository");
+jest.mock("@/features/profile/repositories/user.repository");
 jest.mock("@/lib/utils/logger");
 
 describe("UserService Caching", () => {

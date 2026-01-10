@@ -30,7 +30,7 @@ import type {
 } from "@/ai/flows/generate-company-strategy-flow"; 
 import type { GenerateProblemInsightsOutput } from "@/ai/flows/generate-problem-insights-flow";
 import type { AIProblemInput, LeetCodeProblem } from "@/types";
-import { aiService } from "@/services/ai.service";
+import { aiService } from "@/ai/services/ai.service";
 import { revalidateTag } from "next/cache";
 import { auth } from "@/lib/api/firebase"; // For current user ID
 import { companyService } from "@/features/companies/services/company.service"; // needed for revalidate lookup

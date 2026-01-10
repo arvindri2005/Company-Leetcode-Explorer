@@ -1,9 +1,9 @@
-import { userService } from "@/services/user.service";
+import { userService } from "@/features/profile/services/user.service";
 import { appEvents } from "@/services/event-bus";
-import { userRepository } from "@/repositories/user.repository";
+import { userRepository } from "@/features/profile/repositories/user.repository";
 
 // Mock dependencies
-jest.mock("@/repositories/user.repository");
+jest.mock("@/features/profile/repositories/user.repository");
 jest.mock("@/lib/utils/logger");
 
 describe("UserService Event System", () => {

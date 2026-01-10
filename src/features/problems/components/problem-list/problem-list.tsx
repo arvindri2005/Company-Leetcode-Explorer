@@ -21,7 +21,7 @@ import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { userService } from "@/services/user.service";
+import { userService } from "@/features/profile/services/user.service";
 import { loadMoreProblemsAction } from "@/app/actions/problem.actions";
 import { Loader2 } from "lucide-react";
 import { parseArrayValid } from "@/lib/utils";

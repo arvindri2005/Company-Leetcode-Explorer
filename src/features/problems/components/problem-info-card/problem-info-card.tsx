@@ -36,7 +36,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useProblemInteractions } from "@/hooks/use-problem-interactions";
+import { useProblemInteractions } from "@/features/problems/hooks/use-problem-interactions";
 import { useAuth } from "@/providers";
 import TagBadge from "../tag-badge/tag-badge";
 

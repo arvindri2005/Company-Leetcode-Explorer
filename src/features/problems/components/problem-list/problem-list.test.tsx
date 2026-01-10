@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import ProblemList from "./problem-list";
 import { LeetCodeProblem } from "../../types";
-import { userService } from "@/services/user.service";
+import { userService } from "@/features/profile/services/user.service";
 
 // Mock Next.js hooks
 const mockPush = jest.fn();
@@ -14,7 +14,7 @@ jest.mock("next/navigation", () => ({
 }));
 
 // Mock userService
-jest.mock("@/services/user.service", () => ({
+jest.mock("@/features/profile/services/user.service", () => ({
   userService: {
     getUserGlobalProblemStats: jest.fn(),
   },

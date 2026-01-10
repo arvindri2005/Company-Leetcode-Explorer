@@ -7,7 +7,7 @@
  * sorting. It uses Zod for robust input validation.
  */
 import { NextResponse } from "next/server";
-import { problemService } from "@/services/problem.service";
+import { problemService } from "@/features/problems/services/problem.service";
 import { Logger } from "@/lib/utils/logger";
 import { z } from "zod";
 import type {
@@ -132,7 +132,7 @@ export async function GET(request: Request) {
     } else {
       // Fetch all problems if no companyId is provided
       // Use the Bridge service to allow for potential future user-enrichment, even if userId is currently undefined.
-      const { userProblemBridgeService } = await import("@/services/user-problem-bridge.service");
+      const { userProblemBridgeService } = await import("@/features/problems/services/user-problem-bridge.service");
       result = await userProblemBridgeService.getAllProblemsPaginatedWithUserStatus({
         cursor,
         pageSize,

@@ -1,5 +1,5 @@
 
-import { problemRepository } from "@/repositories/problem.repository";
+import { problemRepository } from "@/features/problems/repositories/problem.repository";
 import { getCountFromServer, getDocs } from "firebase/firestore";
 
 // Mock next/cache
@@ -27,7 +27,7 @@ jest.mock("@/lib/api/firebase", () => ({
 }));
 
 // Mock user repository
-jest.mock("@/repositories/user.repository", () => ({
+jest.mock("@/features/profile/repositories/user.repository", () => ({
   userRepository: {
     getBookmarksForIds: jest.fn(),
     getProblemStatusesForIds: jest.fn(),
@@ -35,15 +35,15 @@ jest.mock("@/repositories/user.repository", () => ({
 }));
 
 // Mock company repository
-jest.mock("@/repositories/company.repository", () => ({
+jest.mock("@/features/companies/repositories/company.repository", () => ({
   companyRepository: {
     getCompanyById: jest.fn(),
   },
 }));
 
-import { companyRepository } from "@/repositories/company.repository";
+import { companyRepository } from "@/features/companies/repositories/company.repository";
 
-import { userRepository } from "@/repositories/user.repository";
+import { userRepository } from "@/features/profile/repositories/user.repository";
 import { createMockProblem, createMockCompany } from "../factories/data-factories";
 
 describe("ProblemRepository.getProblemsByCompany", () => {

@@ -13,7 +13,7 @@ jest.mock("next/navigation", () => ({
 }));
 
 // Mock user service
-jest.mock("@/services/user.service", () => ({
+jest.mock("@/features/profile/services/user.service", () => ({
   userService: {
     getUserGlobalProblemStats: jest.fn().mockResolvedValue({
       solvedProblemIds: [],

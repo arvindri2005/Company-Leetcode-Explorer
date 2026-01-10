@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { LeetCodeProblem } from '@/types';
-import { userService } from '@/services/user.service';
+import { userService } from '@/features/profile/services/user.service';
 
 // Mock the feature module with all needed components
 jest.mock('@/features/problems', () => ({
@@ -24,7 +24,7 @@ jest.mock('@/features/problems', () => ({
 const { ProblemList } = require('@/features/problems');
 
 // Mock services
-jest.mock('@/services/user.service', () => ({
+jest.mock('@/features/profile/services/user.service', () => ({
     userService: {
         getUserGlobalProblemStats: jest.fn(),
     },

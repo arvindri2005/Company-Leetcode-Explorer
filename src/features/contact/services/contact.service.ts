@@ -1,4 +1,4 @@
-import { contactRepository } from "@/repositories/contact.repository";
+import { contactRepository } from "../repositories/contact.repository";
 
 export interface ContactMessageData {
   name: string;
