@@ -234,10 +234,6 @@ lib/
     └── lru-cache.ts     # LRU cache implementation
 ```
 
-### `src/repositories/` - Data Access Layer
-
-**Note:** Repositories have been moved to their respective feature directories. See the `src/features/` section for feature-specific repositories.
-
 ### `src/services/` - Shared Business Logic
 
 ```
@@ -246,7 +242,7 @@ services/
 └── event-bus.ts               # Event bus for cross-feature communication
 ```
 
-**Note:** Most services have been moved to their respective feature directories. See the `src/features/` section for feature-specific services.
+**Note:** Most services are located in their respective feature directories. This folder is only for truly global services.
 
 ### `src/hooks/` - Global Custom Hooks
 
@@ -309,7 +305,6 @@ __tests__/
 ├── components/          # Component tests
 ├── factories/           # Test data factories
 ├── lib/                 # Utility tests
-├── repositories/        # Repository tests
 └── security/            # Security tests
 ```
 
