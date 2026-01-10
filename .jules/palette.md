@@ -1,3 +1,0 @@
-## 2024-05-24 - Password Visibility Toggle
-**Learning:** Users often struggle with password entry on mobile or when dealing with complex requirements. A standardized, accessible toggle reduces friction and is an expected pattern. Implementing this as a reusable `PasswordInput` component ensures consistency across all auth forms (Login, Signup, Reset Password) and centralizes accessibility logic (ARIA labels, keyboard focus).
-**Action:** When adding interaction patterns that repeat across forms, encapsulate them in a dedicated UI component rather than duplicating state logic. Ensure the toggle button is excluded from the tab order if it's purely a helper, but reachable if it's the primary way to verify input. (In this case, it is reachable via Tab).
