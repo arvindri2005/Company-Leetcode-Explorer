@@ -13,17 +13,17 @@ jest.mock('@/components/ui/tabs', () => ({
   TabsContent: ({ children }: any) => <div>{children}</div>,
 }));
 
-jest.mock('@/components/ai/ai-grouping-section', () => ({
+jest.mock('@/features/ai/components/ai-grouping-section', () => ({
   __esModule: true,
   default: () => <div data-testid="ai-grouping-section">AI Grouping Section</div>,
 }));
 
-jest.mock('@/components/ai/flashcard-generator', () => ({
+jest.mock('@/features/ai/components/flashcard-generator', () => ({
   __esModule: true,
   default: () => <div data-testid="flashcard-generator">Flashcard Generator</div>,
 }));
 
-jest.mock('@/components/ai/company-strategy-generator', () => ({
+jest.mock('@/features/ai/components/company-strategy-generator', () => ({
   __esModule: true,
   default: () => <div data-testid="company-strategy-generator">Strategy Generator</div>,
 }));

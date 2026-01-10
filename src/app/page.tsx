@@ -7,13 +7,10 @@
  * including structured data for rich search results.
  */
 import type { Metadata } from "next";
-import HeroSection from "@/components/landing/hero-section";
-import FeaturesSection from "@/components/landing/feature-section";
-import StatsSection from "@/components/landing/stats-section";
-import SearchSection from "@/components/landing/search-section";
+import { HeroSection, FeaturesSection, StatsSection, SearchSection } from "@/features/landing";
 import StructuredData from "@/components/seo/structured-data";
 import ErrorBoundary from "@/components/ui/error-boundary";
-import SearchSectionErrorFallback from "@/components/landing/search-section-error-fallback";
+import SearchSectionErrorFallback from "@/features/landing/components/search-section-error-fallback";
 import { env } from "@/env";
 
 const APP_URL = env.NEXT_PUBLIC_APP_URL;

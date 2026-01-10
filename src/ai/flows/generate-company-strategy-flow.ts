@@ -16,7 +16,7 @@ import { z } from "genkit";
 import {
   type CompanyStrategyProblemInput as ImportedCompanyStrategyProblemInput,
   type TargetRoleLevel as ImportedTargetRoleLevel,
-} from "@/types";
+} from "@/features/ai";
 import { retryWithBackoff, truncateText, sanitizeInput } from "@/ai/utils";
 import { companyStrategyCache } from "@/ai/cache";
 

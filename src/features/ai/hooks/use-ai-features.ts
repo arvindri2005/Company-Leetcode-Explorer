@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/providers";
-import { useAICooldown } from "@/hooks/use-ai-cooldown";
+import { useAICooldown } from "@/features/ai";
 import {
   performSimilarQuestionSearch,
   generateProblemInsightsAction,

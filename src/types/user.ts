@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { User as FirebaseUser } from "firebase/auth";
 import type { ProblemStatus } from ".";
-import type { FocusTopic, StrategyTodoItem } from "./ai";
+import type { FocusTopic, StrategyTodoItem } from "@/features/ai";
 
 // --- User Authentication and Profile Types ---
 

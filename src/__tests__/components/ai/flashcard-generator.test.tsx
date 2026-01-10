@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import FlashcardGenerator from '@/components/ai/flashcard-generator';
+import FlashcardGenerator from '@/features/ai/components/flashcard-generator';
 
 jest.mock('react-markdown', () => ({
   __esModule: true,
@@ -42,7 +42,7 @@ jest.mock('@/providers', () => ({
   useAuth: () => ({ user: { uid: '123' }, loading: false }),
 }));
 
-jest.mock('@/hooks/use-ai-cooldown', () => ({
+jest.mock('@/features/ai/hooks/use-ai-cooldown', () => ({
   useAICooldown: () => ({
     canUseAI: true,
     startCooldown: jest.fn(),

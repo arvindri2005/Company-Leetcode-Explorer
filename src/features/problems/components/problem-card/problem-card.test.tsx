@@ -22,7 +22,7 @@ jest.mock("@/features/problems/hooks/use-problem-interactions", () => ({
   }),
 }));
 
-jest.mock("@/hooks/use-ai-features", () => ({
+jest.mock("@/features/ai/hooks/use-ai-features", () => ({
   useAIFeatures: () => ({
     isLoadingSimilar: false,
     similarProblems: [],
@@ -39,10 +39,10 @@ jest.mock("@/hooks/use-ai-features", () => ({
 
 // Mock Lucide icons to avoid rendering issues in tests if any (usually fine, but safe)
 // Mocking dynamic imports
-jest.mock("@/components/ai/similar-problems-dialog", () => ({
+jest.mock("@/features/ai/components/similar-problems-dialog", () => ({
   default: () => <div data-testid="similar-problems-dialog">Similar Dialog</div>,
 }));
-jest.mock("@/components/ai/problem-insights-dialog", () => ({
+jest.mock("@/features/ai/components/problem-insights-dialog", () => ({
   default: () => <div data-testid="problem-insights-dialog">Insights Dialog</div>,
 }));
 

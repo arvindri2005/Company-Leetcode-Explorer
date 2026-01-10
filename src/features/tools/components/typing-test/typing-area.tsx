@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Snippet } from "@/types/typing-test";
+import { Snippet } from "@/features/tools";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RotateCcw, Keyboard as KeyboardIcon, MousePointerClick } from "lucide-react";

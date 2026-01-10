@@ -6,8 +6,6 @@ export { default as TypingStats } from './components/typing-test/typing-stats';
 export { default as TypingControls } from './components/typing-test/typing-controls';
 export { default as TypingTestErrorFallback } from './components/typing-test/typing-test-error-fallback';
 
-
-
-
+export * from './types/typing-test';
 
 

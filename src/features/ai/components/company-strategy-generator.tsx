@@ -15,7 +15,7 @@ import type {
   StrategyTodoItem,
   SavedStrategyTodoList,
 } from "@/types";
-import { targetRoleLevelOptions } from "@/types";
+import { targetRoleLevelOptions } from "@/features/ai";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { userService } from "@/features/profile/services/user.service";
@@ -60,7 +60,7 @@ import {
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useAuth } from "@/providers";
-import { useAICooldown } from "@/hooks/use-ai-cooldown";
+import { useAICooldown } from "@/features/ai";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

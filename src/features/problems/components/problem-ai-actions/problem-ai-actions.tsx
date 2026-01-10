@@ -4,7 +4,7 @@ import React, { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Lightbulb } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useAIFeatures } from "@/hooks/use-ai-features";
+import { useAIFeatures } from "@/features/ai";
 import { useAuth } from "@/providers";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, usePathname } from "next/navigation";
@@ -12,13 +12,13 @@ import { ToastAction } from "@/components/ui/toast";
 import type { LeetCodeProblem } from "../../types";
 
 const SimilarProblemsDialog = dynamic(
-  () => import("@/components/ai/similar-problems-dialog"),
+  () => import("@/features/ai/components/similar-problems-dialog"),
   {
     loading: () => <p>Loading dialog...</p>,
   },
 );
 const ProblemInsightsDialog = dynamic(
-  () => import("@/components/ai/problem-insights-dialog"),
+  () => import("@/features/ai/components/problem-insights-dialog"),
   {
     loading: () => <p>Loading dialog...</p>,
   },

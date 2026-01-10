@@ -15,7 +15,7 @@
 
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
-import type { FlashcardProblemInput as ImportedFlashcardProblemInput } from "@/types";
+import type { FlashcardProblemInput as ImportedFlashcardProblemInput } from "@/features/ai";
 import { retryWithBackoff, sanitizeInput } from "@/ai/utils";
 import { flashcardsCache } from "@/ai/cache";
 

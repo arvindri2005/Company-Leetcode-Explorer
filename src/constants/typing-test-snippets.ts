@@ -1,4 +1,4 @@
-import { Snippet } from "@/types/typing-test";
+import { Snippet } from "@/features/tools";
 
 export const snippets: Snippet[] = [
   // --- JavaScript ---

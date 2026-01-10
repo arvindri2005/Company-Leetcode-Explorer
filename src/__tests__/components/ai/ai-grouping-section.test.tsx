@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import AIGroupingSection from '@/components/ai/ai-grouping-section';
+import AIGroupingSection from '@/features/ai/components/ai-grouping-section';
 import { LeetCodeProblem } from '@/types';
 
 // Mock child components
@@ -18,12 +18,12 @@ jest.mock('@/components/ui/accordion', () => ({
   AccordionContent: ({ children }: any) => <div>{children}</div>,
 }));
 
-jest.mock('@/components/ai/problem-insights-dialog', () => ({
+jest.mock('@/features/ai/components/problem-insights-dialog', () => ({
   __esModule: true,
   default: () => <div data-testid="problem-insights-dialog">Insights Dialog</div>,
 }));
 
-jest.mock('@/components/ai/similar-problems-dialog', () => ({
+jest.mock('@/features/ai/components/similar-problems-dialog', () => ({
   __esModule: true,
   default: () => <div data-testid="similar-problems-dialog">Similar Problems Dialog</div>,
 }));
@@ -57,7 +57,7 @@ jest.mock('@/providers', () => ({
   useAuth: () => ({ user: { uid: '123' }, loading: false }),
 }));
 
-jest.mock('@/hooks/use-ai-cooldown', () => ({
+jest.mock('@/features/ai/hooks/use-ai-cooldown', () => ({
   useAICooldown: () => ({
     canUseAI: true,
     startCooldown: jest.fn(),

@@ -3,7 +3,7 @@ import { AITooltipContent } from "./ai-tooltip-content";
 import { User } from "firebase/auth";
 
 // Mock hooks
-jest.mock("@/hooks/use-ai-cooldown", () => ({
+jest.mock("@/features/ai/hooks/use-ai-cooldown", () => ({
   useAICooldown: () => ({
     canUseAI: true,
     isLoadingCooldown: false,

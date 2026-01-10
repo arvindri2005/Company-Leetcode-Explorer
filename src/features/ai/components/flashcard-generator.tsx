@@ -31,7 +31,7 @@ import {
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useAuth } from "@/providers";
-import { useAICooldown } from "@/hooks/use-ai-cooldown";
+import { useAICooldown } from "@/features/ai";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 

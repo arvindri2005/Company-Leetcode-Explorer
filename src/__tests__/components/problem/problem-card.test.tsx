@@ -27,7 +27,7 @@ jest.mock('@/features/problems/hooks/use-problem-interactions', () => ({
   }),
 }));
 
-jest.mock('@/hooks/use-ai-features', () => ({
+jest.mock('@/features/ai/hooks/use-ai-features', () => ({
   useAIFeatures: () => ({
     isLoadingSimilar: false,
     similarProblems: [],

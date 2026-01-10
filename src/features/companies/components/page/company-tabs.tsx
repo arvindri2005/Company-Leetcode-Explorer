@@ -19,21 +19,21 @@ import {
 } from "@/components/skeletons/company-ai-skeletons";
 
 const AIGroupingSection = dynamic(
-  () => import("@/components/ai/ai-grouping-section"),
+  () => import("@/features/ai/components/ai-grouping-section"),
   {
     loading: () => <CompanyAIFeatureSkeleton />,
   },
 );
 
 const DynamicFlashcardGenerator = dynamic(
-  () => import("@/components/ai/flashcard-generator"),
+  () => import("@/features/ai/components/flashcard-generator"),
   {
     loading: () => <CompanyAIFeatureSkeleton />,
   },
 );
 
 const CompanyStrategyGenerator = dynamic(
-  () => import("@/components/ai/company-strategy-generator"),
+  () => import("@/features/ai/components/company-strategy-generator"),
   {
     loading: () => <CompanyStrategySkeleton />,
   },

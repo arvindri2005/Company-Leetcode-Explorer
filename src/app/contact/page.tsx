@@ -6,7 +6,7 @@
  */
 "use client";
 
-import Footer from "@/components/landing/footer";
+import Footer from "@/features/landing/components/footer";
 import { ContactForm } from "@/features/contact/components/contact-form";
 
 /**

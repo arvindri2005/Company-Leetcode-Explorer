@@ -44,3 +44,10 @@ jest.mock('@/lib/api/firebase', () => ({
   db: {},  // Mock db object so "if (!db)" checks pass
 }));
 
+// Global mock for react-markdown and remark-gfm to resolve ESM issues in Jest
+jest.mock("react-markdown", () => (props: any) => {
+  return props.children;
+});
+
+jest.mock("remark-gfm", () => () => {});
+

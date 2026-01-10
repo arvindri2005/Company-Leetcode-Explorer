@@ -1,6 +1,7 @@
 import { z } from "zod";
-import type { EducationExperience, WorkExperience } from "./user";
-import type { LastAskedPeriod } from ".";
+import type { EducationExperience, WorkExperience } from "@/types";
+// LastAskedPeriod is imported from @/types
+import type { LastAskedPeriod } from "@/types";
 
 // --- Types for AI General Inputs ---
 /**

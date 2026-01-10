@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import CompanyStrategyGenerator from '@/components/ai/company-strategy-generator';
+import CompanyStrategyGenerator from '@/features/ai/components/company-strategy-generator';
 import { userService } from '@/features/profile/services/user.service';
 
 jest.mock('react-markdown', () => ({
@@ -46,7 +46,7 @@ jest.mock('@/providers', () => ({
   useAuth: () => ({ user: { uid: '123' }, loading: false }),
 }));
 
-jest.mock('@/hooks/use-ai-cooldown', () => ({
+jest.mock('@/features/ai/hooks/use-ai-cooldown', () => ({
   useAICooldown: () => ({
     canUseAI: true,
     startCooldown: jest.fn(),
