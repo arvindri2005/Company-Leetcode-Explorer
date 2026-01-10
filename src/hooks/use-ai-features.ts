@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/providers";
 import { useAICooldown } from "@/hooks/use-ai-cooldown";
 import {
   performSimilarQuestionSearch,

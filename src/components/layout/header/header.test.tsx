@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import Header from './header';
-import { useAuth } from '@/contexts/auth-context';
+import { useAuth } from '@/providers';
 import { usePathname, useRouter } from 'next/navigation';
 
 // Mocks
-jest.mock('@/contexts/auth-context');
+jest.mock('@/providers');
 jest.mock('next/navigation', () => ({
   usePathname: jest.fn(),
   useRouter: jest.fn(),

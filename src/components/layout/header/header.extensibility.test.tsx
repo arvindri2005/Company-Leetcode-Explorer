@@ -2,11 +2,11 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import Header from './header';
 import { navigationRegistry } from '@/lib/config/navigation';
-import { useAuth } from '@/contexts/auth-context';
+import { useAuth } from '@/providers';
 import { usePathname } from 'next/navigation';
 
 // Mock dependencies
-jest.mock('@/contexts/auth-context');
+jest.mock('@/providers');
 jest.mock('@/hooks/use-toast', () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
@@ -34,7 +34,7 @@ jest.mock('@/components/ui/sheet', () => ({
 jest.mock('./header', () => {
     const React = require('react');
     const { navigationRegistry } = require('@/lib/config/navigation');
-    const { useAuth } = require('@/contexts/auth-context');
+    const { useAuth } = require('@/providers');
     
     
     const MockHeader = () => {

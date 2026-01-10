@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/providers";
 import { userService } from "@/services/user.service";
 import type { LeetCodeProblem, ProblemStatus } from "@/types";
 import { PROBLEM_STATUS_OPTIONS } from "@/features/problems/constants";

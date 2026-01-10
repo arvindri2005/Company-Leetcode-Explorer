@@ -25,7 +25,7 @@ jest.mock("@/app/actions/problem.actions", () => ({
 }));
 
 // Mock auth
-jest.mock("@/contexts/auth-context", () => ({
+jest.mock("@/providers", () => ({
   useAuth: () => ({ user: { uid: "test-user" } }),
 }));
 

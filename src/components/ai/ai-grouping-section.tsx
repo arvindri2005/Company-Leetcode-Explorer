@@ -30,7 +30,7 @@ import {
 import { ProblemCard } from "@/features/problems";
 import { Sparkles, Loader2, LogIn, Info, AlertCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/providers";
 import { useAICooldown } from "@/hooks/use-ai-cooldown";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

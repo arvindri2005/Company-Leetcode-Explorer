@@ -9,7 +9,7 @@
  */
 "use client";
 
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/providers";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, Lightbulb } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useAIFeatures } from "@/hooks/use-ai-features";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/providers";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, usePathname } from "next/navigation";
 import { ToastAction } from "@/components/ui/toast";

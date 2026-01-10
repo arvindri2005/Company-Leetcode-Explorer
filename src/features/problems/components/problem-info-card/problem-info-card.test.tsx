@@ -3,7 +3,7 @@ import ProblemInfoCard from "./problem-info-card";
 import { LeetCodeProblem } from "../../types";
 
 // Mock hooks
-jest.mock("@/contexts/auth-context", () => ({
+jest.mock("@/providers", () => ({
   useAuth: () => ({ user: { uid: "test-user" } }),
 }));
 

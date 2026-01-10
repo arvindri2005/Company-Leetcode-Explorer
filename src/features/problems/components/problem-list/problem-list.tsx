@@ -15,7 +15,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import ProblemCard from "../problem-card/problem-card";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import ProblemCardErrorFallback from "../problem-card/problem-card-error-fallback";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/providers";
 import { useToast } from "@/hooks/use-toast";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";

@@ -53,7 +53,7 @@ jest.mock('@/app/actions/ai.actions', () => ({
 }));
 
 // Mock hooks
-jest.mock('@/contexts/auth-context', () => ({
+jest.mock('@/providers', () => ({
   useAuth: () => ({ user: { uid: '123' }, loading: false }),
 }));
 

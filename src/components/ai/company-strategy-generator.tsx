@@ -59,7 +59,7 @@ import {
 } from "@/components/ui/accordion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/providers";
 import { useAICooldown } from "@/hooks/use-ai-cooldown";
 import { cn } from "@/lib/utils";
 import Link from "next/link";

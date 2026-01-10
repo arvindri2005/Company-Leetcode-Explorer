@@ -41,7 +41,7 @@ jest.mock('@/components/ads/ad-placeholder', () => ({
 }));
 
 // Mock hooks
-jest.mock('@/contexts/auth-context', () => ({
+jest.mock('@/providers', () => ({
   useAuth: () => ({ user: { uid: '123' } }),
 }));
 

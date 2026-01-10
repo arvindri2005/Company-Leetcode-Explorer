@@ -40,7 +40,7 @@ jest.mock("@/components/ads/ad-placeholder", () => ({
 }));
 
 // Mock auth
-jest.mock("@/contexts/auth-context", () => ({
+jest.mock("@/providers", () => ({
   useAuth: () => ({ user: { uid: "test-user" } }),
 }));
 

@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import TagBadge from "../tag-badge/tag-badge";
 import { useProblemInteractions } from "@/hooks/use-problem-interactions";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/providers";
 import { ProblemAIActions } from "../problem-ai-actions";
 
 interface ProblemCardProps {

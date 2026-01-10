@@ -10,7 +10,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Menu } from "lucide-react";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/providers";
 import { auth } from "@/lib/api/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, usePathname } from "next/navigation";

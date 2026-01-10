@@ -31,7 +31,7 @@ import { auth } from "@/lib/api/firebase";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import GoogleAuthButton from "./google-auth-button";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/providers";
 import { PasswordStrengthIndicator } from "./password-strength-indicator";
 import { Check } from "lucide-react";
 import { useEffect } from "react";
