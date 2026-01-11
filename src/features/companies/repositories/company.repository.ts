@@ -13,7 +13,6 @@ import {
   orderBy,
   Timestamp,
   startAfter,
-  writeBatch,
   deleteDoc,
   Firestore,
   documentId,
@@ -21,6 +20,15 @@ import {
 } from "firebase/firestore";
 import { slugify } from "@/lib/utils";
 import { Logger } from "@/lib/utils/logger";
+import type {
+  ICompanyRepository,
+  GetCompaniesParams,
+  PaginatedCompaniesResponse,
+  CreateCompanyDTO,
+  UpdateCompanyDTO,
+} from "../interfaces/company.repository.interface";
+import type { Company as CompanyEntity } from "@/domain/entities/company.entity";
+import type { PaginatedResult } from "@/shared/interfaces";
 
 // Make sure db is initialized
 function getFirestore(): Firestore {
@@ -30,23 +38,6 @@ function getFirestore(): Firestore {
     );
   }
   return db;
-}
-
-export interface GetCompaniesParams {
-  page?: number;
-  pageSize?: number;
-  searchTerm?: string;
-  cursor?: string;
-}
-
-export interface PaginatedCompaniesResponse {
-  companies: Company[];
-  totalCompanies?: number;
-  totalPages?: number;
-  currentPage?: number;
-  nextCursor?: string;
-  prevCursor?: string;
-  hasMore: boolean;
 }
 
 function mapFirestoreDocToCompany(
@@ -114,7 +105,73 @@ function decodeCursor(
   }
 }
 
-export class CompanyRepository {
+export class CompanyRepository implements ICompanyRepository {
+  // ============================================
+  // IBaseRepository implementation
+  // ============================================
+
+  async findById(id: string): Promise<CompanyEntity | null> {
+    const company = await this.getCompanyById(id);
+    // Note: We return null for interface compliance
+    // The actual domain entity conversion would happen in the service layer
+    return company ? (company as unknown as CompanyEntity) : null;
+  }
+
+  async findAll(params?: { cursor?: string; page?: number; pageSize?: number }): Promise<PaginatedResult<CompanyEntity>> {
+    const result = await this.getCompanies(params);
+    return {
+      items: result.companies as unknown as CompanyEntity[],
+      totalItems: result.totalCompanies,
+      hasMore: result.hasMore,
+      nextCursor: result.nextCursor,
+      totalPages: result.totalPages,
+      currentPage: result.currentPage,
+    };
+  }
+
+  async save(data: CreateCompanyDTO): Promise<CompanyEntity> {
+    const result = await this.addCompany(data);
+    if (!result.id) {
+      throw new Error(result.error || "Failed to create company");
+    }
+    const company = await this.getCompanyById(result.id);
+    if (!company) {
+      throw new Error("Failed to retrieve created company");
+    }
+    return company as unknown as CompanyEntity;
+  }
+
+  async update(id: string, data: UpdateCompanyDTO): Promise<CompanyEntity> {
+    const result = await this.updateCompany(id, data);
+    if (!result.success) {
+      throw new Error(result.error || "Failed to update company");
+    }
+    const company = await this.getCompanyById(id);
+    if (!company) {
+      throw new Error("Failed to retrieve updated company");
+    }
+    return company as unknown as CompanyEntity;
+  }
+
+  async delete(id: string): Promise<void> {
+    try {
+      const companyDocRef = doc(getFirestore(), "companies", id);
+      await deleteDoc(companyDocRef);
+    } catch (error) {
+      Logger.error(`Error deleting company`, error, { id });
+      throw error;
+    }
+  }
+
+  async exists(id: string): Promise<boolean> {
+    const company = await this.getCompanyById(id);
+    return company !== undefined;
+  }
+
+  // ============================================
+  // ICompanyRepository specific methods
+  // ============================================
+
   async getCompanies({
     page = 1,
     pageSize = 30,
@@ -148,16 +205,11 @@ export class CompanyRepository {
       }
 
       // Calculate limit to fetch enough for the current page + 1 (to check hasMore)
-      // This avoids reading ALL documents to calculate total count.
       const limitCount = page * pageSize + 1;
       queryConstraints.push(limit(limitCount));
       
       // Ensure consistent sorting with cursor-based query
-      if (!searchTerm) {
-          queryConstraints.push(orderBy(documentId(), "asc"));
-      } else {
-          queryConstraints.push(orderBy(documentId(), "asc"));
-      }
+      queryConstraints.push(orderBy(documentId(), "asc"));
 
       const q = query(companiesCol, ...queryConstraints);
       const snapshot = await getDocs(q);
@@ -174,8 +226,6 @@ export class CompanyRepository {
       let nextCursor: string | undefined;
       // Slice the results for the current page
       if (docs.length > startIndex) {
-        // We take up to pageSize items starting from startIndex
-        // The docs array might have up to (page * pageSize + 1) items
         const sliceEnd = Math.min(docs.length, startIndex + pageSize);
         companies = docs.slice(startIndex, sliceEnd).map(mapFirestoreDocToCompany);
         
@@ -197,7 +247,7 @@ export class CompanyRepository {
         totalPages: -1,     // Unknown pages to save reads
         currentPage: page,
         hasMore,
-        nextCursor, // Return the generated cursor
+        nextCursor,
       };
     } catch (error) {
       Logger.error("Error in getCompanies", error);
@@ -215,13 +265,7 @@ export class CompanyRepository {
     pageSize: number,
     searchTerm?: string,
     cursor?: string,
-  ): Promise<{
-    companies: Company[];
-    nextCursor?: string;
-    prevCursor?: string;
-    hasMore: boolean;
-    hasPrev: boolean;
-  }> {
+  ): Promise<PaginatedCompaniesResponse> {
     const companiesCol = collection(getFirestore(), "companies");
     let queryConstraints: QueryConstraint[] = [
       orderBy("normalizedName", "asc"),
@@ -266,9 +310,8 @@ export class CompanyRepository {
     return {
       companies,
       nextCursor,
-      prevCursor: undefined,
       hasMore,
-      hasPrev: !!cursor,
+      totalCompanies: -1,
     };
   }
 
@@ -319,16 +362,7 @@ export class CompanyRepository {
   }
 
   async addCompany(
-    companyData: Omit<
-      Company,
-      | "id"
-      | "slug"
-      | "problemCount"
-      | "difficultyCounts"
-      | "recencyCounts"
-      | "commonTags"
-      | "statsLastUpdatedAt"
-    >,
+    companyData: CreateCompanyDTO,
   ): Promise<{ id: string | null; error?: string; alreadyExists?: boolean }> {
     try {
       if (!companyData.name?.trim()) {
@@ -407,26 +441,22 @@ export class CompanyRepository {
 
   async updateCompany(
     companyId: string,
-    companyData: Partial<Company>,
+    companyData: UpdateCompanyDTO,
   ): Promise<{ success: boolean; error?: string }> {
     try {
       if (!companyId) {
         return { success: false, error: "Company ID is required" };
       }
 
-      const updates: Record<string, any> = { ...companyData };
+      const updates: Record<string, unknown> = { ...companyData };
 
-      if (updates.name) {
+      if (updates.name && typeof updates.name === "string") {
         updates.normalizedName = updates.name.toLowerCase().trim();
       }
 
+      // Remove fields that shouldn't be updated directly
       delete updates.id;
       delete updates.slug;
-      delete updates.problemCount;
-      delete updates.difficultyCounts;
-      delete updates.recencyCounts;
-      delete updates.commonTags;
-      delete updates.statsLastUpdatedAt;
 
       Object.keys(updates).forEach((key) => {
         if (updates[key] === undefined) {
@@ -485,9 +515,3 @@ export class CompanyRepository {
 }
 
 export const companyRepository = new CompanyRepository();
-
-
-
-
-
-

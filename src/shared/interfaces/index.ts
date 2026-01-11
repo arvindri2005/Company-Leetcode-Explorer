@@ -3,5 +3,4 @@
  * Contains common interfaces used across multiple features
  */
 
-// Placeholder export to make this a valid module
-export {};
+export * from "./repository.interface";

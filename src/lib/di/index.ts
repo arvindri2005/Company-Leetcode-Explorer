@@ -8,3 +8,8 @@ export { container, Container } from "./container";
 export type { Factory, RegisterOptions } from "./container";
 export { TOKENS } from "./tokens";
 export type { TokenKey } from "./tokens";
+export {
+  registerDependencies,
+  getProblemService,
+  getProblemRepository,
+} from "./registrations";

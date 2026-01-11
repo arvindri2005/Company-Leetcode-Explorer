@@ -1,5 +1,4 @@
 import { problemRepository } from "../repositories/problem.repository";
-import { companyService } from "@/features/companies/services/company.service";
 import {
   DifficultyFilter,
   LastAskedFilter,
@@ -9,30 +8,25 @@ import {
   Company,
 } from "@/types";
 import { cacheManager, CacheTTL } from "@/lib/utils/cache";
+import { success, failure, type Result } from "@/shared/types/result";
+import type { ServiceError } from "@/shared/types/service-error";
+import type {
+  IProblemService,
+  GetPublicProblemsParams,
+  GetAllProblemsParams,
+  CreateProblemInput,
+} from "../interfaces/problem.service.interface";
+import type { IProblemRepository } from "../interfaces/problem.repository.interface";
 
-export class ProblemService {
+export class ProblemService implements IProblemService {
+  constructor(private readonly repository: IProblemRepository = problemRepository) {}
+
   async getPublicProblems(
     companyId: string,
-    params: {
-      cursor?: string;
-      page?: number;     
-      pageSize?: number;
-      difficultyFilter?: DifficultyFilter[];
-      lastAskedFilter?: LastAskedFilter[];
-      searchTerm?: string;
-      sortKey?: SortKey;
-      companySlug?: string;
-      totalProblemCount?: number;
-      difficultyCounts?: { Easy: number; Medium: number; Hard: number };
-      recencyCounts?: {
-        last_30_days: number;
-        within_3_months: number;
-        within_6_months: number;
-        older_than_6_months: number;
-      };
-    } = {},
-  ): Promise<PaginatedProblemsResponse> {
-    const {
+    params: GetPublicProblemsParams = {},
+  ): Promise<Result<PaginatedProblemsResponse, ServiceError>> {
+    try {
+      const {
         cursor,
         page,
         pageSize = 10,
@@ -44,11 +38,9 @@ export class ProblemService {
         totalProblemCount,
         difficultyCounts,
         recencyCounts,
-    } = params;
+      } = params;
 
-    // Unified caching for all queries (default + filtered)
-    // Sort array filters to ensure consistent cache keys regardless of selection order
-    const cacheKey = `problems-public-${companyId}-${JSON.stringify({
+      const cacheKey = `problems-public-${companyId}-${JSON.stringify({
         cursor,
         page,
         pageSize,
@@ -56,66 +48,65 @@ export class ProblemService {
         lastAskedFilter: [...lastAskedFilter].sort(),
         searchTerm,
         sortKey,
-    })}`;
+      })}`;
 
-    const cachedResult = await cacheManager.wrap(
+      const cachedResult = await cacheManager.wrap(
         cacheKey,
         async () => {
-            return await problemRepository.getProblemsByCompany(companyId, {
-                cursor,
-                page,
-                pageSize,
-                difficultyFilter,
-                lastAskedFilter,
-                searchTerm,
-                sortKey,
-                companySlug,
-                totalProblemCount,
-                difficultyCounts,
-                recencyCounts,
-            });
+          return await this.repository.getProblemsByCompany(companyId, {
+            cursor,
+            page,
+            pageSize,
+            difficultyFilter,
+            lastAskedFilter,
+            searchTerm,
+            sortKey,
+            companySlug,
+            totalProblemCount,
+            difficultyCounts,
+            recencyCounts,
+          });
         },
         {
-            revalidate: CacheTTL.STATIC, // 30 days
-            tags: [`problems-company-${companyId}`],
+          revalidate: CacheTTL.STATIC,
+          tags: [`problems-company-${companyId}`],
         }
-    );
+      );
 
-    const { problems, totalProblems, hasMore, nextCursor, totalPages, currentPage } = cachedResult;
-    
-    // Apply default pagination logic that might be computed at runtime or missing from older cached entries
-    const finalTotalPages = totalPages ?? Math.ceil((totalProblemCount || totalProblems || 0) / pageSize);
-    const finalCurrentPage = currentPage ?? (page || 1);
+      const { problems, totalProblems, hasMore, nextCursor, totalPages, currentPage } = cachedResult;
+      
+      const finalTotalPages = totalPages ?? Math.ceil((totalProblemCount || totalProblems || 0) / pageSize);
+      const finalCurrentPage = currentPage ?? (page || 1);
 
-    return {
+      return success({
         problems,
         totalProblems,
         hasMore,
         nextCursor,
         totalPages: finalTotalPages,
         currentPage: finalCurrentPage,
-    };
+      });
+    } catch (error) {
+      return failure({
+        code: "INTERNAL_ERROR",
+        message: "Failed to fetch public problems",
+        details: { companyId },
+        cause: error instanceof Error ? error : undefined,
+      });
+    }
   }
 
   async getProblemsByCompanySlug(
     companySlug: string,
-    params: Parameters<ProblemService["getPublicProblems"]>[1]
-  ): Promise<PaginatedProblemsResponse> {
-      // Direct optimization: Use slug as ID (invariant in our system)
-      return this.getPublicProblems(companySlug, { ...params, companySlug });
+    params: GetPublicProblemsParams = {}
+  ): Promise<Result<PaginatedProblemsResponse, ServiceError>> {
+    return this.getPublicProblems(companySlug, { ...params, companySlug });
   }
 
   async getAllProblemsPaginated(
-    params: {
-      cursor?: string;
-      page?: number;
-      pageSize?: number;
-      difficultyFilter?: DifficultyFilter[];
-      lastAskedFilter?: LastAskedFilter[];
-      searchTerm?: string;
-      sortKey?: SortKey;
-    } = {},
-  ): Promise<PaginatedProblemsResponse> {
+    params: GetAllProblemsParams = {},
+  ): Promise<Result<PaginatedProblemsResponse, ServiceError>> {
+    try {
       const {
         cursor,
         page,
@@ -136,91 +127,184 @@ export class ProblemService {
         sortKey,
       })}`;
 
-      return await cacheManager.wrap(
+      const result = await cacheManager.wrap(
         cacheKey,
         async () => {
-            return await problemRepository.getAllProblemsPaginated({
-                cursor,
-                page,
-                pageSize,
-                difficultyFilter,
-                lastAskedFilter,
-                searchTerm,
-                sortKey,
-            });
+          return await this.repository.getAllProblemsPaginated({
+            cursor,
+            page,
+            pageSize,
+            difficultyFilter,
+            lastAskedFilter,
+            searchTerm,
+            sortKey,
+          });
         },
         {
-            revalidate: CacheTTL.STATIC, // 30 days
-            tags: ["all-problems-v3"],
+          revalidate: CacheTTL.STATIC,
+          tags: ["all-problems-v3"],
         }
       );
+
+      return success(result);
+    } catch (error) {
+      return failure({
+        code: "INTERNAL_ERROR",
+        message: "Failed to fetch all problems",
+        cause: error instanceof Error ? error : undefined,
+      });
+    }
   }
 
-  async getAllProblems(): Promise<LeetCodeProblem[]> {
-    return await cacheManager.wrap(
+  async getAllProblems(): Promise<Result<LeetCodeProblem[], ServiceError>> {
+    try {
+      const result = await cacheManager.wrap(
         "all-problems-list",
-        async () => problemRepository.getAllProblems(),
+        async () => this.repository.getAllProblems(),
         {
-            revalidate: CacheTTL.STATIC, // 30 days
-            tags: ["all-problems"],
+          revalidate: CacheTTL.STATIC,
+          tags: ["all-problems"],
         }
-    );
+      );
+
+      return success(result);
+    } catch (error) {
+      return failure({
+        code: "INTERNAL_ERROR",
+        message: "Failed to fetch all problems list",
+        cause: error instanceof Error ? error : undefined,
+      });
+    }
   }
 
-  async getProblemDetails(companyId: string, problemId: string): Promise<LeetCodeProblem | undefined> {
-    // Problem ID is the slug
-    return await cacheManager.wrap(
+  async getProblemDetails(
+    companyId: string,
+    problemId: string
+  ): Promise<Result<LeetCodeProblem, ServiceError>> {
+    try {
+      const result = await cacheManager.wrap(
         `problem-details-${companyId}-${problemId}`,
-        async () => problemRepository.getProblemDetails(companyId, problemId),
+        async () => this.repository.getProblemDetails(companyId, problemId),
         {
-            revalidate: CacheTTL.STATIC, // 30 days
-            tags: [`problem-${problemId}`, `company-${companyId}`],
+          revalidate: CacheTTL.STATIC,
+          tags: [`problem-${problemId}`, `company-${companyId}`],
         }
-    );
+      );
+
+      if (!result) {
+        return failure({
+          code: "NOT_FOUND",
+          message: `Problem not found: ${problemId}`,
+          details: { companyId, problemId },
+        });
+      }
+
+      return success(result);
+    } catch (error) {
+      return failure({
+        code: "INTERNAL_ERROR",
+        message: "Failed to fetch problem details",
+        details: { companyId, problemId },
+        cause: error instanceof Error ? error : undefined,
+      });
+    }
   }
 
   async getProblemByCompanySlugAndProblemSlug(
     companySlug: string,
     problemSlug: string,
-  ): Promise<{ company: Company | undefined; problem: LeetCodeProblem | undefined }> {
-      return await cacheManager.wrap(
-          `problem-by-slugs-${companySlug}-${problemSlug}`,
-          async () => problemRepository.getProblemByCompanySlugAndProblemSlug(companySlug, problemSlug),
-          {
-              revalidate: CacheTTL.STATIC, // 30 days
-              tags: [`company-slug-${companySlug}`, `problem-${problemSlug}`],
-          }
+  ): Promise<Result<{ company: Company; problem: LeetCodeProblem }, ServiceError>> {
+    try {
+      const result = await cacheManager.wrap(
+        `problem-by-slugs-${companySlug}-${problemSlug}`,
+        async () => this.repository.getProblemByCompanySlugAndProblemSlug(companySlug, problemSlug),
+        {
+          revalidate: CacheTTL.STATIC,
+          tags: [`company-slug-${companySlug}`, `problem-${problemSlug}`],
+        }
       );
+
+      if (!result.company) {
+        return failure({
+          code: "NOT_FOUND",
+          message: `Company not found: ${companySlug}`,
+          details: { companySlug, problemSlug },
+        });
+      }
+
+      if (!result.problem) {
+        return failure({
+          code: "NOT_FOUND",
+          message: `Problem not found: ${problemSlug}`,
+          details: { companySlug, problemSlug },
+        });
+      }
+
+      return success({
+        company: result.company,
+        problem: result.problem,
+      });
+    } catch (error) {
+      return failure({
+        code: "INTERNAL_ERROR",
+        message: "Failed to fetch problem by slugs",
+        details: { companySlug, problemSlug },
+        cause: error instanceof Error ? error : undefined,
+      });
+    }
   }
 
   async getAllProblemCompanyAndProblemSlugs(): Promise<
-    Array<{ companySlug: string; problemSlug: string }>
+    Result<Array<{ companySlug: string; problemSlug: string }>, ServiceError>
   > {
-      return await cacheManager.wrap(
-          "all-problem-company-slugs",
-          async () => problemRepository.getAllProblemCompanyAndProblemSlugs(),
-          {
-              revalidate: CacheTTL.STATIC, // 30 days
-              tags: ["problems-slugs"],
-          }
+    try {
+      const result = await cacheManager.wrap(
+        "all-problem-company-slugs",
+        async () => this.repository.getAllProblemCompanyAndProblemSlugs(),
+        {
+          revalidate: CacheTTL.STATIC,
+          tags: ["problems-slugs"],
+        }
       );
+
+      return success(result);
+    } catch (error) {
+      return failure({
+        code: "INTERNAL_ERROR",
+        message: "Failed to fetch problem slugs",
+        cause: error instanceof Error ? error : undefined,
+      });
+    }
   }
 
   async addProblem(
     companyId: string,
-    problemData: Omit<
-      LeetCodeProblem,
-      "id" | "companyId" | "companySlug" | "slug"
-    > & { normalizedTitle: string },
-  ): Promise<{ id: string | null; updated: boolean; error?: string }> {
-      return await problemRepository.addProblem(companyId, problemData);
+    problemData: CreateProblemInput,
+  ): Promise<Result<{ id: string; updated: boolean }, ServiceError>> {
+    try {
+      const result = await this.repository.addProblem(companyId, problemData);
+
+      if (result.error || !result.id) {
+        return failure({
+          code: "INTERNAL_ERROR",
+          message: result.error || "Failed to add problem",
+          details: { companyId },
+        });
+      }
+
+      return success({
+        id: result.id,
+        updated: result.updated,
+      });
+    } catch (error) {
+      return failure({
+        code: "INTERNAL_ERROR",
+        message: "Failed to add problem",
+        details: { companyId },
+        cause: error instanceof Error ? error : undefined,
+      });
+    }
   }
 }
 
 export const problemService = new ProblemService();
-
-
-
-
-
-

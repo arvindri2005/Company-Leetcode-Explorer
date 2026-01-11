@@ -1,14 +1,31 @@
-// Components
-export * from './components';
+/**
+ * Problems Feature
+ *
+ * Public API exports for the problems feature.
+ * Only export what should be accessible from outside this feature.
+ */
 
-// Types
-export * from './types';
+// Components - Public UI components
+export * from "./components";
 
-// Utils
-export * from './utils';
+// Types - Public type definitions
+export * from "./types";
 
-// Constants
-export * from './constants';
+// Interfaces - Service and repository contracts
+export * from "./interfaces";
+
+// Utils - Public utilities
+export * from "./utils";
+
+// Constants - Public constants
+export * from "./constants";
+
+// Services - Export the service class and singleton instance
+export { ProblemService, problemService } from "./services/problem.service";
+
+// Mappers - Export mapper for domain conversions
+export { ProblemMapper } from "./mappers";
+export type { ProblemDocument } from "./mappers";
 
 
 

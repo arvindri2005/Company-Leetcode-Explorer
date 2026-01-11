@@ -1,160 +1,284 @@
-import { companyRepository, GetCompaniesParams, PaginatedCompaniesResponse } from "../repositories/company.repository";
+import { companyRepository } from "../repositories/company.repository";
 import { Company } from "@/features/companies/types";
 import { Logger } from "@/lib/utils/logger";
 import { cacheManager, CacheTTL } from "@/lib/utils/cache";
+import { success, failure, type Result } from "@/shared/types/result";
+import type { ServiceError } from "@/shared/types/service-error";
+import type {
+  ICompanyService,
+  LoadMoreCompaniesResponse,
+} from "../interfaces/company.service.interface";
+import type {
+  ICompanyRepository,
+  GetCompaniesParams,
+  PaginatedCompaniesResponse,
+  CreateCompanyDTO,
+  UpdateCompanyDTO,
+} from "../interfaces/company.repository.interface";
 
-export class CompanyService {
-  async getCompanies(params: GetCompaniesParams = {}): Promise<PaginatedCompaniesResponse> {
-    const { page, pageSize, searchTerm, cursor } = params;
+export class CompanyService implements ICompanyService {
+  constructor(
+    private readonly repository: ICompanyRepository = companyRepository
+  ) {}
 
-    const cacheKey = `companies-public-${JSON.stringify({
-      page,
-      pageSize,
-      searchTerm,
-      cursor,
-    })}`;
+  async getCompanies(
+    params: GetCompaniesParams = {}
+  ): Promise<Result<PaginatedCompaniesResponse, ServiceError>> {
+    try {
+      const { page, pageSize, searchTerm, cursor } = params;
 
-    return await cacheManager.wrap(
-      cacheKey,
-      async () => await companyRepository.getCompanies(params),
-      {
-        revalidate: CacheTTL.STATIC, // 30 days
-        tags: ["companies-collection-broad"],
-      }
-    );
+      const cacheKey = `companies-public-${JSON.stringify({
+        page,
+        pageSize,
+        searchTerm,
+        cursor,
+      })}`;
+
+      const result = await cacheManager.wrap(
+        cacheKey,
+        async () => await this.repository.getCompanies(params),
+        {
+          revalidate: CacheTTL.STATIC, // 30 days
+          tags: ["companies-collection-broad"],
+        }
+      );
+
+      return success(result);
+    } catch (error) {
+      return failure({
+        code: "INTERNAL_ERROR",
+        message: "Failed to fetch companies",
+        cause: error instanceof Error ? error : undefined,
+      });
+    }
   }
 
   async loadMoreCompanies(
     currentCursor: string,
     pageSize: number = 9,
-    searchTerm?: string,
-  ): Promise<{
-    companies: Company[];
-    nextCursor?: string;
-    hasMore: boolean;
-  }> {
-    const result = await companyRepository.getCompanies({
+    searchTerm?: string
+  ): Promise<Result<LoadMoreCompaniesResponse, ServiceError>> {
+    try {
+      const result = await this.repository.getCompanies({
         pageSize,
         searchTerm,
         cursor: currentCursor,
-    });
-    return {
+      });
+
+      return success({
         companies: result.companies,
         nextCursor: result.nextCursor,
         hasMore: result.hasMore,
-    };
+      });
+    } catch (error) {
+      return failure({
+        code: "INTERNAL_ERROR",
+        message: "Failed to load more companies",
+        cause: error instanceof Error ? error : undefined,
+      });
+    }
   }
 
-  async getCompanyById(id: string, useCache: boolean = true): Promise<Company | undefined> {
-    if (!useCache) {
-      return await companyRepository.getCompanyById(id);
-    }
-
+  async getCompanyById(
+    id: string,
+    useCache: boolean = true
+  ): Promise<Result<Company, ServiceError>> {
     try {
-      return await cacheManager.wrap(
+      if (!useCache) {
+        const company = await this.repository.getCompanyById(id);
+        if (!company) {
+          return failure({
+            code: "NOT_FOUND",
+            message: `Company not found: ${id}`,
+            details: { id },
+          });
+        }
+        return success(company);
+      }
+
+      const company = await cacheManager.wrap(
         `company-${id}`,
-        async () => companyRepository.getCompanyById(id),
+        async () => this.repository.getCompanyById(id),
         {
           revalidate: CacheTTL.STATIC, // 30 days
           tags: [`company-${id}-v2`],
         }
       );
+
+      if (!company) {
+        return failure({
+          code: "NOT_FOUND",
+          message: `Company not found: ${id}`,
+          details: { id },
+        });
+      }
+
+      return success(company);
     } catch (error) {
       Logger.error(`Error fetching company by ID ${id}`, error);
-      return undefined;
+      return failure({
+        code: "INTERNAL_ERROR",
+        message: "Failed to fetch company by ID",
+        details: { id },
+        cause: error instanceof Error ? error : undefined,
+      });
     }
   }
 
-  async getCompanyBySlug(slug: string, useCache: boolean = true): Promise<Company | undefined> {
-    if (!useCache) {
-      return await companyRepository.getCompanyBySlug(slug);
-    }
-
+  async getCompanyBySlug(
+    slug: string,
+    useCache: boolean = true
+  ): Promise<Result<Company, ServiceError>> {
     try {
-      return await cacheManager.wrap(
+      if (!useCache) {
+        const company = await this.repository.getCompanyBySlug(slug);
+        if (!company) {
+          return failure({
+            code: "NOT_FOUND",
+            message: `Company not found: ${slug}`,
+            details: { slug },
+          });
+        }
+        return success(company);
+      }
+
+      const company = await cacheManager.wrap(
         `company-slug-${slug}`,
-        async () => companyRepository.getCompanyBySlug(slug),
+        async () => this.repository.getCompanyBySlug(slug),
         {
           revalidate: CacheTTL.STATIC, // 30 days
           tags: [`company-slug-${slug}-v2`],
         }
       );
+
+      if (!company) {
+        return failure({
+          code: "NOT_FOUND",
+          message: `Company not found: ${slug}`,
+          details: { slug },
+        });
+      }
+
+      return success(company);
     } catch (error) {
       Logger.error(`Error fetching company by slug ${slug}`, error);
-      return undefined;
+      return failure({
+        code: "INTERNAL_ERROR",
+        message: "Failed to fetch company by slug",
+        details: { slug },
+        cause: error instanceof Error ? error : undefined,
+      });
     }
   }
 
-  async getAllCompanySlugs(useCache: boolean = true): Promise<string[]> {
-    if (!useCache) {
-        return await companyRepository.getAllCompanySlugs(true);
-    }
-    
+  async getAllCompanySlugs(
+    useCache: boolean = true
+  ): Promise<Result<string[], ServiceError>> {
     try {
-      return await cacheManager.wrap(
-        'all-company-slugs',
-        async () => companyRepository.getAllCompanySlugs(true),
+      if (!useCache) {
+        const slugs = await this.repository.getAllCompanySlugs(true);
+        return success(slugs);
+      }
+
+      const slugs = await cacheManager.wrap(
+        "all-company-slugs",
+        async () => this.repository.getAllCompanySlugs(true),
         {
-            revalidate: CacheTTL.DAILY, // 24 hours
-            tags: ['companies-list'],
+          revalidate: CacheTTL.DAILY, // 24 hours
+          tags: ["companies-list"],
         }
       );
+
+      return success(slugs);
     } catch (error) {
-        Logger.error("Error fetching all company slugs", error);
-        return [];
+      Logger.error("Error fetching all company slugs", error);
+      return failure({
+        code: "INTERNAL_ERROR",
+        message: "Failed to fetch company slugs",
+        cause: error instanceof Error ? error : undefined,
+      });
     }
   }
 
   async addCompany(
-    companyData: Omit<
-      Company,
-      | "id"
-      | "slug"
-      | "problemCount"
-      | "difficultyCounts"
-      | "recencyCounts"
-      | "commonTags"
-      | "statsLastUpdatedAt"
-    >,
-  ): Promise<{ id: string | null; error?: string; alreadyExists?: boolean }> {
-      const result = await companyRepository.addCompany(companyData);
-      if (result.id) {
-          await this.revalidateCompaniesPage(result.id, result.id);
+    companyData: CreateCompanyDTO
+  ): Promise<Result<{ id: string; alreadyExists?: boolean }, ServiceError>> {
+    try {
+      const result = await this.repository.addCompany(companyData);
+
+      if (!result.id) {
+        return failure({
+          code: "VALIDATION_ERROR",
+          message: result.error || "Failed to add company",
+        });
       }
-      return result;
+
+      if (result.alreadyExists) {
+        return success({
+          id: result.id,
+          alreadyExists: true,
+        });
+      }
+
+      // Revalidate cache after successful creation
+      await this.revalidateCompaniesPage(result.id, result.id);
+
+      return success({ id: result.id });
+    } catch (error) {
+      return failure({
+        code: "INTERNAL_ERROR",
+        message: "Failed to add company",
+        cause: error instanceof Error ? error : undefined,
+      });
+    }
   }
 
   async updateCompany(
     companyId: string,
-    companyData: Partial<Company>,
-  ): Promise<{ success: boolean; error?: string }> {
-      const result = await companyRepository.updateCompany(companyId, companyData);
-      if (result.success) {
-          const company = await this.getCompanyById(companyId, false);
-          const slug = company?.slug;
-          await this.revalidateCompaniesPage(companyId, slug);
+    companyData: UpdateCompanyDTO
+  ): Promise<Result<void, ServiceError>> {
+    try {
+      const result = await this.repository.updateCompany(companyId, companyData);
+
+      if (!result.success) {
+        return failure({
+          code: "INTERNAL_ERROR",
+          message: result.error || "Failed to update company",
+          details: { companyId },
+        });
       }
-      return result;
+
+      // Revalidate cache after successful update
+      const companyResult = await this.getCompanyById(companyId, false);
+      const slug = companyResult.isSuccess ? companyResult.value.slug : undefined;
+      await this.revalidateCompaniesPage(companyId, slug);
+
+      return success(undefined);
+    } catch (error) {
+      return failure({
+        code: "INTERNAL_ERROR",
+        message: "Failed to update company",
+        details: { companyId },
+        cause: error instanceof Error ? error : undefined,
+      });
+    }
   }
 
-  async revalidateCompaniesPage(companyId?: string, companySlug?: string) {
+  async revalidateCompaniesPage(
+    companyId?: string,
+    companySlug?: string
+  ): Promise<void> {
     try {
-      // Note: We need to use cacheManager.revalidateTag instead of direct revalidateTag import
-      // however, revalidateTag takes a single string.
-      // The original code was: revalidateTag("companies-list", 'max'); 
-      // Note: 'max' is not a valid 2nd arg for revalidateTag in standard Next.js, maybe it was ignored or from a specific version?
-      // Standard signature: revalidateTag(tag: string): void
-      
       cacheManager.revalidateTag("companies-list");
-      
+
       if (companyId) {
         cacheManager.revalidateTag(`company-${companyId}-v2`);
       }
-      
+
       if (companySlug) {
         cacheManager.revalidateTag(`company-slug-${companySlug}-v2`);
       }
-      
+
       Logger.info("[Cache] Revalidated companies page", { companyId, companySlug });
     } catch (error) {
       Logger.error("Failed to revalidate companies page", error);
@@ -163,16 +287,22 @@ export class CompanyService {
 
   async fetchCompanySuggestions(
     searchTerm: string,
-    limitNum: number = 5,
-  ): Promise<Array<Pick<Company, "id" | "name" | "slug" | "logo">>> {
-    return await companyRepository.fetchCompanySuggestions(searchTerm, limitNum);
+    limitNum: number = 5
+  ): Promise<Result<Array<Pick<Company, "id" | "name" | "slug" | "logo">>, ServiceError>> {
+    try {
+      const suggestions = await this.repository.fetchCompanySuggestions(
+        searchTerm,
+        limitNum
+      );
+      return success(suggestions);
+    } catch (error) {
+      return failure({
+        code: "INTERNAL_ERROR",
+        message: "Failed to fetch company suggestions",
+        cause: error instanceof Error ? error : undefined,
+      });
+    }
   }
 }
 
 export const companyService = new CompanyService();
-
-
-
-
-
-

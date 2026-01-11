@@ -64,7 +64,11 @@ describe("ProblemService", () => {
 
       expect(cacheManager.wrap).toHaveBeenCalled();
       expect(problemRepository.getAllProblemsPaginated).toHaveBeenCalled();
-      expect(result.problems).toEqual(mockProblems);
+      // Service now returns Result type, so we need to check isSuccess and extract value
+      expect(result.isSuccess).toBe(true);
+      if (result.isSuccess) {
+        expect(result.value.problems).toEqual(mockProblems);
+      }
     });
   });
 });

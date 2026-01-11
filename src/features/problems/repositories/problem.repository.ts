@@ -35,6 +35,15 @@ import {
   DifficultyFilterImplementation,
   LastAskedFilterImplementation,
 } from "@/features/problems/utils/problem-filters/implementations";
+import type {
+  IProblemRepository,
+  ProblemFilterParams,
+  CreateProblemDTO,
+  UpdateProblemDTO,
+} from "../interfaces/problem.repository.interface";
+import type { PaginatedResult } from "@/shared/interfaces";
+import type { Problem } from "@/domain/entities/problem.entity";
+import { ProblemMapper } from "../mappers/problem.mapper";
 
 // Register Core Filters
 problemFilterRegistry.register(new DifficultyFilterImplementation());
@@ -77,7 +86,151 @@ type FetchProblemsParams = {
   };
 };
 
-export class ProblemRepository {
+export class ProblemRepository implements IProblemRepository {
+  /**
+   * Find a problem by its unique identifier
+   * Implements IBaseRepository.findById
+   */
+  async findById(id: string): Promise<Problem | null> {
+    try {
+      const problemDocRef = doc(getFirestore(), "problems", id);
+      const problemSnap = await getDoc(problemDocRef);
+
+      if (!problemSnap.exists()) {
+        return null;
+      }
+
+      const data = problemSnap.data();
+      return ProblemMapper.toDomain({
+        id: problemSnap.id,
+        title: data.title,
+        description: data.description,
+        difficulty: data.difficulty,
+        link: data.link,
+        tags: data.tags || [],
+        normalizedTitle: data.normalizedTitle,
+        acceptanceRate: data.acceptanceRate,
+        lastAskedPeriod: data.lastAskedPeriod,
+        companyId: data.companyIds?.[0] || "unknown",
+        companySlug: data.companySlug || "unknown",
+        companyIds: data.companyIds,
+        companies: data.companies,
+        problemCompanyName: data.problemCompanyName,
+        slug: problemSnap.id,
+      });
+    } catch (error: unknown) {
+      Logger.error("Error finding problem by ID", error, { id });
+      return null;
+    }
+  }
+
+  /**
+   * Find all problems with pagination
+   * Implements IBaseRepository.findAll
+   */
+  async findAll(params?: ProblemFilterParams): Promise<PaginatedResult<Problem>> {
+    const result = await this.getAllProblemsPaginated(params);
+    const problems = result.problems.map((p) => ProblemMapper.fromDTO(p as LeetCodeProblem));
+    
+    return {
+      items: problems,
+      totalItems: result.totalProblems,
+      hasMore: result.hasMore || false,
+      nextCursor: result.nextCursor,
+      totalPages: result.totalPages,
+      currentPage: result.currentPage,
+    };
+  }
+
+  /**
+   * Save a new problem
+   * Implements IBaseRepository.save
+   */
+  async save(data: CreateProblemDTO): Promise<Problem> {
+    const problemSlug = slugify(data.title);
+    const problemDocRef = doc(getFirestore(), "problems", problemSlug);
+
+    const dataToSave = {
+      ...data,
+      slug: problemSlug,
+      companyIds: [],
+      companies: {},
+    };
+
+    await setDoc(problemDocRef, dataToSave);
+
+    return ProblemMapper.toDomain({
+      id: problemSlug,
+      title: data.title,
+      description: data.description,
+      difficulty: data.difficulty,
+      link: data.link,
+      tags: data.tags,
+      normalizedTitle: data.normalizedTitle,
+      acceptanceRate: data.acceptanceRate,
+      lastAskedPeriod: data.lastAskedPeriod,
+      companyId: "",
+      companySlug: "",
+      slug: problemSlug,
+    });
+  }
+
+  /**
+   * Update an existing problem
+   * Implements IBaseRepository.update
+   */
+  async update(id: string, data: UpdateProblemDTO): Promise<Problem> {
+    const problemDocRef = doc(getFirestore(), "problems", id);
+    const problemSnap = await getDoc(problemDocRef);
+
+    if (!problemSnap.exists()) {
+      throw new Error(`Problem not found: ${id}`);
+    }
+
+    await updateDoc(problemDocRef, data);
+
+    const updatedSnap = await getDoc(problemDocRef);
+    const updatedData = updatedSnap.data()!;
+
+    return ProblemMapper.toDomain({
+      id: updatedSnap.id,
+      title: updatedData.title,
+      description: updatedData.description,
+      difficulty: updatedData.difficulty,
+      link: updatedData.link,
+      tags: updatedData.tags || [],
+      normalizedTitle: updatedData.normalizedTitle,
+      acceptanceRate: updatedData.acceptanceRate,
+      lastAskedPeriod: updatedData.lastAskedPeriod,
+      companyId: updatedData.companyIds?.[0] || "unknown",
+      companySlug: updatedData.companySlug || "unknown",
+      companyIds: updatedData.companyIds,
+      companies: updatedData.companies,
+      problemCompanyName: updatedData.problemCompanyName,
+      slug: updatedSnap.id,
+    });
+  }
+
+  /**
+   * Delete a problem by ID
+   * Implements IBaseRepository.delete
+   */
+  async delete(id: string): Promise<void> {
+    const problemDocRef = doc(getFirestore(), "problems", id);
+    const { deleteDoc } = await import("firebase/firestore");
+    await deleteDoc(problemDocRef);
+  }
+
+  /**
+   * Check if a problem exists
+   * Implements IBaseRepository.exists
+   */
+  async exists(id: string): Promise<boolean> {
+    const problemDocRef = doc(getFirestore(), "problems", id);
+    const problemSnap = await getDoc(problemDocRef);
+    return problemSnap.exists();
+  }
+
   async getProblemsByCompany(
     companyId: string,
     params: FetchProblemsParams = {},
