@@ -164,9 +164,9 @@ features/
 │   ├── api/
 │   ├── components/
 │   ├── hooks/
-│   ├── repositories/      # NEW: Company repository
-│   ├── services/          # NEW: Company service
-│   ├── types/
+│   ├── repositories/      # Company repository
+│   ├── services/          # Company service
+│   ├── types/             # Company and Job Application types
 │   └── index.ts
 ├── contact/             # Contact form feature
 │   ├── components/
@@ -190,7 +190,8 @@ features/
 └── tools/               # Developer tools
     ├── __tests__/
     ├── components/
-    ├── hooks/             # NEW: Typing game hooks
+    ├── hooks/             # Typing game hooks
+    ├── types/             # Typing test types
     ├── utils/
     └── index.ts
 ```
@@ -258,9 +259,7 @@ hooks/
 ├── use-online-status.ts       # Network status detection
 ├── use-problem-interactions.tsx # Problem interaction tracking
 ├── use-speech.ts              # Text-to-speech
-├── use-toast.ts               # Toast notifications
-├── use-typing-game.ts         # Typing test game logic
-└── use-typing-placeholder.ts  # Animated placeholder text
+└── use-toast.ts               # Toast notifications
 ```
 
 ### `src/providers/` - Context Providers
@@ -282,8 +281,6 @@ types/
 ├── amp.d.ts             # AMP type declarations
 ├── common.ts            # Common utility types
 ├── index.ts             # Barrel exports
-├── job-application.ts   # Job application types
-├── typing-test.ts       # Typing test types
 ├── ui.ts                # UI component types
 └── user.ts              # User types
 ```

@@ -8,6 +8,6 @@ export * from "../features/problems/types";
 // Re-export company types from feature
 export * from "../features/companies/types";
 export * from "./user";
-export * from "./job-application";
+
 export * from "./ui";
 export * from "../features/ai/types/ai";
