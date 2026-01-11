@@ -1,5 +1,6 @@
-import { Logger } from "@/lib/utils/logger";
 import { createHash } from "crypto";
+
+import { Logger } from "@/lib/utils/logger";
 
 interface CacheEntry<T> {
   value: T;
@@ -60,7 +61,7 @@ export class SimpleLRUCache<T> {
 
   has(key: string): boolean {
     const entry = this.cache.get(key);
-    if (!entry) return false;
+    if (!entry) {return false;}
     if (Date.now() > entry.expiry) {
         this.cache.delete(key);
         return false;
@@ -80,18 +81,18 @@ export class SimpleLRUCache<T> {
    * Generates a cache key from an input object.
    * Sorts object keys to ensure consistent hashing.
    */
-  generateKey(input: any): string {
-    const sortedStringify = (obj: any): string => {
+  generateKey(input: unknown): string {
+    const sortedStringify = (obj: unknown): string => {
         if (typeof obj !== 'object' || obj === null) {
             return JSON.stringify(obj);
         }
         if (Array.isArray(obj)) {
             return JSON.stringify(obj.map(item => JSON.parse(sortedStringify(item))));
         }
-        const sortedKeys = Object.keys(obj).sort();
-        const result: any = {};
+        const sortedKeys = Object.keys(obj as Record<string, unknown>).sort();
+        const result: Record<string, unknown> = {};
         sortedKeys.forEach(key => {
-            result[key] = JSON.parse(sortedStringify(obj[key]));
+            result[key] = JSON.parse(sortedStringify((obj as Record<string, unknown>)[key]));
         });
         return JSON.stringify(result);
     };

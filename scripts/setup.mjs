@@ -1,6 +1,6 @@
+import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
 // ESM dirname equivalent
@@ -77,7 +77,7 @@ if (!fs.existsSync(ENV_EXAMPLE)) {
         log.warn(`Found ${missingKeys.length} missing keys in .env.local:`);
         
         let newContent = localContent;
-        if (!newContent.endsWith('\n')) newContent += '\n';
+        if (!newContent.endsWith('\n')) {newContent += '\n';}
         
         newContent += '\n# --- Added by Setup Script ---\n';
         

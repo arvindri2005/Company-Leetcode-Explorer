@@ -9,9 +9,12 @@
 "use client"; // Error components must be Client Components
 
 import { useEffect } from "react";
+
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+
 import { AlertTriangle, Home, RefreshCw } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,

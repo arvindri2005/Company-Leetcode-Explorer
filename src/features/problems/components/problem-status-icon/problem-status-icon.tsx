@@ -1,6 +1,9 @@
 "use client";
 
 import React from "react";
+
+import { CheckCircle2, ListTodo,Pencil } from "lucide-react";
+
 import {
   Tooltip,
   TooltipContent,
@@ -8,9 +11,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { ProblemStatus } from "../../types";
+
 import { PROBLEM_STATUS_DISPLAY } from "../../constants";
-import { CheckCircle2, Pencil, ListTodo } from "lucide-react";
+import { type ProblemStatus } from "../../types";
 
 const statusConfig = {
   solved: {
@@ -33,10 +36,10 @@ const statusConfig = {
 const ProblemStatusIconComponent: React.FC<{ status: ProblemStatus }> = ({
   status,
 }) => {
-  if (status === "none" || !PROBLEM_STATUS_DISPLAY[status]) return null;
+  if (status === "none" || !PROBLEM_STATUS_DISPLAY[status]) {return null;}
 
   const config = statusConfig[status as keyof typeof statusConfig];
-  if (!config) return null;
+  if (!config) {return null;}
 
   const { Icon, bgColor, textColor } = config;
 

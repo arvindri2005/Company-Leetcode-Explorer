@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+
 import RelatedCompanies from '@/features/companies/components/related-companies';
 
 describe('RelatedCompanies', () => {

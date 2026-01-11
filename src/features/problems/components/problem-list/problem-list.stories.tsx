@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
+
+import { type LeetCodeProblem } from "../../types";
+
 import ProblemList from "./problem-list";
-import { LeetCodeProblem } from "../../types";
 
 // Mock Next.js hooks
 // In Storybook, we might need a decorator or just rely on the component being resilient if hooks return defaults. A decorator mocking next/navigation is best.

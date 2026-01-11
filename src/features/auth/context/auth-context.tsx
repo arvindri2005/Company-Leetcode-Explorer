@@ -1,17 +1,20 @@
 "use client";
 
-import type { User as FirebaseUser } from "firebase/auth";
-import type { AuthContextType } from "../types";
 import React, {
   createContext,
+  type ReactNode,
   useEffect,
   useState,
-  ReactNode,
 } from "react";
+
+import type { User as FirebaseUser } from "firebase/auth";
 import { onAuthStateChanged } from "firebase/auth";
+
 import { auth } from "@/lib/api/firebase";
-import { authService } from "../services/auth.service";
 import { Logger } from "@/lib/utils/logger";
+
+import { authService } from "../services/auth.service";
+import type { AuthContextType } from "../types";
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 

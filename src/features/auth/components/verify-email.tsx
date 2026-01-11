@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { applyActionCode } from "firebase/auth";
-import { auth } from "@/lib/api/firebase";
-import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle2, XCircle } from "lucide-react";
+
 import Link from "next/link";
+
+import { applyActionCode } from "firebase/auth";
+import { CheckCircle2, Loader2, XCircle } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { auth } from "@/lib/api/firebase";
 
 interface VerifyEmailProps {
   oobCode: string | null;
@@ -17,9 +20,12 @@ export default function VerifyEmail({ oobCode }: VerifyEmailProps) {
 
   useEffect(() => {
     if (!oobCode) {
-      setStatus("error");
-      setMessage("Invalid verification link. The code is missing.");
-      return;
+      // Schedule state update for next tick to avoid setState in effect
+      const timeoutId = setTimeout(() => {
+        setStatus("error");
+        setMessage("Invalid verification link. The code is missing.");
+      }, 0);
+      return () => clearTimeout(timeoutId);
     }
 
     applyActionCode(auth, oobCode)

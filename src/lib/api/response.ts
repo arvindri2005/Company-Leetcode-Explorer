@@ -69,7 +69,7 @@ export interface PaginationMeta {
  * Creates a successful API response
  *
  * @template T - The type of data being returned
- * @param data - The response data
+ * @param data - The response data (optional for void responses)
  * @param meta - Optional additional metadata
  * @returns A successful ApiResponse object
  *
@@ -82,10 +82,28 @@ export interface PaginationMeta {
 export function successResponse<T>(
   data: T,
   meta?: Partial<ResponseMeta>
-): ApiResponse<T> {
+): ApiResponse<T>;
+export function successResponse(
+  meta?: Partial<ResponseMeta>
+): ApiResponse<void>;
+export function successResponse<T>(
+  dataOrMeta?: T | Partial<ResponseMeta>,
+  meta?: Partial<ResponseMeta>
+): ApiResponse<T | void> {
+  // Check if first argument is meta (no data provided)
+  if (dataOrMeta === undefined || (typeof dataOrMeta === 'object' && dataOrMeta !== null && 'timestamp' in dataOrMeta)) {
+    return {
+      success: true,
+      meta: {
+        timestamp: new Date().toISOString(),
+        ...(dataOrMeta as Partial<ResponseMeta>),
+      },
+    };
+  }
+  
   return {
     success: true,
-    data,
+    data: dataOrMeta as T,
     meta: {
       timestamp: new Date().toISOString(),
       ...meta,

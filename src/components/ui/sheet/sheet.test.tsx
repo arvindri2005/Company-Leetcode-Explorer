@@ -1,5 +1,8 @@
 
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+
+import { Button } from "@/components/ui/button";
+
 import {
   Sheet,
   SheetContent,
@@ -8,7 +11,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "./sheet";
-import { Button } from "@/components/ui/button";
 
 describe("Sheet", () => {
   it("opens sheet on click", async () => {

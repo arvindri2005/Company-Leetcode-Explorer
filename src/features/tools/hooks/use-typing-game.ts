@@ -1,14 +1,14 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useCallback,useEffect, useMemo, useRef, useState } from "react";
+
 import { snippets } from "@/constants/typing-test-snippets";
-import { Snippet, Language } from "@/features/tools";
+import { type Language,type Snippet } from "@/features/tools";
 import {
-  calculateWPM,
   calculateAccuracy,
+  calculateWPM,
   checkMistake,
-  processTabKey,
+  countCurrentMistakes,
   processEnterKey,
-  countCurrentMistakes
-} from "@/features/tools/utils/typing-game-logic";
+  processTabKey} from "@/features/tools/utils/typing-game-logic";
 
 export const useTypingGame = () => {
   // Game State
@@ -25,7 +25,7 @@ export const useTypingGame = () => {
 
   const [userInput, setUserInput] = useState("");
   const [startTime, setStartTime] = useState<number | null>(null);
-  const [endTime, setEndTime] = useState<number | null>(null);
+  const [, setEndTime] = useState<number | null>(null);
   const [isFinished, setIsFinished] = useState(false);
   const [wpm, setWpm] = useState(0);
   const [accuracy, setAccuracy] = useState(100);
@@ -124,7 +124,7 @@ export const useTypingGame = () => {
 
   const nextSnippet = useCallback(() => {
     const filtered = snippets.filter(s => s.language === selectedLanguage);
-    if (filtered.length === 0) return;
+    if (filtered.length === 0) {return;}
 
     let next = filtered[Math.floor(Math.random() * filtered.length)];
     if (filtered.length > 1 && currentSnippet) {
@@ -145,7 +145,7 @@ export const useTypingGame = () => {
         return;
     }
     
-    if (isFinished) return;
+    if (isFinished) {return;}
 
     const start = e.currentTarget.selectionStart;
     const end = e.currentTarget.selectionEnd;
@@ -163,7 +163,7 @@ export const useTypingGame = () => {
           }
       }, 0);
       
-      if (!startTime) setStartTime(Date.now());
+      if (!startTime) {setStartTime(Date.now());}
     }
     
     if (e.key === 'Enter') {
@@ -178,12 +178,12 @@ export const useTypingGame = () => {
           }
       }, 0);
       
-      if (!startTime) setStartTime(Date.now());
+      if (!startTime) {setStartTime(Date.now());}
     }
   }, [isFinished, startTime, resetGame]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    if (isFinished || !currentSnippet) return;
+    if (isFinished || !currentSnippet) {return;}
 
     const value = e.target.value;
     const prevValue = userInput;
@@ -221,7 +221,7 @@ export const useTypingGame = () => {
   }, [isFinished, currentSnippet, startTime, userInput]);
 
   const progress = useMemo(() => {
-    if (!currentSnippet) return 0;
+    if (!currentSnippet) {return 0;}
     return Math.min(100, (userInput.length / currentSnippet.code.length) * 100);
   }, [userInput, currentSnippet]);
 
@@ -240,7 +240,7 @@ export const useTypingGame = () => {
       progress,
       mistakes: totalMistakes, 
       currentMistakes: useMemo(() => { 
-          if (!currentSnippet) return 0;
+          if (!currentSnippet) {return 0;}
           return countCurrentMistakes(userInput, currentSnippet.code);
       }, [userInput, currentSnippet])
   };

@@ -1,14 +1,10 @@
-import { ProblemRepository } from "../problem.repository";
 import {
-  collection,
+  getDocs,
   query,
   where,
-  getDocs,
-  orderBy,
-  limit,
-  startAfter,
-  Firestore,
 } from "firebase/firestore";
+
+import { ProblemRepository } from "../problem.repository";
 
 // Mock Firebase dependencies
 jest.mock("@/lib/api/firebase", () => ({
@@ -51,9 +47,6 @@ describe("ProblemRepository Search Optimization", () => {
   const mockGetDocs = getDocs as jest.Mock;
   const mockQuery = query as jest.Mock;
   const mockWhere = where as jest.Mock;
-  const mockCollection = collection as jest.Mock;
-  const mockOrderBy = orderBy as jest.Mock;
-  const mockLimit = limit as jest.Mock;
 
   beforeEach(() => {
     repository = new ProblemRepository();
@@ -113,7 +106,7 @@ describe("ProblemRepository Search Optimization", () => {
       // We can inspect the calls to `query`.
       // The last call to `query` (before `getDocs`) should contain the range filters.
       const queryCalls = mockQuery.mock.calls;
-      const lastQueryCall = queryCalls[queryCalls.length - 1];
+      const _lastQueryCall = queryCalls[queryCalls.length - 1];
       
       // We need to check if the arguments passed to query include the result of our where() calls.
       // Since 'where' returns a constraint object, we can't easily match object identity without capturing the return values.

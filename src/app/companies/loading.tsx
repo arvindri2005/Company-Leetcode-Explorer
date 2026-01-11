@@ -7,9 +7,9 @@
  * providing a better user experience than a blank screen or a simple spinner.
  */
 import {
+  CompanyTableSkeleton,
   DashboardHeaderSkeleton,
   TechCompanyCardSkeleton,
-  CompanyTableSkeleton,
 } from "@/components/skeletons/companies-skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
 

@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+
 import CompanyNotFound from '@/features/companies/components/page/company-not-found';
 
 describe('CompanyNotFound', () => {

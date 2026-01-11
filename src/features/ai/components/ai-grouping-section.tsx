@@ -8,33 +8,36 @@
  */
 "use client";
 
-import type { LeetCodeProblem, AIProblemInput, ProblemSummaryDTO } from "@/types";
+import { useEffect,useState } from "react";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+import { AlertCircle,Info, Loader2, LogIn, Sparkles } from "lucide-react";
+
 import type { GroupQuestionsOutput } from "@/ai/flows/group-questions";
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { performQuestionGrouping } from "@/app/actions/ai.actions";
-import { useToast } from "@/hooks/use-toast";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
-import { ProblemCard } from "@/features/problems";
-import { Sparkles, Loader2, LogIn, Info, AlertCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { useAuth } from "@/providers";
 import { useAICooldown } from "@/features/ai";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { ProblemCard } from "@/features/problems";
+import { useToast } from "@/hooks/use-toast";
 import { slugify } from "@/lib/utils";
+import { useAuth } from "@/providers";
+import type { AIProblemInput, LeetCodeProblem, ProblemSummaryDTO } from "@/types";
 
 /**
  * Props for the AIGroupingSection component.
@@ -84,12 +87,12 @@ const AIGroupingSection: React.FC<AIGroupingSectionProps> = ({
 
   useEffect(() => {
     async function fetchAIProblems() {
-      if (!companyId) return;
+      if (!companyId) {return;}
 
       setIsFetchingProblems(true);
       try {
         const response = await fetch(`/api/companies/${companyId}/ai-problems`);
-        if (!response.ok) throw new Error("Failed to fetch AI problems");
+        if (!response.ok) {throw new Error("Failed to fetch AI problems");}
         const data = await response.json();
         setProblems(data);
       } catch (error) {

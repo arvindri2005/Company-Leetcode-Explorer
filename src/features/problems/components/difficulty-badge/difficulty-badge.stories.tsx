@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
+
 import DifficultyBadge from "./difficulty-badge";
 
 const meta = {

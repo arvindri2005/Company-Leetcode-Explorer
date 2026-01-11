@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
+
 import { ProblemStatusIcon } from "./problem-status-icon";
 
 const meta = {

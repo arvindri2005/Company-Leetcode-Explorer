@@ -1,12 +1,13 @@
 import {
-  Search,
+  Clock,
   Lightbulb,
   LineChart,
-  Users,
+  Search,
   Smartphone,
-  Clock,
+  Users,
 } from "lucide-react";
-import { Feature, Stat } from "@/types";
+
+import { type Feature, type Stat } from "@/types";
 
 /**
  * @const FEATURES

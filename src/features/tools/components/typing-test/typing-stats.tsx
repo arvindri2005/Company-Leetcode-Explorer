@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Zap, Target, AlertCircle } from "lucide-react";
+
+import { AlertCircle,Target, Zap } from "lucide-react";
 
 export default function TypingStats({ wpm, accuracy, mistakes }: { wpm: number; accuracy: number; mistakes: number }) {
   // Animate values

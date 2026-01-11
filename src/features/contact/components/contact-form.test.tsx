@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+
 import { ContactForm } from './contact-form';
 
 // Just mock things to avoid errors, we can't easily run real tests in this environment

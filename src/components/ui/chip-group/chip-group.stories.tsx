@@ -1,6 +1,8 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { ChipGroup } from "./chip-group";
 import { useState } from "react";
+
+import type { Meta, StoryObj } from "@storybook/react";
+
+import { ChipGroup } from "./chip-group";
 
 const meta = {
   title: "UI/ChipGroup",

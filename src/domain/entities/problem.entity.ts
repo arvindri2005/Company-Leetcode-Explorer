@@ -1,6 +1,7 @@
+import { type Difficulty } from "../value-objects/difficulty.vo";
+import { type ProblemStatus } from "../value-objects/problem-status.vo";
+
 import { Entity } from "./base.entity";
-import { Difficulty } from "../value-objects/difficulty.vo";
-import { ProblemStatus } from "../value-objects/problem-status.vo";
 
 /**
  * Properties for the Problem entity

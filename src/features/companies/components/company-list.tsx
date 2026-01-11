@@ -8,16 +8,20 @@
  */
 "use client";
 
-import type { Company } from "@/features/companies/types";
-import { useState, useEffect, useRef, useCallback } from "react";
-import CompanyCard from "./company-card";
-import ErrorBoundary from "@/components/ui/error-boundary";
-import CompanyCardErrorFallback from "./company-card-error-fallback";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useCallback,useEffect, useRef, useState } from "react";
+
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
 import { useDebounce } from "use-debounce";
+
 import { fetchCompanySuggestionsAction } from "@/app/actions";
-import CompanySearchBar from "./company-search-bar";
+import ErrorBoundary from "@/components/ui/error-boundary";
+import type { Company } from "@/features/companies/types";
 import { useCursorPagination } from "@/hooks/use-cursor-pagination";
+
+import CompanyCard from "./company-card";
+import CompanyCardErrorFallback from "./company-card-error-fallback";
+import CompanySearchBar from "./company-search-bar";
 
 /**
  * Props for the CompanyList component.
@@ -33,10 +37,6 @@ interface CompanyListProps {
   initialNextCursor?: string;
   /** The number of items to fetch per page for pagination. */
   itemsPerPage: number;
-  /** The current page number, used for pagination state. */
-  currentPage: number;
-  /** The total number of pages available. */
-  totalPages: number;
 }
 
 /**
@@ -61,8 +61,6 @@ const CompanyList: React.FC<CompanyListProps> = ({
   initialHasMore,
   initialNextCursor,
   itemsPerPage,
-  currentPage,
-  totalPages,
 }) => {
   const [searchTermInput, setSearchTermInput] = useState(initialSearchTerm);
   const router = useRouter();
@@ -95,7 +93,7 @@ const CompanyList: React.FC<CompanyListProps> = ({
   }, [initialCompanies, initialHasMore, initialNextCursor]);
 
   // Handle suggestion click
-  const handleSuggestionClick = (suggestion: any) => {
+  const handleSuggestionClick = (suggestion: Suggestion) => {
     setSearchTermInput(suggestion.name);
     setShowSuggestions(false);
     router.push(`/company/${suggestion.slug}`);
@@ -115,7 +113,7 @@ const CompanyList: React.FC<CompanyListProps> = ({
   };
 
   const loadMoreCompanies = useCallback(async () => {
-    if (isLoadingMore || !hasMore || !nextCursor) return;
+    if (isLoadingMore || !hasMore || !nextCursor) {return;}
     setIsLoadingMore(true);
     const currentSearchQueryInUrl = searchParams.get("search") || "";
     try {
@@ -175,18 +173,18 @@ const CompanyList: React.FC<CompanyListProps> = ({
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting) loadMoreCompanies();
+        if (entries[0]?.isIntersecting) {loadMoreCompanies();}
       },
       { threshold: 0.1, rootMargin: "500px" },
     );
     if (loadMoreTriggerRef.current)
-      observer.observe(loadMoreTriggerRef.current);
+      {observer.observe(loadMoreTriggerRef.current);}
     return () => observer.disconnect();
   }, [loadMoreCompanies]);
 
   // Click outside suggestions
   useEffect(() => {
-    if (!showSuggestions) return;
+    if (!showSuggestions) {return;}
 
     const handleClickOutside = (event: MouseEvent) => {
       if (

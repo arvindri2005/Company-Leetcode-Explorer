@@ -6,8 +6,8 @@
  */
 "use client";
 
-import Footer from "@/features/landing/components/footer";
 import { ContactForm } from "@/features/contact/components/contact-form";
+import Footer from "@/features/landing/components/footer";
 
 /**
  * Renders the contact page with the ContactForm component.

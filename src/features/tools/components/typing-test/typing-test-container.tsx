@@ -1,9 +1,11 @@
 "use client";
 
 import React from "react";
-import TypingTestGame from "./typing-test-game";
+
 import ErrorBoundary from "@/components/ui/error-boundary";
+
 import TypingTestErrorFallback from "./typing-test-error-fallback";
+import TypingTestGame from "./typing-test-game";
 
 export default function TypingTestContainer() {
   return (

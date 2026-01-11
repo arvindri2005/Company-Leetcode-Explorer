@@ -11,11 +11,12 @@
  * @exports GenerateProblemInsightsOutput - The Zod inferred type for the output from the flow.
  */
 
+import { z } from "genkit";
+
+import { problemInsightsCache } from "@/ai/cache";
 import { ai } from "@/ai/genkit";
 import { getModelForIntent } from "@/ai/model-registry";
-import { z } from "genkit";
-import { retryWithBackoff, truncateText, sanitizeInput } from "@/ai/utils";
-import { problemInsightsCache } from "@/ai/cache";
+import { retryWithBackoff, sanitizeInput,truncateText } from "@/ai/utils";
 
 const GenerateProblemInsightsInputSchema = z.object({
   title: z.string().describe("The title of the coding problem."),
@@ -140,10 +141,10 @@ const generateProblemInsightsFlow = ai.defineFlow(
     inputSchema: GenerateProblemInsightsInputSchema,
     outputSchema: GenerateProblemInsightsOutputSchema,
   },
-  async (input) => {
+  async (input): Promise<GenerateProblemInsightsOutput> => {
     // Nova Guardrail: Cache Check
     const cacheKey = problemInsightsCache.generateKey(input);
-    const cachedResult = problemInsightsCache.get(cacheKey);
+    const cachedResult = problemInsightsCache.get(cacheKey) as GenerateProblemInsightsOutput | undefined;
     if (cachedResult) {
       return cachedResult;
     }
@@ -163,7 +164,7 @@ const generateProblemInsightsFlow = ai.defineFlow(
     };
 
     // Nova Guardrail: Retry with Exponential Backoff
-    const output = await retryWithBackoff(async () => {
+    const output = await retryWithBackoff<GenerateProblemInsightsOutput>(async () => {
         const { output } = await prompt(safeInput);
         if (!output || !output.highLevelHint || output.keyConcepts.length === 0) {
           // Fallback or throw error

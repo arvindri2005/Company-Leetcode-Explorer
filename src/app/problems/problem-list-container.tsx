@@ -1,7 +1,7 @@
-import { problemService } from "@/features/problems/services/problem.service";
-import { AllProblemsList } from "@/features/problems";
 import StructuredData from "@/components/seo/structured-data";
 import { env } from "@/env";
+import { AllProblemsList } from "@/features/problems";
+import { problemService } from "@/features/problems/services/problem.service";
 
 const APP_URL = env.NEXT_PUBLIC_APP_URL;
 

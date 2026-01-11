@@ -1,7 +1,9 @@
 import React from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { Brain } from "lucide-react";
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function StrategyItemSkeleton() {
   return (

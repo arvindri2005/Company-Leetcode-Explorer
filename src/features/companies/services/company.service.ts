@@ -1,21 +1,22 @@
-import { companyRepository } from "../repositories/company.repository";
-import { Company } from "@/features/companies/types";
-import { Logger } from "@/lib/utils/logger";
+import { type Company } from "@/features/companies/types";
 import { cacheManager, CacheTTL } from "@/lib/utils/cache";
 import { revalidateCacheTag } from "@/lib/utils/cache/server-cache";
-import { success, failure, type Result } from "@/shared/types/result";
+import { Logger } from "@/lib/utils/logger";
+import { failure, type Result,success } from "@/shared/types/result";
 import type { ServiceError } from "@/shared/types/service-error";
+
+import type {
+  CreateCompanyDTO,
+  GetCompaniesParams,
+  ICompanyRepository,
+  PaginatedCompaniesResponse,
+  UpdateCompanyDTO,
+} from "../interfaces/company.repository.interface";
 import type {
   ICompanyService,
   LoadMoreCompaniesResponse,
 } from "../interfaces/company.service.interface";
-import type {
-  ICompanyRepository,
-  GetCompaniesParams,
-  PaginatedCompaniesResponse,
-  CreateCompanyDTO,
-  UpdateCompanyDTO,
-} from "../interfaces/company.repository.interface";
+import { companyRepository } from "../repositories/company.repository";
 
 export class CompanyService implements ICompanyService {
   constructor(
@@ -254,7 +255,7 @@ export class CompanyService implements ICompanyService {
       const slug = companyResult.isSuccess ? companyResult.value.slug : undefined;
       await this.revalidateCompaniesPage(companyId, slug);
 
-      return success(undefined);
+      return success();
     } catch (error) {
       return failure({
         code: "INTERNAL_ERROR",

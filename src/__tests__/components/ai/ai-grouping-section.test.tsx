@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
+
 import AIGroupingSection from '@/features/ai/components/ai-grouping-section';
-import { LeetCodeProblem } from '@/types';
+import { type LeetCodeProblem } from '@/types';
 
 // Mock child components
 jest.mock('@/components/ui/card', () => ({

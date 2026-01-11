@@ -12,24 +12,23 @@
  */
 "use client";
 
-import type { LeetCodeProblem, ProblemStatus } from "../../types";
-import { useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+
 import {
   Bookmark,
+  Building2,
   CheckCircle,
-  XCircle,
   Circle,
+  Clock,
   ExternalLink,
   ListTodo,
   Loader2,
-  Building2,
   Tag,
-  Clock,
+  XCircle,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,7 +36,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useProblemInteractions } from "@/features/problems/hooks/use-problem-interactions";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/providers";
+
+import type { LeetCodeProblem, ProblemStatus } from "../../types";
 import TagBadge from "../tag-badge/tag-badge";
 
 interface ProblemInfoCardProps {
@@ -71,7 +73,7 @@ const ProblemInfoCard: React.FC<ProblemInfoCardProps> = ({
   problemStatus = "none",
   onProblemStatusChange,
 }) => {
-  const { user } = useAuth();
+  useAuth();
   
   // We use "unknown" as companySlug since this card is used in the global list
   // where we might not have a specific company context for the interaction hooks.
@@ -87,7 +89,6 @@ const ProblemInfoCard: React.FC<ProblemInfoCardProps> = ({
     handleToggleBookmark,
     currentStatus,
     handleStatusUpdate,
-    promptLogin,
   } = useProblemInteractions(
     problem,
     interactionCompanySlug,

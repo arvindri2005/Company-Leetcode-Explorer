@@ -6,16 +6,16 @@
  * retrieves the initial list of associated problems, and renders the main page layout.
  * It also includes `generateStaticParams` to pre-render pages for known companies at build time.
  */
-import { companyService } from "@/features/companies/services/company.service";
-import { problemService } from "@/features/problems/services/problem.service";
 import type { Metadata } from "next";
-import CompanyNotFound from "@/features/companies/components/page/company-not-found";
-import CompanyPage from "@/features/companies/components/page/company-page";
-import { getLogoUrl, capitalizeWords } from "@/lib/utils";
-import { Company, ProblemSummaryDTO, LeetCodeProblem } from "@/types";
-import { env } from "@/env";
 
 import StructuredData from "@/components/seo/structured-data";
+import { env } from "@/env";
+import CompanyNotFound from "@/features/companies/components/page/company-not-found";
+import CompanyPage from "@/features/companies/components/page/company-page";
+import { companyService } from "@/features/companies/services/company.service";
+import { problemService } from "@/features/problems/services/problem.service";
+import { capitalizeWords,getLogoUrl } from "@/lib/utils";
+import { type Company, type LeetCodeProblem,type ProblemSummaryDTO } from "@/types";
 
 export const revalidate = 2592000; // 1 month
 
@@ -31,7 +31,7 @@ interface CompanyPageProps {
 function getStructuredData(
   company: Company,
   problems: (LeetCodeProblem | ProblemSummaryDTO)[],
-): Array<Record<string, any>> {
+): Array<Record<string, unknown>> {
   const breadcrumbList = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",

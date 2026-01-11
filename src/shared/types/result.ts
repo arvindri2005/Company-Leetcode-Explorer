@@ -79,7 +79,11 @@ export type Result<T, E = Error> = Success<T> | Failure<E>;
 /**
  * Factory function to create a Success result
  */
-export const success = <T>(value: T): Success<T> => new Success(value);
+export function success<T>(value: T): Success<T>;
+export function success(): Success<void>;
+export function success<T>(value?: T): Success<T | void> {
+  return new Success(value as T | void);
+}
 
 /**
  * Factory function to create a Failure result

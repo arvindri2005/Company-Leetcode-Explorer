@@ -10,12 +10,15 @@
  */
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+
+import { useSearchParams } from "next/navigation";
+
+import { Loader2 } from "lucide-react";
+
 import AuthLayout from "@/features/auth/components/auth-layout";
 import ResetPasswordForm from "@/features/auth/components/reset-password-form";
 import VerifyEmail from "@/features/auth/components/verify-email";
-import { Loader2 } from "lucide-react";
 
 function AuthActionContent() {
   const searchParams = useSearchParams();

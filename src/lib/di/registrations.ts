@@ -5,28 +5,27 @@
  * Import this file in your application entry point to initialize the container.
  */
 
-import { container } from "./container";
-import { TOKENS } from "./tokens";
-
-// Import service and repository implementations
-import { ProblemService } from "@/features/problems/services/problem.service";
-import { ProblemRepository } from "@/features/problems/repositories/problem.repository";
-import { CompanyService } from "@/features/companies/services/company.service";
+import type { ICompanyRepository } from "@/features/companies/interfaces/company.repository.interface";
+import type { ICompanyService } from "@/features/companies/interfaces/company.service.interface";
 import { CompanyRepository } from "@/features/companies/repositories/company.repository";
-import { UserService } from "@/features/profile/services/user.service";
-import { UserRepository } from "@/features/profile/repositories/user.repository";
-import { ContactService } from "@/features/contact/services/contact.service";
+import { CompanyService } from "@/features/companies/services/company.service";
+import type { IContactRepository } from "@/features/contact/interfaces/contact.repository.interface";
+import type { IContactService } from "@/features/contact/interfaces/contact.service.interface";
 import { ContactRepository } from "@/features/contact/repositories/contact.repository";
-
+import { ContactService } from "@/features/contact/services/contact.service";
+import type { IProblemRepository } from "@/features/problems/interfaces/problem.repository.interface";
 // Import interfaces for type safety
 import type { IProblemService } from "@/features/problems/interfaces/problem.service.interface";
-import type { IProblemRepository } from "@/features/problems/interfaces/problem.repository.interface";
-import type { ICompanyService } from "@/features/companies/interfaces/company.service.interface";
-import type { ICompanyRepository } from "@/features/companies/interfaces/company.repository.interface";
-import type { IUserService } from "@/features/profile/interfaces/user.service.interface";
+import { ProblemRepository } from "@/features/problems/repositories/problem.repository";
+// Import service and repository implementations
+import { ProblemService } from "@/features/problems/services/problem.service";
 import type { IUserRepository } from "@/features/profile/interfaces/user.repository.interface";
-import type { IContactService } from "@/features/contact/interfaces/contact.service.interface";
-import type { IContactRepository } from "@/features/contact/interfaces/contact.repository.interface";
+import type { IUserService } from "@/features/profile/interfaces/user.service.interface";
+import { UserRepository } from "@/features/profile/repositories/user.repository";
+import { UserService } from "@/features/profile/services/user.service";
+
+import { container } from "./container";
+import { TOKENS } from "./tokens";
 
 /**
  * Register all services and repositories with the DI container

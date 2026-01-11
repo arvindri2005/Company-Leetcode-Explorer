@@ -1,22 +1,26 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { Company } from "@/features/companies/types";
-import { DashboardHeader } from "./dashboard-header";
-import { TechCompanyCard } from "./tech-company-card";
-import { CompanyTable } from "./company-table";
+import { useCallback, useEffect, useRef,useState } from "react";
+
+import { useSearchParams } from "next/navigation";
+
+import { HelpCircle } from "lucide-react";
+
+import { fetchCompaniesAction } from "@/app/actions/company.actions";
+import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { CompanyTableSkeleton } from "@/components/skeletons/companies-skeletons";
-import { Separator } from "@/components/ui/separator";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { HelpCircle } from "lucide-react";
-import AdPlaceholder from "@/components/ads/ad-placeholder";
-import { fetchCompaniesAction } from "@/app/actions/company.actions";
+import { Separator } from "@/components/ui/separator";
+import { type Company } from "@/features/companies/types";
+
+import { CompanyTable } from "./company-table";
+import { DashboardHeader } from "./dashboard-header";
+import { TechCompanyCard } from "./tech-company-card";
 
 
 const ITEMS_PER_PAGE = 30;
@@ -24,7 +28,6 @@ const ITEMS_PER_PAGE = 30;
 interface CompaniesPageContentProps {
   initialCompanies: Company[];
   initialTrendingCompanies: Company[];
-  initialTotalPages: number;
   initialHasMore: boolean;
   initialNextCursor?: string;
 }
@@ -32,12 +35,10 @@ interface CompaniesPageContentProps {
 export function CompaniesPageContent({
   initialCompanies,
   initialTrendingCompanies,
-  initialTotalPages,
   initialHasMore,
   initialNextCursor,
 }: CompaniesPageContentProps) {
   const searchParams = useSearchParams();
-  const router = useRouter(); // Keep for navigation if needed, but we don't sync page to URL anymore
   
   // State
   const [companies, setCompanies] = useState<Company[]>(initialCompanies);
@@ -90,8 +91,8 @@ export function CompaniesPageContent({
   }, [searchTerm, initialCompanies, initialHasMore, initialNextCursor]);
 
   // Load More Function
-  const loadMore = async () => {
-      if (loadingMore || !hasMore || !nextCursor) return;
+  const loadMore = useCallback(async () => {
+      if (loadingMore || !hasMore || !nextCursor) {return;}
       
       setLoadingMore(true);
       try {
@@ -110,10 +111,11 @@ export function CompaniesPageContent({
       } finally {
           setLoadingMore(false);
       }
-  };
+  }, [loadingMore, hasMore, nextCursor, searchTerm]);
 
   // Intersection Observer
   useEffect(() => {
+      const currentTarget = observerTarget.current;
       const observer = new IntersectionObserver(
           (entries) => {
               if (entries[0].isIntersecting && hasMore && !loadingMore && !isLoading) {
@@ -123,16 +125,16 @@ export function CompaniesPageContent({
           { threshold: 0.1 } // Trigger when 10% visible
       );
 
-      if (observerTarget.current) {
-          observer.observe(observerTarget.current);
+      if (currentTarget) {
+          observer.observe(currentTarget);
       }
 
       return () => {
-          if (observerTarget.current) {
-              observer.unobserve(observerTarget.current);
+          if (currentTarget) {
+              observer.unobserve(currentTarget);
           }
       };
-  }, [hasMore, loadingMore, isLoading, nextCursor, searchTerm]);
+  }, [hasMore, loadingMore, isLoading, nextCursor, searchTerm, loadMore]);
 
   return (
     <main className="min-h-screen w-full text-white flex flex-col">
@@ -163,12 +165,17 @@ export function CompaniesPageContent({
               
               {/* Natural flow - Page level scroll */}
               <div className="space-y-4">
-                {isLoading ? (
-                  <div className="space-y-8">
-                    <CompanyTableSkeleton />
-                  </div>
-                ) : companies.length > 0 ? (
-                    <div className="space-y-4">
+                {(() => {
+                  if (isLoading) {
+                    return (
+                      <div className="space-y-8">
+                        <CompanyTableSkeleton />
+                      </div>
+                    );
+                  }
+                  if (companies.length > 0) {
+                    return (
+                      <div className="space-y-4">
                         <CompanyTable companies={companies} />
                         
                         {/* Loading trigger / Sentinel */}
@@ -184,15 +191,18 @@ export function CompaniesPageContent({
                                 )}
                             </div>
                         )}
-                    </div>
-                ) : (
+                      </div>
+                    );
+                  }
+                  return (
                     <div className="text-center py-12 bg-brand-surface rounded-xl border border-white/5">
                         <h2 className="text-lg font-semibold text-white mb-2">No Results</h2>
                         <p className="text-gray-400">
                         No companies found matching your criteria.
                         </p>
                     </div>
-                )}
+                  );
+                })()}
               </div>
             </section>
           </div>

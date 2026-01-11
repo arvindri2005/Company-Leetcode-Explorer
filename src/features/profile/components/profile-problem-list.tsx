@@ -1,10 +1,12 @@
 "use client";
 
 import React from "react";
-import type { LeetCodeProblem, ProblemStatus } from "@/types";
-import { ProblemCard } from "@/features/problems";
-import { ProblemCardSkeleton } from "@/components/skeletons/problem-skeletons";
+
 import { ClipboardList } from "lucide-react";
+
+import { ProblemCardSkeleton } from "@/components/skeletons/problem-skeletons";
+import { ProblemCard } from "@/features/problems";
+import type { LeetCodeProblem, ProblemStatus } from "@/types";
 
 /**
  * @interface ProblemWithStatusAndBookmark
@@ -45,7 +47,6 @@ interface ProfileProblemListProps {
  * @returns {JSX.Element} The rendered list of problem cards, a loading skeleton, or a message if the list is empty.
  */
 const ProfileProblemList: React.FC<ProfileProblemListProps> = ({
-  title,
   problems,
   isLoading,
   onBookmarkChanged,

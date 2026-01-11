@@ -1,12 +1,15 @@
 import { Suspense } from "react";
+
+import { type Metadata } from "next";
+
 import AdPlaceholder from "@/components/ads/ad-placeholder";
-import { Metadata } from "next";
-import { env } from "@/env";
-import ErrorBoundary from "@/components/ui/error-boundary";
-import ProblemListContainer from "./problem-list-container";
-import { ProblemListErrorFallback } from "@/features/problems";
-import { ProblemsPageSkeleton } from "@/components/skeletons/problem-skeletons";
 import StructuredData from "@/components/seo/structured-data";
+import { ProblemsPageSkeleton } from "@/components/skeletons/problem-skeletons";
+import ErrorBoundary from "@/components/ui/error-boundary";
+import { env } from "@/env";
+import { ProblemListErrorFallback } from "@/features/problems";
+
+import ProblemListContainer from "./problem-list-container";
 
 const APP_URL = env.NEXT_PUBLIC_APP_URL;
 

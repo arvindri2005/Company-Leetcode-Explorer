@@ -1,21 +1,22 @@
 "use client";
 
 import React from "react";
-import { useFormContext, FormProvider } from "react-hook-form";
-import { z } from "zod";
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { FormProvider, useFormContext } from "react-hook-form";
+
+import type { User as FirebaseUser } from "firebase/auth";
 import {
-  Mail,
+  BadgeCheck,
   CalendarDays,
   Edit,
+  LogOut,
+  Mail,
   Save,
   X,
-  LogOut,
-  BadgeCheck,
 } from "lucide-react";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -23,15 +24,11 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import type { User as FirebaseUser } from "firebase/auth";
+import { Input } from "@/components/ui/input";
 
-const displayNameFormSchema = z.object({
-  displayName: z
-    .string()
-    .min(2, { message: "Display name must be at least 2 characters." })
-    .max(50, { message: "Display name cannot exceed 50 characters." }),
-});
-type DisplayNameFormValues = z.infer<typeof displayNameFormSchema>;
+type DisplayNameFormValues = {
+  displayName: string;
+};
 
 /**
  * @interface UserInfoCardProps

@@ -5,9 +5,10 @@
  * list of problems for a company could not be fetched. It displays the specific
  * error message and provides a button to refresh the page.
  */
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { AlertTriangle } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent,CardHeader, CardTitle } from "@/components/ui/card";
 import { reloadPage } from "@/lib/utils";
 
 /**

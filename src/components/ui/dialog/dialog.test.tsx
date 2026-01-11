@@ -1,5 +1,8 @@
 
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+
+import { Button } from "@/components/ui/button";
+
 import {
   Dialog,
   DialogContent,
@@ -9,7 +12,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./dialog";
-import { Button } from "@/components/ui/button";
 
 describe("Dialog", () => {
   it("opens when trigger is clicked", async () => {

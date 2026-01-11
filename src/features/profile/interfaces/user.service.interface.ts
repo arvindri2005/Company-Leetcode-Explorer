@@ -3,19 +3,20 @@
  * Defines business operations for User entities
  */
 
+import type { AppEventHandler,AppEventKey } from "@/services/event-bus";
 import type { Result } from "@/shared/types/result";
 import type { ServiceError } from "@/shared/types/service-error";
 import type {
   BookmarkedProblemInfo,
-  UserProblemStatusInfo,
+  EducationExperience,
+  GenerateCompanyStrategyOutput,
   ProblemStatus,
   SavedStrategyTodoList,
-  EducationExperience,
+  UserProblemStatusInfo,
   WorkExperience,
-  GenerateCompanyStrategyOutput,
 } from "@/types";
+
 import type { UserGlobalProblemStats } from "./user.repository.interface";
-import type { AppEventKey, AppEventHandler } from "@/services/event-bus";
 
 /**
  * User Service Interface

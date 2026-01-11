@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
+
+import { type LeetCodeProblem } from "../../types";
+
 import ProblemInfoCard from "./problem-info-card";
-import { LeetCodeProblem } from "../../types";
 
 // Mock hooks
 jest.mock("@/providers", () => ({

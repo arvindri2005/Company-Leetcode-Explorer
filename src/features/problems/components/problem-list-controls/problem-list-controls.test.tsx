@@ -1,4 +1,5 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent,render, screen } from "@testing-library/react";
+
 import ProblemListControls from "./problem-list-controls";
 
 describe("ProblemListControls", () => {
@@ -11,8 +12,6 @@ describe("ProblemListControls", () => {
         onLastAskedFilterChange={jest.fn()}
         statusFilter={[]}
         onStatusFilterChange={jest.fn()}
-        sortKey="difficulty"
-        onSortKeyChange={jest.fn()}
         showStatusFilter={true}
       />
     );
@@ -31,8 +30,6 @@ describe("ProblemListControls", () => {
         onLastAskedFilterChange={jest.fn()}
         statusFilter={[]}
         onStatusFilterChange={jest.fn()}
-        sortKey="difficulty"
-        onSortKeyChange={jest.fn()}
       />
     );
     

@@ -1,9 +1,11 @@
 // src/components/sections/home-cta.tsx
 "use client";
 
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
+
 import { ArrowRight } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 
 /**
  * @function HomeCta

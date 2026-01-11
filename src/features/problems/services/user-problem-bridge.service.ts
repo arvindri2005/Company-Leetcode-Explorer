@@ -1,7 +1,8 @@
-import { LeetCodeProblem } from "@/types";
 import { userService } from "@/features/profile/services/user.service";
+import { type LeetCodeProblem } from "@/types";
+import { type PaginatedProblemsResponse, type ProblemSummaryDTO } from "@/types";
+
 import { problemService } from "./problem.service";
-import { PaginatedProblemsResponse, ProblemSummaryDTO } from "@/types";
 
 /**
  * Service to bridge the gap between ProblemService and UserService,
@@ -19,7 +20,7 @@ export class UserProblemBridgeService {
     userId: string,
     problems: (LeetCodeProblem | ProblemSummaryDTO)[]
   ): Promise<(LeetCodeProblem | ProblemSummaryDTO)[]> {
-    if (!problems.length) return problems;
+    if (!problems.length) {return problems;}
 
     const problemIds = problems.map((p) => p.id);
     const [userBookmarksResult, userStatusesResult] = await Promise.all([

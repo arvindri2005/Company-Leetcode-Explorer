@@ -1,40 +1,41 @@
+import { unstable_cache } from "next/cache";
+
+import { aiFlowRegistry } from "@/ai/flow-registry";
 import {
-  GroupQuestionsInput,
-  GroupQuestionsOutput,
-  groupQuestions as groupQuestionsFlow,
-} from "@/ai/flows/group-questions";
-import {
-  FindSimilarQuestionsInput,
-  FindSimilarQuestionsOutput,
   findSimilarQuestions as findSimilarQuestionsFlow,
+  type FindSimilarQuestionsInput,
+  type FindSimilarQuestionsOutput,
 } from "@/ai/flows/find-similar-questions-flow";
 import {
-  GenerateFlashcardsOutput,
-  FlashcardProblemInput,
-  generateFlashcardsForCompany as generateFlashcardsFlow,
-} from "@/ai/flows/generate-flashcards-flow";
-import {
-  GenerateCompanyStrategyOutput,
-  CompanyStrategyProblemInput,
-  TargetRoleLevel,
-  EducationExperience,
-  WorkExperience,
+  type CompanyStrategyProblemInput,
+  type EducationExperience,
   generateCompanyStrategy as generateCompanyStrategyFlow,
+  type GenerateCompanyStrategyOutput,
+  type TargetRoleLevel,
+  type WorkExperience,
 } from "@/ai/flows/generate-company-strategy-flow";
 import {
-  GenerateProblemInsightsInput,
-  GenerateProblemInsightsOutput,
+  type FlashcardProblemInput,
+  generateFlashcardsForCompany as generateFlashcardsFlow,
+  type GenerateFlashcardsOutput,
+} from "@/ai/flows/generate-flashcards-flow";
+import {
   generateProblemInsights as generateProblemInsightsFlow,
+  type GenerateProblemInsightsInput,
+  type GenerateProblemInsightsOutput,
 } from "@/ai/flows/generate-problem-insights-flow";
-import { AIProblemInput } from "@/features/ai";
-import { LeetCodeProblem } from "@/types";
+import {
+  groupQuestions as groupQuestionsFlow,
+  type GroupQuestionsInput,
+  type GroupQuestionsOutput,
+} from "@/ai/flows/group-questions";
+import { type AIProblemInput } from "@/features/ai";
 import { companyService } from "@/features/companies/services/company.service";
 import { problemService } from "@/features/problems/services/problem.service";
 import { userService } from "@/features/profile/services/user.service";
-import { Logger } from "@/lib/utils/logger";
 import { cacheManager, CacheTTL } from "@/lib/utils/cache";
-import { unstable_cache } from "next/cache";
-import { aiFlowRegistry } from "@/ai/flow-registry";
+import { Logger } from "@/lib/utils/logger";
+import { type LeetCodeProblem } from "@/types";
 
 // Register default flows
 aiFlowRegistry.register("groupQuestions", groupQuestionsFlow);
@@ -47,7 +48,7 @@ export class AIService {
   private async withObservability<T>(
     flowName: string,
     operation: () => Promise<T>,
-    metadata: Record<string, any> = {}
+    metadata: Record<string, unknown> = {}
   ): Promise<T> {
     const startTime = Date.now();
     const requestId = crypto.randomUUID();
@@ -141,13 +142,13 @@ export class AIService {
     companyId: string
   ): Promise<GenerateFlashcardsOutput | { error: string }> {
     if (!companyId)
-      return { error: "Company ID is required to generate flashcards." };
+      {return { error: "Company ID is required to generate flashcards." };}
 
     const cacheKey = `company-flashcards-${companyId}`;
     const generate = unstable_cache(
       async () => {
         const companyResult = await companyService.getCompanyById(companyId);
-        if (!companyResult.isSuccess) return { error: `Company with ID ${companyId} not found.` };
+        if (!companyResult.isSuccess) {return { error: `Company with ID ${companyId} not found.` };}
         const company = companyResult.value;
 
         const problemsResult = await problemService.getPublicProblems(companyId);
@@ -165,10 +166,10 @@ export class AIService {
             title: p.title,
             difficulty: p.difficulty,
             tags: p.tags,
-            lastAskedPeriod: p.lastAskedPeriod as any,
+            lastAskedPeriod: p.lastAskedPeriod as FlashcardProblemInput["lastAskedPeriod"],
           }));
 
-        const flow = aiFlowRegistry.get<any, GenerateFlashcardsOutput>("generateFlashcards");
+        const flow = aiFlowRegistry.get<{ companyName: string; problems: FlashcardProblemInput[] }, GenerateFlashcardsOutput>("generateFlashcards");
 
         return await this.withObservability(
           "generateFlashcards",
@@ -195,7 +196,7 @@ export class AIService {
     targetRoleLevel?: TargetRoleLevel
   ): Promise<GenerateCompanyStrategyOutput | { error: string }> {
     if (!companyId)
-      return { error: "Company ID is required to generate a strategy." };
+      {return { error: "Company ID is required to generate a strategy." };}
 
     // If userId is present, we need to fetch user data and personalize the strategy.
     // We do NOT cache personalized strategies to ensure privacy and freshness,
@@ -227,7 +228,7 @@ export class AIService {
     targetRoleLevel?: TargetRoleLevel
   ): Promise<GenerateCompanyStrategyOutput | { error: string }> {
     const companyResult = await companyService.getCompanyById(companyId);
-    if (!companyResult.isSuccess) return { error: `Company with ID ${companyId} not found.` };
+    if (!companyResult.isSuccess) {return { error: `Company with ID ${companyId} not found.` };}
     const company = companyResult.value;
 
     const problemsResult = await problemService.getPublicProblems(companyId);
@@ -258,7 +259,7 @@ export class AIService {
         title: p.title,
         difficulty: p.difficulty,
         tags: p.tags,
-        lastAskedPeriod: p.lastAskedPeriod as any,
+        lastAskedPeriod: p.lastAskedPeriod as CompanyStrategyProblemInput["lastAskedPeriod"],
       }));
 
     let educationHistory: EducationExperience[] | undefined = undefined;
@@ -267,13 +268,19 @@ export class AIService {
     if (userId) {
       // Use userService directly instead of calling actions
       const eduResult = await userService.getUserEducation(userId);
-       if (Array.isArray(eduResult)) educationHistory = eduResult;
+       if (Array.isArray(eduResult)) {educationHistory = eduResult;}
 
       const workResult = await userService.getUserWorkExperience(userId);
-       if (Array.isArray(workResult)) workHistory = workResult;
+       if (Array.isArray(workResult)) {workHistory = workResult;}
     }
 
-    const flow = aiFlowRegistry.get<any, GenerateCompanyStrategyOutput>("generateCompanyStrategy");
+    const flow = aiFlowRegistry.get<{
+      companyName: string;
+      problems: CompanyStrategyProblemInput[];
+      targetRoleLevel?: TargetRoleLevel;
+      educationHistory?: EducationExperience[];
+      workHistory?: WorkExperience[];
+    }, GenerateCompanyStrategyOutput>("generateCompanyStrategy");
 
     return await this.withObservability(
       "generateCompanyStrategy",
@@ -292,10 +299,10 @@ export class AIService {
     problem: LeetCodeProblem
   ): Promise<GenerateProblemInsightsOutput | { error: string }> {
     if (!problem || !problem.companySlug || !problem.slug)
-      return {
+      {return {
         error:
           "Problem details including company and problem slugs are required.",
-      };
+      };}
 
     const cacheKey = `problem-insights-${problem.companySlug}-${problem.slug}`;
 

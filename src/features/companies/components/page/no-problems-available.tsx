@@ -5,10 +5,12 @@
  * no coding problems listed for a specific company. It provides clear calls-to-action,
  * encouraging users to either browse other companies or contribute by adding a new problem.
  */
+import Link from "next/link";
+
+import { BookOpen, ChevronLeft, PlusSquare } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { BookOpen, ChevronLeft, PlusSquare } from "lucide-react";
-import Link from "next/link";
 
 /**
  * Props for the NoProblemsAvailable component.

@@ -9,37 +9,39 @@
 "use client";
 
 import React from "react";
+import ReactMarkdown from "react-markdown";
+
+import {
+  AlertTriangle,
+  Brain,
+  Code,
+  Lightbulb,
+  ListChecks,
+  Loader2,
+} from "lucide-react";
+import remarkGfm from "remark-gfm";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
   Drawer,
+  DrawerClose,
   DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
   DrawerDescription,
   DrawerFooter,
-  DrawerClose,
+  DrawerHeader,
+  DrawerTitle,
 } from "@/components/ui/drawer";
-import { Button } from "@/components/ui/button";
-import {
-  Loader2,
-  Lightbulb,
-  Brain,
-  ListChecks,
-  AlertTriangle,
-  Code,
-} from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { GenerateProblemInsightsOutput } from "@/types";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import type { GenerateProblemInsightsOutput } from "@/types";
 
 /**
  * Props for the ProblemInsightsDialog component.

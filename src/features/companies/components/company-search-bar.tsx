@@ -5,11 +5,13 @@
  * a list of company suggestions as the user types. It is designed to be a controlled
  * component, with its state managed by a parent component.
  */
-import React, { useState, useRef } from "react";
-import { Loader2, Building2, Search } from "lucide-react";
+import React, { useRef,useState } from "react";
+
+import { Building2, Loader2, Search } from "lucide-react";
+
 import { OfflineImage } from "@/components/ui/offline-image";
-import { getLogoUrl, cn } from "@/lib/utils";
 import { useTypingPlaceholder } from "@/features/tools/hooks/use-typing-placeholder";
+import { cn,getLogoUrl } from "@/lib/utils";
 
 /**
  * Represents the structure of a single search suggestion item.
@@ -150,7 +152,7 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
             onChange={(e) => setSearchTermInput(e.target.value)}
             onFocus={() => {
               if (suggestions.length > 0 || searchTermInput.trim().length > 0)
-                setShowSuggestions(true);
+                {setShowSuggestions(true);}
             }}
             aria-label="Search for companies"
           />
@@ -179,50 +181,57 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
           role="listbox"
           aria-label="Company suggestions"
         >
-          {isLoadingSuggestions && suggestions.length === 0 ? (
-            <p className="p-4 text-base text-gray-custom-500">
-              Loading suggestions...
-            </p>
-          ) : suggestions.length > 0 ? (
-            suggestions.map((suggestion, idx) => (
-              <div
-                key={suggestion.id}
-                id={`suggestion-${idx}`}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  handleSuggestionClick(suggestion);
-                }}
-                role="option"
-                aria-selected={idx === activeIndex}
-                className={cn(
-                  "flex items-center gap-3 px-5 py-4 cursor-pointer transition-all duration-200 text-gray-custom-200",
-                  "hover:bg-gradient-to-r hover:from-brand-teal/30 hover:to-brand-purple/30 hover:text-white",
-                  idx === activeIndex &&
-                    "bg-gradient-to-r from-brand-teal/30 to-brand-purple/30 text-white",
-                  idx !== suggestions.length - 1 && "border-b border-white/10",
-                )}
-              >
-                <OfflineImage
-                  src={getLogoUrl(suggestion.logo) || "/icon.png"}
-                  fallbackSrc="/icon.png"
-                  fallbackIcon={
-                    <Building2 className="h-8 w-8 text-gray-custom-500 bg-white/10 rounded-full p-1" />
-                  }
-                  alt={suggestion.name}
-                  width={32}
-                  height={32}
-                  className="rounded-full bg-white/20"
-                />
-                <span className="font-medium text-lg">{suggestion.name}</span>
-              </div>
-            ))
-          ) : (
-            !isLoadingSuggestions && (
-              <p className="p-4 text-base text-gray-custom-500">
-                No companies found matching &quot;{searchTermInput}&quot;.
-              </p>
-            )
-          )}
+          {(() => {
+            if (isLoadingSuggestions && suggestions.length === 0) {
+              return (
+                <p className="p-4 text-base text-gray-custom-500">
+                  Loading suggestions...
+                </p>
+              );
+            }
+            if (suggestions.length > 0) {
+              return suggestions.map((suggestion, idx) => (
+                <div
+                  key={suggestion.id}
+                  id={`suggestion-${idx}`}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleSuggestionClick(suggestion);
+                  }}
+                  role="option"
+                  aria-selected={idx === activeIndex}
+                  className={cn(
+                    "flex items-center gap-3 px-5 py-4 cursor-pointer transition-all duration-200 text-gray-custom-200",
+                    "hover:bg-gradient-to-r hover:from-brand-teal/30 hover:to-brand-purple/30 hover:text-white",
+                    idx === activeIndex &&
+                      "bg-gradient-to-r from-brand-teal/30 to-brand-purple/30 text-white",
+                    idx !== suggestions.length - 1 && "border-b border-white/10",
+                  )}
+                >
+                  <OfflineImage
+                    src={getLogoUrl(suggestion.logo) || "/icon.png"}
+                    fallbackSrc="/icon.png"
+                    fallbackIcon={
+                      <Building2 className="h-8 w-8 text-gray-custom-500 bg-white/10 rounded-full p-1" />
+                    }
+                    alt={suggestion.name}
+                    width={32}
+                    height={32}
+                    className="rounded-full bg-white/20"
+                  />
+                  <span className="font-medium text-lg">{suggestion.name}</span>
+                </div>
+              ));
+            }
+            if (!isLoadingSuggestions) {
+              return (
+                <p className="p-4 text-base text-gray-custom-500">
+                  No companies found matching &quot;{searchTermInput}&quot;.
+                </p>
+              );
+            }
+            return null;
+          })()}
         </div>
       )}
     </section>

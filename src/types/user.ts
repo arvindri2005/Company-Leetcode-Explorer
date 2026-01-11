@@ -1,7 +1,9 @@
-import { z } from "zod";
 import type { User as FirebaseUser } from "firebase/auth";
-import type { ProblemStatus } from ".";
+import { z } from "zod";
+
 import type { FocusTopic, StrategyTodoItem } from "@/features/ai";
+
+import type { ProblemStatus } from ".";
 
 // --- User Authentication and Profile Types ---
 
@@ -88,7 +90,7 @@ export type EducationExperience = z.infer<typeof EducationExperienceSchema>;
  */
 const parseDateValue = (dateStr: string, isEndDate: boolean): number => {
   // If we can't parse it (should rely on regex first), return safe fallback
-  if (!dateStr) return 0;
+  if (!dateStr) {return 0;}
   
   const parts = dateStr.split("/");
   if (parts.length === 2) {

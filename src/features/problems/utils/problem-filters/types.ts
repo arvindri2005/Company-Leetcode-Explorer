@@ -1,5 +1,6 @@
-import { QueryConstraint } from "firebase/firestore";
-import { ProblemSummaryDTO } from "@/types";
+import { type QueryConstraint } from "firebase/firestore";
+
+import { type ProblemSummaryDTO } from "@/types";
 
 /**
  * Interface for implementing a problem filter.

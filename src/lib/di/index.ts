@@ -4,12 +4,12 @@
  * Exports the DI container and service tokens for use throughout the application.
  */
 
-export { container, Container } from "./container";
 export type { Factory, RegisterOptions } from "./container";
-export { TOKENS } from "./tokens";
-export type { TokenKey } from "./tokens";
+export { Container,container } from "./container";
 export {
-  registerDependencies,
-  getProblemService,
   getProblemRepository,
+  getProblemService,
+  registerDependencies,
 } from "./registrations";
+export type { TokenKey } from "./tokens";
+export { TOKENS } from "./tokens";

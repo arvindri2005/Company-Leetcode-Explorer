@@ -6,7 +6,7 @@
  */
 
 // Authentication provider
-export { AuthProvider, AuthContext, useAuth } from "./auth-provider";
+export { AuthContext, AuthProvider, useAuth } from "./auth-provider";
 
 // Theme provider
 export { ThemeProvider } from "./theme-provider";

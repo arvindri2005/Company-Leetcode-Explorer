@@ -1,5 +1,6 @@
 
 import { render, screen } from "@testing-library/react";
+
 import { ScrollArea } from "./scroll-area";
 
 describe("ScrollArea", () => {

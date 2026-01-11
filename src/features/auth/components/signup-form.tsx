@@ -9,9 +9,19 @@
  */
 "use client";
 
+import { useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+
 import { zodResolver } from "@hookform/resolvers/zod";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { Loader2, UserPlusIcon } from "lucide-react";
+import { Check } from "lucide-react";
 import { z } from "zod";
+
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -23,19 +33,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
-import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
-import { Loader2, UserPlusIcon } from "lucide-react";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth } from "@/lib/api/firebase";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import GoogleAuthButton from "./google-auth-button";
-import { useAuth } from "@/providers";
-import { PasswordStrengthIndicator } from "./password-strength-indicator";
-import { Check } from "lucide-react";
-import { useEffect } from "react";
 import { useOnlineStatus } from "@/hooks/use-online-status";
+import { useToast } from "@/hooks/use-toast";
+import { auth } from "@/lib/api/firebase";
+import { useAuth } from "@/providers";
+
+import GoogleAuthButton from "./google-auth-button";
+import { PasswordStrengthIndicator } from "./password-strength-indicator";
 
 /**
  * Zod schema for validating the sign-up form fields.
@@ -93,10 +97,10 @@ export default function SignupForm() {
       setPasswordScore(0);
       return;
     }
-    if (password.length > 6) score += 1;
-    if (password.length > 10) score += 1;
-    if (/[0-9]/.test(password)) score += 1;
-    if (/[^A-Za-z0-9]/.test(password)) score += 1;
+    if (password.length > 6) {score += 1;}
+    if (password.length > 10) {score += 1;}
+    if (/[0-9]/.test(password)) {score += 1;}
+    if (/[^A-Za-z0-9]/.test(password)) {score += 1;}
     setPasswordScore(score);
   }, [password]);
 
@@ -277,12 +281,16 @@ export default function SignupForm() {
           >
             {isSubmitting ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : !isOnline ? (
-              "You are offline"
             ) : (
               <>
-                <UserPlusIcon className="mr-2 h-4 w-4" />
-                Sign Up
+                {!isOnline ? (
+                  "You are offline"
+                ) : (
+                  <>
+                    <UserPlusIcon className="mr-2 h-4 w-4" />
+                    Sign Up
+                  </>
+                )}
               </>
             )}
           </Button>

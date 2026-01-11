@@ -1,5 +1,6 @@
+import { type CompanySize } from "../value-objects/company-size.vo";
+
 import { Entity } from "./base.entity";
-import { CompanySize } from "../value-objects/company-size.vo";
 
 /**
  * Properties for the Company entity

@@ -1,12 +1,14 @@
 import { 
+  GoogleAuthProvider,
   signInWithPopup, 
   signOut, 
-  GoogleAuthProvider,
-  User as FirebaseUser 
+  type User as FirebaseUser 
 } from "firebase/auth";
-import { auth } from "@/lib/api/firebase";
+
 import { userService } from "@/features/profile/services/user.service";
+import { auth } from "@/lib/api/firebase";
 import { Logger } from "@/lib/utils/logger";
+
 import type { AuthServiceResponse } from "../types";
 
 /**

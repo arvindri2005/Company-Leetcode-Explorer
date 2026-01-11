@@ -1,6 +1,8 @@
-import { renderHook, act, waitFor } from "@testing-library/react";
-import { useCursorPagination } from "../use-cursor-pagination";
+import { act, renderHook } from "@testing-library/react";
+
 import { createMockCompany } from "@/__tests__/factories/data-factories";
+
+import { useCursorPagination } from "../use-cursor-pagination";
 
 // Mock Logger to prevent console noise during tests
 jest.mock("@/lib/utils/logger", () => ({
@@ -93,15 +95,13 @@ describe("useCursorPagination", () => {
     const { result } = renderHook(() => useCursorPagination());
 
     // Start first request
-    let promise1;
     await act(async () => {
-      promise1 = result.current.fetchCompaniesWithCursor();
+      result.current.fetchCompaniesWithCursor();
     });
 
     // Start second request
-    let promise2;
     await act(async () => {
-      promise2 = result.current.fetchCompaniesWithCursor();
+      result.current.fetchCompaniesWithCursor();
     });
 
     // We can't easily assert the abort signal state on the first promise without deeper mocking,

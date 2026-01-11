@@ -1,10 +1,11 @@
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+
 import {
+  CompanyTableSkeleton,
   DashboardHeaderSkeleton,
   TechCompanyCardSkeleton,
-  CompanyTableSkeleton,
 } from "./companies-skeletons";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
 
 export function CompaniesPageSkeleton() {
   return (

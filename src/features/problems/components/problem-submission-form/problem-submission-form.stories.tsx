@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
+
+import { type Company } from "@/types";
+
 import ProblemSubmissionForm from "./problem-submission-form";
-import { Company } from "@/types";
 
 const mockCompanies: Company[] = [
   { id: "1", name: "Google", slug: "google", logo: "" },

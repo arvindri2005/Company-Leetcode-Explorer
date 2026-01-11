@@ -1,8 +1,7 @@
 import { companyService } from "@/features/companies/services/company.service";
-import { companyRepository } from "@/features/companies/repositories/company.repository";
 import { cacheManager } from "@/lib/utils/cache";
-import { CacheTTL } from "@/lib/utils/cache/types";
 import { revalidateCacheTag } from "@/lib/utils/cache/server-cache";
+import { CacheTTL } from "@/lib/utils/cache/types";
 
 // Mock dependencies
 jest.mock("@/features/companies/repositories/company.repository");

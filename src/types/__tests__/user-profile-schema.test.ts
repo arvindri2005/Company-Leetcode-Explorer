@@ -1,6 +1,6 @@
-import { z } from "zod";
-import { UserProfileSchema } from "../user";
 import { createMockUserProfile } from "@/__tests__/factories/data-factories";
+
+import { UserProfileSchema } from "../user";
 
 describe("UserProfileSchema", () => {
   it("validates a valid user profile", () => {

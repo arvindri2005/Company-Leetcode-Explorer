@@ -1,5 +1,6 @@
-import type { Company, LeetCodeProblem, PaginatedProblemsResponse, UserProfile } from "@/types";
 import type { User as FirebaseUser } from "firebase/auth";
+
+import type { Company, LeetCodeProblem, PaginatedProblemsResponse, UserProfile } from "@/types";
 
 // Seedable PRNG (Mulberry32)
 class RandomGenerator {
@@ -33,7 +34,7 @@ export const simpleFaker = {
     // Simple UUID v4-like generator using seeded random
     uuid: () => {
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = prng.next() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        const r = prng.next() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
       });
     },

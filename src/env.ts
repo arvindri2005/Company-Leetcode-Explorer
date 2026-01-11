@@ -47,7 +47,7 @@ const clientEnv = {
 const formatErrors = (errors: z.ZodFormattedError<Map<string, string>, string>) =>
   Object.entries(errors)
     .map(([name, value]) => {
-      if (value && "_errors" in value) return `${name}: ${value._errors.join(", ")}`;
+      if (value && "_errors" in value) {return `${name}: ${value._errors.join(", ")}`;}
       return null;
     })
     .filter(Boolean);
@@ -55,7 +55,7 @@ const formatErrors = (errors: z.ZodFormattedError<Map<string, string>, string>) 
 // Skip validation in test environment to avoid breaking CI/tests that don't mock everything
 const isTest = process.env.NODE_ENV === "test";
 
-let _clientEnv = clientSchema.safeParse(clientEnv);
+const _clientEnv = clientSchema.safeParse(clientEnv);
 
 if (!_clientEnv.success && !isTest) {
   console.error(

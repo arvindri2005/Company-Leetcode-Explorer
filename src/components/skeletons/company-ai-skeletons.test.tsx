@@ -1,5 +1,6 @@
 import { render } from "@testing-library/react";
-import { CompanyAIFeatureSkeleton, CompanyStrategySkeleton, CompanyStatsSkeleton } from "./company-ai-skeletons";
+
+import { CompanyAIFeatureSkeleton, CompanyStatsSkeleton,CompanyStrategySkeleton } from "./company-ai-skeletons";
 
 describe("Company AI Skeletons", () => {
   it("renders CompanyAIFeatureSkeleton without crashing", () => {

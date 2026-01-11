@@ -5,8 +5,8 @@
  * for logging into the application. It includes metadata for SEO and renders
  * the `LoginForm` component, which contains the actual authentication logic and UI.
  */
-import LoginForm from "@/features/auth/components/login-form";
 import AuthLayout from "@/features/auth/components/auth-layout";
+import LoginForm from "@/features/auth/components/login-form";
 
 /**
  * Metadata for the Login page.

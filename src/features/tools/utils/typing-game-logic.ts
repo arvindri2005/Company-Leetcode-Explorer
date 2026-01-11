@@ -5,16 +5,16 @@
 
 // Calculate WPM: (Total Characters / 5) / Time (min)
 export function calculateWPM(startTime: number | null, endTime: number | null, charCount: number): number {
-  if (!startTime) return 0;
+  if (!startTime) {return 0;}
   const end = endTime || Date.now();
   const timeInMinutes = (end - startTime) / 60000;
-  if (timeInMinutes <= 0) return 0;
+  if (timeInMinutes <= 0) {return 0;}
   return Math.round((charCount / 5) / timeInMinutes);
 }
 
 // Calculate Accuracy: (Correct Chars / Total Chars) * 100
 export function calculateAccuracy(userInput: string, code: string): number {
-  if (userInput.length === 0) return 100;
+  if (userInput.length === 0) {return 100;}
   
   let correctChars = 0;
   for (let i = 0; i < userInput.length; i++) {
@@ -28,11 +28,11 @@ export function calculateAccuracy(userInput: string, code: string): number {
 // Check if the latest input introduced a mistake
 export function checkMistake(newValue: string, prevValue: string, code: string): boolean {
   // Only check if we added characters
-  if (newValue.length <= prevValue.length) return false;
+  if (newValue.length <= prevValue.length) {return false;}
   
   const newCharIndex = newValue.length - 1;
   // Mistake if overtyping beyond code length or wrong character
-  if (newCharIndex >= code.length) return true;
+  if (newCharIndex >= code.length) {return true;}
   
   return newValue[newCharIndex] !== code[newCharIndex];
 }
@@ -76,7 +76,7 @@ export function processEnterKey(value: string, selectionStart: number, selection
 export function countCurrentMistakes(userInput: string, code: string): number {
     let count = 0;
     for (let i = 0; i < userInput.length; i++) {
-      if (userInput[i] !== code[i]) count++;
+      if (userInput[i] !== code[i]) {count++;}
     }
     return count;
 }

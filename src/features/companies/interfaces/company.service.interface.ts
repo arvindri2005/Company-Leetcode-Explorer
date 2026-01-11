@@ -5,8 +5,10 @@
 
 import type { Result } from "@/shared/types/result";
 import type { ServiceError } from "@/shared/types/service-error";
+
 import type { Company } from "../types";
-import type { GetCompaniesParams, PaginatedCompaniesResponse, CreateCompanyDTO, UpdateCompanyDTO } from "./company.repository.interface";
+
+import type { CreateCompanyDTO, GetCompaniesParams, PaginatedCompaniesResponse, UpdateCompanyDTO } from "./company.repository.interface";
 
 /**
  * Load more companies response

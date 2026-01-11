@@ -1,6 +1,8 @@
 
-import { render, screen, fireEvent } from "@testing-library/react";
 import React, { createRef } from "react";
+
+import { fireEvent,render, screen } from "@testing-library/react";
+
 import { Input } from "./input";
 
 describe("Input", () => {

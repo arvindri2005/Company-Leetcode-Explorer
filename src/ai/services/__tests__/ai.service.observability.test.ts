@@ -1,6 +1,7 @@
-import { aiService } from "../ai.service";
-import { Logger } from "@/lib/utils/logger";
 import { groupQuestions } from "@/ai/flows/group-questions";
+import { Logger } from "@/lib/utils/logger";
+
+import { aiService } from "../ai.service";
 
 // Mock dependencies
 jest.mock("@/lib/utils/logger");

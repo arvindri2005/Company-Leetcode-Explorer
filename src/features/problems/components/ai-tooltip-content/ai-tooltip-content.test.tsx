@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
+import { type User } from "firebase/auth";
+
 import { AITooltipContent } from "./ai-tooltip-content";
-import { User } from "firebase/auth";
 
 // Mock hooks
 jest.mock("@/features/ai/hooks/use-ai-cooldown", () => ({

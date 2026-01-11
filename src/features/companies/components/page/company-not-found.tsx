@@ -5,9 +5,11 @@
  * associated with a given slug could not be located. It provides a clear
  * call-to-action to navigate back to the main companies list.
  */
-import { Button } from "@/components/ui/button";
-import { Building2, ChevronLeft } from "lucide-react";
 import Link from "next/link";
+
+import { Building2, ChevronLeft } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 
 /**
  * Props for the CompanyNotFound component.

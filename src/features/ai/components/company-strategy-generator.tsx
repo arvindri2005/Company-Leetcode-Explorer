@@ -8,19 +8,36 @@
  */
 "use client";
 
-import type {
-  GenerateCompanyStrategyOutput,
-  FocusTopic,
-  TargetRoleLevel,
-  StrategyTodoItem,
-  SavedStrategyTodoList,
-} from "@/types";
-import { targetRoleLevelOptions } from "@/features/ai";
-import { useState, useEffect, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { userService } from "@/features/profile/services/user.service";
+import { useCallback,useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+import {
+  AlertCircle,
+  Brain,
+  CheckSquare,
+  Info,
+  Lightbulb,
+  ListChecks,
+  Loader2,
+  LogIn,
+  RefreshCw,
+  Save,
+  Target,
+  UserCheck,
+} from "lucide-react";
+import remarkGfm from "remark-gfm";
+
 import { generateCompanyStrategyAction } from "@/app/actions/ai.actions";
-import { useToast } from "@/hooks/use-toast";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -36,34 +53,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Lightbulb,
-  Target,
-  Loader2,
-  ListChecks,
-  Brain,
-  UserCheck,
-  Save,
-  CheckSquare,
-  RefreshCw,
-  Info,
-  LogIn,
-  AlertCircle,
-} from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { useAuth } from "@/providers";
+import { targetRoleLevelOptions } from "@/features/ai";
 import { useAICooldown } from "@/features/ai";
+import { userService } from "@/features/profile/services/user.service";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useAuth } from "@/providers";
+import type {
+  GenerateCompanyStrategyOutput,
+  TargetRoleLevel,
+} from "@/types";
 
 /**
  * Props for the CompanyStrategyGenerator component.
@@ -94,7 +94,6 @@ interface CompanyStrategyGeneratorProps {
 const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
   companyId,
   companyName,
-  companySlug,
 }) => {
   const [strategyData, setStrategyData] =
     useState<GenerateCompanyStrategyOutput | null>(null);
@@ -111,7 +110,7 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
   const pathname = usePathname();
 
   const loadSavedStrategy = useCallback(async () => {
-    if (!user) return;
+    if (!user) {return;}
     setIsLoadingSaved(true);
     setStrategyData(null);
     setHasSavedStrategy(false);
@@ -155,7 +154,7 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
   }, [user, authLoading, loadSavedStrategy]);
 
   const handleGenerateStrategy = async () => {
-    if (!user) return;
+    if (!user) {return;}
     if (isLoadingCooldown || !canUseAI) {
       toast({
         title: "AI Feature on Cooldown",
@@ -378,7 +377,7 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
                   </h3>
                   <CardDescription>
                     {hasSavedStrategy &&
-                      `Last saved: ${strategyData.todoItems[0]?.isCompleted !== undefined && "savedAt" in strategyData ? new Date((strategyData as any).savedAt).toLocaleDateString() : "Just now"}. `}
+                      `Last saved: ${strategyData.todoItems[0]?.isCompleted !== undefined && "savedAt" in strategyData ? new Date((strategyData as GenerateCompanyStrategyOutput & { savedAt: string }).savedAt).toLocaleDateString() : "Just now"}. `}
                     Tailored for a{" "}
                     {targetRoleLevelOptions
                       .find((opt) => opt.value === selectedRoleLevel)

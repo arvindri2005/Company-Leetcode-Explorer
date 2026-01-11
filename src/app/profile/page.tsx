@@ -9,56 +9,54 @@
  */
 "use client";
 
-import { useAuth } from "@/providers";
-import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
-import { useForm, FormProvider } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useEffect, useState } from "react";
+import { FormProvider,useForm } from "react-hook-form";
 
-import UserInfoCard from "@/features/profile/components/user-info-card";
-import EducationExperienceSection from "@/features/profile/components/education-experience-section";
-import WorkExperienceSection from "@/features/profile/components/work-experience-section";
-import ProgressStats from "@/features/profile/components/progress-stats";
-import ProfileProblemList from "@/features/profile/components/profile-problem-list";
-
-import { ProfilePageSkeleton } from "@/components/skeletons/profile-skeletons";
-import { StrategyListSkeleton } from "@/components/skeletons/strategy-skeleton";
 import dynamic from "next/dynamic";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ErrorBoundary from "@/components/ui/error-boundary";
-import ProfileTabErrorFallback from "@/features/profile/components/profile-tab-error-fallback";
-import {
-  Bookmark,
-  CheckCircle2,
-  Pencil,
-  ListTodo,
-  FolderKanban,
-  Briefcase,
-} from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
+
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   signOut,
   updateProfile as updateFirebaseAuthProfile,
 } from "firebase/auth";
-import { auth } from "@/lib/api/firebase";
-import { useToast } from "@/hooks/use-toast";
-import { userService } from "@/features/profile/services/user.service";
-
-import type {
-  LeetCodeProblem,
-  ProblemStatus,
-  BookmarkedProblemInfo,
-  UserProblemStatusInfo,
-  SavedStrategyTodoList,
-  EducationExperience,
-  WorkExperience,
-} from "@/types";
-import { EducationExperienceSchema, WorkExperienceSchema } from "@/types"; // Schemas for forms
+import {
+  Bookmark,
+  Briefcase,
+  CheckCircle2,
+  FolderKanban,
+  ListTodo,
+  Pencil,
+} from "lucide-react";
+import { z } from "zod";
 
 import {
   getProblemByCompanySlugAndProblemSlugAction,
 } from "@/app/actions/problem.actions"; // Import from specific file
+import { ProfilePageSkeleton } from "@/components/skeletons/profile-skeletons";
+import { StrategyListSkeleton } from "@/components/skeletons/strategy-skeleton";
+import { Card, CardContent,CardHeader, CardTitle } from "@/components/ui/card";
+import ErrorBoundary from "@/components/ui/error-boundary";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import EducationExperienceSection from "@/features/profile/components/education-experience-section";
+import ProfileProblemList from "@/features/profile/components/profile-problem-list";
+import ProfileTabErrorFallback from "@/features/profile/components/profile-tab-error-fallback";
+import ProgressStats from "@/features/profile/components/progress-stats";
+import UserInfoCard from "@/features/profile/components/user-info-card";
+import WorkExperienceSection from "@/features/profile/components/work-experience-section";
+import { userService } from "@/features/profile/services/user.service";
+import { useToast } from "@/hooks/use-toast";
+import { auth } from "@/lib/api/firebase";
+import { useAuth } from "@/providers";
+import type {
+  EducationExperience,
+  LeetCodeProblem,
+  ProblemStatus,
+  SavedStrategyTodoList,
+  UserProblemStatusInfo,
+  WorkExperience,
+} from "@/types";
+import { EducationExperienceSchema, WorkExperienceSchema } from "@/types"; // Schemas for forms
 
 const StrategyListsSection = dynamic(
   () => import("@/features/profile/components/strategy-lists-section"),
@@ -186,7 +184,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user?.displayName)
-      displayNameForm.reset({ displayName: user.displayName });
+      {displayNameForm.reset({ displayName: user.displayName });}
   }, [user?.displayName, displayNameForm]);
 
   const fetchEducation = async () => {
@@ -204,7 +202,7 @@ export default function ProfilePage() {
           });
           setEducationHistory([]);
         }
-      } catch (error) {
+      } catch {
         toast({
           title: "Error",
           description: "Could not fetch education history.",
@@ -213,7 +211,7 @@ export default function ProfilePage() {
         setEducationHistory([]);
       }
       setIsLoadingEducation(false);
-    } else setEducationHistory([]);
+    } else {setEducationHistory([]);}
   };
 
   const fetchWorkExperience = async () => {
@@ -231,7 +229,7 @@ export default function ProfilePage() {
           });
           setWorkExperience([]);
         }
-      } catch (error) {
+      } catch {
         toast({
           title: "Error",
           description: "Could not fetch work experience.",
@@ -240,7 +238,7 @@ export default function ProfilePage() {
         setWorkExperience([]);
       }
       setIsLoadingWorkExperience(false);
-    } else setWorkExperience([]);
+    } else {setWorkExperience([]);}
   };
 
   const fetchBookmarkedData = async () => {
@@ -262,7 +260,7 @@ export default function ProfilePage() {
         }
         const detailedProblemsPromises = bookmarkInfosResult.value.map(
           async (info) => {
-            if (!info.companySlug || !info.problemSlug) return null;
+            if (!info.companySlug || !info.problemSlug) {return null;}
             try {
               const result = await getProblemByCompanySlugAndProblemSlugAction(
                 info.companySlug,
@@ -275,7 +273,7 @@ export default function ProfilePage() {
                 } as ProblemWithDetails;
               }
               return null;
-            } catch (e) {
+            } catch {
               return null;
             }
           },
@@ -285,7 +283,7 @@ export default function ProfilePage() {
             Boolean,
           ) as ProblemWithDetails[],
         );
-      } catch (error) {
+      } catch {
         toast({
           title: "Error",
           description: "Could not fetch bookmarked problems.",
@@ -294,7 +292,7 @@ export default function ProfilePage() {
         setBookmarkedProblemDetails([]);
       }
       setIsLoadingBookmarks(false);
-    } else setBookmarkedProblemDetails([]);
+    } else {setBookmarkedProblemDetails([]);}
   };
 
   const fetchStatusData = async () => {
@@ -334,7 +332,7 @@ export default function ProfilePage() {
                 } as ProblemWithDetails;
               }
               return null;
-            } catch (e) {
+            } catch {
               return null;
             }
           },
@@ -344,7 +342,7 @@ export default function ProfilePage() {
             Boolean,
           ) as ProblemWithDetails[],
         );
-      } catch (error) {
+      } catch {
         toast({
           title: "Error",
           description: "Could not fetch problem statuses.",
@@ -373,7 +371,7 @@ export default function ProfilePage() {
             variant: "destructive",
           });
         }
-      } catch (error) {
+      } catch {
         toast({
           title: "Error",
           description: "Could not fetch saved strategy todo lists.",
@@ -381,7 +379,7 @@ export default function ProfilePage() {
         });
       }
       setIsLoadingStrategyTodoLists(false);
-    } else setStrategyTodoLists([]);
+    } else {setStrategyTodoLists([]);}
   };
 
   useEffect(() => {
@@ -396,7 +394,7 @@ export default function ProfilePage() {
   }, [user, authLoading]);
 
   const handleAddEducation = async (data: EducationFormValues) => {
-    if (!user) return;
+    if (!user) {return;}
     educationForm.clearErrors(); // Clear previous errors
     const result = await userService.addUserEducation(user.uid, data);
     if (result.isSuccess && result.value.id) {
@@ -417,7 +415,7 @@ export default function ProfilePage() {
   };
 
   const handleAddWorkExperience = async (data: WorkExperienceFormValues) => {
-    if (!user) return;
+    if (!user) {return;}
     workForm.clearErrors(); // Clear previous errors
     const result = await userService.addUserWorkExperience(user.uid, data);
     if (result.isSuccess && result.value.id) {
@@ -442,7 +440,7 @@ export default function ProfilePage() {
     itemIndex: number,
     newStatus: boolean,
   ) => {
-    if (!user) return;
+    if (!user) {return;}
     const todoItemId = `${companyId}-${itemIndex}`;
     setUpdatingTodoItemId(todoItemId);
     const originalLists = [...strategyTodoLists]; // Keep a copy for optimistic update rollback
@@ -522,7 +520,7 @@ export default function ProfilePage() {
     newStatus: ProblemStatus,
   ) => {
     setProblemsWithStatusDetails((prev) => {
-      if (newStatus === "none") return prev.filter((p) => p.id !== problemId);
+      if (newStatus === "none") {return prev.filter((p) => p.id !== problemId);}
       return prev.map((p) =>
         p.id === problemId ? { ...p, currentStatus: newStatus } : p,
       );
@@ -533,14 +531,14 @@ export default function ProfilePage() {
   };
 
   const getInitials = (name: string | null | undefined) => {
-    if (!name) return "AU"; // Anonymous User
+    if (!name) {return "AU";} // Anonymous User
     const names = name.split(" ");
     const initials = names.map((n) => n[0]).join("");
     return initials.toUpperCase().slice(0, 2);
   };
 
   const onSubmitDisplayName = async (data: DisplayNameFormValues) => {
-    if (!user) return;
+    if (!user) {return;}
     setIsSubmittingDisplayName(true);
     try {
       // Update Firebase Auth profile
@@ -579,10 +577,11 @@ export default function ProfilePage() {
           variant: "destructive",
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to update display name.";
       toast({
         title: "Error",
-        description: error.message || "Failed to update display name.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -590,7 +589,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (authLoading) return <ProfilePageSkeleton />;
+  if (authLoading) {return <ProfilePageSkeleton />;}
   if (!user) {
     router.push("/login");
     return null;

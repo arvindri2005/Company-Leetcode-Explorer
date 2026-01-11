@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { type User } from "firebase/auth";
+
 import { AITooltipContent } from "./ai-tooltip-content";
-import { User } from "firebase/auth";
 
 const mockUser = { uid: "test-user" } as User;
 

@@ -7,23 +7,25 @@
  * top-level layout as per the Next.js App Router conventions.
  */
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { env } from "@/env";
-import { Toaster } from "@/components/ui/toaster";
-import { OfflineIndicator } from "@/components/ui/offline-indicator";
+
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+
 import Header from "@/components/layout/header";
+import { HeaderErrorFallback } from "@/components/layout/header";
+import StructuredData from "@/components/seo/structured-data";
+import ErrorBoundary from "@/components/ui/error-boundary";
+import { OfflineIndicator } from "@/components/ui/offline-indicator";
+import { Toaster } from "@/components/ui/toaster";
+import { COLORS } from "@/constants/colors";
+import { env } from "@/env";
+import { CooldownStateProvider } from "@/features/ai";
 import { Footer } from "@/features/landing";
 import { AuthProvider } from "@/providers";
 import { ThemeProvider } from "@/providers";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Analytics } from "@vercel/analytics/next";
-import { CooldownStateProvider } from "@/features/ai";
-import StructuredData from "@/components/seo/structured-data";
-import { COLORS } from "@/constants/colors";
-import ErrorBoundary from "@/components/ui/error-boundary";
-import { HeaderErrorFallback } from "@/components/layout/header";
+
+import "./globals.css";
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",

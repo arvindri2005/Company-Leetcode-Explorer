@@ -1,29 +1,30 @@
+import { TextDecoder,TextEncoder } from 'util';
+
 import '@testing-library/jest-dom'
-import { TextEncoder, TextDecoder } from 'util';
 
 global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder as any;
+global.TextDecoder = TextDecoder as typeof globalThis.TextDecoder;
 global.fetch = jest.fn();
 
 if (typeof setImmediate === 'undefined') {
-  global.setImmediate = ((callback: any, ...args: any[]) => setTimeout(callback, 0, ...args)) as any;
+  global.setImmediate = ((callback: (...args: unknown[]) => void, ...args: unknown[]) => setTimeout(callback, 0, ...args)) as unknown as typeof setImmediate;
 }
 
 
 if (typeof global.Request === 'undefined') {
   global.Request = class Request {
-    constructor(input: any, init?: any) {
-        return jest.fn();
+    constructor(_input: RequestInfo | URL, _init?: RequestInit) {
+        return jest.fn() as unknown as Request;
     }
-  } as any;
+  } as unknown as typeof Request;
 }
 
 if (typeof global.Response === 'undefined') {
   global.Response = class Response {
-    constructor(body?: any, init?: any) {
-        return jest.fn();
+    constructor(_body?: BodyInit | null, _init?: ResponseInit) {
+        return jest.fn() as unknown as Response;
     }
-  } as any;
+  } as unknown as typeof Response;
 }
 
 if (typeof global.Headers === 'undefined') {
@@ -34,7 +35,7 @@ if (typeof global.Headers === 'undefined') {
     has() {}
     set() {}
     forEach() {}
-  } as any;
+  } as unknown as typeof Headers;
 }
 
 // Global mock for Firebase to prevent initialization errors in tests
@@ -45,7 +46,7 @@ jest.mock('@/lib/api/firebase', () => ({
 }));
 
 // Global mock for react-markdown and remark-gfm to resolve ESM issues in Jest
-jest.mock("react-markdown", () => (props: any) => {
+jest.mock("react-markdown", () => (props: { children: React.ReactNode }) => {
   return props.children;
 });
 

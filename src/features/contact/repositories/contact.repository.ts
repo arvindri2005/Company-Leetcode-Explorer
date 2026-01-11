@@ -1,6 +1,7 @@
-import { db } from "@/lib/api/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { z } from "zod";
+
+import { db } from "@/lib/api/firebase";
 
 export interface ContactMessageData {
   name: string;

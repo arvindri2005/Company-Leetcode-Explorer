@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
+
+import { type LeetCodeProblem } from "../../types";
+
 import AllProblemsList from "./all-problems-list";
-import { LeetCodeProblem } from "../../types";
 
 const mockProblems: LeetCodeProblem[] = [
   {

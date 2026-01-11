@@ -1,10 +1,13 @@
 
+import { type ComponentProps } from "react";
+
 import type { Meta, StoryObj } from "@storybook/react";
-import { ComponentProps } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 type PopoverProps = ComponentProps<typeof Popover> & {
   align?: "start" | "center" | "end";

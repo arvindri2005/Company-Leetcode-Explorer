@@ -1,8 +1,8 @@
 
-import { problemService } from "@/features/problems/services/problem.service";
 import { problemRepository } from "@/features/problems/repositories/problem.repository";
-import { LeetCodeProblem } from "@/types";
+import { problemService } from "@/features/problems/services/problem.service";
 import { cacheManager } from "@/lib/utils/cache";
+import { type LeetCodeProblem } from "@/types";
 
 jest.mock("@/features/problems/repositories/problem.repository", () => ({
   problemRepository: {

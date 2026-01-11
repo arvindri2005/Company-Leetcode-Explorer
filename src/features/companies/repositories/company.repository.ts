@@ -1,34 +1,37 @@
-import { Company, CompanySchema } from "@/types";
-import { db } from "@/lib/api/firebase";
+import type { DocumentSnapshot } from "firebase/firestore";
 import {
   collection,
-  getDocs,
-  doc,
-  getDoc,
-  query,
-  where,
-  limit,
-  setDoc,
-  updateDoc,
-  orderBy,
-  Timestamp,
-  startAfter,
   deleteDoc,
-  Firestore,
+  doc,
   documentId,
-  QueryConstraint,
+  type Firestore,
+  getDoc,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  type QueryConstraint,
+  setDoc,
+  startAfter,
+  Timestamp,
+  updateDoc,
+  where,
 } from "firebase/firestore";
+
+import type { Company as CompanyEntity } from "@/domain/entities/company.entity";
+import { db } from "@/lib/api/firebase";
 import { slugify } from "@/lib/utils";
 import { Logger } from "@/lib/utils/logger";
+import type { PaginatedResult } from "@/shared/interfaces";
+import { type Company, CompanySchema } from "@/types";
+
 import type {
-  ICompanyRepository,
-  GetCompaniesParams,
-  PaginatedCompaniesResponse,
   CreateCompanyDTO,
+  GetCompaniesParams,
+  ICompanyRepository,
+  PaginatedCompaniesResponse,
   UpdateCompanyDTO,
 } from "../interfaces/company.repository.interface";
-import type { Company as CompanyEntity } from "@/domain/entities/company.entity";
-import type { PaginatedResult } from "@/shared/interfaces";
 
 // Make sure db is initialized
 function getFirestore(): Firestore {
@@ -41,7 +44,7 @@ function getFirestore(): Firestore {
 }
 
 function mapFirestoreDocToCompany(
-  docSnap: import("firebase/firestore").DocumentSnapshot,
+  docSnap: DocumentSnapshot,
 ): Company {
   const data = docSnap.data()!;
   const company: Company = {
@@ -316,7 +319,7 @@ export class CompanyRepository implements ICompanyRepository {
   }
 
   async getCompanyById(id: string): Promise<Company | undefined> {
-    if (!id) return undefined;
+    if (!id) {return undefined;}
     try {
       const companyDocRef = doc(getFirestore(), "companies", id);
       const companySnap = await getDoc(companyDocRef);
@@ -331,7 +334,7 @@ export class CompanyRepository implements ICompanyRepository {
   }
 
   async getCompanyBySlug(slug: string): Promise<Company | undefined> {
-    if (!slug) return undefined;
+    if (!slug) {return undefined;}
     try {
         const companyDocRef = doc(getFirestore(), "companies", slug);
         const companySnap = await getDoc(companyDocRef);

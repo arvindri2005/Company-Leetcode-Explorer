@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
+
 import { StatItem } from "./stat-item";
 
 const meta = {

@@ -1,4 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { fireEvent,render, screen } from '@testing-library/react';
+
 import ProblemLoadError from '@/features/companies/components/page/problem-load-error';
 import { reloadPage } from '@/lib/utils';
 

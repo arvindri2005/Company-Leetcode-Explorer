@@ -5,17 +5,17 @@
  * related to contact form submissions.
  */
 
-import { contactRepository } from "../repositories/contact.repository";
-import { ContactRepository } from "../repositories/contact.repository";
-import { success, failure, type Result } from "@/shared/types/result";
-import type { ServiceError } from "@/shared/types/service-error";
 import type { Contact as ContactEntity } from "@/domain/entities/contact.entity";
 import type { PaginatedResult, PaginationParams } from "@/shared/interfaces";
-import type { IContactService } from "../interfaces/contact.service.interface";
+import { failure, type Result,success } from "@/shared/types/result";
+import type { ServiceError } from "@/shared/types/service-error";
+
 import type {
-  IContactRepository,
   ContactMessageData,
+  IContactRepository,
 } from "../interfaces/contact.repository.interface";
+import type { IContactService } from "../interfaces/contact.service.interface";
+import { contactRepository } from "../repositories/contact.repository";
 
 /**
  * Contact Service Implementation
@@ -32,7 +32,7 @@ export class ContactService implements IContactService {
   async submitMessage(data: ContactMessageData): Promise<Result<void, ServiceError>> {
     try {
       await this.repository.createContactMessage(data);
-      return success(undefined);
+      return success();
     } catch (error) {
       return failure({
         code: "INTERNAL_ERROR",
@@ -121,7 +121,7 @@ export class ContactService implements IContactService {
         });
       }
       
-      return success(undefined);
+      return success();
     } catch (error) {
       return failure({
         code: "INTERNAL_ERROR",
@@ -147,7 +147,7 @@ export class ContactService implements IContactService {
         });
       }
       
-      return success(undefined);
+      return success();
     } catch (error) {
       return failure({
         code: "INTERNAL_ERROR",
@@ -173,7 +173,7 @@ export class ContactService implements IContactService {
         });
       }
       
-      return success(undefined);
+      return success();
     } catch (error) {
       return failure({
         code: "INTERNAL_ERROR",

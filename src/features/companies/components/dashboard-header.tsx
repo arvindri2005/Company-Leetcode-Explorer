@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
-import { Search, X } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import React, { useEffect,useRef, useState } from "react";
+
 import { useRouter, useSearchParams } from "next/navigation";
+
+import { Search, X } from "lucide-react";
 import { useDebouncedCallback } from "use-debounce";
 
+import { Input } from "@/components/ui/input";
 import { useTypingPlaceholder } from "@/features/tools/hooks/use-typing-placeholder";
 
 export function DashboardHeader() {

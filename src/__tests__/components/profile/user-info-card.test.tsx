@@ -1,8 +1,10 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import UserInfoCard from '@/features/profile/components/user-info-card';
 import { FormProvider, useForm } from 'react-hook-form';
+
+import { fireEvent,render, screen } from '@testing-library/react';
+
 import { createMockUser } from '@/__tests__/factories/data-factories';
+import UserInfoCard from '@/features/profile/components/user-info-card';
 
 // Mock dependencies
 jest.mock('lucide-react', () => ({
@@ -44,7 +46,7 @@ describe('UserInfoCard', () => {
     onSubmitDisplayName: jest.fn(),
     isSubmittingDisplayName: false,
     handleLogout: jest.fn(),
-    getInitials: (name: string | null | undefined) => 'TU',
+    getInitials: (_name: string | null | undefined) => 'TU',
   };
 
   it('renders user information correctly', () => {

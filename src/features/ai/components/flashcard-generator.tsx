@@ -8,11 +8,23 @@
  */
 "use client";
 
-import type { Flashcard } from "@/types";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import ReactMarkdown from "react-markdown";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+import { AlertCircle,BrainCircuit, Info, Loader2, LogIn } from "lucide-react";
+import remarkGfm from "remark-gfm";
+
 import { generateFlashcardsAction } from "@/app/actions";
-import { useToast } from "@/hooks/use-toast";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -20,20 +32,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { BrainCircuit, Loader2, LogIn, Info, AlertCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { useAuth } from "@/providers";
 import { useAICooldown } from "@/features/ai";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/providers";
+import type { Flashcard } from "@/types";
 
 /**
  * Props for the FlashcardGenerator component.
@@ -64,7 +67,6 @@ interface FlashcardGeneratorProps {
 const FlashcardGenerator: React.FC<FlashcardGeneratorProps> = ({
   companyId,
   companyName,
-  companySlug,
 }) => {
   const { user, loading: authLoading } = useAuth();
   const { canUseAI, startCooldown, getFormattedRemainingTime, isLoadingCooldown } =

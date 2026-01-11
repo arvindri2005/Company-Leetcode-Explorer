@@ -7,9 +7,11 @@
  */
 "use client";
 
-import { Rocket, Play } from "lucide-react";
-import { FloatingShapes } from "@/components/ui/floating-shapes";
 import { useRouter } from "next/navigation";
+
+import { Rocket } from "lucide-react";
+
+import { FloatingShapes } from "@/components/ui/floating-shapes";
 
 /**
  * Renders the hero section of the landing page.

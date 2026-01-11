@@ -1,16 +1,19 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
-import { OfflineImage } from "./offline-image";
+
+import { fireEvent,render, screen } from "@testing-library/react";
+
 import { useOnlineStatus } from "@/hooks/use-online-status";
+
+import { OfflineImage } from "./offline-image";
 
 // Mock dependencies
 jest.mock("@/hooks/use-online-status");
 jest.mock("next/image", () => ({
   __esModule: true,
-  default: (props: any) => {
+  default: (props: React.ImgHTMLAttributes<HTMLImageElement> & { fill?: boolean; priority?: boolean }) => {
     // We intentionally filter out props that cause React DOM warnings in tests
      
-    const { fill, priority, loading, sizes, quality, onError, loader, placeholder, blurDataURL, unoptimized, onLoadingComplete, alt, ...rest } = props;
+    const { fill, priority, onError, alt, ...rest } = props;
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img

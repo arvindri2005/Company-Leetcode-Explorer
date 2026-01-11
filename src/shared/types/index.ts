@@ -4,11 +4,10 @@
  */
 
 export {
-  Success,
   Failure,
-  type Result,
-  success,
   failure,
+  type Result,
+  Success,
+  success,
 } from "./result";
-
 export { type ServiceError, type ServiceErrorCode } from "./service-error";

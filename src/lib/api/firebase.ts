@@ -1,8 +1,9 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore, enableMultiTabIndexedDbPersistence, initializeFirestore, CACHE_SIZE_UNLIMITED } from "firebase/firestore";
+import { getApp,getApps, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { Logger } from "@/lib/utils/logger";
+import { CACHE_SIZE_UNLIMITED,enableMultiTabIndexedDbPersistence, initializeFirestore } from "firebase/firestore";
+
 import { env } from "@/env";
+import { Logger } from "@/lib/utils/logger";
 
 const firebaseConfig = {
   apiKey: env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -23,9 +24,9 @@ const db = initializeFirestore(app, {
 
 if (typeof window !== 'undefined') {
   enableMultiTabIndexedDbPersistence(db).catch((err) => {
-    if (err.code == 'failed-precondition') {
+    if (err.code === 'failed-precondition') {
       Logger.warn('Multiple tabs open, persistence can only be enabled in one tab at a a time.');
-    } else if (err.code == 'unimplemented') {
+    } else if (err.code === 'unimplemented') {
       Logger.warn('The current browser does not support all of the features required to enable persistence');
     }
   });

@@ -24,8 +24,8 @@ export * from "./constants";
 export { ProblemService, problemService } from "./services/problem.service";
 
 // Mappers - Export mapper for domain conversions
-export { ProblemMapper } from "./mappers";
 export type { ProblemDocument } from "./mappers";
+export { ProblemMapper } from "./mappers";
 
 
 

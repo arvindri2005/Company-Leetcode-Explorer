@@ -7,7 +7,7 @@ import { Logger } from "@/lib/utils/logger";
 export function handleServerActionError(
   error: unknown,
   actionName: string,
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 ): string {
   let errorMessage: string;
 

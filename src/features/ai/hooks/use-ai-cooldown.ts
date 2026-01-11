@@ -1,13 +1,13 @@
 "use client";
 
 import React, {
-  useState,
-  useEffect,
-  useCallback,
   createContext,
-  useContext,
-  useMemo,
   type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
 } from "react";
 
 // --- Constants ---
@@ -57,28 +57,29 @@ export const CooldownStateProvider: React.FC<CooldownStateProviderProps> = ({
     }
     return null;
   });
-  const [isLoadingCooldown, setIsLoadingCooldown] = useState(true);
+  // isLoadingCooldown is false on client (where window exists), true on server
+  const isLoadingCooldown = typeof window === "undefined";
 
-  useEffect(() => {
-    setIsLoadingCooldown(false);
-  }, []);
+  // No need for useEffect to set isLoadingCooldown - it's initialized correctly
 
   // Effect to manage the countdown timer end state
   useEffect(() => {
-    if (isLoadingCooldown || !cooldownEndTime) return;
+    if (isLoadingCooldown || !cooldownEndTime) {return;}
 
     const now = Date.now();
     const remaining = cooldownEndTime - now;
 
     if (remaining <= 0) {
-      // Already expired
-      setCooldownEndTime(null);
-      try {
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
-      } catch (error) {
-        console.warn("AI Cooldown: Failed to remove item from localStorage.", error);
-      }
-      return;
+      // Already expired - schedule state update for next tick to avoid setState in effect
+      const timeoutId = setTimeout(() => {
+        setCooldownEndTime(null);
+        try {
+          localStorage.removeItem(LOCAL_STORAGE_KEY);
+        } catch (error) {
+          console.warn("AI Cooldown: Failed to remove item from localStorage.", error);
+        }
+      }, 0);
+      return () => clearTimeout(timeoutId);
     }
 
     // Set timeout to clear cooldown when it expires
@@ -110,11 +111,11 @@ export const CooldownStateProvider: React.FC<CooldownStateProviderProps> = ({
   );
 
   const getFormattedRemainingTime = useCallback(() => {
-     if (isLoadingCooldown && !cooldownEndTime) return "...";
-     if (!cooldownEndTime) return "Ready";
+     if (isLoadingCooldown && !cooldownEndTime) {return "...";}
+     if (!cooldownEndTime) {return "Ready";}
      
      const remainingTimeMs = Math.max(0, cooldownEndTime - Date.now());
-     if (remainingTimeMs <= 0) return "Ready";
+     if (remainingTimeMs <= 0) {return "Ready";}
 
      const totalSeconds = Math.ceil(remainingTimeMs / 1000);
      const minutes = Math.floor(totalSeconds / 60);

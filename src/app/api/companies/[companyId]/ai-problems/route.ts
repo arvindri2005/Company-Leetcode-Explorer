@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+
 import { problemService } from "@/features/problems/services/problem.service";
 import { Logger } from "@/lib/utils/logger";
 

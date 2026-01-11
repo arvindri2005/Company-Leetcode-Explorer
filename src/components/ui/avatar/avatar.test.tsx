@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 
 describe("Avatar", () => {
@@ -15,7 +16,7 @@ describe("Avatar", () => {
           // Simulate a successful load slightly async
           setTimeout(() => {
             callback();
-            if (this.onload) this.onload();
+            if (this.onload) {this.onload();}
           }, 10);
         }
       }

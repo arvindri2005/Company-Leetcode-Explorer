@@ -1,12 +1,14 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+
+import { Button } from "@/components/ui/button";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./dropdown-menu";
-import { Button } from "@/components/ui/button";
 
 describe("DropdownMenu", () => {
   // Optional: Add global mocks if not done in setupTests.ts

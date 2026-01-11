@@ -7,19 +7,20 @@
  */
 "use client";
 
-import type { Company, LeetCodeProblem, LastAskedPeriod } from "@/types";
+import { ListChecks, TagsIcon } from "lucide-react";
 import {
-  BarChart,
   Bar,
+  BarChart,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ListChecks, CalendarClock, TagsIcon } from "lucide-react";
+
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { TagBadge } from "@/features/problems";
+import type { Company, LastAskedPeriod,LeetCodeProblem } from "@/types";
 
 /**
  * Props for the CompanyProblemStats component.
@@ -61,7 +62,6 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({
     difficultyCounts,
     recencyCounts,
     commonTags,
-    problemCount,
   } = company;
 
   if (

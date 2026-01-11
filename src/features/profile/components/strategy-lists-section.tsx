@@ -1,7 +1,18 @@
 "use client";
 
 import React from "react";
-import type { SavedStrategyTodoList, StrategyTodoItem } from "@/types";
+import ReactMarkdown from "react-markdown";
+
+import { Brain, FolderKanban, ListChecks, Loader2, Target } from "lucide-react";
+import remarkGfm from "remark-gfm";
+
+import { StrategyListSkeleton } from "@/components/skeletons/strategy-skeleton";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import {
   Card,
   CardContent,
@@ -9,19 +20,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
-import { StrategyListSkeleton } from "@/components/skeletons/strategy-skeleton";
-import { Brain, ListChecks, Target, FolderKanban, Loader2 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
+import type { SavedStrategyTodoList } from "@/types";
 
 /**
  * @interface StrategyListsSectionProps

@@ -1,11 +1,10 @@
 import {
-  calculateWPM,
   calculateAccuracy,
+  calculateWPM,
   checkMistake,
-  processTabKey,
+  countCurrentMistakes,
   processEnterKey,
-  countCurrentMistakes
-} from "../utils/typing-game-logic";
+  processTabKey} from "../utils/typing-game-logic";
 
 describe("Typing Game Logic", () => {
   describe("calculateWPM", () => {

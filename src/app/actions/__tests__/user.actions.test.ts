@@ -1,10 +1,12 @@
 
-import { toggleBookmarkProblemAction, setProblemStatusAction, getUserProblemStatusesForIdsAction } from "../user.actions";
-import { userService } from "@/features/profile/services/user.service";
 import { revalidateTag } from "next/cache";
-import { handleServerActionError } from "@/lib/utils/error-handler";
+
 import { simpleFaker } from "@/__tests__/factories/data-factories";
-import { success, failure } from "@/shared/types/result";
+import { userService } from "@/features/profile/services/user.service";
+import { handleServerActionError } from "@/lib/utils/error-handler";
+import { failure,success } from "@/shared/types/result";
+
+import { getUserProblemStatusesForIdsAction,setProblemStatusAction, toggleBookmarkProblemAction } from "../user.actions";
 
 // Mock dependencies
 jest.mock("@/features/profile/services/user.service");
@@ -129,7 +131,7 @@ describe("User Actions", () => {
     it("should successfully set status and revalidate tags", async () => {
       // Arrange
       (userService.setProblemStatus as jest.Mock).mockResolvedValue(
-        success(undefined)
+        success()
       );
 
       // Act

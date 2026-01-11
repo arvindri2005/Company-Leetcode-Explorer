@@ -21,21 +21,23 @@
  */
 "use server";
 
+import { revalidateTag } from "next/cache";
+
+import { z } from "zod";
+
+import { userService } from "@/features/profile/services/user.service";
+import { auth } from "@/lib/api/firebase";
+import {
+  type ApiResponse,
+  errorResponse,
+  successResponse,
+} from "@/lib/api/response";
+import { handleServerActionError } from "@/lib/utils/error-handler";
+import { Logger } from "@/lib/utils/logger";
 import type {
   ProblemStatus,
 } from "@/types";
-import { userService } from "@/features/profile/services/user.service";
-import { revalidateTag } from "next/cache";
-import { z } from "zod";
 import { ProblemStatusSchema } from "@/types";
-import { Logger } from "@/lib/utils/logger";
-import { auth } from "@/lib/api/firebase";
-import { handleServerActionError } from "@/lib/utils/error-handler";
-import {
-  type ApiResponse,
-  successResponse,
-  errorResponse,
-} from "@/lib/api/response";
 
 const ActionInputSchema = z.object({
   userId: z.string().min(1, "User ID is required"),
@@ -96,17 +98,13 @@ export async function toggleBookmarkProblemAction(
     Logger.warn("Security validation failed in toggleBookmarkProblemAction", { error: validation.error });
     
     // Zod v3+ safeParse return structure
-    if (validation.error) {
-       return errorResponse({
+    return validation.error ? errorResponse({
          code: "VALIDATION_ERROR",
          message: validation.error.issues[0]?.message || "Invalid input parameters",
-       });
-    } else {
-       return errorResponse({
+       }) : errorResponse({
          code: "VALIDATION_ERROR",
          message: "Invalid input parameters",
        });
-    }
   }
 
   try {
@@ -188,17 +186,13 @@ export async function setProblemStatusAction(
 
   if (!validation.success) {
      Logger.warn("Security validation failed in setProblemStatusAction", { error: validation.error });
-     if (validation.error) {
-       return errorResponse({
+     return validation.error ? errorResponse({
          code: "VALIDATION_ERROR",
          message: validation.error.issues[0]?.message || "Invalid input parameters",
-       });
-    } else {
-       return errorResponse({
+       }) : errorResponse({
          code: "VALIDATION_ERROR",
          message: "Invalid input parameters",
        });
-    }
   }
 
   try {
@@ -219,7 +213,7 @@ export async function setProblemStatusAction(
 
     revalidateTag(`user-problem-statuses-${userId}`, "max");
     revalidateTag(`user-profile-${userId}`, "max");
-    return successResponse(undefined);
+    return successResponse();
   } catch (error) {
     const message = handleServerActionError(error, "setProblemStatusAction", {
       userId,
@@ -271,17 +265,13 @@ export async function getUserProblemStatusesForIdsAction(
     }
     
     Logger.warn("Security validation failed in getUserProblemStatusesForIdsAction", { error: validation.error });
-    if (validation.error) {
-       return errorResponse({
+    return validation.error ? errorResponse({
          code: "VALIDATION_ERROR",
          message: validation.error.issues[0]?.message || "Invalid input parameters",
-       });
-    } else {
-       return errorResponse({
+       }) : errorResponse({
          code: "VALIDATION_ERROR",
          message: "Invalid input parameters",
        });
-    }
   }
 
   try {

@@ -1,7 +1,10 @@
-import { render, screen } from '@testing-library/react';
-import Header from './header';
-import { useAuth } from '@/providers';
 import { usePathname, useRouter } from 'next/navigation';
+
+import { render, screen } from '@testing-library/react';
+
+import { useAuth } from '@/providers';
+
+import Header from './header';
 
 // Mocks
 jest.mock('@/providers');

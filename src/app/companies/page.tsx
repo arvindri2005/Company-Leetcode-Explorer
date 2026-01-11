@@ -1,11 +1,14 @@
 import { Suspense } from "react";
+
 import type { Metadata } from "next";
-import { env } from "@/env";
-import ErrorBoundary from "@/components/ui/error-boundary";
-import CompanyListErrorFallback from "@/features/companies/components/company-list-error-fallback";
-import CompaniesListContainer from "./companies-list-container";
+
 import StructuredData from "@/components/seo/structured-data";
 import { CompaniesPageSkeleton } from "@/components/skeletons/companies-page-skeleton";
+import ErrorBoundary from "@/components/ui/error-boundary";
+import { env } from "@/env";
+import CompanyListErrorFallback from "@/features/companies/components/company-list-error-fallback";
+
+import CompaniesListContainer from "./companies-list-container";
 
 export const revalidate = 2592000; // 1 month
 

@@ -4,15 +4,15 @@
  */
 
 import type { User as UserEntity } from "@/domain/entities/user.entity";
-import type { IBaseRepository, PaginatedResult, PaginationParams } from "@/shared/interfaces";
+import type { IBaseRepository } from "@/shared/interfaces";
 import type {
   BookmarkedProblemInfo,
-  UserProblemStatusInfo,
+  EducationExperience,
+  GenerateCompanyStrategyOutput,
   ProblemStatus,
   SavedStrategyTodoList,
-  EducationExperience,
+  UserProblemStatusInfo,
   WorkExperience,
-  GenerateCompanyStrategyOutput,
 } from "@/types";
 
 /**

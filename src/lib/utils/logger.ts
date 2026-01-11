@@ -6,7 +6,7 @@ export interface LogEntry {
   timestamp: string;
   level: LogLevel;
   message: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   error?: Error | unknown;
 }
 
@@ -27,6 +27,7 @@ export class ConsoleTransport implements LogTransport {
       case "INFO":
       case "DEBUG":
       default:
+        // eslint-disable-next-line no-console
         console.log(logOutput);
         break;
     }
@@ -49,7 +50,7 @@ class Logger {
     this.transports = [new ConsoleTransport()];
   }
 
-  private static formatError(error: unknown): Record<string, any> | undefined {
+  private static formatError(error: unknown): Record<string, unknown> | undefined {
     if (error instanceof Error) {
       return {
         name: error.name,
@@ -58,7 +59,7 @@ class Logger {
       };
     }
     if (typeof error === "object" && error !== null) {
-      return error as Record<string, any>;
+      return error as Record<string, unknown>;
     }
     return undefined;
   }
@@ -66,7 +67,7 @@ class Logger {
   private static log(
     level: LogLevel,
     message: string,
-    context?: Record<string, any>,
+    context?: Record<string, unknown>,
     error?: unknown,
   ) {
     const entry: LogEntry = {
@@ -89,22 +90,22 @@ class Logger {
     });
   }
 
-  static debug(message: string, context?: Record<string, any>) {
+  static debug(message: string, context?: Record<string, unknown>) {
     // Only log debug in development or if enabled via env
     if (env.NODE_ENV === "development" || (typeof process !== "undefined" && env.LOG_LEVEL === "DEBUG")) {
       this.log("DEBUG", message, context);
     }
   }
 
-  static info(message: string, context?: Record<string, any>) {
+  static info(message: string, context?: Record<string, unknown>) {
     this.log("INFO", message, context);
   }
 
-  static warn(message: string, context?: Record<string, any>, error?: unknown) {
+  static warn(message: string, context?: Record<string, unknown>, error?: unknown) {
     this.log("WARN", message, context, error);
   }
 
-  static error(message: string, error?: unknown, context?: Record<string, any>) {
+  static error(message: string, error?: unknown, context?: Record<string, unknown>) {
     this.log("ERROR", message, context, error);
   }
 }

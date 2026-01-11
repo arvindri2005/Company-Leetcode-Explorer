@@ -3,17 +3,18 @@
  * Defines business operations for Problem entities
  */
 
+import type { Company } from "@/features/companies/types";
 import type { Result } from "@/shared/types/result";
 import type { ServiceError } from "@/shared/types/service-error";
+
 import type {
   DifficultyFilter,
   LastAskedFilter,
   LastAskedPeriod,
-  SortKey,
-  PaginatedProblemsResponse,
   LeetCodeProblem,
+  PaginatedProblemsResponse,
+  SortKey,
 } from "../types";
-import type { Company } from "@/features/companies/types";
 
 /**
  * Parameters for fetching public problems

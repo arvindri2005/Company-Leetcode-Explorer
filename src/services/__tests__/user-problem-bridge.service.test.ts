@@ -1,9 +1,9 @@
 
-import { userProblemBridgeService } from "@/features/problems/services/user-problem-bridge.service";
 import { problemService } from "@/features/problems/services/problem.service";
+import { userProblemBridgeService } from "@/features/problems/services/user-problem-bridge.service";
 import { userService } from "@/features/profile/services/user.service";
-import { LeetCodeProblem } from "@/types";
 import { success } from "@/shared/types/result";
+import { type LeetCodeProblem } from "@/types";
 
 // Mock dependencies
 jest.mock("@/features/problems/services/problem.service", () => ({

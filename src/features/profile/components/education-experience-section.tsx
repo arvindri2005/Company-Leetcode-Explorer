@@ -1,17 +1,21 @@
 "use client";
 
 import React from "react";
-import { useFormContext, FormProvider } from "react-hook-form";
-import { z } from "zod";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { FormProvider,useFormContext } from "react-hook-form";
+
+import { GraduationCap, Loader2,PlusCircle } from "lucide-react";
+import { type z } from "zod";
+
+import { ExperienceListSkeleton } from "@/components/skeletons/experience-skeleton";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -20,18 +24,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { ExperienceListSkeleton } from "@/components/skeletons/experience-skeleton";
-import { PlusCircle, GraduationCap, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import type { EducationExperience } from "@/types";
-import { EducationExperienceSchema as educationFormSchema } from "@/types"; // Renamed for clarity
+import { type EducationExperienceSchema as educationFormSchema } from "@/types"; // Renamed for clarity
 
 type EducationFormValues = z.infer<typeof educationFormSchema>;
 
@@ -208,31 +203,37 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
         </Dialog>
       </div>
       <div>
-        {isLoadingEducation ? (
-          <ExperienceListSkeleton />
-        ) : educationHistory.length > 0 ? (
-          <ul className="space-y-3 mt-4">
-            {educationHistory.map((edu) => (
-              <li
-                key={edu.id}
-                className="bg-card border border-border rounded-xl p-6 mb-8 shadow-sm"
-              >
-                <h4 className="font-semibold">
-                  {edu.degree} in {edu.major}
-                </h4>
-                <p className="text-sm text-muted-foreground">
-                  {edu.school}
-                  {edu.graduationYear && `, Graduated ${edu.graduationYear}`}
-                  {edu.gpa && `, GPA: ${edu.gpa}`}
-                </p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-muted-foreground text-center py-4">
-            No educational background added yet.
-          </p>
-        )}
+        {(() => {
+          if (isLoadingEducation) {
+            return <ExperienceListSkeleton />;
+          }
+          if (educationHistory.length > 0) {
+            return (
+              <ul className="space-y-3 mt-4">
+                {educationHistory.map((edu) => (
+                  <li
+                    key={edu.id}
+                    className="bg-card border border-border rounded-xl p-6 mb-8 shadow-sm"
+                  >
+                    <h4 className="font-semibold">
+                      {edu.degree} in {edu.major}
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      {edu.school}
+                      {edu.graduationYear && `, Graduated ${edu.graduationYear}`}
+                      {edu.gpa && `, GPA: ${edu.gpa}`}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            );
+          }
+          return (
+            <p className="text-muted-foreground text-center py-4">
+              No educational background added yet.
+            </p>
+          );
+        })()}
       </div>
     </>
   );

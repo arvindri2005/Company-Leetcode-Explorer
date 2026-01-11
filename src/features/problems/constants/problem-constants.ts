@@ -1,4 +1,4 @@
-import { ProblemStatus, LastAskedPeriod } from "../types";
+import { type LastAskedPeriod,type ProblemStatus } from "../types";
 
 /**
  * @description Options for selecting the last asked period in UI elements, with user-friendly labels.

@@ -1,6 +1,7 @@
 
-import { problemRepository } from "@/features/problems/repositories/problem.repository";
 import { getCountFromServer, getDocs } from "firebase/firestore";
+
+import { problemRepository } from "@/features/problems/repositories/problem.repository";
 
 // Mock next/cache
 jest.mock("next/cache", () => ({
@@ -43,8 +44,7 @@ jest.mock("@/features/companies/repositories/company.repository", () => ({
 
 import { companyRepository } from "@/features/companies/repositories/company.repository";
 
-import { userRepository } from "@/features/profile/repositories/user.repository";
-import { createMockProblem, createMockCompany } from "../factories/data-factories";
+import { createMockCompany,createMockProblem } from "../factories/data-factories";
 
 describe("ProblemRepository.getProblemsByCompany", () => {
   const mockProblemData = createMockProblem({

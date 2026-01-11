@@ -6,10 +6,12 @@
  * strategy, which is efficient for large datasets. The route handles input
  * validation and calls a data-layer function to retrieve the companies.
  */
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+
+import { randomUUID } from "crypto";
+
 import { companyService } from "@/features/companies/services/company.service";
 import { Logger } from "@/lib/utils/logger";
-import { randomUUID } from "crypto";
 
 /**
  * Handles POST requests to fetch the next page of companies.
@@ -26,7 +28,7 @@ import { randomUUID } from "crypto";
 export async function POST(request: NextRequest) {
   const requestId = randomUUID();
   const startTime = Date.now();
-  let context: Record<string, any> = { requestId };
+  let context: Record<string, unknown> = { requestId };
 
   try {
     const { cursor, pageSize = 9, searchTerm } = await request.json();
@@ -126,7 +128,7 @@ export async function GET(request: NextRequest) {
   const pageSize = parseInt(searchParams.get("pageSize") || "9");
   const searchTerm = searchParams.get("searchTerm") || undefined;
 
-  const context: Record<string, any> = {
+  const context: Record<string, unknown> = {
     requestId,
     cursor,
     pageSize,

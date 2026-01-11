@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
+
+import { createMockCompany, createMockProblem,createMockProblemsResponse } from '@/__tests__/factories/data-factories';
 import CompanyPage from '@/features/companies/components/page/company-page';
-import { createMockCompany, createMockProblemsResponse, createMockProblem } from '@/__tests__/factories/data-factories';
 
 // Mock child components
 jest.mock('@/features/companies/components/company-header', () => ({

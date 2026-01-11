@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
-import CompanyProblemStats from '@/features/companies/components/company-problem-stats';
-import { Company } from '@/types';
+
 import { createMockCompany } from '@/__tests__/factories/data-factories';
+import CompanyProblemStats from '@/features/companies/components/company-problem-stats';
 
 // Mock Recharts
 jest.mock('recharts', () => ({

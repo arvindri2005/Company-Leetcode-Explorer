@@ -1,9 +1,9 @@
 
 import { render, screen } from "@testing-library/react";
+
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,

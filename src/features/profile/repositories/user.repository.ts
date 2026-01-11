@@ -1,49 +1,51 @@
 import {
-  BookmarkedProblemInfo,
-  UserProblemStatusInfo,
-  ProblemStatus,
-  SavedStrategyTodoList,
-  FocusTopic,
-  StrategyTodoItem,
-  EducationExperience,
-  WorkExperience,
-  GenerateCompanyStrategyOutput,
+  addDoc,
+  arrayRemove,
+  arrayUnion,
+  collection,
+  type CollectionReference,
+  deleteDoc,
+  doc,
+  documentId,
+  getCountFromServer,
+  getDoc,
+  getDocs,
+  limit,
+  orderBy,
+  type Query,
+  query,
+  serverTimestamp,
+  setDoc,
+  startAfter,
+  updateDoc,
+  where,
+  writeBatch,
+} from "firebase/firestore";
+
+import { User as UserEntity } from "@/domain/entities/user.entity";
+import { auth,db } from "@/lib/api/firebase";
+import { Logger } from "@/lib/utils/logger";
+import type { PaginatedResult, PaginationParams } from "@/shared/interfaces";
+import {
+  type BookmarkedProblemInfo,
+  type EducationExperience,
   EducationExperienceSchema,
+  type FocusTopic,
+  type GenerateCompanyStrategyOutput,
+  type ProblemStatus,
+  type SavedStrategyTodoList,
+  type StrategyTodoItem,
+  type UserProblemStatusInfo,
+  type WorkExperience,
   WorkExperienceSchema,
 } from "@/types";
-import { db, auth } from "@/lib/api/firebase";
-import {
-  collection,
-  getDocs,
-  doc,
-  getDoc,
-  query,
-  orderBy,
-  where,
-  documentId,
-  serverTimestamp,
-  deleteDoc,
-  setDoc,
-  updateDoc,
-  addDoc,
-  writeBatch,
-  arrayUnion,
-  arrayRemove,
-  Query,
-  CollectionReference,
-  limit,
-  startAfter,
-  getCountFromServer,
-} from "firebase/firestore";
-import { Logger } from "@/lib/utils/logger";
-import { User as UserEntity } from "@/domain/entities/user.entity";
-import { UserMapper, type UserDocument } from "../mappers/user.mapper";
+
 import type {
-  IUserRepository,
   CreateUserDTO,
+  IUserRepository,
   UpdateUserDTO,
 } from "../interfaces/user.repository.interface";
-import type { PaginatedResult, PaginationParams } from "@/shared/interfaces";
+import { type UserDocument,UserMapper } from "../mappers/user.mapper";
 
 /**
  * Repository for User-related data access.
@@ -56,7 +58,7 @@ export class UserRepository implements IUserRepository {
    * @returns The User entity if found, null otherwise
    */
   async findById(id: string): Promise<UserEntity | null> {
-    if (!id) return null;
+    if (!id) {return null;}
     try {
       const userDocRef = doc(db, "users", id);
       const docSnap = await getDoc(userDocRef);
@@ -196,10 +198,10 @@ export class UserRepository implements IUserRepository {
       const userDocRef = doc(db, "users", id);
       
       const updates: Record<string, unknown> = {};
-      if (data.email !== undefined) updates.email = data.email;
-      if (data.displayName !== undefined) updates.displayName = data.displayName;
-      if (data.photoUrl !== undefined) updates.photoUrl = data.photoUrl;
-      if (data.preferences !== undefined) updates.preferences = data.preferences;
+      if (data.email !== undefined) {updates.email = data.email;}
+      if (data.displayName !== undefined) {updates.displayName = data.displayName;}
+      if (data.photoUrl !== undefined) {updates.photoUrl = data.photoUrl;}
+      if (data.preferences !== undefined) {updates.preferences = data.preferences;}
       updates.lastSyncedAt = serverTimestamp();
       
       await updateDoc(userDocRef, updates);
@@ -236,7 +238,7 @@ export class UserRepository implements IUserRepository {
    * @returns True if the user exists, false otherwise
    */
   async exists(id: string): Promise<boolean> {
-    if (!id) return false;
+    if (!id) {return false;}
     try {
       const userDocRef = doc(db, "users", id);
       const docSnap = await getDoc(userDocRef);
@@ -248,7 +250,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async getBookmarkedProblemsInfo(userId: string): Promise<BookmarkedProblemInfo[]> {
-    if (!userId) return [];
+    if (!userId) {return [];}
     try {
       const q = query(
         collection(db, "users", userId, "bookmarkedProblems"),
@@ -277,7 +279,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async getUserGlobalProblemStats(userId: string): Promise<{ solvedProblemIds: string[], attemptedProblemIds: string[], bookmarkedProblemIds: string[] }> {
-      if (!userId) return { solvedProblemIds: [], attemptedProblemIds: [], bookmarkedProblemIds: [] };
+      if (!userId) {return { solvedProblemIds: [], attemptedProblemIds: [], bookmarkedProblemIds: [] };}
       try {
           const docRef = doc(db, "users", userId, "aggregates", "problemStats");
           const docSnap = await getDoc(docRef);
@@ -298,7 +300,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async getAllUserProblemStatuses(userId: string): Promise<Record<string, UserProblemStatusInfo>> {
-    if (!userId) return {};
+    if (!userId) {return {};}
     const statuses: Record<string, UserProblemStatusInfo> = {};
     try {
       const progressColRef = collection(db, "users", userId, "problemProgress");
@@ -331,7 +333,7 @@ export class UserRepository implements IUserRepository {
     userId: string,
     problemIds: string[],
   ): Promise<Record<string, UserProblemStatusInfo>> {
-    if (!userId || !problemIds || problemIds.length === 0) return {};
+    if (!userId || !problemIds || problemIds.length === 0) {return {};}
     const statuses: Record<string, UserProblemStatusInfo> = {};
 
     try {
@@ -343,7 +345,7 @@ export class UserRepository implements IUserRepository {
 
       for (const docSnap of allDocs) {
         const data = docSnap.data();
-        if (!data.status) continue;
+        if (!data.status) {continue;}
 
         statuses[docSnap.id] = {
           problemId: docSnap.id,
@@ -366,7 +368,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async getBookmarksForIds(userId: string, problemIds: string[]): Promise<Set<string>> {
-    if (!userId || !problemIds || problemIds.length === 0) return new Set();
+    if (!userId || !problemIds || problemIds.length === 0) {return new Set();}
     const bookmarkedIds = new Set<string>();
 
     try {
@@ -419,7 +421,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async getUserEducation(userId: string): Promise<EducationExperience[]> {
-    if (!userId) return [];
+    if (!userId) {return [];}
     try {
       const educationColRef = collection(db, "users", userId, "educationHistory");
       const q = query(educationColRef, orderBy("createdAt", "desc"));
@@ -442,7 +444,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async getUserWorkExperience(userId: string): Promise<WorkExperience[]> {
-    if (!userId) return [];
+    if (!userId) {return [];}
     try {
       const workColRef = collection(db, "users", userId, "workExperience");
       const q = query(workColRef, orderBy("createdAt", "desc"));
@@ -461,7 +463,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async getUserStrategyTodoLists(userId: string): Promise<SavedStrategyTodoList[]> {
-    if (!userId) return [];
+    if (!userId) {return [];}
     try {
       const todoListsColRef = collection(
         db,
@@ -514,7 +516,7 @@ export class UserRepository implements IUserRepository {
     userId: string,
     companyId: string,
   ): Promise<SavedStrategyTodoList | null> {
-    if (!userId || !companyId) return null;
+    if (!userId || !companyId) {return null;}
     const todoListDocRef = doc(
       db,
       "users",
@@ -571,10 +573,10 @@ export class UserRepository implements IUserRepository {
     problemSlug: string,
   ): Promise<{ isBookmarked: boolean; error?: string }> {
     if (!userId || !problemId)
-      return {
+      {return {
         isBookmarked: false,
         error: "User ID and Problem ID are required.",
-      };
+      };}
     const bookmarkDocRef = doc(
       db,
       "users",
@@ -627,7 +629,7 @@ export class UserRepository implements IUserRepository {
     problemSlug: string,
   ): Promise<{ success: boolean; error?: string }> {
     if (!userId || !problemId)
-      return { success: false, error: "User ID and Problem ID are required." };
+      {return { success: false, error: "User ID and Problem ID are required." };}
     
     const statusDocRef = doc(db, "users", userId, "problemProgress", problemId);
     const aggregateDocRef = doc(db, "users", userId, "aggregates", "problemStats");
@@ -677,7 +679,7 @@ export class UserRepository implements IUserRepository {
     userId: string,
     newDisplayName: string,
   ): Promise<{ success: boolean; error?: string }> {
-    if (!userId) return { success: false, error: "User ID is required." };
+    if (!userId) {return { success: false, error: "User ID is required." };}
     if (!newDisplayName || newDisplayName.trim().length < 2) {
       return {
         success: false,
@@ -702,7 +704,7 @@ export class UserRepository implements IUserRepository {
     userId: string,
     educationData: Omit<EducationExperience, "id">,
   ): Promise<{ id: string | null; error?: string }> {
-    if (!userId) return { id: null, error: "User ID is required." };
+    if (!userId) {return { id: null, error: "User ID is required." };}
 
     // Validate data using Zod schema
     const validationResult = EducationExperienceSchema.omit({
@@ -741,7 +743,7 @@ export class UserRepository implements IUserRepository {
     userId: string,
     workData: Omit<WorkExperience, "id">,
   ): Promise<{ id: string | null; error?: string }> {
-    if (!userId) return { id: null, error: "User ID is required." };
+    if (!userId) {return { id: null, error: "User ID is required." };}
 
     // Validate data using Zod schema
     const validationResult = WorkExperienceSchema.omit({ id: true }).safeParse(
@@ -784,7 +786,7 @@ export class UserRepository implements IUserRepository {
     >,
   ): Promise<{ success: boolean; error?: string }> {
     if (!userId || !companyId)
-      return { success: false, error: "User ID and Company ID are required." };
+      {return { success: false, error: "User ID and Company ID are required." };}
     const todoListDocRef = doc(
       db,
       "users",
@@ -888,8 +890,8 @@ export class UserRepository implements IUserRepository {
         lastSyncedAt: serverTimestamp(),
       };
 
-      if (email) updates.email = email;
-      if (displayName) updates.displayName = displayName;
+      if (email) {updates.email = email;}
+      if (displayName) {updates.displayName = displayName;}
 
       // We use setDoc with merge: true which creates if not exists, or updates if exists.
       await setDoc(userDocRef, updates, { merge: true });
@@ -897,7 +899,7 @@ export class UserRepository implements IUserRepository {
       return { success: true };
     } catch (error) {
       Logger.error("Error syncing user profile to Firestore", error);
-      if (error instanceof Error) return { success: false, error: error.message };
+      if (error instanceof Error) {return { success: false, error: error.message };}
       return {
         success: false,
         error: "An unknown error occurred while syncing user profile.",

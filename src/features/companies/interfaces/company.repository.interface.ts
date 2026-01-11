@@ -4,7 +4,8 @@
  */
 
 import type { Company as CompanyEntity } from "@/domain/entities/company.entity";
-import type { IBaseRepository, PaginatedResult, PaginationParams } from "@/shared/interfaces";
+import type { IBaseRepository, PaginationParams } from "@/shared/interfaces";
+
 import type { Company } from "../types";
 
 /**

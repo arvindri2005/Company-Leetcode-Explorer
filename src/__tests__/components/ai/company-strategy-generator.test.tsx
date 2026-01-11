@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
+
 import CompanyStrategyGenerator from '@/features/ai/components/company-strategy-generator';
 import { userService } from '@/features/profile/services/user.service';
 

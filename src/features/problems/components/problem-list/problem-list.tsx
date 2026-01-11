@@ -1,30 +1,32 @@
 "use client";
 
-import type { User } from "firebase/auth";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import dynamic from "next/dynamic";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+import { Loader2 } from "lucide-react";
+
+import { loadMoreProblemsAction } from "@/app/actions/problem.actions";
+import AdPlaceholder from "@/components/ads/ad-placeholder";
+import ErrorBoundary from "@/components/ui/error-boundary";
+import { Skeleton } from "@/components/ui/skeleton";
+import { userService } from "@/features/profile/services/user.service";
+import { useToast } from "@/hooks/use-toast";
+import { parseArrayValid } from "@/lib/utils";
+import { useAuth } from "@/providers";
 
 import type {
+  DifficultyFilter,
+  LastAskedFilter,
   LeetCodeProblem,
   ProblemListFilters,
   ProblemStatus,
   SortKey,
-  DifficultyFilter,
-  LastAskedFilter,
   StatusFilter,
 } from "../../types";
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import ProblemCard from "../problem-card/problem-card";
-import ErrorBoundary from "@/components/ui/error-boundary";
 import ProblemCardErrorFallback from "../problem-card/problem-card-error-fallback";
-import { useAuth } from "@/providers";
-import { useToast } from "@/hooks/use-toast";
-import dynamic from "next/dynamic";
-import { Skeleton } from "@/components/ui/skeleton";
-import AdPlaceholder from "@/components/ads/ad-placeholder";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { userService } from "@/features/profile/services/user.service";
-import { loadMoreProblemsAction } from "@/app/actions/problem.actions";
-import { Loader2 } from "lucide-react";
-import { parseArrayValid } from "@/lib/utils";
 
 const ProblemListControls = dynamic(() => import("../problem-list-controls/problem-list-controls"), {
   loading: () => (
@@ -90,18 +92,18 @@ const ProblemList: React.FC<ProblemListProps> = ({
         "Easy",
         "Medium",
         "Hard",
-      ]) as any[],
+      ]) as DifficultyFilter[],
       lastAskedFilter: parseArrayValid(searchParams.getAll("lastAskedFilter"), [
         "last_30_days",
         "within_3_months",
         "within_6_months",
         "older_than_6_months",
-      ]) as any[],
+      ]) as LastAskedFilter[],
       statusFilter: parseArrayValid(searchParams.getAll("statusFilter"), [
         "solved",
         "attempted",
         "todo",
-      ]) as any[],
+      ]) as StatusFilter[],
       searchTerm: searchParams.get("searchTerm") || "",
       sortKey: (searchParams.get("sortKey") || "title") as SortKey,
     };
@@ -170,20 +172,20 @@ const ProblemList: React.FC<ProblemListProps> = ({
       const difficultyFilter = parseArrayValid(
         searchParams.getAll("difficultyFilter"),
         ["Easy", "Medium", "Hard"],
-      ) as any[];
+      ) as DifficultyFilter[];
 
         const lastAskedFilter = parseArrayValid(searchParams.getAll("lastAskedFilter"), [
             "last_30_days",
             "within_3_months",
             "within_6_months",
             "older_than_6_months",
-        ]) as any[];
+        ]) as LastAskedFilter[];
 
          const statusFilter = parseArrayValid(searchParams.getAll("statusFilter"), [
             "solved",
             "attempted",
             "todo",
-         ]) as any[];
+         ]) as StatusFilter[];
 
         const searchTerm = searchParams.get("searchTerm") || "";
         const sortKey = (searchParams.get("sortKey") || "title") as SortKey;
@@ -280,12 +282,12 @@ const ProblemList: React.FC<ProblemListProps> = ({
   // 2. Derive merged problems (Global Stats + Local Data)
   // This replaces the previous useEffect to avoid double-renders
   const mergedProblems = useMemo(() => {
-    if (!areGlobalStatsLoaded) return displayedProblems;
+    if (!areGlobalStatsLoaded) {return displayedProblems;}
 
     return displayedProblems.map((p) => {
       let newStatus: ProblemStatus = "none";
-      if (solvedProblemIds.has(p.id)) newStatus = "solved";
-      else if (attemptedProblemIds.has(p.id)) newStatus = "attempted";
+      if (solvedProblemIds.has(p.id)) {newStatus = "solved";}
+      else if (attemptedProblemIds.has(p.id)) {newStatus = "attempted";}
 
       const isBookmarked = bookmarkedProblemIds.has(p.id);
 
@@ -369,7 +371,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const loadMoreProblems = useCallback(async () => {
-    if (isLoadingMore || !hasMore || !nextCursor) return;
+    if (isLoadingMore || !hasMore || !nextCursor) {return;}
 
     setIsLoadingMore(true);
     try {

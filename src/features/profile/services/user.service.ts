@@ -1,19 +1,20 @@
-import { userRepository } from "../repositories/user.repository";
-import {
-  BookmarkedProblemInfo,
-  UserProblemStatusInfo,
-  ProblemStatus,
-  SavedStrategyTodoList,
-  EducationExperience,
-  WorkExperience,
-  GenerateCompanyStrategyOutput,
-} from "@/types";
-import { appEvents, AppEventKey, AppEventHandler } from "@/services/event-bus";
 import { SimpleLRUCache } from "@/lib/utils/lru-cache";
-import { success, failure, type Result } from "@/shared/types/result";
+import { type AppEventHandler,type AppEventKey, appEvents } from "@/services/event-bus";
+import { failure, type Result,success } from "@/shared/types/result";
 import type { ServiceError } from "@/shared/types/service-error";
-import type { IUserService } from "../interfaces/user.service.interface";
+import {
+  type BookmarkedProblemInfo,
+  type EducationExperience,
+  type GenerateCompanyStrategyOutput,
+  type ProblemStatus,
+  type SavedStrategyTodoList,
+  type UserProblemStatusInfo,
+  type WorkExperience,
+} from "@/types";
+
 import type { IUserRepository, UserGlobalProblemStats } from "../interfaces/user.repository.interface";
+import type { IUserService } from "../interfaces/user.service.interface";
+import { userRepository } from "../repositories/user.repository";
 
 interface CachedGlobalStats {
   solvedProblemIds: string[];
@@ -318,7 +319,7 @@ export class UserService implements IUserService {
         timestamp: new Date(),
       });
 
-      return success(undefined);
+      return success();
     } catch (error) {
       return failure({
         code: "INTERNAL_ERROR",
@@ -343,7 +344,7 @@ export class UserService implements IUserService {
         });
       }
       
-      return success(undefined);
+      return success();
     } catch (error) {
       return failure({
         code: "INTERNAL_ERROR",
@@ -426,7 +427,7 @@ export class UserService implements IUserService {
         });
       }
       
-      return success(undefined);
+      return success();
     } catch (error) {
       return failure({
         code: "INTERNAL_ERROR",
@@ -459,7 +460,7 @@ export class UserService implements IUserService {
         });
       }
       
-      return success(undefined);
+      return success();
     } catch (error) {
       return failure({
         code: "INTERNAL_ERROR",
@@ -484,7 +485,7 @@ export class UserService implements IUserService {
         });
       }
       
-      return success(undefined);
+      return success();
     } catch (error) {
       return failure({
         code: "INTERNAL_ERROR",

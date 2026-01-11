@@ -8,10 +8,14 @@
  */
 "use client";
 
-import type { Company } from "@/features/companies/types";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Link as LinkIcon,Loader2, PlusCircle } from "lucide-react";
 import { z } from "zod";
+
+import { addCompany as addCompanyAction } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -24,11 +28,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import type { Company } from "@/features/companies/types";
 import { useToast } from "@/hooks/use-toast";
-import { addCompany as addCompanyAction } from "@/app/actions";
-import { useState } from "react";
 import { slugify } from "@/lib/utils";
-import { Loader2, PlusCircle, Link as LinkIcon } from "lucide-react";
 
 /**
  * Zod schema for validating the company submission form fields.

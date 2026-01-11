@@ -3,10 +3,11 @@
  * Defines business operations for Contact entities
  */
 
-import type { Result } from "@/shared/types/result";
-import type { ServiceError } from "@/shared/types/service-error";
 import type { Contact as ContactEntity } from "@/domain/entities/contact.entity";
 import type { PaginatedResult, PaginationParams } from "@/shared/interfaces";
+import type { Result } from "@/shared/types/result";
+import type { ServiceError } from "@/shared/types/service-error";
+
 import type { ContactMessageData } from "./contact.repository.interface";
 
 /**

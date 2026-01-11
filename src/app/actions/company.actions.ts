@@ -9,18 +9,18 @@
  */
 "use server";
 
-import type { Company } from "@/types";
-import { companyService } from "@/features/companies/services/company.service";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { slugify } from "@/lib/utils";
-import { handleServerActionError } from "@/lib/utils/error-handler";
+
+import { companyService } from "@/features/companies/services/company.service";
 import {
   type ApiResponse,
-  successResponse,
   errorResponse,
-  paginatedResponse,
   type PaginationMeta,
+  successResponse,
 } from "@/lib/api/response";
+import { slugify } from "@/lib/utils";
+import { handleServerActionError } from "@/lib/utils/error-handler";
+import type { Company } from "@/types";
 
 /**
  * Adds a new company to the database after validating and cleaning the input data.
@@ -45,7 +45,7 @@ export async function addCompany(
       });
     }
 
-    let companyData = { ...companyDataInput };
+    const companyData = { ...companyDataInput };
     if (companyData.website && !companyData.website.startsWith("http")) {
       companyData.website = `https://${companyData.website}`;
     }

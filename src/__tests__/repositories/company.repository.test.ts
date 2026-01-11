@@ -1,19 +1,20 @@
 
-import { companyRepository } from "@/features/companies/repositories/company.repository";
 import { 
-  getDocs, 
-  getDoc, 
-  doc, 
-  setDoc, 
-  updateDoc, 
   collection, 
-  query, 
-  where, 
-  orderBy, 
+  doc, 
+  documentId, 
+  getDoc, 
+  getDocs, 
   limit, 
+  orderBy, 
+  query, 
+  setDoc, 
   startAfter, 
-  documentId 
-} from "firebase/firestore";
+  updateDoc, 
+  where} from "firebase/firestore";
+
+import { companyRepository } from "@/features/companies/repositories/company.repository";
+
 import { createMockCompany, createMockFirestoreDoc } from "../factories/data-factories";
 
 // Mock Firebase

@@ -1,22 +1,20 @@
-import { problemRepository } from "../repositories/problem.repository";
-import {
-  DifficultyFilter,
-  LastAskedFilter,
-  SortKey,
-  PaginatedProblemsResponse,
-  LeetCodeProblem,
-  Company,
-} from "@/types";
 import { cacheManager, CacheTTL } from "@/lib/utils/cache";
-import { success, failure, type Result } from "@/shared/types/result";
+import { failure, type Result,success } from "@/shared/types/result";
 import type { ServiceError } from "@/shared/types/service-error";
-import type {
-  IProblemService,
-  GetPublicProblemsParams,
-  GetAllProblemsParams,
-  CreateProblemInput,
-} from "../interfaces/problem.service.interface";
+import {
+  type Company,
+  type LeetCodeProblem,
+  type PaginatedProblemsResponse,
+} from "@/types";
+
 import type { IProblemRepository } from "../interfaces/problem.repository.interface";
+import type {
+  CreateProblemInput,
+  GetAllProblemsParams,
+  GetPublicProblemsParams,
+  IProblemService,
+} from "../interfaces/problem.service.interface";
+import { problemRepository } from "../repositories/problem.repository";
 
 export class ProblemService implements IProblemService {
   constructor(private readonly repository: IProblemRepository = problemRepository) {}

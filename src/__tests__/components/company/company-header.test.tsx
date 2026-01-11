@@ -1,11 +1,13 @@
 import { render, screen } from '@testing-library/react';
-import CompanyHeader from '@/features/companies/components/company-header';
+
 import { createMockCompany } from '@/__tests__/factories/data-factories';
+import CompanyHeader from '@/features/companies/components/company-header';
 
 // Mock next/image
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: ({ fill, unoptimized,...props }: any) => <img {...props} />,
+  // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
+  default: ({ ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => <img {...props} />,
 }));
 
 // Mock utils
@@ -24,7 +26,7 @@ jest.mock('@/components/ui/breadcrumb', () => ({
   BreadcrumbList: ({ children }: { children: React.ReactNode }) => <ol>{children}</ol>,
   BreadcrumbItem: ({ children }: { children: React.ReactNode }) => <li>{children}</li>,
   BreadcrumbLink: ({ children, asChild, ...props }: any) => {
-    if (asChild) return <>{children}</>;
+    if (asChild) {return <>{children}</>;}
     return <a {...props}>{children}</a>;
   },
   BreadcrumbPage: ({ children }: { children: React.ReactNode }) => <span aria-current="page">{children}</span>,

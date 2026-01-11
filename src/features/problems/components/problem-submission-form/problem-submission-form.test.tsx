@@ -1,4 +1,5 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+
 import ProblemSubmissionForm from "./problem-submission-form";
 
 // Mock server actions

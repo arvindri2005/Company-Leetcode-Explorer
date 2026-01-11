@@ -11,14 +11,15 @@
  * @exports GenerateCompanyStrategyOutput - The Zod inferred type for the output from the flow.
  */
 
-import { ai } from "@/ai/genkit";
 import { z } from "genkit";
+
+import { companyStrategyCache } from "@/ai/cache";
+import { ai } from "@/ai/genkit";
+import { retryWithBackoff, sanitizeInput,truncateText } from "@/ai/utils";
 import {
   type CompanyStrategyProblemInput as ImportedCompanyStrategyProblemInput,
   type TargetRoleLevel as ImportedTargetRoleLevel,
 } from "@/features/ai";
-import { retryWithBackoff, truncateText, sanitizeInput } from "@/ai/utils";
-import { companyStrategyCache } from "@/ai/cache";
 
 export type CompanyStrategyProblemInput = ImportedCompanyStrategyProblemInput;
 export type TargetRoleLevel = ImportedTargetRoleLevel;
@@ -250,10 +251,10 @@ const generateCompanyStrategyFlow = ai.defineFlow(
     inputSchema: GenerateCompanyStrategyInputSchema,
     outputSchema: GenerateCompanyStrategyOutputSchema,
   },
-  async (input) => {
+  async (input): Promise<GenerateCompanyStrategyOutput> => {
     // Nova Guardrail: Cache Check
     const cacheKey = companyStrategyCache.generateKey(input);
-    const cachedResult = companyStrategyCache.get(cacheKey);
+    const cachedResult = companyStrategyCache.get(cacheKey) as GenerateCompanyStrategyOutput | undefined;
     if (cachedResult) {
       return cachedResult;
     }
@@ -300,7 +301,7 @@ const generateCompanyStrategyFlow = ai.defineFlow(
     };
 
     // Nova Guardrail: Retry with Exponential Backoff
-    const output = await retryWithBackoff(async () => {
+    const output = await retryWithBackoff<GenerateCompanyStrategyOutput>(async () => {
         const { output } = await prompt(safeInput);
         if (
           !output ||

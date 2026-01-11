@@ -1,6 +1,6 @@
 import { aiFlowRegistry } from "@/ai/flow-registry";
 import { aiService } from "@/ai/services/ai.service";
-import { AIProblemInput } from "@/types";
+import { type AIProblemInput } from "@/types";
 
 describe("AI Flow Registry and Service Extensibility", () => {
   const originalGroupQuestionsFlow = aiFlowRegistry.get("groupQuestions");

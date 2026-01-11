@@ -7,8 +7,9 @@
  */
 "use client";
 
-import { useState, useCallback } from "react";
-import { Company } from "../types";
+import { useCallback,useState } from "react";
+
+import { type Company } from "../types";
 
 interface UseCompaniesOptions {
   initialCompanies?: Company[];
@@ -47,14 +48,14 @@ export function useCompanies(options: UseCompaniesOptions = {}): UseCompaniesRet
     initialNextCursor,
   } = options;
 
-  const [companies, setCompanies] = useState<Company[]>(initialCompanies);
+  const [companies] = useState<Company[]>(initialCompanies);
   const [isLoading, setIsLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(initialHasMore);
-  const [nextCursor, setNextCursor] = useState<string | undefined>(initialNextCursor);
+  const [hasMore] = useState(initialHasMore);
+  const [nextCursor] = useState<string | undefined>(initialNextCursor);
   const [error, setError] = useState<string | null>(null);
 
   const loadMore = useCallback(async () => {
-    if (isLoading || !hasMore || !nextCursor) return;
+    if (isLoading || !hasMore || !nextCursor) {return;}
 
     setIsLoading(true);
     setError(null);

@@ -1,16 +1,19 @@
 "use client";
 
+import { useState } from "react";
+
+import { useRouter, useSearchParams } from "next/navigation";
+
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { Loader2 } from "lucide-react";
+
+import { GoogleIcon } from "@/components/icons/google-icon";
 import { Button } from "@/components/ui/button";
+import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useToast } from "@/hooks/use-toast";
 import { auth } from "@/lib/api/firebase";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
-import { Loader2 } from "lucide-react";
-import { useAuth } from "@/providers";
-import { GoogleIcon } from "@/components/icons/google-icon";
-import { useOnlineStatus } from "@/hooks/use-online-status";
 import { Logger } from "@/lib/utils/logger";
+import { useAuth } from "@/providers";
 
 export default function GoogleAuthButton() {
   const { toast } = useToast();
@@ -50,15 +53,16 @@ export default function GoogleAuthButton() {
       } else {
         router.push("/profile");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       Logger.error("Google Sign-In Error:", error);
       let errorMessage = "An unknown error occurred. Please try again.";
-      if (error.code === "auth/popup-closed-by-user") {
+      const firebaseError = error as { code?: string; message?: string };
+      if (firebaseError.code === "auth/popup-closed-by-user") {
         errorMessage = "Sign-in cancelled.";
-      } else if (error.code === "auth/popup-blocked") {
+      } else if (firebaseError.code === "auth/popup-blocked") {
         errorMessage = "Sign-in popup blocked. Please allow popups for this site.";
       } else {
-        errorMessage = error.message || errorMessage;
+        errorMessage = firebaseError.message || errorMessage;
       }
 
       toast({

@@ -1,5 +1,5 @@
-﻿import { userService } from "@/features/profile/services/user.service";
-import { userRepository } from "@/features/profile/repositories/user.repository";
+﻿import { userRepository } from "@/features/profile/repositories/user.repository";
+import { userService } from "@/features/profile/services/user.service";
 
 // Mock repository
 jest.mock("@/features/profile/repositories/user.repository");

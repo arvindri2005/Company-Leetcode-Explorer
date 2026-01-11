@@ -1,14 +1,18 @@
 "use client";
 
 import React, { Suspense } from "react";
-import { Button } from "@/components/ui/button";
-import { Sparkles, Lightbulb } from "lucide-react";
+
 import dynamic from "next/dynamic";
-import { useAIFeatures } from "@/features/ai";
-import { useAuth } from "@/providers";
-import { useToast } from "@/hooks/use-toast";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname,useRouter } from "next/navigation";
+
+import { Lightbulb,Sparkles } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { ToastAction } from "@/components/ui/toast";
+import { useAIFeatures } from "@/features/ai";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/providers";
+
 import type { LeetCodeProblem } from "../../types";
 
 const SimilarProblemsDialog = dynamic(
@@ -77,8 +81,8 @@ export const ProblemAIActions: React.FC<ProblemAIActionsProps> = ({
         size="sm"
         className="h-8 text-sm md:text-base flex-1 bg-background hover:bg-muted border border-border/50"
         onClick={() => {
-          if (!user) promptLogin();
-          else handleFindSimilar();
+          if (!user) {promptLogin();}
+          else {handleFindSimilar();}
         }}
         isLoading={isLoadingSimilar}
       >
@@ -92,8 +96,8 @@ export const ProblemAIActions: React.FC<ProblemAIActionsProps> = ({
         size="sm"
         className="h-8 text-sm md:text-base flex-1 bg-background hover:bg-muted border border-border/50"
         onClick={() => {
-          if (!user) promptLogin();
-          else handleGenerateInsights();
+          if (!user) {promptLogin();}
+          else {handleGenerateInsights();}
         }}
         isLoading={isLoadingInsights}
       >

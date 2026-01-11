@@ -1,6 +1,7 @@
-import { sendContactMessage } from "../contact.actions";
 import { contactService } from "@/features/contact/services/contact.service";
 import { Logger } from "@/lib/utils/logger";
+
+import { sendContactMessage } from "../contact.actions";
 
 jest.mock("@/features/contact/services/contact.service");
 jest.mock("@/lib/utils/logger");

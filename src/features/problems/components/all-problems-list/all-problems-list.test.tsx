@@ -1,6 +1,8 @@
 import { render, screen, waitFor } from "@testing-library/react";
+
+import { type LeetCodeProblem } from "../../types";
+
 import AllProblemsList from "./all-problems-list";
-import { LeetCodeProblem } from "../../types";
 
 // Mock Next.js hooks
 const mockPush = jest.fn();

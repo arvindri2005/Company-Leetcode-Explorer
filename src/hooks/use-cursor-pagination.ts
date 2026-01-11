@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
-import type { Company } from "@/types";
+
 import { Logger } from "@/lib/utils/logger";
+import type { Company } from "@/types";
 
 interface CompaniesResponse {
   companies: Company[];
@@ -44,9 +45,9 @@ export const useCursorPagination = () => {
 
       try {
         const params = new URLSearchParams();
-        if (cursor) params.append("cursor", cursor);
-        if (pageSize) params.append("pageSize", pageSize.toString());
-        if (searchTerm?.trim()) params.append("searchTerm", searchTerm.trim());
+        if (cursor) {params.append("cursor", cursor);}
+        if (pageSize) {params.append("pageSize", pageSize.toString());}
+        if (searchTerm?.trim()) {params.append("searchTerm", searchTerm.trim());}
 
         const response = await fetch(`/api/companies?${params.toString()}`, {
           method: "GET",

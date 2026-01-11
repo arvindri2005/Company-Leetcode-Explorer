@@ -4,21 +4,20 @@
  */
 
 // Services
-export { companyService, CompanyService } from "./services/company.service";
+export { CompanyService,companyService } from "./services/company.service";
 
 // Interfaces (for dependency injection and type safety)
+export type {
+  CreateCompanyDTO,
+  GetCompaniesParams,
+  ICompanyRepository,
+  PaginatedCompaniesResponse,
+  UpdateCompanyDTO,
+} from "./interfaces/company.repository.interface";
 export type {
   ICompanyService,
   LoadMoreCompaniesResponse,
 } from "./interfaces/company.service.interface";
-
-export type {
-  ICompanyRepository,
-  GetCompaniesParams,
-  PaginatedCompaniesResponse,
-  CreateCompanyDTO,
-  UpdateCompanyDTO,
-} from "./interfaces/company.repository.interface";
 
 // Types
 export * from "./types";
@@ -30,4 +29,4 @@ export * from "./components";
 export * from "./hooks";
 
 // Mappers
-export { CompanyMapper, type CompanyDocument } from "./mappers";
+export { type CompanyDocument,CompanyMapper } from "./mappers";

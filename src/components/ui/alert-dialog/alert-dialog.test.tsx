@@ -1,5 +1,8 @@
 
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+
+import { Button } from "@/components/ui/button";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +14,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "./alert-dialog";
-import { Button } from "@/components/ui/button";
 
 // Radix UI Dialog heavily relies on pointer-events and other browser APIs not fully implemented in JSDOM.
 // We often need to mock or simpler tests for interaction.

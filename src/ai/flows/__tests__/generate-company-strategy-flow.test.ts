@@ -1,6 +1,7 @@
 
-import { generateCompanyStrategy, GenerateCompanyStrategyInput } from '../generate-company-strategy-flow';
 import * as genkitMock from '@/ai/genkit';
+
+import { generateCompanyStrategy, type GenerateCompanyStrategyInput } from '../generate-company-strategy-flow';
 
 // Mock the genkit module to intercept the prompt execution.
 // We expose a hidden property `__mockPrompt` from the mock factory

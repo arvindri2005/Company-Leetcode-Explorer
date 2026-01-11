@@ -6,10 +6,12 @@
  * the detailed company page. It also has a fallback for broken logo images.
  */
 import React from "react";
+
 import Link from "next/link";
+
+import { OfflineImage } from "@/components/ui/offline-image";
 import type { Company } from "@/features/companies/types";
 import { getLogoUrl } from "@/lib/utils";
-import { OfflineImage } from "@/components/ui/offline-image";
 
 /**
  * Props for the CompanyCard component.

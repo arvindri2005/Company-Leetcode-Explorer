@@ -4,16 +4,17 @@
  */
 
 import type { Problem } from "@/domain/entities/problem.entity";
-import type { IBaseRepository, PaginatedResult, PaginationParams } from "@/shared/interfaces";
+import type { Company } from "@/features/companies/types";
+import type { IBaseRepository, PaginationParams } from "@/shared/interfaces";
+
 import type {
   DifficultyFilter,
   LastAskedFilter,
   LastAskedPeriod,
-  SortKey,
   LeetCodeProblem,
   PaginatedProblemsResponse,
+  SortKey,
 } from "../types";
-import type { Company } from "@/features/companies/types";
 
 /**
  * Filter parameters for problem queries

@@ -1,6 +1,6 @@
+import { userRepository } from "@/features/profile/repositories/user.repository";
 import { userService } from "@/features/profile/services/user.service";
 import { appEvents } from "@/services/event-bus";
-import { userRepository } from "@/features/profile/repositories/user.repository";
 
 // Mock dependencies
 jest.mock("@/features/profile/repositories/user.repository");

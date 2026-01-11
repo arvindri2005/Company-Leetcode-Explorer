@@ -1,5 +1,8 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
+
+import { Button } from "@/components/ui/button";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +14,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "./alert-dialog";
-import { Button } from "@/components/ui/button";
 
 const meta = {
   title: "UI/AlertDialog",

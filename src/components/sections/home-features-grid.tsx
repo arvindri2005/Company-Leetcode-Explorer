@@ -1,20 +1,21 @@
 // src/components/sections/home-features-grid.tsx
 "use client"; // Keep as client component if FeatureCard or any child needs client-side interactivity
 
-import { ActionFeatureCard } from "@/components/ui/action-feature-card";
 import {
+  BarChart3,
+  BookOpenCheck,
   Bot,
   Brain,
   CheckSquare,
-  BarChart3,
-  Search,
-  Sparkles,
-  BookOpenCheck,
   FileSpreadsheet,
   Palette,
-  Users,
   PlusSquare,
+  Search,
+  Sparkles,
+  Users,
 } from "lucide-react";
+
+import { ActionFeatureCard } from "@/components/ui/action-feature-card";
 
 /**
  * @function HomeFeaturesGrid

@@ -1,6 +1,8 @@
 "use client";
 import * as React from "react";
+
 import { cva, type VariantProps } from "class-variance-authority";
+
 import { cn } from "@/lib/utils";
 
 const chipVariants = cva(
@@ -27,7 +29,7 @@ export interface ChipProps
   ref?: React.Ref<HTMLButtonElement>;
 }
 
-const Chip = ({ className, variant, selected, ref, ...props }: ChipProps) => {
+const Chip = ({ className, selected, ref, ...props }: ChipProps) => {
   return (
     <button
       aria-pressed={selected}

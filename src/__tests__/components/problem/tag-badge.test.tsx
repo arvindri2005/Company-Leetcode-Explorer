@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+
 import { TagBadge } from '@/features/problems';
 
 describe('TagBadge', () => {

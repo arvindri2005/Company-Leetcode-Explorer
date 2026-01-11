@@ -1,5 +1,6 @@
-import { LeetCodeProblemSchema } from "..";
 import { CompanySchema } from "@/features/companies/types/company";
+
+import { LeetCodeProblemSchema } from "..";
 
 describe("LeetCodeProblemSchema", () => {
   const validBase = {

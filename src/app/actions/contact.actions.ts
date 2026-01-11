@@ -1,13 +1,9 @@
 "use server";
 
 import { z } from "zod";
+
 import { contactService } from "@/features/contact/services/contact.service";
 import { handleServerActionError } from "@/lib/utils/error-handler";
-import {
-  type ApiResponse,
-  successResponse,
-  errorResponse,
-} from "@/lib/api/response";
 
 /**
  * Zod schema for validating the contact form data.

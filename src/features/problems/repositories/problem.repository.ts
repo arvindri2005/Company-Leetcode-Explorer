@@ -1,48 +1,51 @@
 import {
-  LeetCodeProblem,
-  LeetCodeProblemSchema,
-  ProblemSummaryDTO,
-  PaginatedProblemsResponse,
-  DifficultyFilter,
-  LastAskedFilter,
-  SortKey,
-  LastAskedPeriod,
-  Company,
-} from "@/types";
-import { db } from "@/lib/api/firebase";
-import {
   collection,
-  getDocs,
   doc,
+  type DocumentSnapshot,
+  type Firestore,
+  getCountFromServer,
   getDoc,
-  query,
-  where,
+  getDocs,
   limit,
   orderBy,
-  startAfter,
-  getCountFromServer,
-  updateDoc,
+  query,
+  type QueryConstraint,
   setDoc,
-  Firestore,
-  QueryConstraint,
+  startAfter,
+  updateDoc,
+  where,
 } from "firebase/firestore";
-import { slugify } from "@/lib/utils";
-import { Logger } from "@/lib/utils/logger";
+
+import type { Problem } from "@/domain/entities/problem.entity";
 import { companyRepository } from "@/features/companies/repositories/company.repository";
-import { userRepository } from "@/features/profile/repositories/user.repository";
-import { problemFilterRegistry } from "@/features/problems/utils/problem-filters/registry";
 import {
   DifficultyFilterImplementation,
   LastAskedFilterImplementation,
 } from "@/features/problems/utils/problem-filters/implementations";
+import { problemFilterRegistry } from "@/features/problems/utils/problem-filters/registry";
+import { userRepository } from "@/features/profile/repositories/user.repository";
+import { db } from "@/lib/api/firebase";
+import { slugify } from "@/lib/utils";
+import { Logger } from "@/lib/utils/logger";
+import type { PaginatedResult } from "@/shared/interfaces";
+import {
+  type Company,
+  type DifficultyFilter,
+  type LastAskedFilter,
+  type LastAskedPeriod,
+  type LeetCodeProblem,
+  LeetCodeProblemSchema,
+  type PaginatedProblemsResponse,
+  type ProblemSummaryDTO,
+  type SortKey,
+} from "@/types";
+
 import type {
+  CreateProblemDTO,
   IProblemRepository,
   ProblemFilterParams,
-  CreateProblemDTO,
   UpdateProblemDTO,
 } from "../interfaces/problem.repository.interface";
-import type { PaginatedResult } from "@/shared/interfaces";
-import type { Problem } from "@/domain/entities/problem.entity";
 import { ProblemMapper } from "../mappers/problem.mapper";
 
 // Register Core Filters
@@ -59,7 +62,7 @@ function getFirestore(): Firestore {
 }
 
 function isFirestoreIndexError(error: unknown): boolean {
-  if (typeof error !== "object" || error === null) return false;
+  if (typeof error !== "object" || error === null) {return false;}
   const err = error as Record<string, unknown>;
   return (
     err.code === "failed-precondition" ||
@@ -361,7 +364,7 @@ export class ProblemRepository implements IProblemRepository {
     problemId: string,
   ): Promise<LeetCodeProblem | undefined> {
     try {
-      if (!companyId || !problemId) return undefined;
+      if (!companyId || !problemId) {return undefined;}
       const problemDocRef = doc(getFirestore(), "problems", problemId); // problemId is the slug
       const problemSnap = await getDoc(problemDocRef);
 
@@ -388,7 +391,7 @@ export class ProblemRepository implements IProblemRepository {
   }> {
     try {
       const company = await companyRepository.getCompanyBySlug(companySlug);
-      if (!company) return { company: undefined, problem: undefined };
+      if (!company) {return { company: undefined, problem: undefined };}
 
       const problemDocRef = doc(getFirestore(), "problems", problemSlug);
       const problemSnap = await getDoc(problemDocRef);
@@ -430,8 +433,6 @@ export class ProblemRepository implements IProblemRepository {
     params: FetchProblemsParams,
   ) {
     const {
-      difficultyFilter = [],
-      lastAskedFilter = [],
       searchTerm = "",
       sortKey = "title",
     } = params;
@@ -467,7 +468,7 @@ export class ProblemRepository implements IProblemRepository {
           Logger.warn(
             "Optimized path failed, falling back to semi-optimized",
             undefined,
-            { message: (error as any).message },
+            { message: error instanceof Error ? error.message : String(error) },
           );
         } else {
           throw error;
@@ -623,7 +624,7 @@ export class ProblemRepository implements IProblemRepository {
     const sortField =
       sortKey === "difficulty" ? "difficulty" : "normalizedTitle";
 
-    let queryConstraints = [...constraints, orderBy(sortField, "asc")];
+    const queryConstraints = [...constraints, orderBy(sortField, "asc")];
 
     // Ensure deterministic ordering for cursor pagination
     if (sortKey === "difficulty") {
@@ -640,7 +641,7 @@ export class ProblemRepository implements IProblemRepository {
       }
     }
 
-    let q = query(problemsColRef, ...queryConstraints);
+    const q = query(problemsColRef, ...queryConstraints);
 
     const problemSnapshot = await getDocs(q);
     const docs = problemSnapshot.docs;
@@ -773,9 +774,9 @@ export class ProblemRepository implements IProblemRepository {
       };
 
       processedProblems.sort((a, b) => {
-        if (sortKey === "title") return a.title.localeCompare(b.title);
+        if (sortKey === "title") {return a.title.localeCompare(b.title);}
         if (sortKey === "difficulty")
-          return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
+          {return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];}
         if (sortKey === "lastAsked") {
           const aPeriod = a.lastAskedPeriod
             ? lastAskedOrder[a.lastAskedPeriod]
@@ -846,8 +847,6 @@ export class ProblemRepository implements IProblemRepository {
     sortKey?: SortKey;
   }) {
     const {
-      difficultyFilter = [],
-      lastAskedFilter = [],
       searchTerm = "",
       sortKey = "title",
     } = params;
@@ -873,7 +872,7 @@ export class ProblemRepository implements IProblemRepository {
           Logger.warn(
             "Optimized path failed, falling back to full fetch",
             undefined,
-            { message: (error as any).message },
+            { message: error instanceof Error ? error.message : String(error) },
           );
         } else {
           throw error;
@@ -911,7 +910,7 @@ export class ProblemRepository implements IProblemRepository {
     // 2. Prepare Query for Data
     const sortField =
       sortKey === "difficulty" ? "difficulty" : "normalizedTitle";
-    let queryConstraints = [...constraints, orderBy(sortField, "asc")];
+    const queryConstraints = [...constraints, orderBy(sortField, "asc")];
 
     if (sortKey === "difficulty") {
       queryConstraints.push(orderBy("normalizedTitle", "asc"));
@@ -938,7 +937,7 @@ export class ProblemRepository implements IProblemRepository {
       }
     }
 
-    let q = query(problemsColRef, ...queryConstraints);
+    const q = query(problemsColRef, ...queryConstraints);
     const snap = await getDocs(q);
     const docs = snap.docs;
 
@@ -950,11 +949,7 @@ export class ProblemRepository implements IProblemRepository {
       const targetSize = page * pageSize;
       hasMore = docs.length > targetSize;
 
-      if (docs.length <= startIndex) {
-        resultDocs = [];
-      } else {
-        resultDocs = docs.slice(startIndex, startIndex + pageSize);
-      }
+      resultDocs = docs.length <= startIndex ? [] : docs.slice(startIndex, startIndex + pageSize);
     } else {
       // Cursor logic
       hasMore = docs.length > pageSize;
@@ -963,14 +958,14 @@ export class ProblemRepository implements IProblemRepository {
       }
     }
 
-    let problems = resultDocs.map((docSnap) =>
+    const problems = resultDocs.map((docSnap) =>
       this.mapDocToProblem(docSnap),
     );
 
     // Calculate pagination metadata
-    let totalPages = -1;
-    let currentPage = page || 1;
-    let nextCursor = hasMore
+    const totalPages = -1;
+    const currentPage = page || 1;
+    const nextCursor = hasMore
       ? problems[problems.length - 1]?.id
       : undefined;
 
@@ -1037,18 +1032,18 @@ export class ProblemRepository implements IProblemRepository {
     };
 
     processedProblems.sort((a, b) => {
-      if (sortKey === "title") return a.title.localeCompare(b.title);
+      if (sortKey === "title") {return a.title.localeCompare(b.title);}
       if (sortKey === "difficulty")
-        return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
+        {return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];}
       return 0;
     });
 
     const totalProblems = processedProblems.length;
     let paginatedProblems: LeetCodeProblem[] = [];
     let hasMore = false;
-    let nextCursor: string | undefined = undefined;
-    let totalPages: number | undefined = undefined;
-    let currentPage: number | undefined = undefined;
+    let nextCursor: string | undefined;
+    let totalPages: number | undefined;
+    let currentPage: number | undefined;
 
     if (page) {
       // Page-Based Pagination Logic
@@ -1091,7 +1086,7 @@ export class ProblemRepository implements IProblemRepository {
   }
 
   private mapDocToProblem(
-    docSnap: import("firebase/firestore").DocumentSnapshot,
+    docSnap: DocumentSnapshot,
     company?: Company,
   ): LeetCodeProblem {
     const data = docSnap.data()!;

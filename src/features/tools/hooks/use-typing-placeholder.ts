@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect,useState } from "react";
 
 export function useTypingPlaceholder(companies: string[]) {
   const [placeholder, setPlaceholder] = useState("");
@@ -11,26 +11,25 @@ export function useTypingPlaceholder(companies: string[]) {
     let timeout: NodeJS.Timeout;
 
     if (isTyping) {
-      if (charIndex < currentCompany.length) {
-        timeout = setTimeout(() => {
-          setPlaceholder((prev) => prev + currentCompany[charIndex]);
-          setCharIndex((prev) => prev + 1);
-        }, 100);
-      } else {
-        timeout = setTimeout(() => {
-          setIsTyping(false);
-        }, 2000);
-      }
+      timeout = charIndex < currentCompany.length 
+        ? setTimeout(() => {
+            setPlaceholder((prev) => prev + currentCompany[charIndex]);
+            setCharIndex((prev) => prev + 1);
+          }, 100) 
+        : setTimeout(() => {
+            setIsTyping(false);
+          }, 2000);
+    } else if (charIndex > 0) {
+      timeout = setTimeout(() => {
+        setPlaceholder((prev) => prev.slice(0, -1));
+        setCharIndex((prev) => prev - 1);
+      }, 50);
     } else {
-      if (charIndex > 0) {
-        timeout = setTimeout(() => {
-          setPlaceholder((prev) => prev.slice(0, -1));
-          setCharIndex((prev) => prev - 1);
-        }, 50);
-      } else {
+      // Schedule state updates for next tick to avoid setState in effect
+      timeout = setTimeout(() => {
         setIsTyping(true);
         setCurrentCompanyIndex((prev) => (prev + 1) % companies.length);
-      }
+      }, 0);
     }
 
     return () => clearTimeout(timeout);

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { Rocket,Shield, Zap } from "lucide-react";
+
 import { FeatureCard } from "./feature-card";
-import { Zap, Shield, Rocket } from "lucide-react";
 
 const meta = {
   title: "UI/FeatureCard",

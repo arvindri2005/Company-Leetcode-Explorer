@@ -1,10 +1,10 @@
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
-  CardHeader,
-  CardFooter,
   CardContent,
+  CardFooter,
+  CardHeader,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * @function FeatureCardSkeleton

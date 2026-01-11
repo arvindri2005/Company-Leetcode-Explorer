@@ -1,5 +1,7 @@
 import React from "react";
+
 import { AlertCircle, RotateCcw } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -10,7 +12,6 @@ interface ProfileTabErrorFallbackProps {
 }
 
 export default function ProfileTabErrorFallback({
-  error,
   resetErrorBoundary,
   tabName = "content",
 }: ProfileTabErrorFallbackProps) {

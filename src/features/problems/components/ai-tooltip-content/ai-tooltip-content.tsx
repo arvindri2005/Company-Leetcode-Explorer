@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
-import { useAICooldown } from "@/features/ai";
+
 import type { User as FirebaseUser } from "firebase/auth";
+
+import { useAICooldown } from "@/features/ai";
 
 const AITooltipContentComponent: React.FC<{
   defaultText: string;

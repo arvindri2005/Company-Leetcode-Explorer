@@ -1,5 +1,5 @@
 import { NextCacheAdapter } from "./next-cache-adapter";
-import { CacheAdapter } from "./types";
+import { type CacheAdapter } from "./types";
 
 /**
  * The global Cache Manager instance.

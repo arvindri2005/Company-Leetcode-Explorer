@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+
 import TypingTestContainer from "@/features/tools/components/typing-test/typing-test-container";
 
 export const metadata: Metadata = {

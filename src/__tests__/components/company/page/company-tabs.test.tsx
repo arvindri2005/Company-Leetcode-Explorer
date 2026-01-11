@@ -1,4 +1,5 @@
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+
 import CompanyTabs from '@/features/companies/components/page/company-tabs';
 
 // Mock child components - use the correct import paths

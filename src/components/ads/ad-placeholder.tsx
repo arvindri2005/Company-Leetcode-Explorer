@@ -7,8 +7,9 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { cn } from "@/lib/utils";
+
 import { env } from "@/env";
+import { cn } from "@/lib/utils";
 
 /**
  * Props for the AdPlaceholder (AdUnit) component.
@@ -30,7 +31,7 @@ interface AdPlaceholderProps {
 
 declare global {
   interface Window {
-    adsbygoogle: any[];
+    adsbygoogle: Record<string, unknown>[];
   }
 }
 
@@ -61,7 +62,7 @@ export default function AdPlaceholder({
 
   useEffect(() => {
     // Avoid double pushing in React strict mode or re-renders
-    if (isLoaded.current) return;
+    if (isLoaded.current) {return;}
 
     try {
       if (typeof window !== "undefined") {

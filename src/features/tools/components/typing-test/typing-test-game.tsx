@@ -1,12 +1,15 @@
 "use client";
 
 import React from "react";
+
 import dynamic from "next/dynamic";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTypingGame } from "@/features/tools/hooks/use-typing-game";
+
 import TypingArea from "./typing-area";
-import TypingStats from "./typing-stats";
 import TypingControls from "./typing-controls";
+import TypingStats from "./typing-stats";
 
 const TypingResults = dynamic(() => import("./typing-results"), {
   loading: () => <Skeleton className="h-[400px] w-full rounded-xl" />,

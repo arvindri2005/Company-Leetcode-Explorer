@@ -9,6 +9,7 @@
 
 import { Company as CompanyEntity } from "@/domain/entities/company.entity";
 import { CompanySize } from "@/domain/value-objects/company-size.vo";
+
 import type { Company } from "../types";
 
 /**

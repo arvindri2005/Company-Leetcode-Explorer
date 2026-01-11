@@ -5,26 +5,24 @@
  * It fetches the company's data based on the slug, generates dynamic metadata for SEO,
  * retrieves the initial list of associated problems, and renders the main page layout.
  */
-import {
-  companyService
-} from "@/features/companies/services/company.service";
-
+import AdPlaceholder from "@/components/ads/ad-placeholder";
 import type {
   Company,
-  ProblemListFilters,
-  PaginatedProblemsResponse,
   DifficultyFilter,
   LastAskedFilter,
-  StatusFilter,
+  PaginatedProblemsResponse,
+  ProblemListFilters,
   SortKey,
+  StatusFilter,
 } from "@/types";
-import AdPlaceholder from "@/components/ads/ad-placeholder";
+
 import CompanyHeader from "../company-header";
-import CompanyTabs from "./company-tabs";
-import ProblemLoadError from "./problem-load-error";
-import NoProblemsAvailable from "./no-problems-available";
-import RelatedCompanies from "../related-companies";
 import CompanyPreparationGuide from "../company-preparation-guide";
+import RelatedCompanies from "../related-companies";
+
+import CompanyTabs from "./company-tabs";
+import NoProblemsAvailable from "./no-problems-available";
+import ProblemLoadError from "./problem-load-error";
 
 
 const INITIAL_ITEMS_PER_PAGE = 40;
@@ -105,7 +103,6 @@ export default async function CompanyPage({ company, initialPaginatedProblems }:
             {hasProblems ? (
               <CompanyTabs
                 company={company}
-                displayProblemCount={displayProblemCount}
                 initialProblems={initialProblems}
                 initialHasMore={initialHasMore ?? false}
                 initialNextCursor={initialNextCursor}

@@ -1,6 +1,7 @@
-import { addCompany, fetchCompaniesAction, fetchCompanySuggestionsAction } from "../company.actions";
 import { companyService } from "@/features/companies/services/company.service";
 import { Logger } from "@/lib/utils/logger";
+
+import { addCompany, fetchCompaniesAction } from "../company.actions";
 
 jest.mock("@/features/companies/services/company.service");
 jest.mock("@/lib/utils/logger");

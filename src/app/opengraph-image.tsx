@@ -121,7 +121,7 @@ export default async function Image() {
               gap: 16,
               alignItems: 'center',
           }}>
-              {['Google', 'Amazon', 'Meta', 'Microsoft'].map((company, i) => (
+              {['Google', 'Amazon', 'Meta', 'Microsoft'].map((company) => (
                   <div key={company} style={{
                       padding: '10px 28px',
                       backgroundColor: 'rgba(255,255,255,0.03)',

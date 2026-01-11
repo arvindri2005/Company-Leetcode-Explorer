@@ -1,11 +1,16 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useCallback,useEffect, useRef, useState } from "react";
+
 import { useToast } from "@/hooks/use-toast";
+
+// Type declarations for Web Speech API
+type SpeechRecognitionType = typeof window.SpeechRecognition;
+type SpeechRecognitionInstance = InstanceType<SpeechRecognitionType>;
 
 const SpeechRecognition =
   typeof window !== "undefined"
-    ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    ? (window.SpeechRecognition || window.webkitSpeechRecognition)
     : null;
 const speechSynthesis =
   typeof window !== "undefined" ? window.speechSynthesis : null;
@@ -16,20 +21,20 @@ export function useSpeech(onTranscriptUpdate: (transcript: string) => void) {
   const [micPermission, setMicPermission] = useState<
     "prompt" | "granted" | "denied"
   >("prompt");
-  const [isBrowserUnsupported, setIsBrowserUnsupported] = useState(() => {
+  const isBrowserUnsupported = (() => {
     if (typeof window === "undefined") {
       return true;
     }
     return !window.SpeechRecognition && !window.webkitSpeechRecognition;
-  });
+  })();
   const [isTTSEnabled, setIsTTSEnabled] = useState(false);
 
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   const speakText = useCallback(
     (text: string) => {
-      if (!speechSynthesis || !isTTSEnabled) return;
+      if (!speechSynthesis || !isTTSEnabled) {return;}
       if (speechSynthesis.speaking) {
         speechSynthesis.cancel();
       }
@@ -48,7 +53,7 @@ export function useSpeech(onTranscriptUpdate: (transcript: string) => void) {
   );
 
   const handleToggleRecording = useCallback(async () => {
-    if (isBrowserUnsupported || !SpeechRecognition) return;
+    if (isBrowserUnsupported || !SpeechRecognition) {return;}
 
     if (isRecording) {
       recognitionRef.current?.stop();
@@ -99,9 +104,9 @@ export function useSpeech(onTranscriptUpdate: (transcript: string) => void) {
           setIsRecording(false);
           let errorMsg = "Speech recognition error.";
           if (event.error === "no-speech")
-            errorMsg = "No speech was detected. Please try again.";
+            {errorMsg = "No speech was detected. Please try again.";}
           if (event.error === "audio-capture")
-            errorMsg = "Microphone not found or not working.";
+            {errorMsg = "Microphone not found or not working.";}
           if (event.error === "not-allowed") {
             errorMsg =
               "Microphone access was not allowed. Please enable it in your browser settings.";

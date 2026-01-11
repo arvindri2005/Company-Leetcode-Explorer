@@ -2,11 +2,8 @@
 import { defineConfig } from "eslint/config";
 import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
 import boundaries from "eslint-plugin-boundaries";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import simpleImportSort from "eslint-plugin-simple-import-sort";
+import unicorn from "eslint-plugin-unicorn";
 
 export default defineConfig([
   // Global ignores for build artifacts and generated files
@@ -20,6 +17,7 @@ export default defineConfig([
       "out/**",
       ".swc/**",
       ".genkit/**",
+      "public/sw.js",
     ],
   },
   {
@@ -28,6 +26,107 @@ export default defineConfig([
       "react-hooks/set-state-in-effect": "warn",
     },
   },
+
+  // TypeScript strict rules (extends the parser from next config)
+  {
+    files: ["**/*.ts", "**/*.tsx"],
+    rules: {
+      // Catch unused variables (allow underscore prefix to ignore)
+      "@typescript-eslint/no-unused-vars": ["error", {
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_",
+      }],
+      // Warn on explicit any
+      "@typescript-eslint/no-explicit-any": "warn",
+      // Consistent type imports (use `type` keyword)
+      "@typescript-eslint/consistent-type-imports": ["error", {
+        prefer: "type-imports",
+        fixStyle: "inline-type-imports",
+      }],
+    },
+  },
+
+  // Import sorting - auto-organizes imports
+  {
+    plugins: {
+      "simple-import-sort": simpleImportSort,
+    },
+    rules: {
+      "simple-import-sort/imports": ["error", {
+        groups: [
+          // React first
+          ["^react", "^react-dom"],
+          // Next.js
+          ["^next"],
+          // External packages
+          ["^@?\\w"],
+          // Internal aliases (@/)
+          ["^@/"],
+          // Parent imports
+          ["^\\.\\."],
+          // Sibling imports
+          ["^\\."],
+          // Style imports
+          ["^.+\\.css$"],
+        ],
+      }],
+      "simple-import-sort/exports": "error",
+    },
+  },
+
+  // Code quality rules (unicorn)
+  {
+    plugins: {
+      unicorn,
+    },
+    rules: {
+      // Prefer modern array methods
+      "unicorn/prefer-array-find": "error",
+      "unicorn/prefer-array-flat-map": "error",
+      "unicorn/prefer-array-some": "error",
+      "unicorn/prefer-includes": "error",
+      // Prefer string methods
+      "unicorn/prefer-string-starts-ends-with": "error",
+      "unicorn/prefer-string-trim-start-end": "error",
+      // Error handling
+      "unicorn/prefer-type-error": "error",
+      // No useless undefined
+      "unicorn/no-useless-undefined": "warn",
+      // Prefer ternary for simple conditionals
+      "unicorn/prefer-ternary": "warn",
+      // Filename case (kebab-case for consistency)
+      "unicorn/filename-case": ["error", {
+        case: "kebabCase",
+        ignore: [
+          "README.md",
+          "CHANGELOG.md",
+          "CONTRIBUTING.md",
+          "CODE_OF_CONDUCT.md",
+          "SECURITY.md",
+          "LICENSE",
+        ],
+      }],
+    },
+  },
+
+  // General best practices
+  {
+    rules: {
+      // No console.log in production (allow warn/error)
+      "no-console": ["warn", { allow: ["warn", "error"] }],
+      // Prefer const over let
+      "prefer-const": "error",
+      // No var keyword
+      "no-var": "error",
+      // Require curly braces for all blocks
+      "curly": ["error", "all"],
+      // Strict equality (=== instead of ==)
+      "eqeqeq": ["error", "always"],
+      // No nested ternary (hard to read)
+      "no-nested-ternary": "error",
+    },
+  },
+
   // Module boundary enforcement configuration
   {
     plugins: {
@@ -36,68 +135,56 @@ export default defineConfig([
     settings: {
       "boundaries/include": ["src/**/*"],
       "boundaries/elements": [
-        // Domain layer - core business logic, no infrastructure dependencies
         {
           type: "domain",
           pattern: "src/domain/**/*",
           capture: ["category"],
         },
-        // Shared kernel - common types and utilities used across features
         {
           type: "shared",
           pattern: "src/shared/**/*",
           capture: ["category"],
         },
-        // Feature modules - self-contained domain features
         {
           type: "feature",
           pattern: "src/features/*/**/*",
           capture: ["feature", "category"],
         },
-        // Application layer - Next.js pages, actions, and API routes
         {
           type: "app",
           pattern: "src/app/**/*",
           capture: ["category"],
         },
-        // Library utilities - DI, API helpers, config
         {
           type: "lib",
           pattern: "src/lib/**/*",
           capture: ["category"],
         },
-        // Global components - shared UI components
         {
           type: "components",
           pattern: "src/components/**/*",
           capture: ["category"],
         },
-        // Global hooks
         {
           type: "hooks",
           pattern: "src/hooks/**/*",
         },
-        // Global providers
         {
           type: "providers",
           pattern: "src/providers/**/*",
         },
-        // Global services (legacy, being migrated to features)
         {
           type: "services",
           pattern: "src/services/**/*",
         },
-        // Global types
         {
           type: "types",
           pattern: "src/types/**/*",
         },
-        // AI module
         {
           type: "ai",
           pattern: "src/ai/**/*",
         },
-        // Constants
         {
           type: "constants",
           pattern: "src/constants/**/*",
@@ -110,120 +197,49 @@ export default defineConfig([
         {
           default: "disallow",
           rules: [
-            // Domain layer: can only import from domain and shared
-            // This ensures business logic is isolated from infrastructure
-            // CRITICAL: Domain must never import from repositories, services, or infrastructure
-            {
-              from: "domain",
-              allow: ["domain", "shared"],
-            },
-            // Shared kernel: can only import from itself
-            // Prevents circular dependencies and keeps shared code pure
-            {
-              from: "shared",
-              allow: ["shared"],
-            },
-            // Features: can import from domain, shared, lib, components, hooks, types, constants
-            // Features can also use app actions and AI module for now (existing patterns)
-            // Note: Cross-feature imports should go through barrel exports only
+            { from: "domain", allow: ["domain", "shared"] },
+            { from: "shared", allow: ["shared"] },
             {
               from: "feature",
-              allow: [
-                "domain",
-                "shared",
-                "lib",
-                "feature",
-                "types",
-                "constants",
-                "components", // Features use shared UI components
-                "hooks", // Features use global hooks
-                "app", // Features may call server actions
-                "ai", // Features may use AI flows
-              ],
+              allow: ["domain", "shared", "lib", "feature", "types", "constants", "components", "hooks", "app", "ai"],
             },
-            // App layer: can import from most layers (presentation layer)
             {
               from: "app",
-              allow: [
-                "domain",
-                "shared",
-                "feature",
-                "lib",
-                "components",
-                "hooks",
-                "providers",
-                "services",
-                "types",
-                "ai",
-                "constants",
-                "app", // App pages can import from other app modules
-              ],
+              allow: ["domain", "shared", "feature", "lib", "components", "hooks", "providers", "services", "types", "ai", "constants", "app"],
             },
-            // Lib: can import from shared, lib, types, domain, and features (for DI registrations)
-            {
-              from: "lib",
-              allow: ["shared", "lib", "types", "domain", "feature"],
-            },
-            // Components: can import from shared, lib, hooks, types, constants, and other components
-            {
-              from: "components",
-              allow: ["shared", "lib", "components", "hooks", "types", "constants"],
-            },
-            // Hooks: can import from shared, lib, types, and other hooks
-            {
-              from: "hooks",
-              allow: ["shared", "lib", "hooks", "types"],
-            },
-            // Providers: can import from shared, lib, hooks, types, features, services
-            {
-              from: "providers",
-              allow: ["shared", "lib", "hooks", "types", "feature", "services"],
-            },
-            // Services: can import from shared, lib, types, domain, and other services
-            {
-              from: "services",
-              allow: ["shared", "lib", "types", "domain", "services"],
-            },
-            // Types: can only import from types and shared
-            {
-              from: "types",
-              allow: ["types", "shared"],
-            },
-            // AI: can import from shared, lib, types, domain, features (for service access)
-            {
-              from: "ai",
-              allow: ["shared", "lib", "types", "domain", "ai", "feature"],
-            },
-            // Constants: can only import from constants and shared
-            {
-              from: "constants",
-              allow: ["constants", "shared"],
-            },
+            { from: "lib", allow: ["shared", "lib", "types", "domain", "feature"] },
+            { from: "components", allow: ["shared", "lib", "components", "hooks", "types", "constants"] },
+            { from: "hooks", allow: ["shared", "lib", "hooks", "types"] },
+            { from: "providers", allow: ["shared", "lib", "hooks", "types", "feature", "services"] },
+            { from: "services", allow: ["shared", "lib", "types", "domain", "services"] },
+            { from: "types", allow: ["types", "shared"] },
+            { from: "ai", allow: ["shared", "lib", "types", "domain", "ai", "feature"] },
+            { from: "constants", allow: ["constants", "shared"] },
           ],
         },
       ],
-      // Prevent features from importing other features' internal files
-      "boundaries/no-private": [
-        "error",
-        {
-          allowUncles: false,
-        },
-      ],
+      "boundaries/no-private": ["error", { allowUncles: false }],
     },
   },
-  // Ignore test files and stories from boundary checks
+
+  // Relaxed rules for test files and stories
   {
-    files: [
-      "**/*.test.ts",
-      "**/*.test.tsx",
-      "**/*.spec.ts",
-      "**/*.spec.tsx",
-      "**/*.stories.tsx",
-      "**/__tests__/**/*",
-    ],
+    files: ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx", "**/*.stories.tsx", "**/__tests__/**/*"],
     rules: {
       "boundaries/element-types": "off",
       "boundaries/no-private": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "no-console": "off",
+      "unicorn/filename-case": "off",
+    },
+  },
+
+  // Relaxed rules for config files
+  {
+    files: ["*.config.ts", "*.config.js", "*.config.mjs", "scripts/**/*"],
+    rules: {
+      "no-console": "off",
+      "unicorn/filename-case": "off",
     },
   },
 ]);

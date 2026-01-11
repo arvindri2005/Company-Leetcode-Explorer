@@ -1,9 +1,10 @@
 import { render, screen } from '@testing-library/react';
+
+import { createMockCompany, createMockProblem,createMockProblemsResponse } from '@/__tests__/factories/data-factories';
 import CompanyPageWrapper, { generateMetadata, generateStaticParams } from '@/app/company/[companySlug]/page';
 import { companyService } from '@/features/companies/services/company.service';
 import { problemService } from '@/features/problems/services/problem.service';
-import { createMockCompany, createMockProblemsResponse, createMockProblem } from '@/__tests__/factories/data-factories';
-import { success, failure } from '@/shared/types/result';
+import { failure,success } from '@/shared/types/result';
 
 // Mock the services
 jest.mock('@/features/companies/services/company.service', () => ({

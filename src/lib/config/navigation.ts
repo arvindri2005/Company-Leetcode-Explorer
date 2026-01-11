@@ -1,8 +1,11 @@
-import { User } from "firebase/auth";
-import { Auth } from "firebase/auth";
+import type React from "react";
+
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+
+import { type User } from "firebase/auth";
+import { type Auth } from "firebase/auth";
+
 import type { ToastFunction } from "@/hooks/use-toast";
-import React from "react";
 
 export type NavigationPosition = "main" | "auth" | "mobile-bottom";
 

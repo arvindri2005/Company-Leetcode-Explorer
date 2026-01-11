@@ -7,16 +7,19 @@
 "use client";
 
 import { Suspense } from "react";
+
 import dynamic from "next/dynamic";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { BookOpen, Brain, Target, Users } from "lucide-react";
-import { ProblemList } from "@/features/problems";
-import type { Company, LeetCodeProblem, ProblemListFilters } from "@/types";
+
 import {
   CompanyAIFeatureSkeleton,
-  CompanyStrategySkeleton,
   CompanyStatsSkeleton,
+  CompanyStrategySkeleton,
 } from "@/components/skeletons/company-ai-skeletons";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ProblemList } from "@/features/problems";
+import type { Company, LeetCodeProblem, ProblemListFilters } from "@/types";
 
 const AIGroupingSection = dynamic(
   () => import("@/features/ai/components/ai-grouping-section"),
@@ -48,7 +51,6 @@ const CompanyProblemStats = dynamic(
 
 interface CompanyTabsProps {
   company: Company;
-  displayProblemCount: number;
   initialProblems: LeetCodeProblem[];
   initialHasMore: boolean;
   initialNextCursor: string | null | undefined;
@@ -60,7 +62,6 @@ interface CompanyTabsProps {
 
 export default function CompanyTabs({
   company,
-  displayProblemCount,
   initialProblems,
   initialHasMore,
   initialNextCursor,

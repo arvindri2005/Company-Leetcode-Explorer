@@ -1,6 +1,12 @@
 
 import React from "react";
+
 import type { Meta, StoryObj } from "@storybook/react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
 import {
   Dialog,
   DialogContent,
@@ -10,9 +16,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 const meta = {
   title: "UI/Dialog",

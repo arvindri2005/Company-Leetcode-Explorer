@@ -1,5 +1,3 @@
-import { getLogoUrl } from '@/lib/utils';
-
 describe('getLogoUrl Security Check', () => {
   const originalEnv = process.env;
 

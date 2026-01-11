@@ -1,18 +1,21 @@
 "use client";
 
 import React from "react";
-import { useFormContext, FormProvider } from "react-hook-form";
-import { z } from "zod";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { FormProvider,useFormContext } from "react-hook-form";
+
+import { Briefcase, Loader2,PlusCircle } from "lucide-react";
+import { type z } from "zod";
+
+import { ExperienceListSkeleton } from "@/components/skeletons/experience-skeleton";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -21,18 +24,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { ExperienceListSkeleton } from "@/components/skeletons/experience-skeleton";
-import { PlusCircle, Briefcase, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import type { WorkExperience } from "@/types";
-import { WorkExperienceSchema as workExperienceFormSchema } from "@/types"; // Renamed for clarity
+import { type WorkExperienceSchema as workExperienceFormSchema } from "@/types"; // Renamed for clarity
 
 type WorkExperienceFormValues = z.infer<typeof workExperienceFormSchema>;
 
@@ -211,34 +206,40 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
         </Dialog>
       </div>
       <div>
-        {isLoadingWorkExperience ? (
-          <ExperienceListSkeleton />
-        ) : workExperience.length > 0 ? (
-          <ul className="space-y-3 mt-4">
-            {workExperience.map((work) => (
-              <li
-                key={work.id}
-                className="bg-card border border-border rounded-xl p-6 mb-8 shadow-sm"
-              >
-                <h4 className="font-semibold">
-                  {work.jobTitle} at {work.companyName}
-                </h4>
-                <p className="text-sm text-muted-foreground">
-                  {work.startDate} - {work.endDate || "Present"}
-                </p>
-                {work.responsibilities && (
-                  <p className="text-sm mt-1 whitespace-pre-line">
-                    {work.responsibilities}
-                  </p>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-muted-foreground text-center py-4">
-            No work experience added yet.
-          </p>
-        )}
+        {(() => {
+          if (isLoadingWorkExperience) {
+            return <ExperienceListSkeleton />;
+          }
+          if (workExperience.length > 0) {
+            return (
+              <ul className="space-y-3 mt-4">
+                {workExperience.map((work) => (
+                  <li
+                    key={work.id}
+                    className="bg-card border border-border rounded-xl p-6 mb-8 shadow-sm"
+                  >
+                    <h4 className="font-semibold">
+                      {work.jobTitle} at {work.companyName}
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      {work.startDate} - {work.endDate || "Present"}
+                    </p>
+                    {work.responsibilities && (
+                      <p className="text-sm mt-1 whitespace-pre-line">
+                        {work.responsibilities}
+                      </p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            );
+          }
+          return (
+            <p className="text-muted-foreground text-center py-4">
+              No work experience added yet.
+            </p>
+          );
+        })()}
       </div>
     </>
   );

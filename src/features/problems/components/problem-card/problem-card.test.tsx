@@ -1,6 +1,8 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent,render, screen } from "@testing-library/react";
+
+import { type LeetCodeProblem } from "../../types";
+
 import ProblemCard from "./problem-card";
-import { LeetCodeProblem } from "../../types";
 
 // Mock hooks
 jest.mock("@/providers", () => ({
@@ -72,7 +74,6 @@ describe("ProblemCard", () => {
     render(<ProblemCard problem={mockProblem} companySlug="google" />);
     // Initial state not expaned, but let's check if we can toggle
     // The component structure puts click handler on the container or chevron
-    const card = screen.getByText("Two Sum").closest(".group"); // or simply clicking the chevron
     // Assuming the chevron button is accessible, let's try finding the collapse trigger
     // Actually the click handler is on the main div and chevron button
     fireEvent.click(screen.getByText("Two Sum"));

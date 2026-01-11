@@ -4,9 +4,10 @@
  * This component renders a styled badge, typically used to display keywords or
  * topics related to a coding problem (e.g., "Array", "Hash Table").
  */
+import React from "react";
+
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import React from "react";
 
 /**
  * Props for the TagBadge component.

@@ -1,12 +1,14 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+
+import { Button } from "@/components/ui/button";
+
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "./tooltip";
-import { Button } from "@/components/ui/button";
 
 describe("Tooltip", () => {
   it("renders tooltip on hover", async () => {

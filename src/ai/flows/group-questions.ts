@@ -12,9 +12,11 @@
  * @exports GroupQuestionsOutput - The Zod inferred type for the output from the flow.
  */
 
-import { ai } from "@/ai/genkit";
-import { z } from "genkit";
 import { unstable_cache } from "next/cache";
+
+import { z } from "genkit";
+
+import { ai } from "@/ai/genkit";
 
 const GroupQuestionsInputSchema = z.object({
   questions: z

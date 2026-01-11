@@ -1,4 +1,4 @@
-import { groupQuestions, GroupQuestionsInput } from '../group-questions';
+import { groupQuestions, type GroupQuestionsInput } from '../group-questions';
 
 // Mock next/cache
 jest.mock("next/cache", () => ({

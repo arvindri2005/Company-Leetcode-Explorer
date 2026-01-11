@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
+
+import { type LeetCodeProblem } from "../../types";
+
 import ProblemInfoCard from "./problem-info-card";
-import { LeetCodeProblem } from "../../types";
 
 const mockProblem: LeetCodeProblem = {
   id: "1",

@@ -7,9 +7,11 @@
  * sorting. It uses Zod for robust input validation.
  */
 import { NextResponse } from "next/server";
+
+import { z } from "zod";
+
 import { problemService } from "@/features/problems/services/problem.service";
 import { Logger } from "@/lib/utils/logger";
-import { z } from "zod";
 import type {
   DifficultyFilter,
   LastAskedFilter,
@@ -23,7 +25,7 @@ import type {
  * optional parameters like cursor, pageSize, and filters are of the correct type
  * and within acceptable ranges.
  */
-const problemRequestSchema = z.object({
+const _problemRequestSchema = z.object({
   companyId: z.string().optional(),
   cursor: z.string().optional(),
   pageSize: z.number().min(1).max(50).default(15),

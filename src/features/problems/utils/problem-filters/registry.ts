@@ -1,6 +1,8 @@
-import { ProblemFilter } from "./types";
-import { QueryConstraint } from "firebase/firestore";
-import { ProblemSummaryDTO } from "@/types";
+import { type QueryConstraint } from "firebase/firestore";
+
+import { type ProblemSummaryDTO } from "@/types";
+
+import { type ProblemFilter } from "./types";
 
 class ProblemFilterRegistry {
   private filters: Map<string, ProblemFilter> = new Map();
@@ -20,10 +22,10 @@ class ProblemFilterRegistry {
   private getApplicableFilter(key: string, value: unknown): ProblemFilter | undefined {
     const filter = this.filters.get(key);
     
-    if (!filter) return undefined;
-    if (value === undefined || value === null) return undefined;
-    if (Array.isArray(value) && value.length === 0) return undefined;
-    if (!filter.isValidValue(value)) return undefined;
+    if (!filter) {return undefined;}
+    if (value === undefined || value === null) {return undefined;}
+    if (Array.isArray(value) && value.length === 0) {return undefined;}
+    if (!filter.isValidValue(value)) {return undefined;}
     
     return filter;
   }

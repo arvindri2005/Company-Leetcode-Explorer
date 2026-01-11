@@ -7,31 +7,35 @@
  */
 "use client";
 
-import type { LeetCodeProblem, ProblemStatus } from "../../types";
-import React, { useState, useMemo } from "react";
+import React, { useMemo, useState } from "react";
+
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+
 import {
   Bookmark,
   CheckCircle,
-  XCircle,
-  Circle,
-  ExternalLink,
-  Clock,
   ChevronDown,
+  Circle,
+  Clock,
+  ExternalLink,
   ListTodo,
+  XCircle,
 } from "lucide-react";
-import { cn, getDeterministicRandom } from "@/lib/utils";
+
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import TagBadge from "../tag-badge/tag-badge";
 import { useProblemInteractions } from "@/features/problems/hooks/use-problem-interactions";
+import { cn, getDeterministicRandom } from "@/lib/utils";
 import { useAuth } from "@/providers";
+
+import type { LeetCodeProblem, ProblemStatus } from "../../types";
 import { ProblemAIActions } from "../problem-ai-actions";
+import TagBadge from "../tag-badge/tag-badge";
 
 interface ProblemCardProps {
   problem: LeetCodeProblem;
@@ -59,7 +63,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
   onProblemStatusChange,
   showCompanies = false,
 }) => {
-  const { user } = useAuth();
+  useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
   // Optimization: Lazy load AI hooks/components only after first interaction
   const [wasEverExpanded, setWasEverExpanded] = useState(false);
@@ -77,7 +81,6 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
     handleToggleBookmark,
     currentStatus,
     handleStatusUpdate,
-    promptLogin,
   } = useProblemInteractions(
     problem,
     companySlug,

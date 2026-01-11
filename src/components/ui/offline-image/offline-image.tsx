@@ -1,9 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+
 import Image, { type ImageProps } from "next/image";
-import { useOnlineStatus } from "@/hooks/use-online-status";
+
 import { WifiOff } from "lucide-react";
+
+import { useOnlineStatus } from "@/hooks/use-online-status";
 import { cn } from "@/lib/utils";
 
 interface OfflineImageProps extends Omit<ImageProps, "onError"> {
@@ -17,7 +20,12 @@ export function OfflineImage({
   className,
   fallbackSrc = "/icon.png",
   fallbackIcon,
-  ...props
+  fill,
+  priority,
+  width,
+  height,
+  style,
+  ...restProps
 }: OfflineImageProps) {
   const isOnline = useOnlineStatus();
   const [error, setError] = useState(false);
@@ -32,8 +40,6 @@ export function OfflineImage({
     setFallbackFailed(false);
   }
 
-
-
   const handleError = () => {
     setError(true);
     if (fallbackSrc) {
@@ -45,29 +51,21 @@ export function OfflineImage({
     setFallbackFailed(true);
   };
 
-  // Extract props that should NOT be passed to the fallback div
-  const {
-    fill,
-    priority,
-    loading,
-    sizes,
-    quality,
-    loader,
-    placeholder,
-    blurDataURL,
-    unoptimized,
-    onLoadingComplete,
-    width,
-    height,
-    style,
-    ...divProps
-  } = props;
-
   // Prepare style for the fallback div to respect width/height if provided (and not fill)
   const divStyle = {
     ...style,
     ...(width !== undefined && { width }),
     ...(height !== undefined && { height }),
+  };
+
+  const renderFallbackContent = () => {
+    if (fallbackIcon) {
+      return fallbackIcon;
+    }
+    if (!isOnline) {
+      return <WifiOff className="h-6 w-6" />;
+    }
+    return <span className="text-xs">Image Error</span>;
   };
 
   if (error) {
@@ -82,15 +80,8 @@ export function OfflineImage({
           style={divStyle}
           role="img"
           aria-label={alt || "Image not available"}
-          {...divProps}
         >
-          {fallbackIcon ? (
-            fallbackIcon
-          ) : !isOnline ? (
-            <WifiOff className="h-6 w-6" />
-          ) : (
-            <span className="text-xs">Image Error</span>
-          )}
+          {renderFallbackContent()}
         </div>
       );
     }
@@ -104,18 +95,10 @@ export function OfflineImage({
           onError={handleFallbackError}
           fill={fill}
           priority={priority}
-          loading={loading}
-          sizes={sizes}
-          quality={quality}
-          loader={loader}
-          placeholder={placeholder}
-          blurDataURL={blurDataURL}
-          unoptimized={unoptimized}
-          onLoadingComplete={onLoadingComplete}
           width={width}
           height={height}
           style={style}
-          {...divProps}
+          {...restProps}
         />
       );
     }
@@ -129,24 +112,10 @@ export function OfflineImage({
       onError={handleError}
       fill={fill}
       priority={priority}
-      loading={loading}
-      sizes={sizes}
-      quality={quality}
-      loader={loader}
-      placeholder={placeholder}
-      blurDataURL={blurDataURL}
-      unoptimized={unoptimized}
-      onLoadingComplete={onLoadingComplete}
       width={width}
       height={height}
       style={style}
-      {...divProps}
+      {...restProps}
     />
   );
 }
-
-
-
-
-
-

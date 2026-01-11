@@ -5,11 +5,10 @@
  * featuring its logo, name, website, and a brief description. It's designed
  * with a modern aesthetic to create a strong visual anchor for the page.
  */
-import type { Company } from "@/features/companies/types";
-import { Building2, ExternalLink } from "lucide-react";
 import Link from "next/link";
-import { getLogoUrl } from "@/lib/utils";
-import { OfflineImage } from "@/components/ui/offline-image";
+
+import { Building2, ExternalLink } from "lucide-react";
+
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -18,6 +17,9 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { OfflineImage } from "@/components/ui/offline-image";
+import type { Company } from "@/features/companies/types";
+import { getLogoUrl } from "@/lib/utils";
 
 /**
  * Props for the CompanyHeader component.

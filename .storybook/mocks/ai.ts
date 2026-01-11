@@ -1,12 +1,12 @@
 // Mock for src/ai/genkit
 export const ai = {
-  defineFlow: (config: any, fn: any) => fn,
-  defineSchema: (schema: any) => schema,
+  defineFlow: (config: unknown, fn: unknown) => fn,
+  defineSchema: (schema: unknown) => schema,
   generate: () => Promise.resolve({ text: "Mock AI response" }),
 };
 
 // Robust, recursive Proxy mock for Zod to handle infinite chaining
-const recursiveProxy: any = new Proxy(() => recursiveProxy, {
+const recursiveProxy: unknown = new Proxy(() => recursiveProxy, {
   get: () => recursiveProxy,
   apply: () => recursiveProxy,
 });

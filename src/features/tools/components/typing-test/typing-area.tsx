@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Snippet } from "@/features/tools";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+
+import { Keyboard as KeyboardIcon, MousePointerClick,RotateCcw } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
-import { RotateCcw, Keyboard as KeyboardIcon, MousePointerClick } from "lucide-react";
+import { Card, CardContent, CardDescription, CardFooter,CardHeader, CardTitle } from "@/components/ui/card";
+import { type Snippet } from "@/features/tools";
 
 interface TypingAreaProps {
   currentSnippet: Snippet | null;
@@ -43,29 +45,30 @@ export default function TypingArea({
   // Trigger shake on mistake increase
   useEffect(() => {
     if (mistakes > 0) {
-        setShake(true);
-        const timer = setTimeout(() => setShake(false), 400);
-        return () => clearTimeout(timer);
+        // Schedule state update for next tick to avoid setState in effect
+        const shakeTimer = setTimeout(() => setShake(true), 0);
+        const resetTimer = setTimeout(() => setShake(false), 400);
+        return () => {
+          clearTimeout(shakeTimer);
+          clearTimeout(resetTimer);
+        };
     }
+    return;
   }, [mistakes]);
 
   const renderCode = () => {
-    if (!currentSnippet) return null;
+    if (!currentSnippet) {return null;}
 
     const code = currentSnippet.code;
     const result = [];
     
     for (let i = 0; i < code.length; i++) {
       let className = "text-muted-foreground opacity-40"; 
-      let char = code[i];
-      let isCursor = i === userInput.length;
+      const char = code[i];
+      const isCursor = i === userInput.length;
       
       if (i < userInput.length) {
-        if (userInput[i] === char) {
-          className = "text-foreground font-medium"; 
-        } else {
-          className = "text-red-500 bg-red-500/10 rounded-sm";
-        }
+        className = userInput[i] === char ? "text-foreground font-medium" : "text-red-500 bg-red-500/10 rounded-sm";
       }
       
       result.push(
@@ -103,11 +106,21 @@ export default function TypingArea({
     return result;
   };
 
+  const getCardRingClass = () => {
+    if (shake) {
+      return 'ring-2 ring-red-500/50';
+    }
+    if (isFocused) {
+      return 'ring-1 ring-primary/50';
+    }
+    return 'ring-1 ring-border/50';
+  };
+
   return (
     <div
         className={shake ? "animate-shake" : ""}
     >
-      <Card className={`relative overflow-hidden border-0 shadow-2xl min-h-[450px] flex flex-col transition-all duration-300 bg-background/50 backdrop-blur-xl ${shake ? 'ring-2 ring-red-500/50' : isFocused ? 'ring-1 ring-primary/50' : 'ring-1 ring-border/50'}`}>
+      <Card className={`relative overflow-hidden border-0 shadow-2xl min-h-[450px] flex flex-col transition-all duration-300 bg-background/50 backdrop-blur-xl ${getCardRingClass()}`}>
            {/* Focus Overlay */}
            {!isFocused && !isFinished && (
               <div 

@@ -1,7 +1,9 @@
 
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+
 import { Button } from "@/components/ui/button";
+
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 describe("Popover", () => {
   it("opens content on click", async () => {

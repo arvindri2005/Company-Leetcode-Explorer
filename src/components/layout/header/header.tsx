@@ -7,24 +7,27 @@
  * (Login/Sign Up or Profile/Logout) based on the user's auth state.
  */
 "use client";
-import Link from "next/link";
+import React, { useCallback, useMemo,useState } from "react";
+
 import Image from "next/image";
+import Link from "next/link";
+import { usePathname,useRouter } from "next/navigation";
+
 import { Menu } from "lucide-react";
-import { useAuth } from "@/providers";
-import { auth } from "@/lib/api/firebase";
-import { useToast } from "@/hooks/use-toast";
-import { useRouter, usePathname } from "next/navigation";
+
+import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
-  SheetTrigger,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
+  SheetTrigger,
 } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import React, { useState, useCallback, useMemo } from "react";
-import { navigationRegistry, NavigationItem } from "@/lib/config/navigation";
+import { useToast } from "@/hooks/use-toast";
+import { auth } from "@/lib/api/firebase";
+import { type NavigationItem,navigationRegistry } from "@/lib/config/navigation";
+import { useAuth } from "@/providers";
 
 /**
  * Renders the main application header and navigation bar.
@@ -91,7 +94,7 @@ const Header = React.memo(function Header() {
                    } else {
                      console.error("Auth context missing for navigation action");
                    }
-                   if (isMobile) setIsMobileMenuOpen(false);
+                   if (isMobile) {setIsMobileMenuOpen(false);}
                 }}
                 className={className}
             >

@@ -1,7 +1,7 @@
-import { ProblemStatus } from "@/types";
 import { TypedEventEmitter } from "@/lib/utils/event-emitter";
+import { type ProblemStatus } from "@/types";
 
-export interface AppEventMap {
+export interface AppEventMap extends Record<string, unknown> {
   "user:problem_status_changed": {
     userId: string;
     problemId: string;

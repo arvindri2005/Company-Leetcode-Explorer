@@ -13,11 +13,12 @@
  * @exports Flashcard - The Zod inferred type for a single flashcard object (re-exported).
  */
 
-import { ai } from "@/ai/genkit";
 import { z } from "genkit";
-import type { FlashcardProblemInput as ImportedFlashcardProblemInput } from "@/features/ai";
-import { retryWithBackoff, sanitizeInput } from "@/ai/utils";
+
 import { flashcardsCache } from "@/ai/cache";
+import { ai } from "@/ai/genkit";
+import { retryWithBackoff, sanitizeInput } from "@/ai/utils";
+import type { FlashcardProblemInput as ImportedFlashcardProblemInput } from "@/features/ai";
 
 export type FlashcardProblemInput = ImportedFlashcardProblemInput;
 
@@ -144,7 +145,7 @@ const generateFlashcardsFlow = ai.defineFlow(
     inputSchema: GenerateFlashcardsInputSchema,
     outputSchema: GenerateFlashcardsOutputSchema,
   },
-  async (input) => {
+  async (input): Promise<GenerateFlashcardsOutput> => {
     // Nova Guardrail: Token Optimization & Cost Control
     // Limit the number of problems sent to the model context.
     // 20 problems provide enough context for patterns without wasting tokens.
@@ -165,13 +166,13 @@ const generateFlashcardsFlow = ai.defineFlow(
     // Check if we have already generated flashcards for this exact input combination.
     // We use safeInput to ensure that we cache based on what the model actually sees (e.g. truncated lists).
     const cacheKey = flashcardsCache.generateKey(safeInput);
-    const cachedResult = flashcardsCache.get(cacheKey);
+    const cachedResult = flashcardsCache.get(cacheKey) as GenerateFlashcardsOutput | undefined;
     if (cachedResult) {
       return cachedResult;
     }
 
     // Nova Guardrail: Retry with Exponential Backoff
-    const output = await retryWithBackoff(async () => {
+    const output = await retryWithBackoff<GenerateFlashcardsOutput>(async () => {
       const { output } = await prompt(safeInput);
       if (!output || !output.flashcards || output.flashcards.length === 0) {
         // Instead of returning empty array immediately, throw error to trigger retry

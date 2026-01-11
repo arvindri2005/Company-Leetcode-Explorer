@@ -8,9 +8,17 @@
  */
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+
 import { zodResolver } from "@hookform/resolvers/zod";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { Loader2, LogInIcon } from "lucide-react";
 import { z } from "zod";
+
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -23,16 +31,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
-import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
-import { Loader2, LogInIcon } from "lucide-react";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/api/firebase";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import GoogleAuthButton from "./google-auth-button";
 import { useOnlineStatus } from "@/hooks/use-online-status";
+import { useToast } from "@/hooks/use-toast";
+import { auth } from "@/lib/api/firebase";
 import { Logger } from "@/lib/utils/logger";
+
+import GoogleAuthButton from "./google-auth-button";
 
 /**
  * Zod schema for validating the login form fields.
@@ -212,12 +216,16 @@ export default function LoginForm() {
         >
           {isSubmitting ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : !isOnline ? (
-            "You are offline"
           ) : (
             <>
-              <LogInIcon className="mr-2 h-4 w-4" />
-              Login
+              {!isOnline ? (
+                "You are offline"
+              ) : (
+                <>
+                  <LogInIcon className="mr-2 h-4 w-4" />
+                  Login
+                </>
+              )}
             </>
           )}
         </Button>

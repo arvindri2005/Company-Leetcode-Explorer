@@ -1,8 +1,16 @@
 "use client";
 
+import { useEffect,useState } from "react";
 import { useForm } from "react-hook-form";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
 import { zodResolver } from "@hookform/resolvers/zod";
+import { confirmPasswordReset, verifyPasswordResetCode } from "firebase/auth";
+import { CheckCircle2,Eye, EyeOff, Loader2, LockKeyhole } from "lucide-react";
 import { z } from "zod";
+
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -14,12 +22,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
-import { Loader2, LockKeyhole, Eye, EyeOff, CheckCircle2 } from "lucide-react";
-import { confirmPasswordReset, verifyPasswordResetCode } from "firebase/auth";
 import { auth } from "@/lib/api/firebase";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 
 const resetPasswordSchema = z
   .object({
@@ -83,7 +86,7 @@ export default function ResetPasswordForm({ oobCode }: ResetPasswordFormProps) {
   });
 
   async function onSubmit(data: ResetPasswordValues) {
-    if (!oobCode) return;
+    if (!oobCode) {return;}
 
     setIsSubmitting(true);
     try {

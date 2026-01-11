@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
+
+import { BarChart3, CheckCircle2, ListTodo,Pencil } from "lucide-react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, CheckCircle2, Pencil, ListTodo } from "lucide-react";
 
 /**
  * @interface ProgressStatsProps

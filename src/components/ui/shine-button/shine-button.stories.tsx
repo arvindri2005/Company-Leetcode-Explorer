@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { Heart, Rocket, Star } from "lucide-react";
+
 import ShineButton from "./shine-button";
-import { Rocket, Heart, Star } from "lucide-react";
 
 const meta = {
   title: "UI/ShineButton",

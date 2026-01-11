@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 /**
  * @function useMounted
@@ -13,12 +13,12 @@ import { useState, useEffect } from "react";
  * if (!isMounted) return null; // or return a skeleton
  */
 export function useMounted() {
-  const [mounted, setMounted] = useState(false);
+  const [mounted] = useState(() => {
+    // Initialize to true on client, false on server
+    return typeof window !== "undefined";
+  });
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
+  // No useEffect needed - state is initialized correctly based on environment
   return mounted;
 }
 

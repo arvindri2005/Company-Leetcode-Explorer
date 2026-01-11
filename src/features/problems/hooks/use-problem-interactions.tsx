@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback,useEffect, useState } from "react";
+
+import { usePathname,useRouter } from "next/navigation";
+
+import { ToastAction } from "@/components/ui/toast";
+import { PROBLEM_STATUS_OPTIONS } from "@/features/problems/constants";
+import { userService } from "@/features/profile/services/user.service";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/providers";
-import { userService } from "@/features/profile/services/user.service";
 import type { LeetCodeProblem, ProblemStatus } from "@/types";
-import { PROBLEM_STATUS_OPTIONS } from "@/features/problems/constants";
-import { useRouter, usePathname } from "next/navigation";
-import { ToastAction } from "@/components/ui/toast";
 
 export function useProblemInteractions(
   problem: LeetCodeProblem,
@@ -61,7 +63,7 @@ export function useProblemInteractions(
       promptLogin();
       return;
     }
-    if (isTogglingBookmark) return;
+    if (isTogglingBookmark) {return;}
     setIsTogglingBookmark(true);
     const oldStatus = isBookmarked;
     setIsBookmarked(!oldStatus);
@@ -91,7 +93,7 @@ export function useProblemInteractions(
           variant: "destructive",
         });
       }
-    } catch (error) {
+    } catch {
       setIsBookmarked(oldStatus);
       toast({
         title: "Connection Error",
@@ -108,7 +110,7 @@ export function useProblemInteractions(
       promptLogin();
       return;
     }
-    if (isUpdatingStatus) return;
+    if (isUpdatingStatus) {return;}
     setIsUpdatingStatus(true);
     const oldUiStatus = currentStatus;
     setCurrentStatus(newStatus);
@@ -143,7 +145,7 @@ export function useProblemInteractions(
           variant: "destructive",
         });
       }
-    } catch (error) {
+    } catch {
       setCurrentStatus(oldUiStatus);
       toast({
         title: "Connection Error",

@@ -1,5 +1,6 @@
-import { clsx, type ClassValue } from "clsx";
+import { type ClassValue,clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+
 import { env } from "@/env";
 
 /**
@@ -42,8 +43,8 @@ export function slugify(text: string): string {
  * @returns {string | undefined} The URL with the token appended, or the original URL.
  */
 export function getLogoUrl(url: string | undefined): string | undefined {
-  if (!url) return url;
-  if (!env.LOGO_API) return url;
+  if (!url) {return url;}
+  if (!env.LOGO_API) {return url;}
 
   // Allowed domains for appending the token
   const allowedDomains = ["img.logo.dev", "logo.clearbit.com"];
@@ -75,7 +76,7 @@ export function getLogoUrl(url: string | undefined): string | undefined {
  * @returns {string} The capitalized string.
  */
 export function capitalizeWords(str: string): string {
-  if (!str) return str;
+  if (!str) {return str;}
   return str.replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
@@ -110,10 +111,10 @@ export function getDeterministicRandom(seed: string): number {
  * @function safeJsonLd
  * @description Safely stringifies data for use in JSON-LD script tags, preventing XSS by escaping HTML characters.
  * This is crucial because standard JSON.stringify does not escape '<' or '>', which allows attackers to close the script tag.
- * @param {any} data - The data to stringify.
+ * @param {unknown} data - The data to stringify.
  * @returns {string} The escaped JSON string.
  */
-export function safeJsonLd(data: any): string {
+export function safeJsonLd(data: unknown): string {
   return JSON.stringify(data)
     .replace(/</g, "\\u003c")
     .replace(/>/g, "\\u003e")
@@ -132,7 +133,7 @@ export function parseArrayValid<T extends string>(
   val: string[] | null,
   validValues: readonly T[]
 ): T[] {
-  if (!val) return [];
+  if (!val) {return [];}
   return val.filter((v): v is T => validValues.includes(v as T));
 }
 

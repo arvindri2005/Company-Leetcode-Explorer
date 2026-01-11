@@ -8,13 +8,16 @@
  */
 "use client";
 
+import { useEffect, useRef,useState } from "react";
+
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle, Home } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+
+import { AlertTriangle, Home } from "lucide-react";
 import { useDebounce } from "use-debounce";
+
 import { fetchCompanySuggestionsAction } from "@/app/actions/company.actions";
+import { Button } from "@/components/ui/button";
 import CompanySearchBar from "@/features/companies/components/company-search-bar";
 import type { Company } from "@/types";
 

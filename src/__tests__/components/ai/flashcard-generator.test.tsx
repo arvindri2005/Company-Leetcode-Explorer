@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+
 import FlashcardGenerator from '@/features/ai/components/flashcard-generator';
 
 jest.mock('react-markdown', () => ({

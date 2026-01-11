@@ -5,9 +5,10 @@
  * displays a list of blog post summaries. Currently, the posts are hardcoded
  * as a placeholder. It also includes metadata for SEO purposes.
  */
-import Footer from "@/features/landing/components/footer";
 import type { Metadata } from "next";
+
 import { env } from "@/env";
+import Footer from "@/features/landing/components/footer";
 
 const APP_URL = env.NEXT_PUBLIC_APP_URL;
 

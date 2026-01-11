@@ -8,24 +8,21 @@
  */
 "use client";
 
-import type { SimilarProblemDetail } from "@/types";
+import React from "react";
+
+import Link from "next/link";
+
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerClose,
-} from "@/components/ui/drawer";
+  AlertTriangle,
+  ExternalLink,
+  Globe,
+  Lightbulb,
+  Loader2,
+  Search,
+  Tag,
+} from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -35,21 +32,27 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { DifficultyBadge } from "@/features/problems";
 import { TagBadge } from "@/features/problems";
-import Link from "next/link";
-import {
-  ExternalLink,
-  Lightbulb,
-  Tag,
-  Globe,
-  Loader2,
-  Search,
-  AlertTriangle,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import React from "react";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import type { SimilarProblemDetail } from "@/types";
 
 /**
  * Props for the SimilarProblemsDialog component.

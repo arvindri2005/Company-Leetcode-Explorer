@@ -1,5 +1,18 @@
 "use client";
 
+import { useCallback, useEffect, useRef,useState } from "react";
+
+import dynamic from "next/dynamic";
+import { usePathname,useRouter, useSearchParams } from "next/navigation";
+
+import AdPlaceholder from "@/components/ads/ad-placeholder";
+import ErrorBoundary from "@/components/ui/error-boundary";
+import { Skeleton } from "@/components/ui/skeleton";
+import { userService } from "@/features/profile/services/user.service";
+import { useToast } from "@/hooks/use-toast";
+import { parseArrayValid } from "@/lib/utils";
+import { useAuth } from "@/providers";
+
 import type {
   LeetCodeProblem,
   ProblemListFilters,
@@ -11,18 +24,8 @@ import {
   LastAskedPeriodSchema,
   ProblemStatusSchema,
 } from "../../types";
-import { useState, useEffect, useCallback, useRef } from "react";
 import ProblemCard from "../problem-card/problem-card";
-import ErrorBoundary from "@/components/ui/error-boundary";
 import ProblemCardErrorFallback from "../problem-card/problem-card-error-fallback";
-import { useAuth } from "@/providers";
-import { useToast } from "@/hooks/use-toast";
-import dynamic from "next/dynamic";
-import { Skeleton } from "@/components/ui/skeleton";
-import AdPlaceholder from "@/components/ads/ad-placeholder";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { userService } from "@/features/profile/services/user.service";
-import { parseArrayValid } from "@/lib/utils";
 
 const ProblemListControls = dynamic(() => import("../problem-list-controls/problem-list-controls"), {
   loading: () => (
@@ -147,7 +150,7 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
 
         if (isDefault) {
             // If default, we can use the initial props (which are static/SSR'd default)
-            if (ignore) return;
+            if (ignore) {return;}
             setDisplayedProblems(initialProblems);
             setCursor(initialNextCursor);
             setHasMoreState(hasMore);
@@ -156,12 +159,12 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
             return;
         }
 
-        if (ignore) return;
+        if (ignore) {return;}
         setIsLoadingMore(true); 
         
         try {
             const { fetchProblemsAction } = await import("@/app/actions/problem.actions");
-            if (ignore) return;
+            if (ignore) {return;}
 
             const result = await fetchProblemsAction({
                 difficultyFilter,
@@ -171,7 +174,7 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
                 sortKey
             }, itemsPerPage); // fetch first page
             
-            if (ignore) return;
+            if (ignore) {return;}
 
             if (result.success && result.data) {
               setDisplayedProblems(result.data.problems);
@@ -180,7 +183,7 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
             }
             hydratedIdsRef.current.clear();
         } catch (error) {
-            if (ignore) return;
+            if (ignore) {return;}
             console.error("Failed to fetch filtered problems", error);
             toast({
                 title: "Error",
@@ -218,8 +221,8 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
   // -- Infinite Scroll Loader --
   const loadMore = useCallback(async () => {
     // If not mounted, abort early
-    if (!isMountedRef.current) return;
-    if (isLoadingMore || !hasMoreState || !cursor) return;
+    if (!isMountedRef.current) {return;}
+    if (isLoadingMore || !hasMoreState || !cursor) {return;}
 
     setIsLoadingMore(true);
     try {
@@ -233,7 +236,7 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
       );
       
       // Check mount status again after await
-      if (!isMountedRef.current) return;
+      if (!isMountedRef.current) {return;}
 
       if (result.success && result.data && result.data.problems.length > 0) {
         setDisplayedProblems((prev) => [...prev, ...result.data!.problems]);
@@ -243,7 +246,7 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
         setHasMoreState(false);
       }
     } catch (error) {
-      if (!isMountedRef.current) return;
+      if (!isMountedRef.current) {return;}
       console.error("Failed to load more problems", error);
       toast({
           title: "Error",
@@ -294,7 +297,7 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
             // Check if still mounted (unlikely to unmount this fast, but good practice)
             // Ideally we'd use ignore pattern here too, but this is less critical as it's fire-and-forget logic usually
             // However, setting state on unmounted is bad.
-            if (!isMountedRef.current) return;
+            if (!isMountedRef.current) {return;}
 
             if (result.isSuccess) {
               setSolvedProblemIds(new Set(result.value.solvedProblemIds));
@@ -380,8 +383,8 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
            handleFilterChange({ difficultyFilter: value })
         }
         sortKey={currentFilters.sortKey}
-        onSortKeyChange={(value) =>
-           handleFilterChange({ sortKey: value as SortKey })
+        onSortKeyChange={(value: SortKey) =>
+           handleFilterChange({ sortKey: value })
         }
         lastAskedFilter={currentFilters.lastAskedFilter}
         onLastAskedFilterChange={(value) =>
@@ -407,9 +410,9 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
             let computedIsBookmarked = problem.isBookmarked;
 
             if (areGlobalStatsLoaded) {
-               if (solvedProblemIds.has(problem.id)) computedStatus = "solved";
-               else if (attemptedProblemIds.has(problem.id)) computedStatus = "attempted";
-               else computedStatus = "none";
+               if (solvedProblemIds.has(problem.id)) {computedStatus = "solved";}
+               else if (attemptedProblemIds.has(problem.id)) {computedStatus = "attempted";}
+               else {computedStatus = "none";}
                
                computedIsBookmarked = bookmarkedProblemIds.has(problem.id);
             }

@@ -1,9 +1,13 @@
 import React from 'react';
+
+import { usePathname } from 'next/navigation';
+
 import { render, screen } from '@testing-library/react';
-import Header from './header';
+
 import { navigationRegistry } from '@/lib/config/navigation';
 import { useAuth } from '@/providers';
-import { usePathname } from 'next/navigation';
+
+import Header from './header';
 
 // Mock dependencies
 jest.mock('@/providers');

@@ -8,9 +8,12 @@
  */
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef,useState } from "react";
+
 import { useRouter } from "next/navigation";
+
 import { useDebounce } from "use-debounce";
+
 import { fetchCompanySuggestionsAction } from "@/app/actions";
 import CompanySearchBar from "@/features/companies/components/company-search-bar";
 import type { Company } from "@/types";

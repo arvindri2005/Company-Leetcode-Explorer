@@ -8,15 +8,17 @@
  */
 "use client";
 
+import React from "react";
+
+import { Chip } from "@/components/ui/chip";
+
+import { lastAskedPeriodOptions, PROBLEM_STATUS_OPTIONS } from "../../constants";
 import type {
   DifficultyFilter,
-  SortKey,
   LastAskedFilter,
+  SortKey,
   StatusFilter,
 } from "../../types";
-import { lastAskedPeriodOptions, PROBLEM_STATUS_OPTIONS } from "../../constants";
-import React from "react";
-import { Chip } from "@/components/ui/chip";
 
 /**
  * Props for the ProblemListControls component.
@@ -24,12 +26,12 @@ import { Chip } from "@/components/ui/chip";
 interface ProblemListControlsProps {
   difficultyFilter: DifficultyFilter[];
   onDifficultyFilterChange: (filter: DifficultyFilter[]) => void;
-  sortKey: SortKey;
-  onSortKeyChange: (key: SortKey) => void;
   lastAskedFilter: LastAskedFilter[];
   onLastAskedFilterChange: (filter: LastAskedFilter[]) => void;
   statusFilter: StatusFilter[];
   onStatusFilterChange: (filter: StatusFilter[]) => void;
+  sortKey?: SortKey;
+  onSortKeyChange?: (sortKey: SortKey) => void;
   showStatusFilter?: boolean;
 }
 
@@ -47,12 +49,12 @@ interface ProblemListControlsProps {
 const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
   difficultyFilter,
   onDifficultyFilterChange,
-  sortKey,
-  onSortKeyChange,
   lastAskedFilter,
   onLastAskedFilterChange,
   statusFilter,
   onStatusFilterChange,
+  sortKey: _sortKey,
+  onSortKeyChange: _onSortKeyChange,
   showStatusFilter = false,
 }) => {
   const statusOptionsToDisplay = PROBLEM_STATUS_OPTIONS.filter(

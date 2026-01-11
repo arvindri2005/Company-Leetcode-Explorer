@@ -1,17 +1,18 @@
 "use client";
 
 import { useState } from "react";
+
+import {
+  generateProblemInsightsAction,
+  performSimilarQuestionSearch,
+} from "@/app/actions/ai.actions";
+import { useAICooldown } from "@/features/ai";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/providers";
-import { useAICooldown } from "@/features/ai";
-import {
-  performSimilarQuestionSearch,
-  generateProblemInsightsAction,
-} from "@/app/actions/ai.actions";
 import type {
-  SimilarProblemDetail,
   GenerateProblemInsightsOutput,
   LeetCodeProblem,
+  SimilarProblemDetail,
 } from "@/types";
 
 export function useAIFeatures(problem: LeetCodeProblem, companySlug: string) {
@@ -33,7 +34,7 @@ export function useAIFeatures(problem: LeetCodeProblem, companySlug: string) {
   const [isInsightsDialogOpen, setIsInsightsDialogOpen] = useState(false);
 
   const handleFindSimilar = async () => {
-    if (!user) return;
+    if (!user) {return;}
     if (isLoadingCooldown || !canUseAI) {
       toast({
         title: "AI Feature on Cooldown",
@@ -76,7 +77,7 @@ export function useAIFeatures(problem: LeetCodeProblem, companySlug: string) {
   };
 
   const handleGenerateInsights = async () => {
-    if (!user) return;
+    if (!user) {return;}
     if (isLoadingCooldown || !canUseAI) {
       toast({
         title: "AI Feature on Cooldown",

@@ -3,4 +3,4 @@
  * Barrel export for company mapping utilities
  */
 
-export { CompanyMapper, type CompanyDocument } from "./company.mapper";
+export { type CompanyDocument,CompanyMapper } from "./company.mapper";

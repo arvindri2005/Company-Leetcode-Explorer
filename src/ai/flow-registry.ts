@@ -5,7 +5,7 @@ import { Logger } from "@/lib/utils/logger";
  * @template TInput The input type for the flow.
  * @template TOutput The output type for the flow.
  */
-export type AIFlow<TInput = any, TOutput = any> = (input: TInput) => Promise<TOutput>;
+export type AIFlow<TInput = unknown, TOutput = unknown> = (input: TInput) => Promise<TOutput>;
 
 /**
  * Registry for managing AI flows.
@@ -26,7 +26,7 @@ class AIFlowRegistry {
     } else {
       Logger.debug(`[AIFlowRegistry] Registering flow: ${name}`);
     }
-    this.flows.set(name, flow);
+    this.flows.set(name, flow as AIFlow<unknown, unknown>);
   }
 
   /**

@@ -5,8 +5,9 @@
  * specifying the default model to be used across the application. This centralized
  * setup allows for consistent AI model usage and easy configuration management.
  */
-import { genkit } from "genkit";
 import { googleAI } from "@genkit-ai/googleai";
+import { genkit } from "genkit";
+
 import { AI_MODELS } from "./model-registry";
 
 /**

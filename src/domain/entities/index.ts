@@ -4,7 +4,7 @@
  */
 
 export { Entity } from "./base.entity";
-export { Problem } from "./problem.entity";
 export { Company } from "./company.entity";
-export { User } from "./user.entity";
 export { Contact } from "./contact.entity";
+export { Problem } from "./problem.entity";
+export { User } from "./user.entity";

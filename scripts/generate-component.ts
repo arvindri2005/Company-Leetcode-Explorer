@@ -261,8 +261,8 @@ async function main() {
     try {
       fs.writeFileSync(filePath, file.content);
       log.success(`Created ${file.name}`);
-    } catch (err: any) {
-      log.error(`Failed to create ${file.name}: ${err.message}`);
+    } catch (err: unknown) {
+      log.error(`Failed to create ${file.name}: ${err instanceof Error ? err.message : String(err)}`);
       hasError = true;
     }
   }
@@ -270,8 +270,8 @@ async function main() {
   if (!hasError) {
     try {
       updateIndexFile(kebabName);
-    } catch (err: any) {
-      log.error(`Failed to update index.ts: ${err.message}`);
+    } catch (err: unknown) {
+      log.error(`Failed to update index.ts: ${err instanceof Error ? err.message : String(err)}`);
     }
     console.log(`\n${colors.green}${colors.bold}✨ Component generated successfully!${colors.reset}\n`);
   } else {

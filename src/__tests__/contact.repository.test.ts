@@ -1,4 +1,4 @@
-import { ContactRepository, contactMessageSchema } from "../features/contact/repositories/contact.repository";
+import { contactMessageSchema,ContactRepository } from "../features/contact/repositories/contact.repository";
 
 // Mock Firebase
 jest.mock("@/lib/api/firebase", () => ({

@@ -13,8 +13,9 @@
  * @exports FindSimilarQuestionsOutput - The Zod inferred type for the output from the flow.
  */
 
-import { ai } from "@/ai/genkit";
 import { z } from "genkit";
+
+import { ai } from "@/ai/genkit";
 
 const CurrentProblemInputSchema = z.object({
   title: z.string().describe("The title of the current coding problem."),

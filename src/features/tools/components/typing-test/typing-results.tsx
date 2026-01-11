@@ -1,8 +1,10 @@
 import React, { useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { CheckCircle2, Play, RotateCcw, BarChart2, Zap, Clock, Target, AlertCircle } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+
 import confetti from "canvas-confetti";
+import { AlertCircle,BarChart2, CheckCircle2, Clock, Play, RotateCcw, Target, Zap } from "lucide-react";
+import { CartesianGrid,Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+
+import { Button } from "@/components/ui/button";
 
 interface TypingResultsProps {
     wpm: number;
@@ -29,7 +31,7 @@ export default function TypingResults({
 
     const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
 
-    const interval: any = setInterval(function() {
+    const interval: ReturnType<typeof setInterval> = setInterval(function() {
       const timeLeft = animationEnd - Date.now();
 
       if (timeLeft <= 0) {
@@ -80,7 +82,11 @@ export default function TypingResults({
                                 <Target className="w-4 h-4 group-hover:text-blue-500 transition-colors" />
                                 <span className="text-xxs font-bold uppercase tracking-wider">Accuracy</span>
                             </div>
-                            <div className={`text-4xl font-black tracking-tighter group-hover:scale-105 origin-left transition-transform ${accuracy >= 95 ? 'text-green-500' : accuracy >= 90 ? 'text-yellow-500' : 'text-red-500'}`}>
+                            <div className={`text-4xl font-black tracking-tighter group-hover:scale-105 origin-left transition-transform ${(() => {
+                                if (accuracy >= 95) {return 'text-green-500';}
+                                if (accuracy >= 90) {return 'text-yellow-500';}
+                                return 'text-red-500';
+                            })()}`}>
                                 {accuracy}%
                             </div>
                         </div>

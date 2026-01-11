@@ -1,7 +1,7 @@
-import { CompaniesPageContent } from "@/features/companies/components/companies-page-content";
-import { companyService } from "@/features/companies/services/company.service";
 import StructuredData from "@/components/seo/structured-data";
 import { env } from "@/env";
+import { CompaniesPageContent } from "@/features/companies/components/companies-page-content";
+import { companyService } from "@/features/companies/services/company.service";
 
 const APP_URL = env.NEXT_PUBLIC_APP_URL;
 
@@ -19,7 +19,7 @@ export default async function CompaniesListContainer() {
     throw new Error(companiesResult.error.message);
   }
 
-  const { companies, totalPages, hasMore, nextCursor } = companiesResult.value;
+  const { companies, hasMore, nextCursor } = companiesResult.value;
 
   // Fetch trending
   const trendingSlugs = ["google", "amazon", "microsoft"];
@@ -38,7 +38,7 @@ export default async function CompaniesListContainer() {
 
   if (distinctTrending.size < 3) {
     for (const company of companies) {
-      if (distinctTrending.size >= 3) break;
+      if (distinctTrending.size >= 3) {break;}
       if (!distinctTrending.has(company.id)) {
         distinctTrending.set(company.id, company);
       }
@@ -115,7 +115,6 @@ export default async function CompaniesListContainer() {
       <CompaniesPageContent
         initialCompanies={companies}
         initialTrendingCompanies={trendingCompanies}
-        initialTotalPages={totalPages || 1}
         initialHasMore={hasMore || false}
         initialNextCursor={nextCursor}
       />

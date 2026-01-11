@@ -1,8 +1,9 @@
 "use client";
 
-import { env } from "@/env";
-import { Button } from "@/components/ui/button";
 import { AlertTriangle, RefreshCw } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { env } from "@/env";
 
 interface TypingTestErrorFallbackProps {
   error: Error;

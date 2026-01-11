@@ -1,5 +1,6 @@
-import { CacheAdapter, CacheOptions, CacheTTL } from "./types";
 import { Logger } from "@/lib/utils/logger";
+
+import { type CacheAdapter, type CacheOptions, CacheTTL } from "./types";
 
 /**
  * Implementation of CacheAdapter using Next.js 'unstable_cache'.

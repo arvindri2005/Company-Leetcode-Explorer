@@ -1,13 +1,14 @@
 "use client";
 
-import { useFormStatus, useFormState } from "react-dom";
-import { sendContactMessage } from "@/app/actions/contact.actions";
 import { useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useFormState,useFormStatus } from "react-dom";
+
+import { sendContactMessage } from "@/app/actions/contact.actions";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import { useOnlineStatus } from "@/hooks/use-online-status";
+import { useToast } from "@/hooks/use-toast";
 
 /**
  * A client component that renders a form submission button with a pending state.
@@ -15,6 +16,16 @@ import { useOnlineStatus } from "@/hooks/use-online-status";
 function SubmitButton() {
   const { pending } = useFormStatus();
   const isOnline = useOnlineStatus();
+
+  const getButtonText = () => {
+    if (pending) {
+      return "Sending...";
+    }
+    if (isOnline) {
+      return "Send Message";
+    }
+    return "You are offline";
+  };
 
   return (
     <Button
@@ -24,7 +35,7 @@ function SubmitButton() {
       className="w-full sm:w-auto px-8"
       size="lg"
     >
-      {pending ? "Sending..." : isOnline ? "Send Message" : "You are offline"}
+      {getButtonText()}
     </Button>
   );
 }

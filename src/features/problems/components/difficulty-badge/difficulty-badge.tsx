@@ -4,10 +4,12 @@
  * This component renders a colored badge (e.g., green for Easy, yellow for Medium,
  * red for Hard) to visually indicate the difficulty level of a problem.
  */
-import type { LeetCodeProblem } from "../../types";
+import React from "react";
+
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import React from "react";
+
+import type { LeetCodeProblem } from "../../types";
 
 /**
  * Props for the DifficultyBadge component.

@@ -18,18 +18,18 @@ export { ContactService } from "./services/contact.service";
 export { ContactRepository } from "./repositories/contact.repository";
 
 // Interfaces (for type-safe dependency injection)
-export type { IContactService } from "./interfaces/contact.service.interface";
 export type {
-  IContactRepository,
   ContactMessageData,
   CreateContactDTO,
+  IContactRepository,
   UpdateContactDTO,
 } from "./interfaces/contact.repository.interface";
+export type { IContactService } from "./interfaces/contact.service.interface";
 
 // Mappers (for data transformation)
 export {
-  ContactMapper,
   type ContactDocument,
   type ContactDTO,
+  ContactMapper,
   type ContactStatus,
 } from "./mappers/contact.mapper";

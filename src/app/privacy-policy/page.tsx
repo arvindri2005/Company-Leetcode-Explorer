@@ -5,10 +5,11 @@
  * company's privacy policy. It includes metadata to inform search engines
  * not to index this page.
  */
-import Footer from "@/features/landing/components/footer";
 import type { Metadata } from "next";
 import Link from "next/link";
+
 import { env } from "@/env";
+import Footer from "@/features/landing/components/footer";
 
 const APP_URL = env.NEXT_PUBLIC_APP_URL;
 
