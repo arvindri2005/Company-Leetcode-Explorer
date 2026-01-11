@@ -1,10 +1,12 @@
-import { unstable_cache, revalidateTag as nextRevalidateTag } from "next/cache";
 import { CacheAdapter, CacheOptions, CacheTTL } from "./types";
 import { Logger } from "@/lib/utils/logger";
 
 /**
  * Implementation of CacheAdapter using Next.js 'unstable_cache'.
  * This ties the caching strategy to the Next.js Data Cache.
+ * 
+ * NOTE: This adapter only works in Server Components/Actions.
+ * The unstable_cache import is dynamic to prevent client bundle pollution.
  */
 export class NextCacheAdapter implements CacheAdapter {
   async wrap<T>(
@@ -14,15 +16,11 @@ export class NextCacheAdapter implements CacheAdapter {
   ): Promise<T> {
     const { tags = [], revalidate = CacheTTL.SHORT } = options;
 
-    // We can add logging here to track cache definition,
-    // though 'unstable_cache' doesn't expose hit/miss callbacks directly.
-    // We log the *intent* to cache.
-    // Logger.debug(`[Cache] Wrapping key: ${key}`, { tags, revalidate });
+    // Dynamic import to ensure this only runs on server
+    const { unstable_cache } = await import("next/cache");
 
     const cachedFn = unstable_cache(
       async () => {
-        // This execution happens on cache MISS
-        // Logger.debug(`[Cache] MISS: Executing source function for ${key}`);
         try {
           return await fn();
         } catch (error) {
@@ -40,16 +38,15 @@ export class NextCacheAdapter implements CacheAdapter {
     return cachedFn();
   }
 
-  revalidateTag(tag: string): void {
-    try {
-      Logger.info(`[Cache] Revalidating tag: ${tag}`);
-      // @ts-ignore - The installed version of next seems to require a 2nd argument, or definitions are mismatched.
-      // Passing undefined or void to satisfy strict arg count if strictly required, but standard API is 1 arg.
-      // If typescript complains about arg count, we use ts-ignore because at runtime it might be optional or different.
-      nextRevalidateTag(tag);
-    } catch (error) {
-      Logger.error(`[Cache] Failed to revalidate tag: ${tag}`, error);
-    }
+  /**
+   * @deprecated Use revalidateCacheTag from '@/lib/utils/cache/server-cache' instead.
+   * This method is kept for interface compatibility but should not be used.
+   */
+  revalidateTag(_tag: string): void {
+    throw new Error(
+      "revalidateTag cannot be called from this adapter. " +
+      "Use revalidateCacheTag from '@/lib/utils/cache/server-cache' in Server Actions instead."
+    );
   }
 }
 

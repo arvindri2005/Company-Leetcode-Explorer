@@ -2,18 +2,21 @@ import { companyService } from "@/features/companies/services/company.service";
 import { companyRepository } from "@/features/companies/repositories/company.repository";
 import { cacheManager } from "@/lib/utils/cache";
 import { CacheTTL } from "@/lib/utils/cache/types";
+import { revalidateCacheTag } from "@/lib/utils/cache/server-cache";
 
 // Mock dependencies
 jest.mock("@/features/companies/repositories/company.repository");
 jest.mock("@/lib/utils/cache", () => ({
   cacheManager: {
     wrap: jest.fn(),
-    revalidateTag: jest.fn(),
   },
   CacheTTL: {
     STATIC: 2592000,
     SHORT: 300,
   },
+}));
+jest.mock("@/lib/utils/cache/server-cache", () => ({
+  revalidateCacheTag: jest.fn(),
 }));
 
 describe("CompanyService (with Cache)", () => {
@@ -54,12 +57,12 @@ describe("CompanyService (with Cache)", () => {
     );
   });
 
-  it("revalidateCompaniesPage should call cacheManager.revalidateTag", async () => {
+  it("revalidateCompaniesPage should call revalidateCacheTag", async () => {
     await companyService.revalidateCompaniesPage("1", "slug");
 
-    expect(cacheManager.revalidateTag).toHaveBeenCalledWith("companies-list");
-    expect(cacheManager.revalidateTag).toHaveBeenCalledWith("company-1-v2");
-    expect(cacheManager.revalidateTag).toHaveBeenCalledWith("company-slug-slug-v2");
+    expect(revalidateCacheTag).toHaveBeenCalledWith("companies-list");
+    expect(revalidateCacheTag).toHaveBeenCalledWith("company-1-v2");
+    expect(revalidateCacheTag).toHaveBeenCalledWith("company-slug-slug-v2");
   });
 });
 

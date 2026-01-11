@@ -2,6 +2,7 @@ import { companyRepository } from "../repositories/company.repository";
 import { Company } from "@/features/companies/types";
 import { Logger } from "@/lib/utils/logger";
 import { cacheManager, CacheTTL } from "@/lib/utils/cache";
+import { revalidateCacheTag } from "@/lib/utils/cache/server-cache";
 import { success, failure, type Result } from "@/shared/types/result";
 import type { ServiceError } from "@/shared/types/service-error";
 import type {
@@ -269,14 +270,14 @@ export class CompanyService implements ICompanyService {
     companySlug?: string
   ): Promise<void> {
     try {
-      cacheManager.revalidateTag("companies-list");
+      await revalidateCacheTag("companies-list");
 
       if (companyId) {
-        cacheManager.revalidateTag(`company-${companyId}-v2`);
+        await revalidateCacheTag(`company-${companyId}-v2`);
       }
 
       if (companySlug) {
-        cacheManager.revalidateTag(`company-slug-${companySlug}-v2`);
+        await revalidateCacheTag(`company-slug-${companySlug}-v2`);
       }
 
       Logger.info("[Cache] Revalidated companies page", { companyId, companySlug });
