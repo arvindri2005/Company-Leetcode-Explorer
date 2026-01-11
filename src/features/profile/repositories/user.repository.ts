@@ -686,6 +686,12 @@ export class UserRepository implements IUserRepository {
         error: "Display name must be at least 2 characters.",
       };
     }
+    if (newDisplayName.trim().length > 50) {
+      return {
+        success: false,
+        error: "Display name must be less than 50 characters.",
+      };
+    }
     const userDocRef = doc(db, "users", userId);
     try {
       await updateDoc(userDocRef, { displayName: newDisplayName.trim() });

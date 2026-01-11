@@ -66,9 +66,9 @@ export interface UserProblemStatusInfo {
  */
 export const EducationExperienceSchema = z.object({
   id: z.string().optional(), // Firestore document ID, optional for new entries
-  degree: z.string().min(2, "Degree is required."),
-  major: z.string().min(2, "Major is required."),
-  school: z.string().min(2, "School name is required."),
+  degree: z.string().min(2, "Degree is required.").max(100, "Degree must be less than 100 characters."),
+  major: z.string().min(2, "Major is required.").max(100, "Major must be less than 100 characters."),
+  school: z.string().min(2, "School name is required.").max(100, "School name must be less than 100 characters."),
   graduationYear: z
     .string()
     .regex(/^\d{4}$/, "Invalid year format (YYYY).")
@@ -111,8 +111,8 @@ const parseDateValue = (dateStr: string, isEndDate: boolean): number => {
  */
 export const WorkExperienceSchema = z.object({
   id: z.string().optional(), // Firestore document ID
-  jobTitle: z.string().min(2, "Job title is required."),
-  companyName: z.string().min(2, "Company name is required."),
+  jobTitle: z.string().min(2, "Job title is required.").max(100, "Job title must be less than 100 characters."),
+  companyName: z.string().min(2, "Company name is required.").max(100, "Company name must be less than 100 characters."),
   startDate: z
     .string()
     .min(4, "Start date is required.")
@@ -128,6 +128,7 @@ export const WorkExperienceSchema = z.object({
   responsibilities: z
     .string()
     .min(10, "Please describe some responsibilities.")
+    .max(1000, "Responsibilities must be less than 1000 characters.")
     .optional()
     .or(z.literal("")),
 }).refine((data) => {
@@ -160,9 +161,3 @@ export interface SavedStrategyTodoList {
   focusTopics: FocusTopic[];
   items: StrategyTodoItem[]; // 'items' is used for the todo list for consistency with previous naming
 }
-
-
-
-
-
-
