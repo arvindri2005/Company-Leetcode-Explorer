@@ -55,7 +55,7 @@ export class AuthService {
       
       // Clear auth cookie
       if (typeof window !== "undefined") {
-        document.cookie = "auth_status=; path=/; max-age=0; SameSite=Strict";
+        document.cookie = "auth_status=; path=/; max-age=0; SameSite=Strict; Secure";
       }
 
       return {

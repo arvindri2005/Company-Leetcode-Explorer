@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (firebaseUser) {
         // Set cookie to indicate user is authenticated
-        document.cookie = "auth_status=authenticated; path=/; max-age=2592000; SameSite=Strict"; // 30 days
+        document.cookie = "auth_status=authenticated; path=/; max-age=2592000; SameSite=Strict; Secure"; // 30 days
         
         // Reset sync flag on new auth state if needed, or manage more carefully
         // For simplicity here, we'll attempt sync if user is present.
@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await syncUserProfileIfNeeded(firebaseUser);
       } else {
          // Remove cookie on logout
-        document.cookie = "auth_status=; path=/; max-age=0; SameSite=Strict";
+        document.cookie = "auth_status=; path=/; max-age=0; SameSite=Strict; Secure";
         setIsUserProfileSynced(false); // Reset sync flag on logout
       }
     });
