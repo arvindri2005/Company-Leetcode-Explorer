@@ -86,7 +86,9 @@ const ProblemList: React.FC<ProblemListProps> = ({
 
   // -- Helper to derive current filters from URL --
   // Optimization: Use searchParams directly instead of redundant cloning
-  const getCurrentFilters = useCallback((): ProblemListFilters => {
+  // Optimization: Memoize the object to prevent ProblemListControls from re-rendering
+  // on every ProblemList render (e.g. infinite scroll, status toggle)
+  const currentFilters = useMemo((): ProblemListFilters => {
     return {
       difficultyFilter: parseArrayValid(searchParams.getAll("difficultyFilter"), [
         "Easy",
@@ -108,8 +110,6 @@ const ProblemList: React.FC<ProblemListProps> = ({
       sortKey: (searchParams.get("sortKey") || "title") as SortKey,
     };
   }, [searchParams]);
-
-  const currentFilters = getCurrentFilters();
 
   // -- Filter Handling (URL Sync) --
   const handleFilterChange = useCallback(
