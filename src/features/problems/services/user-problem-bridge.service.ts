@@ -22,10 +22,14 @@ export class UserProblemBridgeService {
     if (!problems.length) return problems;
 
     const problemIds = problems.map((p) => p.id);
-    const [userBookmarks, userStatuses] = await Promise.all([
+    const [userBookmarksResult, userStatusesResult] = await Promise.all([
       userService.getBookmarksForIds(userId, problemIds),
       userService.getProblemStatusesForIds(userId, problemIds),
     ]);
+
+    // Handle Result types - extract values or use defaults
+    const userBookmarks = userBookmarksResult.isSuccess ? userBookmarksResult.value : new Set<string>();
+    const userStatuses = userStatusesResult.isSuccess ? userStatusesResult.value : {};
 
     return problems.map((problem) => {
       const statusInfo = userStatuses[problem.id];
@@ -46,7 +50,18 @@ export class UserProblemBridgeService {
     const { userId, ...problemParams } = params;
 
     // Call the base service which now only returns raw problem data
-    const response = await problemService.getAllProblemsPaginated(problemParams);
+    const responseResult = await problemService.getAllProblemsPaginated(problemParams);
+
+    // Handle Result type - extract value or return empty response
+    if (!responseResult.isSuccess) {
+      return {
+        problems: [],
+        totalProblems: 0,
+        hasMore: false,
+      };
+    }
+
+    const response = responseResult.value;
 
     if (!userId) {
       return response;
@@ -67,10 +82,14 @@ export class UserProblemBridgeService {
       userId: string,
       problemIds: string[]
   ): Promise<Record<string, { isBookmarked: boolean; status?: string }>> {
-      const [userBookmarks, userStatuses] = await Promise.all([
+      const [userBookmarksResult, userStatusesResult] = await Promise.all([
            userService.getBookmarksForIds(userId, problemIds),
            userService.getProblemStatusesForIds(userId, problemIds),
       ]);
+
+      // Handle Result types - extract values or use defaults
+      const userBookmarks = userBookmarksResult.isSuccess ? userBookmarksResult.value : new Set<string>();
+      const userStatuses = userStatusesResult.isSuccess ? userStatusesResult.value : {};
 
       const result: Record<string, { isBookmarked: boolean; status?: string }> = {};
       problemIds.forEach(id => {

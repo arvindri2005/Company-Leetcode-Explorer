@@ -3,6 +3,7 @@ import { userProblemBridgeService } from "@/features/problems/services/user-prob
 import { problemService } from "@/features/problems/services/problem.service";
 import { userService } from "@/features/profile/services/user.service";
 import { LeetCodeProblem } from "@/types";
+import { success } from "@/shared/types/result";
 
 // Mock dependencies
 jest.mock("@/features/problems/services/problem.service", () => ({
@@ -52,7 +53,7 @@ describe("UserProblemBridgeService", () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
-      (problemService.getAllProblemsPaginated as jest.Mock).mockResolvedValue(mockPagination);
+      (problemService.getAllProblemsPaginated as jest.Mock).mockResolvedValue(success(mockPagination));
     });
 
     it("should return raw problems if no userId is provided", async () => {
@@ -65,11 +66,11 @@ describe("UserProblemBridgeService", () => {
 
     it("should enrich problems with user data if userId is provided", async () => {
       const userId = "test-user";
-      (userService.getBookmarksForIds as jest.Mock).mockResolvedValue(new Set(["1"]));
-      (userService.getProblemStatusesForIds as jest.Mock).mockResolvedValue({
+      (userService.getBookmarksForIds as jest.Mock).mockResolvedValue(success(new Set(["1"])));
+      (userService.getProblemStatusesForIds as jest.Mock).mockResolvedValue(success({
         "1": { status: "solved" },
         "2": { status: "attempted" },
-      });
+      }));
 
       const result = await userProblemBridgeService.getAllProblemsPaginatedWithUserStatus({ userId });
 

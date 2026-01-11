@@ -8,6 +8,7 @@ import type { IBaseRepository, PaginatedResult, PaginationParams } from "@/share
 import type {
   DifficultyFilter,
   LastAskedFilter,
+  LastAskedPeriod,
   SortKey,
   LeetCodeProblem,
   PaginatedProblemsResponse,
@@ -44,7 +45,7 @@ export interface CreateProblemDTO {
   tags: string[];
   normalizedTitle: string;
   acceptanceRate?: number;
-  lastAskedPeriod?: string;
+  lastAskedPeriod?: LastAskedPeriod;
 }
 
 /**
@@ -58,7 +59,7 @@ export interface UpdateProblemDTO {
   tags?: string[];
   normalizedTitle?: string;
   acceptanceRate?: number;
-  lastAskedPeriod?: string;
+  lastAskedPeriod?: LastAskedPeriod;
 }
 
 /**

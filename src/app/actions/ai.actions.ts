@@ -35,6 +35,11 @@ import { revalidateTag } from "next/cache";
 import { auth } from "@/lib/api/firebase"; // For current user ID
 import { companyService } from "@/features/companies/services/company.service"; // needed for revalidate lookup
 import { Logger } from "@/lib/utils/logger";
+import {
+  type ApiResponse,
+  successResponse,
+  errorResponse,
+} from "@/lib/api/response";
 
 // SENTINEL: Maximum number of problems allowed for AI grouping to prevent DoS/Cost spikes.
 const MAX_PROBLEMS_FOR_GROUPING = 50;
@@ -47,25 +52,31 @@ const MAX_PROBLEMS_FOR_GROUPING = 50;
  * tags and titles.
  *
  * @param {AIProblemInput[]} problems - An array of problem objects to be grouped.
- * @returns {Promise<GroupQuestionsOutput | { error: string }>} A promise that resolves to the
- * structured output from the AI, containing named groups of questions, or an error object
- * if the operation fails.
+ * @returns {Promise<ApiResponse<GroupQuestionsOutput>>} A promise that resolves to a
+ * standardized API response containing named groups of questions.
  */
 export async function performQuestionGrouping(
   problems: AIProblemInput[],
-): Promise<GroupQuestionsOutput | { error: string }> {
+): Promise<ApiResponse<GroupQuestionsOutput>> {
   // SENTINEL: Input validation to prevent excessive token usage
   if (!problems || !Array.isArray(problems)) {
-    return { error: "Invalid input: 'problems' must be an array." };
+    return errorResponse({
+      code: "VALIDATION_ERROR",
+      message: "Invalid input: 'problems' must be an array.",
+    });
   }
   if (problems.length > MAX_PROBLEMS_FOR_GROUPING) {
     Logger.warn("Security: Question grouping request exceeded limit", { count: problems.length });
-    return { 
-      error: `Too many problems provided. Please select up to ${MAX_PROBLEMS_FOR_GROUPING} problems.` 
-    };
+    return errorResponse({
+      code: "VALIDATION_ERROR",
+      message: `Too many problems provided. Please select up to ${MAX_PROBLEMS_FOR_GROUPING} problems.`,
+    });
   }
   if (problems.length === 0) {
-    return { error: "At least one problem is required for grouping." };
+    return errorResponse({
+      code: "VALIDATION_ERROR",
+      message: "At least one problem is required for grouping.",
+    });
   }
 
   const start = Date.now();
@@ -74,16 +85,28 @@ export async function performQuestionGrouping(
     const result = await aiService.groupQuestions(problems);
     const durationMs = Date.now() - start;
     Logger.info("AI question grouping completed", { durationMs, groupCount: result.groups?.length });
-    return result;
+    
+    if ('error' in result && typeof result.error === 'string') {
+      return errorResponse({
+        code: "EXTERNAL_SERVICE_ERROR",
+        message: result.error,
+      });
+    }
+    
+    return successResponse(result as GroupQuestionsOutput);
   } catch (error) {
     const durationMs = Date.now() - start;
     Logger.error("Error in AI question grouping", error, { durationMs });
-    if (error instanceof Error)
-      return { error: `Failed to group questions: ${error.message}` };
-    return {
-      error:
-        "Failed to group questions due to an unknown error. Please try again.",
-    };
+    if (error instanceof Error) {
+      return errorResponse({
+        code: "EXTERNAL_SERVICE_ERROR",
+        message: `Failed to group questions: ${error.message}`,
+      });
+    }
+    return errorResponse({
+      code: "INTERNAL_ERROR",
+      message: "Failed to group questions due to an unknown error. Please try again.",
+    });
   }
 }
 
@@ -97,14 +120,13 @@ export async function performQuestionGrouping(
  * @param {string} currentProblemSlug - The slug of the problem for which to find similar ones.
  * @param {string} currentProblemCompanySlug - The slug of the company associated with the current problem,
  * needed to fetch the problem's full details.
- * @returns {Promise<FindSimilarQuestionsOutput | { error: string }>} A promise that resolves to an
- * object containing an array of similar problems, each with details and a reason for similarity,
- * or an error object if the operation fails.
+ * @returns {Promise<ApiResponse<FindSimilarQuestionsOutput>>} A promise that resolves to a
+ * standardized API response containing similar problems.
  */
 export async function performSimilarQuestionSearch(
   currentProblemSlug: string,
   currentProblemCompanySlug: string,
-): Promise<FindSimilarQuestionsOutput | { error: string }> {
+): Promise<ApiResponse<FindSimilarQuestionsOutput>> {
   const start = Date.now();
   Logger.info("AI similar question search started", { currentProblemSlug, currentProblemCompanySlug });
   try {
@@ -112,15 +134,28 @@ export async function performSimilarQuestionSearch(
     const result = await aiService.findSimilarQuestions(currentProblemSlug, currentProblemCompanySlug);
     const durationMs = Date.now() - start;
     Logger.info("AI similar question search completed", { durationMs });
-    return result;
+    
+    if ('error' in result && typeof result.error === 'string') {
+      return errorResponse({
+        code: "EXTERNAL_SERVICE_ERROR",
+        message: result.error,
+      });
+    }
+    
+    return successResponse(result as FindSimilarQuestionsOutput);
   } catch (error) {
     const durationMs = Date.now() - start;
     Logger.error("Error in AI similar question search", error, { durationMs, currentProblemSlug, currentProblemCompanySlug });
-    if (error instanceof Error)
-      return { error: `Failed to find similar questions: ${error.message}` };
-    return {
-      error: "Failed to find similar questions due to an unknown error.",
-    };
+    if (error instanceof Error) {
+      return errorResponse({
+        code: "EXTERNAL_SERVICE_ERROR",
+        message: `Failed to find similar questions: ${error.message}`,
+      });
+    }
+    return errorResponse({
+      code: "INTERNAL_ERROR",
+      message: "Failed to find similar questions due to an unknown error.",
+    });
   }
 }
 
@@ -133,13 +168,12 @@ export async function performSimilarQuestionSearch(
  * it triggers a cache revalidation for the relevant company page.
  *
  * @param {string} companyId - The unique identifier of the company for which to generate flashcards.
- * @returns {Promise<GenerateFlashcardsOutput | { error: string }>} A promise that resolves to an
- * object containing an array of generated flashcards, or an error object if the process fails.
- * If no problems are found, it returns an empty array of flashcards.
+ * @returns {Promise<ApiResponse<GenerateFlashcardsOutput>>} A promise that resolves to a
+ * standardized API response containing generated flashcards.
  */
 export async function generateFlashcardsAction(
   companyId: string,
-): Promise<GenerateFlashcardsOutput | { error: string }> {
+): Promise<ApiResponse<GenerateFlashcardsOutput>> {
   const start = Date.now();
   Logger.info("AI flashcard generation started", { companyId });
   try {
@@ -147,21 +181,36 @@ export async function generateFlashcardsAction(
 
     // Revalidation logic moved here from service, or kept here.
     // We need company details for the tag. aiService doesn't return company object if successful, only flashcards.
-    const company = await companyService.getCompanyById(companyId);
-    if (company) {
+    const companyResult = await companyService.getCompanyById(companyId);
+    if (companyResult.isSuccess) {
+       const company = companyResult.value;
        revalidateTag(`company-slug-${company.slug}`, 'max');
        revalidateTag(`company-detail-${company.id}`, 'max');
     }
     const durationMs = Date.now() - start;
     Logger.info("AI flashcard generation completed", { durationMs, companyId, flashcardCount: ('flashcards' in result) ? result.flashcards.length : 0 });
 
-    return result;
+    if ('error' in result && typeof result.error === 'string') {
+      return errorResponse({
+        code: "EXTERNAL_SERVICE_ERROR",
+        message: result.error,
+      });
+    }
+
+    return successResponse(result as GenerateFlashcardsOutput);
   } catch (error) {
     const durationMs = Date.now() - start;
     Logger.error("Error in AI flashcard generation", error, { durationMs, companyId });
-    if (error instanceof Error)
-      return { error: `Failed to generate flashcards: ${error.message}` };
-    return { error: "An unknown error occurred while generating flashcards." };
+    if (error instanceof Error) {
+      return errorResponse({
+        code: "EXTERNAL_SERVICE_ERROR",
+        message: `Failed to generate flashcards: ${error.message}`,
+      });
+    }
+    return errorResponse({
+      code: "INTERNAL_ERROR",
+      message: "An unknown error occurred while generating flashcards.",
+    });
   }
 }
 
@@ -176,36 +225,49 @@ export async function generateFlashcardsAction(
  * @param {string} companyId - The unique identifier of the company.
  * @param {TargetRoleLevel} [targetRoleLevel] - Optional. The user's target role level (e.g.,
  * 'internship', 'new_grad', 'experienced'), which helps tailor the strategy.
- * @returns {Promise<GenerateCompanyStrategyOutput | { error: string }>} A promise that resolves to the
- * structured strategy output, or an error object. If no problem data is available, it returns
- * a default message.
+ * @returns {Promise<ApiResponse<GenerateCompanyStrategyOutput>>} A promise that resolves to a
+ * standardized API response containing the strategy output.
  */
 export async function generateCompanyStrategyAction(
   companyId: string,
   targetRoleLevel?: TargetRoleLevel,
-): Promise<GenerateCompanyStrategyOutput | { error: string }> {
+): Promise<ApiResponse<GenerateCompanyStrategyOutput>> {
   const start = Date.now();
   Logger.info("AI company strategy generation started", { companyId, targetRoleLevel });
   try {
       const firebaseUser = auth.currentUser;
       const result = await aiService.generateCompanyStrategy(companyId, firebaseUser?.uid, targetRoleLevel);
 
-      const company = await companyService.getCompanyById(companyId);
-      if (company) {
+      const companyResult = await companyService.getCompanyById(companyId);
+      if (companyResult.isSuccess) {
+        const company = companyResult.value;
         revalidateTag(`company-slug-${company.slug}`, 'max');
         revalidateTag(`company-detail-${company.id}`, 'max');
       }
       const durationMs = Date.now() - start;
       Logger.info("AI company strategy generation completed", { durationMs, companyId });
-      return result;
+      
+      if ('error' in result && typeof result.error === 'string') {
+        return errorResponse({
+          code: "EXTERNAL_SERVICE_ERROR",
+          message: result.error,
+        });
+      }
+      
+      return successResponse(result as GenerateCompanyStrategyOutput);
   } catch (error) {
     const durationMs = Date.now() - start;
     Logger.error("Error in AI company strategy generation", error, { durationMs, companyId });
-    if (error instanceof Error)
-      return { error: `Failed to generate strategy: ${error.message}` };
-    return {
-      error: "An unknown error occurred while generating the strategy.",
-    };
+    if (error instanceof Error) {
+      return errorResponse({
+        code: "EXTERNAL_SERVICE_ERROR",
+        message: `Failed to generate strategy: ${error.message}`,
+      });
+    }
+    return errorResponse({
+      code: "INTERNAL_ERROR",
+      message: "An unknown error occurred while generating the strategy.",
+    });
   }
 }
 
@@ -219,13 +281,12 @@ export async function generateCompanyStrategyAction(
  * company pages.
  *
  * @param {LeetCodeProblem} problem - The full problem object, which must include `companySlug` and `slug`.
- * @returns {Promise<GenerateProblemInsightsOutput | { error: string }>} A promise that resolves to the
- * structured insights output, including concepts, data structures, algorithms, and a hint,
- * or an error object if the operation fails.
+ * @returns {Promise<ApiResponse<GenerateProblemInsightsOutput>>} A promise that resolves to a
+ * standardized API response containing problem insights.
  */
 export async function generateProblemInsightsAction(
   problem: LeetCodeProblem,
-): Promise<GenerateProblemInsightsOutput | { error: string }> {
+): Promise<ApiResponse<GenerateProblemInsightsOutput>> {
   const start = Date.now();
   Logger.info("AI problem insights generation started", { problemSlug: problem.slug, companySlug: problem.companySlug });
   try {
@@ -239,15 +300,27 @@ export async function generateProblemInsightsAction(
     const durationMs = Date.now() - start;
     Logger.info("AI problem insights generation completed", { durationMs, problemSlug: problem.slug });
 
-    return result;
+    if ('error' in result && typeof result.error === 'string') {
+      return errorResponse({
+        code: "EXTERNAL_SERVICE_ERROR",
+        message: result.error,
+      });
+    }
+
+    return successResponse(result as GenerateProblemInsightsOutput);
   } catch (error) {
     const durationMs = Date.now() - start;
     Logger.error("Error in AI problem insights generation", error, { durationMs, problemSlug: problem.slug });
-    if (error instanceof Error)
-      return { error: `Failed to generate insights: ${error.message}` };
-    return {
-      error: "An unknown error occurred while generating problem insights.",
-    };
+    if (error instanceof Error) {
+      return errorResponse({
+        code: "EXTERNAL_SERVICE_ERROR",
+        message: `Failed to generate insights: ${error.message}`,
+      });
+    }
+    return errorResponse({
+      code: "INTERNAL_ERROR",
+      message: "An unknown error occurred while generating problem insights.",
+    });
   }
 }
 

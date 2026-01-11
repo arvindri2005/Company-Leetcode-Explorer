@@ -13,12 +13,20 @@ import { ProblemService } from "@/features/problems/services/problem.service";
 import { ProblemRepository } from "@/features/problems/repositories/problem.repository";
 import { CompanyService } from "@/features/companies/services/company.service";
 import { CompanyRepository } from "@/features/companies/repositories/company.repository";
+import { UserService } from "@/features/profile/services/user.service";
+import { UserRepository } from "@/features/profile/repositories/user.repository";
+import { ContactService } from "@/features/contact/services/contact.service";
+import { ContactRepository } from "@/features/contact/repositories/contact.repository";
 
 // Import interfaces for type safety
 import type { IProblemService } from "@/features/problems/interfaces/problem.service.interface";
 import type { IProblemRepository } from "@/features/problems/interfaces/problem.repository.interface";
 import type { ICompanyService } from "@/features/companies/interfaces/company.service.interface";
 import type { ICompanyRepository } from "@/features/companies/interfaces/company.repository.interface";
+import type { IUserService } from "@/features/profile/interfaces/user.service.interface";
+import type { IUserRepository } from "@/features/profile/interfaces/user.repository.interface";
+import type { IContactService } from "@/features/contact/interfaces/contact.service.interface";
+import type { IContactRepository } from "@/features/contact/interfaces/contact.repository.interface";
 
 /**
  * Register all services and repositories with the DI container
@@ -38,6 +46,18 @@ export function registerDependencies(): void {
     { singleton: true }
   );
 
+  container.register<IUserRepository>(
+    TOKENS.UserRepository,
+    () => new UserRepository(),
+    { singleton: true }
+  );
+
+  container.register<IContactRepository>(
+    TOKENS.ContactRepository,
+    () => new ContactRepository() as IContactRepository,
+    { singleton: true }
+  );
+
   // Register services (singletons for caching benefits)
   container.register<IProblemService>(
     TOKENS.ProblemService,
@@ -48,6 +68,18 @@ export function registerDependencies(): void {
   container.register<ICompanyService>(
     TOKENS.CompanyService,
     () => new CompanyService(container.resolve<ICompanyRepository>(TOKENS.CompanyRepository)),
+    { singleton: true }
+  );
+
+  container.register<IUserService>(
+    TOKENS.UserService,
+    () => new UserService(container.resolve<IUserRepository>(TOKENS.UserRepository)),
+    { singleton: true }
+  );
+
+  container.register<IContactService>(
+    TOKENS.ContactService,
+    () => new ContactService(container.resolve<IContactRepository>(TOKENS.ContactRepository)),
     { singleton: true }
   );
 }
@@ -78,4 +110,32 @@ export function getCompanyService(): ICompanyService {
  */
 export function getCompanyRepository(): ICompanyRepository {
   return container.resolve<ICompanyRepository>(TOKENS.CompanyRepository);
+}
+
+/**
+ * Get the user service from the DI container
+ */
+export function getUserService(): IUserService {
+  return container.resolve<IUserService>(TOKENS.UserService);
+}
+
+/**
+ * Get the user repository from the DI container
+ */
+export function getUserRepository(): IUserRepository {
+  return container.resolve<IUserRepository>(TOKENS.UserRepository);
+}
+
+/**
+ * Get the contact service from the DI container
+ */
+export function getContactService(): IContactService {
+  return container.resolve<IContactService>(TOKENS.ContactService);
+}
+
+/**
+ * Get the contact repository from the DI container
+ */
+export function getContactRepository(): IContactRepository {
+  return container.resolve<IContactRepository>(TOKENS.ContactRepository);
 }

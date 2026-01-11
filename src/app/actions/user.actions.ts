@@ -30,8 +30,12 @@ import { z } from "zod";
 import { ProblemStatusSchema } from "@/types";
 import { Logger } from "@/lib/utils/logger";
 import { auth } from "@/lib/api/firebase";
-
 import { handleServerActionError } from "@/lib/utils/error-handler";
+import {
+  type ApiResponse,
+  successResponse,
+  errorResponse,
+} from "@/lib/api/response";
 
 const ActionInputSchema = z.object({
   userId: z.string().min(1, "User ID is required"),
@@ -57,9 +61,8 @@ const GetStatusInputSchema = z.object({
  * @param {string} problemId - The ID of the problem to bookmark or unbookmark.
  * @param {string} companySlug - The slug of the company associated with the problem.
  * @param {string} problemSlug - The slug of the problem itself.
- * @returns {Promise<{ success: boolean; isBookmarked?: boolean; error?: string }>} A promise
- * that resolves to an object indicating the outcome. On success, `isBookmarked` reflects
- * the new bookmark status (true if bookmarked, false if removed).
+ * @returns {Promise<ApiResponse<{ isBookmarked: boolean }>>} A promise that resolves to
+ * a standardized API response with the new bookmark status.
  *
  * @deprecated This action is currently disabled for security reasons until proper server-side
  * authentication (Admin SDK) is implemented. It currently relies on client-side auth state
@@ -70,13 +73,16 @@ export async function toggleBookmarkProblemAction(
   problemId: string,
   companySlug: string,
   problemSlug: string,
-): Promise<{ success: boolean; isBookmarked?: boolean; error?: string }> {
+): Promise<ApiResponse<{ isBookmarked: boolean }>> {
   // SENTINEL: Prevent IDOR by verifying the requested userId matches the authenticated session.
   // Note: auth.currentUser is likely null in the current Client SDK server setup, causing this to fail safely.
   const currentUser = auth.currentUser;
   if (!currentUser || currentUser.uid !== userId) {
     Logger.warn("Security: Unauthorized attempt to toggle bookmark", { requestedUserId: userId, authenticatedUserId: currentUser?.uid });
-    return { success: false, error: "Unauthorized: Server-side authentication is required to perform this action." };
+    return errorResponse({
+      code: "UNAUTHORIZED",
+      message: "Unauthorized: Server-side authentication is required to perform this action.",
+    });
   }
 
   const validation = ActionInputSchema.safeParse({
@@ -91,15 +97,15 @@ export async function toggleBookmarkProblemAction(
     
     // Zod v3+ safeParse return structure
     if (validation.error) {
-       return {
-         success: false,
-         error: validation.error.issues[0]?.message || "Invalid input parameters",
-       };
+       return errorResponse({
+         code: "VALIDATION_ERROR",
+         message: validation.error.issues[0]?.message || "Invalid input parameters",
+       });
     } else {
-       return {
-         success: false,
-         error: "Invalid input parameters",
-       };
+       return errorResponse({
+         code: "VALIDATION_ERROR",
+         message: "Invalid input parameters",
+       });
     }
   }
 
@@ -110,11 +116,17 @@ export async function toggleBookmarkProblemAction(
       companySlug,
       problemSlug,
     );
-    if (result.error) return { success: false, error: result.error };
+    
+    if (result.isFailure) {
+      return errorResponse({
+        code: result.error.code,
+        message: result.error.message,
+      });
+    }
 
     revalidateTag(`user-bookmarks-${userId}`, "max");
     revalidateTag(`user-profile-${userId}`, "max");
-    return { success: true, isBookmarked: result.isBookmarked };
+    return successResponse({ isBookmarked: result.value.isBookmarked });
   } catch (error) {
     const message = handleServerActionError(error, "toggleBookmarkProblemAction", {
       userId,
@@ -122,7 +134,10 @@ export async function toggleBookmarkProblemAction(
       companySlug,
       problemSlug,
     });
-    return { success: false, error: message };
+    return errorResponse({
+      code: "INTERNAL_ERROR",
+      message,
+    });
   }
 }
 
@@ -138,8 +153,7 @@ export async function toggleBookmarkProblemAction(
  * @param {ProblemStatus} status - The new status for the problem.
  * @param {string} companySlug - The slug of the company associated with the problem.
  * @param {string} problemSlug - The slug of the problem itself.
- * @returns {Promise<{ success: boolean; error?: string }>} A promise that resolves to an object
- * indicating the success or failure of the operation.
+ * @returns {Promise<ApiResponse<void>>} A promise that resolves to a standardized API response.
  *
  * @deprecated This action is currently disabled for security reasons until proper server-side
  * authentication (Admin SDK) is implemented. It currently relies on client-side auth state
@@ -151,12 +165,15 @@ export async function setProblemStatusAction(
   status: ProblemStatus,
   companySlug: string,
   problemSlug: string,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<ApiResponse<void>> {
   // SENTINEL: Prevent IDOR by verifying the requested userId matches the authenticated session.
   const currentUser = auth.currentUser;
   if (!currentUser || currentUser.uid !== userId) {
     Logger.warn("Security: Unauthorized attempt to set problem status", { requestedUserId: userId, authenticatedUserId: currentUser?.uid });
-    return { success: false, error: "Unauthorized: Server-side authentication is required to perform this action." };
+    return errorResponse({
+      code: "UNAUTHORIZED",
+      message: "Unauthorized: Server-side authentication is required to perform this action.",
+    });
   }
 
   const validation = ActionInputSchema.extend({
@@ -172,15 +189,15 @@ export async function setProblemStatusAction(
   if (!validation.success) {
      Logger.warn("Security validation failed in setProblemStatusAction", { error: validation.error });
      if (validation.error) {
-       return {
-         success: false,
-         error: validation.error.issues[0]?.message || "Invalid input parameters",
-       };
+       return errorResponse({
+         code: "VALIDATION_ERROR",
+         message: validation.error.issues[0]?.message || "Invalid input parameters",
+       });
     } else {
-       return {
-         success: false,
-         error: "Invalid input parameters",
-       };
+       return errorResponse({
+         code: "VALIDATION_ERROR",
+         message: "Invalid input parameters",
+       });
     }
   }
 
@@ -192,11 +209,17 @@ export async function setProblemStatusAction(
       companySlug,
       problemSlug,
     );
-    if (result.success) {
-      revalidateTag(`user-problem-statuses-${userId}`, "max");
-      revalidateTag(`user-profile-${userId}`, "max");
+    
+    if (result.isFailure) {
+      return errorResponse({
+        code: result.error.code,
+        message: result.error.message,
+      });
     }
-    return result;
+
+    revalidateTag(`user-problem-statuses-${userId}`, "max");
+    revalidateTag(`user-profile-${userId}`, "max");
+    return successResponse(undefined);
   } catch (error) {
     const message = handleServerActionError(error, "setProblemStatusAction", {
       userId,
@@ -205,7 +228,10 @@ export async function setProblemStatusAction(
       companySlug,
       problemSlug,
     });
-    return { success: false, error: message };
+    return errorResponse({
+      code: "INTERNAL_ERROR",
+      message,
+    });
   }
 }
 
@@ -218,7 +244,7 @@ export async function setProblemStatusAction(
  *
  * @param {string} userId - The ID of the authenticated user.
  * @param {string[]} problemIds - The list of problem IDs to fetch status for.
- * @returns {Promise<Record<string, { isBookmarked: boolean; status?: ProblemStatus }> | { error: string }>}
+ * @returns {Promise<ApiResponse<Record<string, { isBookmarked: boolean; status?: ProblemStatus }>>>}
  *
  * @deprecated This action is currently disabled for security reasons until proper server-side
  * authentication (Admin SDK) is implemented. It currently relies on client-side auth state
@@ -227,34 +253,59 @@ export async function setProblemStatusAction(
 export async function getUserProblemStatusesForIdsAction(
   userId: string,
   problemIds: string[],
-): Promise<
-  | Record<string, { isBookmarked: boolean; status?: ProblemStatus }>
-  | { error: string }
-> {
+): Promise<ApiResponse<Record<string, { isBookmarked: boolean; status?: ProblemStatus }>>> {
   // SENTINEL: Prevent IDOR by verifying the requested userId matches the authenticated session.
   const currentUser = auth.currentUser;
   if (!currentUser || currentUser.uid !== userId) {
     Logger.warn("Security: Unauthorized attempt to fetch user problem statuses", { requestedUserId: userId, authenticatedUserId: currentUser?.uid });
-    return { error: "Unauthorized: Server-side authentication is required to perform this action." };
+    return errorResponse({
+      code: "UNAUTHORIZED",
+      message: "Unauthorized: Server-side authentication is required to perform this action.",
+    });
   }
 
   const validation = GetStatusInputSchema.safeParse({ userId, problemIds });
   if (!validation.success) {
-    if (problemIds && problemIds.length === 0) return {};
+    if (problemIds && problemIds.length === 0) {
+      return successResponse({});
+    }
     
     Logger.warn("Security validation failed in getUserProblemStatusesForIdsAction", { error: validation.error });
     if (validation.error) {
-       return { error: validation.error.issues[0]?.message || "Invalid input parameters" };
+       return errorResponse({
+         code: "VALIDATION_ERROR",
+         message: validation.error.issues[0]?.message || "Invalid input parameters",
+       });
     } else {
-       return { error: "Invalid input parameters" };
+       return errorResponse({
+         code: "VALIDATION_ERROR",
+         message: "Invalid input parameters",
+       });
     }
   }
 
   try {
-    const [bookmarks, statuses] = await Promise.all([
+    const [bookmarksResult, statusesResult] = await Promise.all([
       userService.getBookmarksForIds(userId, problemIds),
       userService.getProblemStatusesForIds(userId, problemIds),
     ]);
+
+    if (bookmarksResult.isFailure) {
+      return errorResponse({
+        code: bookmarksResult.error.code,
+        message: bookmarksResult.error.message,
+      });
+    }
+
+    if (statusesResult.isFailure) {
+      return errorResponse({
+        code: statusesResult.error.code,
+        message: statusesResult.error.message,
+      });
+    }
+
+    const bookmarks = bookmarksResult.value;
+    const statuses = statusesResult.value;
 
     const result: Record<
       string,
@@ -268,14 +319,17 @@ export async function getUserProblemStatusesForIdsAction(
       };
     });
 
-    return result;
+    return successResponse(result);
   } catch (error) {
     const message = handleServerActionError(
       error,
       "getUserProblemStatusesForIdsAction",
       { userId, count: problemIds.length },
     );
-    return { error: message };
+    return errorResponse({
+      code: "INTERNAL_ERROR",
+      message,
+    });
   }
 }
 

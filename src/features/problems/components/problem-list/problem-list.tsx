@@ -221,16 +221,16 @@ const ProblemList: React.FC<ProblemListProps> = ({
                 itemsPerPage
             );
 
-            if ("error" in result) {
+            if (!result.success || !result.data) {
                  toast({
                      title: "Error",
-                     description: "Failed to load filtered problems.",
+                     description: result.error?.message || "Failed to load filtered problems.",
                      variant: "destructive",
                  });
             } else {
-                 setDisplayedProblems(result.problems);
-                 setNextCursor(result.nextCursor);
-                 setHasMore(result.hasMore ?? false);
+                 setDisplayedProblems(result.data.problems);
+                 setNextCursor(result.data.nextCursor);
+                 setHasMore(result.data.hasMore ?? false);
             }
 
         } catch (error) {
@@ -263,10 +263,12 @@ const ProblemList: React.FC<ProblemListProps> = ({
     const fetchGlobalStats = async () => {
         try {
             const result = await userService.getUserGlobalProblemStats(user.uid);
-            setSolvedProblemIds(new Set(result.solvedProblemIds));
-            setAttemptedProblemIds(new Set(result.attemptedProblemIds));
-            setBookmarkedProblemIds(new Set(result.bookmarkedProblemIds));
-            setAreGlobalStatsLoaded(true);
+            if (result.isSuccess) {
+              setSolvedProblemIds(new Set(result.value.solvedProblemIds));
+              setAttemptedProblemIds(new Set(result.value.attemptedProblemIds));
+              setBookmarkedProblemIds(new Set(result.value.bookmarkedProblemIds));
+              setAreGlobalStatsLoaded(true);
+            }
         } catch (error) {
             console.error("Error fetching global stats:", error);
         }
@@ -378,14 +380,14 @@ const ProblemList: React.FC<ProblemListProps> = ({
         itemsPerPage
       );
 
-      if ("error" in result) {
+      if (!result.success || !result.data) {
         toast({
           title: "Error loading problems",
-          description: "Could not load more problems. Please try again.",
+          description: result.error?.message || "Could not load more problems. Please try again.",
           variant: "destructive",
         });
       } else {
-        const { problems: newProblems, nextCursor: newCursor, hasMore: newHasMore } = result;
+        const { problems: newProblems, nextCursor: newCursor, hasMore: newHasMore } = result.data;
         
         setDisplayedProblems((prev) => [...prev, ...newProblems]);
         setNextCursor(newCursor);

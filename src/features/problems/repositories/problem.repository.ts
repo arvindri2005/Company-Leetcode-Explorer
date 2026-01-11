@@ -187,7 +187,7 @@ export class ProblemRepository implements IProblemRepository {
       throw new Error(`Problem not found: ${id}`);
     }
 
-    await updateDoc(problemDocRef, data);
+    await updateDoc(problemDocRef, data as { [x: string]: unknown });
 
     const updatedSnap = await getDoc(problemDocRef);
     const updatedData = updatedSnap.data()!;

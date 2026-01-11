@@ -4,7 +4,8 @@ import { env } from "@/env";
 const APP_URL = env.NEXT_PUBLIC_APP_URL;
 
 export async function GET() {
-  const companySlugs = await companyService.getAllCompanySlugs();
+  const companySlugsResult = await companyService.getAllCompanySlugs();
+  const companySlugs = companySlugsResult.isSuccess ? companySlugsResult.value : [];
 
   const companyUrls = companySlugs
     .map((slug) => {

@@ -113,7 +113,7 @@ export default function CompanySubmissionForm() {
       toast({
         title: "Submission Failed",
         description:
-          result.error || "An unknown error occurred. Please try again.",
+          result.error?.message || "An unknown error occurred. Please try again.",
         variant: "destructive",
       });
     }

@@ -112,13 +112,16 @@ export async function GET(request: Request) {
       if (!companySlugToUse || totalProblemCountToUse === undefined || !difficultyCountsToUse) {
          // Fetch company to get optimization data (counts, slug)
          const { companyService } = await import("@/features/companies/services/company.service");
-         const company = await companyService.getCompanyById(companyId);
-         companySlugToUse = company?.slug;
-         totalProblemCountToUse = company?.problemCount;
-         difficultyCountsToUse = company?.difficultyCounts;
+         const companyResult = await companyService.getCompanyById(companyId);
+         if (companyResult.isSuccess) {
+           const company = companyResult.value;
+           companySlugToUse = company?.slug;
+           totalProblemCountToUse = company?.problemCount;
+           difficultyCountsToUse = company?.difficultyCounts;
+         }
       }
 
-      result = await problemService.getPublicProblems(companyId, {
+      const problemsResult = await problemService.getPublicProblems(companyId, {
         cursor,
         pageSize,
         difficultyFilter: difficultyFilter.length > 0 ? difficultyFilter : undefined,
@@ -129,6 +132,16 @@ export async function GET(request: Request) {
         totalProblemCount: totalProblemCountToUse,
         difficultyCounts: difficultyCountsToUse,
       });
+
+      if (!problemsResult.isSuccess) {
+        const durationMs = Date.now() - startTime;
+        Logger.error("Error in /api/problems", problemsResult.error, { requestId, durationMs, companyId });
+        return NextResponse.json(
+          { error: "Failed to fetch problems", details: problemsResult.error.message },
+          { status: 500 },
+        );
+      }
+      result = problemsResult.value;
     } else {
       // Fetch all problems if no companyId is provided
       // Use the Bridge service to allow for potential future user-enrichment, even if userId is currently undefined.

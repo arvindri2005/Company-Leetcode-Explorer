@@ -123,11 +123,11 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
       );
       setIsLoadingSaved(false);
 
-      if (result) {
+      if (result.isSuccess && result.value) {
         const loadedStrategy: GenerateCompanyStrategyOutput = {
-          preparationStrategy: result.preparationStrategy,
-          focusTopics: result.focusTopics,
-          todoItems: result.items,
+          preparationStrategy: result.value.preparationStrategy,
+          focusTopics: result.value.focusTopics,
+          todoItems: result.value.items,
         };
         setStrategyData(loadedStrategy);
         setHasSavedStrategy(true);
@@ -183,20 +183,21 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
     setIsAILoading(false);
 
     if (
-      "error" in result ||
-      !result.preparationStrategy ||
-      !result.focusTopics ||
-      !result.todoItems
+      !result.success ||
+      !result.data ||
+      !result.data.preparationStrategy ||
+      !result.data.focusTopics ||
+      !result.data.todoItems
     ) {
       toast({
         title: "AI Strategy Generation Failed",
         description:
-          ("error" in result && result.error) ||
+          result.error?.message ||
           "Could not generate a strategy at this time.",
         variant: "destructive",
       });
     } else {
-      setStrategyData(result);
+      setStrategyData(result.data);
       setHasSavedStrategy(false); // A newly generated strategy is not yet saved
       startCooldown(); // Start cooldown on successful AI operation
       toast({
@@ -230,7 +231,7 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
     );
     setIsSaving(false);
 
-    if (result.success) {
+    if (result.isSuccess) {
       setHasSavedStrategy(true);
       toast({
         title: "Strategy Saved!",
@@ -239,7 +240,7 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
     } else {
       toast({
         title: "Save Failed",
-        description: result.error || "Could not save the strategy.",
+        description: result.error?.message || "Could not save the strategy.",
         variant: "destructive",
       });
     }

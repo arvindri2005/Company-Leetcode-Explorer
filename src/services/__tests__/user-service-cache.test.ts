@@ -1,4 +1,4 @@
-import { userService } from "@/features/profile/services/user.service";
+﻿import { userService } from "@/features/profile/services/user.service";
 import { userRepository } from "@/features/profile/repositories/user.repository";
 
 // Mock repository
@@ -9,7 +9,6 @@ describe("UserService Caching", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     
-    // Clear the cache using the new method
     // @ts-ignore - Accessing private property for test cleanup
     if (userService.globalStatsCache && typeof userService.globalStatsCache.clear === 'function') {
         // @ts-ignore
@@ -27,14 +26,18 @@ describe("UserService Caching", () => {
 
     (userRepository.getUserGlobalProblemStats as jest.Mock).mockResolvedValueOnce(mockStats);
 
-    // First call - should hit repository
     const result1 = await userService.getUserGlobalProblemStats(userId);
-    expect(result1).toEqual(mockStats);
+    expect(result1.isSuccess).toBe(true);
+    if (result1.isSuccess) {
+      expect(result1.value).toEqual(mockStats);
+    }
     expect(userRepository.getUserGlobalProblemStats).toHaveBeenCalledTimes(1);
 
-    // Second call - should return cached result
     const result2 = await userService.getUserGlobalProblemStats(userId);
-    expect(result2).toEqual(mockStats);
+    expect(result2.isSuccess).toBe(true);
+    if (result2.isSuccess) {
+      expect(result2.value).toEqual(mockStats);
+    }
     expect(userRepository.getUserGlobalProblemStats).toHaveBeenCalledTimes(1);
   });
 
@@ -44,15 +47,12 @@ describe("UserService Caching", () => {
     
     (userRepository.getUserGlobalProblemStats as jest.Mock).mockResolvedValue(mockStats);
 
-    // First call
     await userService.getUserGlobalProblemStats(userId);
     expect(userRepository.getUserGlobalProblemStats).toHaveBeenCalledTimes(1);
 
-    // Advance time by 6 minutes (TTL is 5 mins)
     const realDateNow = Date.now;
     global.Date.now = jest.fn(() => realDateNow() + 6 * 60 * 1000);
 
-    // Second call - should hit repository again
     await userService.getUserGlobalProblemStats(userId);
     expect(userRepository.getUserGlobalProblemStats).toHaveBeenCalledTimes(2);
 
@@ -70,17 +70,16 @@ describe("UserService Caching", () => {
     (userRepository.getUserGlobalProblemStats as jest.Mock).mockResolvedValueOnce(initialStats);
     (userRepository.setProblemStatus as jest.Mock).mockResolvedValue({ success: true });
 
-    // Populate cache
     await userService.getUserGlobalProblemStats(userId);
-
-    // Update status to 'solved'
     await userService.setProblemStatus(userId, "p1", "solved", "google", "two-sum");
 
-    // Fetch again - should have updated stats from cache without repo call
     const result = await userService.getUserGlobalProblemStats(userId);
     
-    expect(result.solvedProblemIds).toContain("p1");
-    expect(result.solvedProblemIds).toHaveLength(1);
+    expect(result.isSuccess).toBe(true);
+    if (result.isSuccess) {
+      expect(result.value.solvedProblemIds).toContain("p1");
+      expect(result.value.solvedProblemIds).toHaveLength(1);
+    }
   });
 
   it("should update cache when toggleBookmarkProblem succeeds", async () => {
@@ -94,23 +93,23 @@ describe("UserService Caching", () => {
     (userRepository.getUserGlobalProblemStats as jest.Mock).mockResolvedValueOnce(initialStats);
     (userRepository.toggleBookmarkProblem as jest.Mock).mockResolvedValue({ isBookmarked: true });
 
-    // Populate cache
     await userService.getUserGlobalProblemStats(userId);
-
-    // Toggle bookmark on
     await userService.toggleBookmarkProblem(userId, "p1", "google", "two-sum");
 
-    // Fetch again
     let result = await userService.getUserGlobalProblemStats(userId);
-    expect(result.bookmarkedProblemIds).toContain("p1");
+    expect(result.isSuccess).toBe(true);
+    if (result.isSuccess) {
+      expect(result.value.bookmarkedProblemIds).toContain("p1");
+    }
 
-    // Toggle bookmark off
     (userRepository.toggleBookmarkProblem as jest.Mock).mockResolvedValue({ isBookmarked: false });
     await userService.toggleBookmarkProblem(userId, "p1", "google", "two-sum");
 
-    // Fetch again
     result = await userService.getUserGlobalProblemStats(userId);
-    expect(result.bookmarkedProblemIds).not.toContain("p1");
+    expect(result.isSuccess).toBe(true);
+    if (result.isSuccess) {
+      expect(result.value.bookmarkedProblemIds).not.toContain("p1");
+    }
   });
 
   it("should return a copy of cached arrays to prevent mutation", async () => {
@@ -123,22 +122,23 @@ describe("UserService Caching", () => {
 
     (userRepository.getUserGlobalProblemStats as jest.Mock).mockResolvedValue(mockStats);
 
-    // First call
     const result1 = await userService.getUserGlobalProblemStats(userId);
+    expect(result1.isSuccess).toBe(true);
     
-    // Mutate the result
-    result1.solvedProblemIds.push("p2");
+    if (result1.isSuccess) {
+      result1.value.solvedProblemIds.push("p2");
+    }
 
-    // Second call
     const result2 = await userService.getUserGlobalProblemStats(userId);
+    expect(result2.isSuccess).toBe(true);
 
-    // Cache should remain pristine
-    expect(result2.solvedProblemIds).toEqual(["p1"]);
-    expect(result2.solvedProblemIds).not.toContain("p2");
+    if (result2.isSuccess) {
+      expect(result2.value.solvedProblemIds).toEqual(["p1"]);
+      expect(result2.value.solvedProblemIds).not.toContain("p2");
+    }
   });
 
   it("should evict least recently used item when cache is full", async () => {
-    // Override maxEntries for this test
     // @ts-ignore
     if (userService.globalStatsCache) {
          // @ts-ignore
@@ -148,26 +148,18 @@ describe("UserService Caching", () => {
     const mockStats = { solvedProblemIds: [], attemptedProblemIds: [], bookmarkedProblemIds: [] };
     (userRepository.getUserGlobalProblemStats as jest.Mock).mockResolvedValue(mockStats);
 
-    // Fill cache: 1, 2, 3
     await userService.getUserGlobalProblemStats("user1");
     await userService.getUserGlobalProblemStats("user2");
     await userService.getUserGlobalProblemStats("user3");
     
-    // Check cache size
     // @ts-ignore
     expect(userService.globalStatsCache.size).toBe(3);
 
-    // Access user1 (should make it most recently used)
     await userService.getUserGlobalProblemStats("user1");
-
-    // Add user4 (should trigger eviction)
     await userService.getUserGlobalProblemStats("user4");
 
-    // Cache size should still be 3
     // @ts-ignore
     expect(userService.globalStatsCache.size).toBe(3);
-
-    // user2 should be evicted (least recently used: 2, 3, 1 -> evict 2)
     
     // @ts-ignore
     expect(userService.globalStatsCache.has("user2")).toBe(false);
@@ -179,9 +171,3 @@ describe("UserService Caching", () => {
     expect(userService.globalStatsCache.has("user4")).toBe(true);
   });
 });
-
-
-
-
-
-

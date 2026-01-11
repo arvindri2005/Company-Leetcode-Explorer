@@ -173,9 +173,11 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
             
             if (ignore) return;
 
-            setDisplayedProblems(result.problems);
-            setCursor(result.nextCursor);
-            setHasMoreState(result.hasMore ?? false);
+            if (result.success && result.data) {
+              setDisplayedProblems(result.data.problems);
+              setCursor(result.data.nextCursor);
+              setHasMoreState(result.data.hasMore ?? false);
+            }
             hydratedIdsRef.current.clear();
         } catch (error) {
             if (ignore) return;
@@ -233,11 +235,11 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
       // Check mount status again after await
       if (!isMountedRef.current) return;
 
-      if (result.problems.length > 0) {
-        setDisplayedProblems((prev) => [...prev, ...result.problems]);
-        setCursor(result.nextCursor);
-        setHasMoreState(result.hasMore ?? false);
-      } else {
+      if (result.success && result.data && result.data.problems.length > 0) {
+        setDisplayedProblems((prev) => [...prev, ...result.data!.problems]);
+        setCursor(result.data.nextCursor);
+        setHasMoreState(result.data.hasMore ?? false);
+      } else if (result.success && result.data) {
         setHasMoreState(false);
       }
     } catch (error) {
@@ -294,10 +296,12 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
             // However, setting state on unmounted is bad.
             if (!isMountedRef.current) return;
 
-            setSolvedProblemIds(new Set(result.solvedProblemIds));
-            setAttemptedProblemIds(new Set(result.attemptedProblemIds));
-            setBookmarkedProblemIds(new Set(result.bookmarkedProblemIds));
-            setAreGlobalStatsLoaded(true);
+            if (result.isSuccess) {
+              setSolvedProblemIds(new Set(result.value.solvedProblemIds));
+              setAttemptedProblemIds(new Set(result.value.attemptedProblemIds));
+              setBookmarkedProblemIds(new Set(result.value.bookmarkedProblemIds));
+              setAreGlobalStatsLoaded(true);
+            }
         } catch (error) {
             console.error("Error fetching global stats:", error);
         }

@@ -9,12 +9,17 @@ export default async function CompaniesListContainer() {
   /* Fetch initial non-filtered data (Page 1) */
   const ITEMS_PER_PAGE = 30;
   
-  // We assume success here, or let it throw to be caught by ErrorBoundary in parent
-  const { companies, totalPages, hasMore, nextCursor } = await companyService.getCompanies({
+  const companiesResult = await companyService.getCompanies({
     page: 1,
     pageSize: ITEMS_PER_PAGE,
     searchTerm: "",
   });
+
+  if (!companiesResult.isSuccess) {
+    throw new Error(companiesResult.error.message);
+  }
+
+  const { companies, totalPages, hasMore, nextCursor } = companiesResult.value;
 
   // Fetch trending
   const trendingSlugs = ["google", "amazon", "microsoft"];
@@ -22,10 +27,10 @@ export default async function CompaniesListContainer() {
     companyService.getCompanyBySlug(slug)
   );
 
-  const trendingResult = await Promise.all(trendingPromises);
-  const foundTrending = trendingResult.filter(
-    (c): c is NonNullable<typeof c> => c !== undefined && c !== null
-  );
+  const trendingResults = await Promise.all(trendingPromises);
+  const foundTrending = trendingResults
+    .filter((result) => result.isSuccess)
+    .map((result) => result.value);
 
   // Fallback logic
   const distinctTrending = new Map<string, typeof foundTrending[0]>();
@@ -65,7 +70,7 @@ export default async function CompaniesListContainer() {
   const itemListJsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    itemListElement: companies.map((company, index) => ({
+    itemListElement: companies.map((company: typeof companies[0], index: number) => ({
       "@type": "ListItem",
       position: index + 1,
       name: company.name,

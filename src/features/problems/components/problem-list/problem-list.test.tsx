@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import ProblemList from "./problem-list";
 import { LeetCodeProblem } from "../../types";
 import { userService } from "@/features/profile/services/user.service";
+import { success } from "@/shared/types/result";
 
 // Mock Next.js hooks
 const mockPush = jest.fn();
@@ -74,21 +75,21 @@ const mockProblems: LeetCodeProblem[] = [
 describe("ProblemList", () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        // Default mock implementation
-        (userService.getUserGlobalProblemStats as jest.Mock).mockResolvedValue({
+        // Default mock implementation - wrap with success() for Result type
+        (userService.getUserGlobalProblemStats as jest.Mock).mockResolvedValue(success({
             solvedProblemIds: [],
             attemptedProblemIds: [],
             bookmarkedProblemIds: []
-        });
+        }));
     });
 
   it("renders the list of problems and syncs status", async () => {
-    // Setup specific mock for this test to verify state sync
-    (userService.getUserGlobalProblemStats as jest.Mock).mockResolvedValue({
+    // Setup specific mock for this test to verify state sync - wrap with success() for Result type
+    (userService.getUserGlobalProblemStats as jest.Mock).mockResolvedValue(success({
         solvedProblemIds: ["1"], // "Two Sum" is solved
         attemptedProblemIds: [],
         bookmarkedProblemIds: []
-    });
+    }));
 
     render(
       <ProblemList

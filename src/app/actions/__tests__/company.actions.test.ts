@@ -30,7 +30,7 @@ describe("Company Actions Error Handling", () => {
         })
       );
       expect(result.success).toBe(false);
-      expect(result.error).toBe("Service failed");
+      expect(result.error?.message).toBe("Service failed");
     });
   });
 
@@ -50,7 +50,7 @@ describe("Company Actions Error Handling", () => {
           originalError: "DB Error",
         })
       );
-      expect(result.error).toBe("DB Error");
+      expect(result.error?.message).toBe("DB Error");
     });
   });
 });

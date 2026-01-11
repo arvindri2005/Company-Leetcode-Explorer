@@ -85,13 +85,19 @@ export class AuthService {
         firebaseUser.displayName
       );
 
-      if (!result.success) {
+      if (!result.isSuccess) {
         Logger.error("Failed to sync user profile", result.error, {
           userId: firebaseUser.uid,
         });
+        return {
+          success: false,
+          error: result.error.message,
+        };
       }
 
-      return result;
+      return {
+        success: true,
+      };
     } catch (error) {
       Logger.error("Error calling syncUserProfile", error, {
         userId: firebaseUser.uid,

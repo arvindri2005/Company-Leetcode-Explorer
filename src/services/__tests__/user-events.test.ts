@@ -122,11 +122,10 @@ describe("UserService Event System", () => {
     userService.subscribe("user:problem_status_changed", successListener);
 
     // Act
-    await expect(
-        userService.setProblemStatus("u", "p", "solved", "c", "s")
-    ).resolves.toEqual({ success: true });
-
-    // Assert
+    const result = await userService.setProblemStatus("u", "p", "solved", "c", "s");
+    
+    // Assert - Result type now returns isSuccess/isFailure
+    expect(result.isSuccess).toBe(true);
     expect(errorListener).toHaveBeenCalled();
     expect(successListener).toHaveBeenCalled();
   });

@@ -28,9 +28,24 @@ export async function GET(
       );
     }
 
-    const { problems } = await problemService.getPublicProblems(companyId, {
+    const result = await problemService.getPublicProblems(companyId, {
       pageSize: 200, // MAX_PROBLEMS_FOR_AI_FEATURES
     });
+
+    if (!result.isSuccess) {
+      const durationMs = Date.now() - start;
+      Logger.error(
+        `[API] Failed to fetch problems for AI features`,
+        result.error,
+        { requestId, companyId, durationMs }
+      );
+      return NextResponse.json(
+        { error: result.error.message },
+        { status: 500 }
+      );
+    }
+
+    const { problems } = result.value;
 
     const durationMs = Date.now() - start;
     Logger.info(`[API] Fetching AI problems completed`, {

@@ -8,7 +8,6 @@ import {
   EducationExperience,
   WorkExperience,
   GenerateCompanyStrategyOutput,
-  UserProfile,
   EducationExperienceSchema,
   WorkExperienceSchema,
 } from "@/types";
@@ -32,13 +31,222 @@ import {
   arrayRemove,
   Query,
   CollectionReference,
+  limit,
+  startAfter,
+  getCountFromServer,
 } from "firebase/firestore";
 import { Logger } from "@/lib/utils/logger";
+import { User as UserEntity } from "@/domain/entities/user.entity";
+import { UserMapper, type UserDocument } from "../mappers/user.mapper";
+import type {
+  IUserRepository,
+  CreateUserDTO,
+  UpdateUserDTO,
+} from "../interfaces/user.repository.interface";
+import type { PaginatedResult, PaginationParams } from "@/shared/interfaces";
 
 /**
  * Repository for User-related data access.
+ * Implements IUserRepository interface for dependency injection
  */
-export class UserRepository {
+export class UserRepository implements IUserRepository {
+  /**
+   * Find a user by their unique identifier
+   * @param id - The user's unique identifier (uid)
+   * @returns The User entity if found, null otherwise
+   */
+  async findById(id: string): Promise<UserEntity | null> {
+    if (!id) return null;
+    try {
+      const userDocRef = doc(db, "users", id);
+      const docSnap = await getDoc(userDocRef);
+      
+      if (!docSnap.exists()) {
+        return null;
+      }
+      
+      const data = docSnap.data();
+      const userDoc: UserDocument = {
+        uid: docSnap.id,
+        email: data.email ?? null,
+        displayName: data.displayName ?? null,
+        photoUrl: data.photoUrl,
+        preferences: data.preferences,
+        lastSyncedAt: data.lastSyncedAt?.toDate?.() ?? data.lastSyncedAt,
+        createdAt: data.createdAt?.toDate?.() ?? data.createdAt,
+      };
+      
+      return UserMapper.toDomain(userDoc);
+    } catch (error) {
+      Logger.error("Error fetching user by ID", error, { id });
+      return null;
+    }
+  }
+
+  /**
+   * Find all users with optional pagination
+   * @param params - Optional pagination parameters
+   * @returns Paginated result containing User entities
+   */
+  async findAll(params?: PaginationParams): Promise<PaginatedResult<UserEntity>> {
+    try {
+      const usersColRef = collection(db, "users");
+      const pageSize = params?.pageSize ?? 20;
+      
+      let q = query(usersColRef, orderBy("createdAt", "desc"), limit(pageSize + 1));
+      
+      if (params?.cursor) {
+        const cursorDoc = await getDoc(doc(db, "users", params.cursor));
+        if (cursorDoc.exists()) {
+          q = query(usersColRef, orderBy("createdAt", "desc"), startAfter(cursorDoc), limit(pageSize + 1));
+        }
+      }
+      
+      const querySnapshot = await getDocs(q);
+      const users: UserEntity[] = [];
+      let hasMore = false;
+      let nextCursor: string | undefined;
+      
+      querySnapshot.docs.forEach((docSnap, index) => {
+        if (index < pageSize) {
+          const data = docSnap.data();
+          const userDoc: UserDocument = {
+            uid: docSnap.id,
+            email: data.email ?? null,
+            displayName: data.displayName ?? null,
+            photoUrl: data.photoUrl,
+            preferences: data.preferences,
+            lastSyncedAt: data.lastSyncedAt?.toDate?.() ?? data.lastSyncedAt,
+            createdAt: data.createdAt?.toDate?.() ?? data.createdAt,
+          };
+          users.push(UserMapper.toDomain(userDoc));
+          nextCursor = docSnap.id;
+        } else {
+          hasMore = true;
+        }
+      });
+      
+      // Get total count
+      const countSnapshot = await getCountFromServer(usersColRef);
+      const totalItems = countSnapshot.data().count;
+      
+      return {
+        items: users,
+        totalItems,
+        hasMore,
+        nextCursor: hasMore ? nextCursor : undefined,
+      };
+    } catch (error) {
+      Logger.error("Error fetching all users", error);
+      return { items: [], totalItems: 0, hasMore: false };
+    }
+  }
+
+  /**
+   * Save a new user
+   * @param data - The data to create the user with
+   * @returns The created User entity
+   */
+  async save(data: CreateUserDTO): Promise<UserEntity> {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error("User is not authenticated");
+      }
+      
+      const uid = currentUser.uid;
+      const userDocRef = doc(db, "users", uid);
+      
+      const userData = {
+        uid,
+        email: data.email,
+        displayName: data.displayName,
+        photoUrl: data.photoUrl,
+        preferences: data.preferences ?? {},
+        createdAt: serverTimestamp(),
+        lastSyncedAt: serverTimestamp(),
+      };
+      
+      await setDoc(userDocRef, userData);
+      
+      return UserEntity.create(
+        {
+          email: data.email,
+          displayName: data.displayName,
+          photoUrl: data.photoUrl,
+          preferences: data.preferences ?? {},
+          lastSyncedAt: new Date(),
+        },
+        uid
+      );
+    } catch (error) {
+      Logger.error("Error saving user", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update an existing user
+   * @param id - The user's unique identifier
+   * @param data - The data to update
+   * @returns The updated User entity
+   */
+  async update(id: string, data: UpdateUserDTO): Promise<UserEntity> {
+    try {
+      const userDocRef = doc(db, "users", id);
+      
+      const updates: Record<string, unknown> = {};
+      if (data.email !== undefined) updates.email = data.email;
+      if (data.displayName !== undefined) updates.displayName = data.displayName;
+      if (data.photoUrl !== undefined) updates.photoUrl = data.photoUrl;
+      if (data.preferences !== undefined) updates.preferences = data.preferences;
+      updates.lastSyncedAt = serverTimestamp();
+      
+      await updateDoc(userDocRef, updates);
+      
+      const updatedUser = await this.findById(id);
+      if (!updatedUser) {
+        throw new Error("User not found after update");
+      }
+      
+      return updatedUser;
+    } catch (error) {
+      Logger.error("Error updating user", error, { id });
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a user by their unique identifier
+   * @param id - The user's unique identifier
+   */
+  async delete(id: string): Promise<void> {
+    try {
+      const userDocRef = doc(db, "users", id);
+      await deleteDoc(userDocRef);
+    } catch (error) {
+      Logger.error("Error deleting user", error, { id });
+      throw error;
+    }
+  }
+
+  /**
+   * Check if a user exists by their unique identifier
+   * @param id - The user's unique identifier
+   * @returns True if the user exists, false otherwise
+   */
+  async exists(id: string): Promise<boolean> {
+    if (!id) return false;
+    try {
+      const userDocRef = doc(db, "users", id);
+      const docSnap = await getDoc(userDocRef);
+      return docSnap.exists();
+    } catch (error) {
+      Logger.error("Error checking user existence", error, { id });
+      return false;
+    }
+  }
+
   async getBookmarkedProblemsInfo(userId: string): Promise<BookmarkedProblemInfo[]> {
     if (!userId) return [];
     try {

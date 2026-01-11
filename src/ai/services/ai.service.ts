@@ -106,17 +106,18 @@ export class AIService {
     currentProblemSlug: string,
     currentProblemCompanySlug: string
   ): Promise<FindSimilarQuestionsOutput | { error: string }> {
-    const { company, problem: currentProblem } =
-      await problemService.getProblemByCompanySlugAndProblemSlug(
-        currentProblemCompanySlug,
-        currentProblemSlug
-      );
+    const result = await problemService.getProblemByCompanySlugAndProblemSlug(
+      currentProblemCompanySlug,
+      currentProblemSlug
+    );
 
-    if (!currentProblem) {
+    if (!result.isSuccess) {
       return {
         error: `Problem with slug ${currentProblemSlug} not found for company ${currentProblemCompanySlug}.`,
       };
     }
+
+    const { problem: currentProblem } = result.value;
 
     const input: FindSimilarQuestionsInput = {
       currentProblem: {
@@ -145,20 +146,22 @@ export class AIService {
     const cacheKey = `company-flashcards-${companyId}`;
     const generate = unstable_cache(
       async () => {
-        const company = await companyService.getCompanyById(companyId);
-        if (!company) return { error: `Company with ID ${companyId} not found.` };
+        const companyResult = await companyService.getCompanyById(companyId);
+        if (!companyResult.isSuccess) return { error: `Company with ID ${companyId} not found.` };
+        const company = companyResult.value;
 
-        const problemsResponse = await problemService.getPublicProblems(companyId);
+        const problemsResult = await problemService.getPublicProblems(companyId);
 
         if (
-          !problemsResponse.problems ||
-          problemsResponse.problems.length === 0
+          !problemsResult.isSuccess ||
+          !problemsResult.value.problems ||
+          problemsResult.value.problems.length === 0
         ) {
           return { flashcards: [] };
         }
 
         const problemInputs: FlashcardProblemInput[] =
-          problemsResponse.problems.map((p) => ({
+          problemsResult.value.problems.map((p) => ({
             title: p.title,
             difficulty: p.difficulty,
             tags: p.tags,
@@ -223,14 +226,16 @@ export class AIService {
     userId?: string,
     targetRoleLevel?: TargetRoleLevel
   ): Promise<GenerateCompanyStrategyOutput | { error: string }> {
-    const company = await companyService.getCompanyById(companyId);
-    if (!company) return { error: `Company with ID ${companyId} not found.` };
+    const companyResult = await companyService.getCompanyById(companyId);
+    if (!companyResult.isSuccess) return { error: `Company with ID ${companyId} not found.` };
+    const company = companyResult.value;
 
-    const problemsResponse = await problemService.getPublicProblems(companyId);
+    const problemsResult = await problemService.getPublicProblems(companyId);
 
     if (
-      !problemsResponse.problems ||
-      problemsResponse.problems.length === 0
+      !problemsResult.isSuccess ||
+      !problemsResult.value.problems ||
+      problemsResult.value.problems.length === 0
     ) {
       const reason =
         targetRoleLevel && targetRoleLevel !== "general"
@@ -249,7 +254,7 @@ export class AIService {
     }
 
     const problemInputs: CompanyStrategyProblemInput[] =
-      problemsResponse.problems.map((p) => ({
+      problemsResult.value.problems.map((p) => ({
         title: p.title,
         difficulty: p.difficulty,
         tags: p.tags,

@@ -74,20 +74,20 @@ export function useProblemInteractions(
         effectiveCompanySlug,
         problem.slug,
       );
-      if (!result.error) {
-        setIsBookmarked(result.isBookmarked ?? oldStatus);
+      if (result.isSuccess) {
+        setIsBookmarked(result.value.isBookmarked ?? oldStatus);
         toast({
-          title: result.isBookmarked ? "⭐ Bookmarked!" : "📖 Bookmark Removed",
+          title: result.value.isBookmarked ? "⭐ Bookmarked!" : "📖 Bookmark Removed",
           description: `"${problem.title}" ${
-            result.isBookmarked ? "saved to" : "removed from"
+            result.value.isBookmarked ? "saved to" : "removed from"
           } your collection.`,
         });
-        onBookmarkChanged?.(problem.id, result.isBookmarked ?? oldStatus);
+        onBookmarkChanged?.(problem.id, result.value.isBookmarked ?? oldStatus);
       } else {
         setIsBookmarked(oldStatus);
         toast({
           title: "Bookmark Error",
-          description: result.error || "Failed to update bookmark.",
+          description: result.error?.message || "Failed to update bookmark.",
           variant: "destructive",
         });
       }
@@ -122,7 +122,7 @@ export function useProblemInteractions(
         effectiveCompanySlug,
         problem.slug,
       );
-      if (result.success) {
+      if (result.isSuccess) {
         const statusLabel =
           newStatus === "none"
             ? "cleared"
@@ -139,7 +139,7 @@ export function useProblemInteractions(
         setCurrentStatus(oldUiStatus);
         toast({
           title: "Update Failed",
-          description: result.error || "Failed to update status.",
+          description: result.error?.message || "Failed to update status.",
           variant: "destructive",
         });
       }

@@ -144,11 +144,11 @@ export default function ProblemSubmissionForm({
 
     setIsSubmitting(false);
     if (result.success && result.data) {
-      const message = result.updated
-        ? `"${result.data.title}" already existed and its 'last asked' time has been updated.`
-        : `"${result.data.title}" has been added successfully.`;
+      const message = result.data.updated
+        ? `"${result.data.problem.title}" already existed and its 'last asked' time has been updated.`
+        : `"${result.data.problem.title}" has been added successfully.`;
       toast({
-        title: result.updated ? "Problem Updated! ?" : "Problem Submitted! ??",
+        title: result.data.updated ? "Problem Updated! ?" : "Problem Submitted! ??",
         description: message,
       });
       form.reset();
@@ -156,7 +156,7 @@ export default function ProblemSubmissionForm({
       toast({
         title: "Submission Failed",
         description:
-          result.error || "An unknown error occurred. Please try again.",
+          result.error?.message || "An unknown error occurred. Please try again.",
         variant: "destructive",
       });
     }

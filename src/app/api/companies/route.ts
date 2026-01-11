@@ -72,15 +72,27 @@ export async function POST(request: NextRequest) {
       searchTerm: searchTerm?.trim(),
     });
 
+    if (!result.isSuccess) {
+      const durationMs = Date.now() - startTime;
+      Logger.error("[API] /api/companies (POST) failed", result.error, {
+        ...context,
+        durationMs,
+      });
+      return NextResponse.json(
+        { error: result.error.message, companies: [], hasMore: false },
+        { status: 500 },
+      );
+    }
+
     const durationMs = Date.now() - startTime;
     Logger.info("[API] /api/companies (POST) completed", {
       ...context,
       durationMs,
-      resultCount: result.companies.length,
-      hasMore: result.hasMore,
+      resultCount: result.value.companies.length,
+      hasMore: result.value.hasMore,
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json(result.value);
   } catch (error) {
     const durationMs = Date.now() - startTime;
     Logger.error("Error in /api/companies (POST)", error, {
@@ -138,15 +150,27 @@ export async function GET(request: NextRequest) {
       searchTerm: searchTerm?.trim(),
     });
 
+    if (!result.isSuccess) {
+      const durationMs = Date.now() - startTime;
+      Logger.error("[API] /api/companies (GET) failed", result.error, {
+        ...context,
+        durationMs,
+      });
+      return NextResponse.json(
+        { error: result.error.message, companies: [], hasMore: false },
+        { status: 500 },
+      );
+    }
+
     const durationMs = Date.now() - startTime;
     Logger.info("[API] /api/companies (GET) completed", {
       ...context,
       durationMs,
-      resultCount: result.companies.length,
-      hasMore: result.hasMore,
+      resultCount: result.value.companies.length,
+      hasMore: result.value.hasMore,
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json(result.value);
   } catch (error) {
     const durationMs = Date.now() - startTime;
     Logger.error("Error in /api/companies (GET)", error, {

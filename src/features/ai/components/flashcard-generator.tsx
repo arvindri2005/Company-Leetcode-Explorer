@@ -102,15 +102,13 @@ const FlashcardGenerator: React.FC<FlashcardGeneratorProps> = ({
     const result = await generateFlashcardsAction(companyId);
     setIsAILoading(false);
 
-    if ("error" in result || !result.flashcards) {
+    if (!result.success || !result.data) {
       toast({
         title: "AI Flashcard Generation Failed",
-        description:
-          ("error" in result && result.error) ||
-          "Could not generate flashcards.",
+        description: result.error?.message || "Could not generate flashcards.",
         variant: "destructive",
       });
-    } else if (result.flashcards.length === 0) {
+    } else if (result.data.flashcards.length === 0) {
       toast({
         title: "No Flashcards Generated",
         description: `AI could not generate flashcards for ${companyName} based on the available problems.`,
@@ -120,11 +118,11 @@ const FlashcardGenerator: React.FC<FlashcardGeneratorProps> = ({
       // Still start cooldown as an AI attempt was made.
       startCooldown();
     } else {
-      setFlashcards(result.flashcards);
+      setFlashcards(result.data.flashcards);
       startCooldown(); // Start cooldown on successful AI operation
       toast({
         title: "AI Flashcards Generated! 🎉",
-        description: `Created ${result.flashcards.length} flashcards for ${companyName}.`,
+        description: `Created ${result.data.flashcards.length} flashcards for ${companyName}.`,
       });
     }
   };

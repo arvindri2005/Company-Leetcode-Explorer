@@ -6,20 +6,25 @@ import { env } from "@/env";
 const APP_URL = env.NEXT_PUBLIC_APP_URL;
 
 export default async function ProblemListContainer() {
-  const { problems, totalPages, currentPage, hasMore, nextCursor } =
-    await problemService.getAllProblemsPaginated({
-      page: 1,
-      pageSize: 50,
-      difficultyFilter: [],
-      lastAskedFilter: [],
-      searchTerm: "",
-      sortKey: "title",
-    });
+  const problemsResult = await problemService.getAllProblemsPaginated({
+    page: 1,
+    pageSize: 50,
+    difficultyFilter: [],
+    lastAskedFilter: [],
+    searchTerm: "",
+    sortKey: "title",
+  });
+
+  if (!problemsResult.isSuccess) {
+    throw new Error(problemsResult.error.message);
+  }
+
+  const { problems, totalPages, currentPage, hasMore, nextCursor } = problemsResult.value;
 
   const itemListSchema = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    itemListElement: problems.map((problem, index) => ({
+    itemListElement: problems.map((problem: typeof problems[0], index: number) => ({
       "@type": "ListItem",
       position: index + 1,
       name: problem.title,

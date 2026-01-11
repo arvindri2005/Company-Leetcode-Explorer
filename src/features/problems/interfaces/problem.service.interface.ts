@@ -8,6 +8,7 @@ import type { ServiceError } from "@/shared/types/service-error";
 import type {
   DifficultyFilter,
   LastAskedFilter,
+  LastAskedPeriod,
   SortKey,
   PaginatedProblemsResponse,
   LeetCodeProblem,
@@ -59,7 +60,7 @@ export interface CreateProblemInput {
   tags: string[];
   normalizedTitle: string;
   acceptanceRate?: number;
-  lastAskedPeriod?: string;
+  lastAskedPeriod?: LastAskedPeriod;
 }
 
 /**

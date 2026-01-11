@@ -134,9 +134,9 @@ export async function generateMetadata(
   props: CompanyPageProps,
 ): Promise<Metadata> {
   const params = await props.params;
-  const company = await companyService.getCompanyBySlug(params.companySlug);
+  const companyResult = await companyService.getCompanyBySlug(params.companySlug);
 
-  if (!company) {
+  if (!companyResult.isSuccess) {
     return {
       title: "Company Not Found",
       description: "The requested company page does not exist.",
@@ -147,6 +147,7 @@ export async function generateMetadata(
     };
   }
 
+  const company = companyResult.value;
   const problemCount = company.problemCount ?? 0;
   const companyName = capitalizeWords(company.name);
   const title = `${companyName} Interview Questions`;
@@ -227,16 +228,18 @@ export default async function CompanyPageWrapper(props: CompanyPageProps) {
   // We fetch company and problems concurrently.
   // problemService.getProblemsByCompanySlug handles the company lookup internally if needed,
   // but we also need the company object for the page itself.
-  const [company, problemsResponse] = await Promise.all([
+  const [companyResult, problemsResult] = await Promise.all([
       companyService.getCompanyBySlug(params.companySlug),
       problemService.getProblemsByCompanySlug(params.companySlug, {
           pageSize: 40, // Match INITIAL_ITEMS_PER_PAGE from CompanyPage
       })
   ]);
 
-  if (!company) {
+  if (!companyResult.isSuccess) {
     return <CompanyNotFound companySlug={params.companySlug} />;
   }
+
+  const company = companyResult.value;
 
   // Step 2: Merge User Status (Hollow Caching)
   // Logic to merge user status if userId is available.
@@ -245,6 +248,10 @@ export default async function CompanyPageWrapper(props: CompanyPageProps) {
   // If we had userId:
   // const userStatuses = await problemService.getUserProblemStatuses(userId, problemsResponse.problems.map(p => p.id));
   // merge(problemsResponse.problems, userStatuses);
+  
+  const problemsResponse = problemsResult.isSuccess 
+    ? problemsResult.value 
+    : { problems: [], totalProblems: 0, totalPages: 0, currentPage: 1, hasMore: false };
   
   const structuredData = getStructuredData(company, problemsResponse.problems);
 
@@ -272,11 +279,11 @@ export default async function CompanyPageWrapper(props: CompanyPageProps) {
  */
 export async function generateStaticParams() {
   try {
-    const companySlugs = await companyService.getAllCompanySlugs();
-    if (!companySlugs || companySlugs.length === 0) {
+    const companySlugsResult = await companyService.getAllCompanySlugs();
+    if (!companySlugsResult.isSuccess || companySlugsResult.value.length === 0) {
       return [];
     }
-    return companySlugs.map((slug) => ({
+    return companySlugsResult.value.map((slug) => ({
       companySlug: slug,
     }));
   } catch (error) {

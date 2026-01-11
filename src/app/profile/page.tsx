@@ -194,7 +194,16 @@ export default function ProfilePage() {
       setIsLoadingEducation(true);
       try {
         const result = await userService.getUserEducation(user.uid);
-        setEducationHistory(result);
+        if (result.isSuccess) {
+          setEducationHistory(result.value);
+        } else {
+          toast({
+            title: "Error",
+            description: "Could not fetch education history.",
+            variant: "destructive",
+          });
+          setEducationHistory([]);
+        }
       } catch (error) {
         toast({
           title: "Error",
@@ -212,7 +221,16 @@ export default function ProfilePage() {
       setIsLoadingWorkExperience(true);
       try {
         const result = await userService.getUserWorkExperience(user.uid);
-        setWorkExperience(result);
+        if (result.isSuccess) {
+          setWorkExperience(result.value);
+        } else {
+          toast({
+            title: "Error",
+            description: "Could not fetch work experience.",
+            variant: "destructive",
+          });
+          setWorkExperience([]);
+        }
       } catch (error) {
         toast({
           title: "Error",
@@ -232,7 +250,17 @@ export default function ProfilePage() {
         const bookmarkInfosResult = await userService.getBookmarkedProblemsInfo(
           user.uid,
         );
-        const detailedProblemsPromises = bookmarkInfosResult.map(
+        if (!bookmarkInfosResult.isSuccess) {
+          toast({
+            title: "Error",
+            description: "Could not fetch bookmarked problems.",
+            variant: "destructive",
+          });
+          setBookmarkedProblemDetails([]);
+          setIsLoadingBookmarks(false);
+          return;
+        }
+        const detailedProblemsPromises = bookmarkInfosResult.value.map(
           async (info) => {
             if (!info.companySlug || !info.problemSlug) return null;
             try {
@@ -240,12 +268,13 @@ export default function ProfilePage() {
                 info.companySlug,
                 info.problemSlug,
               );
-              return result.problem
-                ? ({
-                    ...result.problem,
-                    isBookmarked: true,
-                  } as ProblemWithDetails)
-                : null;
+              if (result.success && result.data?.problem) {
+                return {
+                  ...result.data.problem,
+                  isBookmarked: true,
+                } as ProblemWithDetails;
+              }
+              return null;
             } catch (e) {
               return null;
             }
@@ -273,8 +302,18 @@ export default function ProfilePage() {
       setIsLoadingStatuses(true);
       try {
         const statusResult = await userService.getAllUserProblemStatuses(user.uid);
-        setProblemStatuses(statusResult);
-        const problemRefsWithStatus = Object.values(statusResult).filter(
+        if (!statusResult.isSuccess) {
+          toast({
+            title: "Error",
+            description: "Could not fetch problem statuses.",
+            variant: "destructive",
+          });
+          setProblemsWithStatusDetails([]);
+          setIsLoadingStatuses(false);
+          return;
+        }
+        setProblemStatuses(statusResult.value);
+        const problemRefsWithStatus = Object.values(statusResult.value).filter(
           (info) =>
             info &&
             info.status !== "none" &&
@@ -288,12 +327,13 @@ export default function ProfilePage() {
                 info.companySlug,
                 info.problemSlug,
               );
-              return result.problem
-                ? ({
-                    ...result.problem,
-                    currentStatus: info.status,
-                  } as ProblemWithDetails)
-                : null;
+              if (result.success && result.data?.problem) {
+                return {
+                  ...result.data.problem,
+                  currentStatus: info.status,
+                } as ProblemWithDetails;
+              }
+              return null;
             } catch (e) {
               return null;
             }
@@ -324,7 +364,15 @@ export default function ProfilePage() {
       setIsLoadingStrategyTodoLists(true);
       try {
         const result = await userService.getUserStrategyTodoLists(user.uid);
-        setStrategyTodoLists(result);
+        if (result.isSuccess) {
+          setStrategyTodoLists(result.value);
+        } else {
+          toast({
+            title: "Error",
+            description: "Could not fetch saved strategy todo lists.",
+            variant: "destructive",
+          });
+        }
       } catch (error) {
         toast({
           title: "Error",
@@ -351,7 +399,7 @@ export default function ProfilePage() {
     if (!user) return;
     educationForm.clearErrors(); // Clear previous errors
     const result = await userService.addUserEducation(user.uid, data);
-    if (result.id) {
+    if (result.isSuccess && result.value.id) {
       toast({
         title: "Education Added",
         description: "Your educational background has been updated.",
@@ -362,7 +410,7 @@ export default function ProfilePage() {
     } else {
       toast({
         title: "Error",
-        description: result.error || "Could not add education.",
+        description: result.isFailure ? result.error.message : "Could not add education.",
         variant: "destructive",
       });
     }
@@ -372,7 +420,7 @@ export default function ProfilePage() {
     if (!user) return;
     workForm.clearErrors(); // Clear previous errors
     const result = await userService.addUserWorkExperience(user.uid, data);
-    if (result.id) {
+    if (result.isSuccess && result.value.id) {
       toast({
         title: "Work Experience Added",
         description: "Your work history has been updated.",
@@ -383,7 +431,7 @@ export default function ProfilePage() {
     } else {
       toast({
         title: "Error",
-        description: result.error || "Could not add work experience.",
+        description: result.isFailure ? result.error.message : "Could not add work experience.",
         variant: "destructive",
       });
     }
@@ -423,10 +471,10 @@ export default function ProfilePage() {
     );
     setUpdatingTodoItemId(null);
 
-    if (!result.success) {
+    if (!result.isSuccess) {
       toast({
         title: "Update Failed",
-        description: result.error || "Could not update item status.",
+        description: result.error.message || "Could not update item status.",
         variant: "destructive",
       });
       setStrategyTodoLists(originalLists); // Rollback UI on failure
@@ -505,7 +553,7 @@ export default function ProfilePage() {
         data.displayName.trim(),
       );
 
-      if (firestoreResult.success) {
+      if (firestoreResult.isSuccess) {
         // Manually update user object in AuthContext for immediate UI reflection
         // Create a new user object to trigger re-renders
         const updatedUser = {
@@ -526,7 +574,7 @@ export default function ProfilePage() {
         toast({
           title: "Error",
           description:
-            firestoreResult.error ||
+            firestoreResult.error.message ||
             "Failed to update display name in database.",
           variant: "destructive",
         });

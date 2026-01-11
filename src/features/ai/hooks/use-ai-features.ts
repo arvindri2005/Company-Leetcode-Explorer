@@ -52,18 +52,18 @@ export function useAIFeatures(problem: LeetCodeProblem, companySlug: string) {
     );
     setIsLoadingSimilar(false);
 
-    if (result && "error" in result) {
+    if (!result.success || !result.data) {
       toast({
         title: "Search Failed",
-        description: result.error,
+        description: result.error?.message || "Unknown error occurred",
         variant: "destructive",
       });
-    } else if (result && result.similarProblems) {
-      setSimilarProblems(result.similarProblems);
+    } else if (result.data.similarProblems) {
+      setSimilarProblems(result.data.similarProblems);
       startCooldown();
       toast({
         title: "✨ Similar Problems Found!",
-        description: `Discovered ${result.similarProblems.length} related problem(s).`,
+        description: `Discovered ${result.data.similarProblems.length} related problem(s).`,
       });
     } else {
       setSimilarProblems([]);
@@ -92,24 +92,18 @@ export function useAIFeatures(problem: LeetCodeProblem, companySlug: string) {
     const result = await generateProblemInsightsAction(problem);
     setIsLoadingInsights(false);
 
-    if (result && "error" in result) {
+    if (!result.success || !result.data) {
       toast({
         title: "Insights Generation Failed",
-        description: result.error,
+        description: result.error?.message || "Unknown error occurred",
         variant: "destructive",
       });
-    } else if (result) {
-      setProblemInsights(result);
+    } else {
+      setProblemInsights(result.data);
       startCooldown();
       toast({
         title: "💡 Insights Ready!",
         description: "AI has analyzed the problem structure and hints.",
-      });
-    } else {
-      toast({
-        title: "Generation Error",
-        description: "Could not generate insights for this problem.",
-        variant: "destructive",
       });
     }
   };

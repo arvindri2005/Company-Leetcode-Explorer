@@ -11,7 +11,6 @@
 
 import type {
   LeetCodeProblem,
-  ProblemSummaryDTO,
 } from "@/types";
 import { problemService } from "@/features/problems/services/problem.service";
 import { companyService } from "@/features/companies/services/company.service";
@@ -19,6 +18,13 @@ import { revalidateTag, revalidatePath } from "next/cache";
 import { slugify } from "@/lib/utils";
 import { handleServerActionError } from "@/lib/utils/error-handler";
 import type { ProblemListFilters } from "@/types";
+import {
+  type ApiResponse,
+  successResponse,
+  errorResponse,
+  paginatedResponse,
+} from "@/lib/api/response";
+import type { PaginatedProblemsResponse } from "@/types";
 
 /**
  * Adds a new coding problem to the database or updates an existing one.
@@ -30,22 +36,15 @@ import type { ProblemListFilters } from "@/types";
  * company and problem pages.
  *
  * @param {Omit<LeetCodeProblem, 'id' | 'normalizedTitle' | 'companySlug' | 'slug'>} problemDataInput - The data for the problem to add, excluding auto-generated fields.
- * @returns {Promise<{ success: boolean; data?: LeetCodeProblem; updated?: boolean; error?: string }>}
- * A promise that resolves to an object indicating the outcome. On success, `data` contains
- * the added/updated problem. The `updated` flag is true if an existing record was modified.
- * On failure, `error` contains a descriptive message.
+ * @returns {Promise<ApiResponse<{ problem: LeetCodeProblem; updated: boolean }>>}
+ * A promise that resolves to a standardized API response.
  */
 export async function addProblem(
   problemDataInput: Omit<
     LeetCodeProblem,
     "id" | "normalizedTitle" | "companySlug" | "slug"
   >,
-): Promise<{
-  success: boolean;
-  data?: LeetCodeProblem;
-  updated?: boolean;
-  error?: string;
-}> {
+): Promise<ApiResponse<{ problem: LeetCodeProblem; updated: boolean }>> {
   try {
     const problemData = {
       ...problemDataInput,
@@ -59,47 +58,42 @@ export async function addProblem(
       !problemData.companyId ||
       !problemData.lastAskedPeriod
     ) {
-      return {
-        success: false,
-        error:
+      return errorResponse({
+        code: "VALIDATION_ERROR",
+        message:
           "Missing required fields for problem submission (Title, Difficulty, Link, Company, LastAskedPeriod).",
-      };
+      });
     }
     if (
       !problemData.link.startsWith("http://") &&
       !problemData.link.startsWith("https://")
     ) {
-      return {
-        success: false,
-        error:
+      return errorResponse({
+        code: "VALIDATION_ERROR",
+        message:
           "Invalid problem link format. Must start with http:// or https://.",
-      };
+      });
     }
 
-    const company = await companyService.getCompanyById(problemData.companyId);
-    if (!company) {
-      return {
-        success: false,
-        error: `Company with ID ${problemData.companyId} not found.`,
-      };
+    const companyResult = await companyService.getCompanyById(problemData.companyId);
+    if (companyResult.isFailure) {
+      return errorResponse({
+        code: "NOT_FOUND",
+        message: `Company with ID ${problemData.companyId} not found.`,
+      });
+    }
+    const company = companyResult.value;
+
+    const result = await problemService.addProblem(problemData.companyId, problemData);
+
+    if (result.isFailure) {
+      return errorResponse({
+        code: result.error.code,
+        message: result.error.message,
+      });
     }
 
-    // Tags are now optional, so `problemData.tags.length === 0` is a valid state
-    // and not considered a missing required field. The problemData.tags will be an empty array if no tags were provided.
-
-    const {
-      id: problemId,
-      updated,
-      error: dbError,
-    } = await problemService.addProblem(problemData.companyId, problemData);
-
-    if (dbError || !problemId) {
-      return {
-        success: false,
-        error: dbError || "Failed to save problem to the database.",
-      };
-    }
-
+    const { id: problemId, updated } = result.value;
 
     revalidateTag("all-problems", "max");
     revalidateTag(`problems-company-${problemData.companyId}`, "max");
@@ -108,22 +102,24 @@ export async function addProblem(
     revalidatePath(`/company/${company.slug}`);
     ["/", "/submit-problem"].forEach((p) => revalidatePath(p));
 
-    return {
-      success: true,
-      data: {
+    return successResponse({
+      problem: {
         ...problemData,
         id: problemId,
         slug: slugify(problemData.title),
         companySlug: company.slug,
       },
       updated,
-    };
+    });
   } catch (error) {
     const errorMessage = handleServerActionError(error, "addProblem", {
       companyId: problemDataInput.companyId,
       problemTitle: problemDataInput.title,
     });
-    return { success: false, error: errorMessage };
+    return errorResponse({
+      code: "INTERNAL_ERROR",
+      message: errorMessage,
+    });
   }
 }
 
@@ -136,26 +132,35 @@ export async function addProblem(
  *
  * @param {Array<{problemId: string, companyId: string}>} problemRefs - An array of objects,
  * where each object contains a `problemId` and its corresponding `companyId`.
- * @returns {Promise<LeetCodeProblem[]>} A promise that resolves to an array of the requested
- * `LeetCodeProblem` objects. It filters out any problems that could not be found and
- * returns an empty array if the input is empty or an error occurs.
+ * @returns {Promise<ApiResponse<LeetCodeProblem[]>>} A promise that resolves to a standardized
+ * API response containing the requested problems.
  */
 export async function getProblemDetailsBatchAction(
   problemRefs: Array<{ problemId: string; companyId: string }>,
-): Promise<LeetCodeProblem[]> {
-  if (!problemRefs || problemRefs.length === 0) return [];
+): Promise<ApiResponse<LeetCodeProblem[]>> {
+  if (!problemRefs || problemRefs.length === 0) {
+    return successResponse([]);
+  }
   try {
-    const problems = await Promise.all(
+    const results = await Promise.all(
       problemRefs.map((ref) =>
         problemService.getProblemDetails(ref.companyId, ref.problemId),
       ),
     );
-    return problems.filter(Boolean) as LeetCodeProblem[];
+    
+    const problems = results
+      .filter((result) => result.isSuccess)
+      .map((result) => result.value as LeetCodeProblem);
+    
+    return successResponse(problems);
   } catch (error) {
-    handleServerActionError(error, "getProblemDetailsBatchAction", {
+    const errorMessage = handleServerActionError(error, "getProblemDetailsBatchAction", {
       count: problemRefs.length,
     });
-    return [];
+    return errorResponse({
+      code: "INTERNAL_ERROR",
+      message: errorMessage,
+    });
   }
 }
 
@@ -164,21 +169,33 @@ export async function getProblemDetailsBatchAction(
  *
  * @param {string} companySlug - The slug of the company.
  * @param {string} problemSlug - The slug of the problem.
- * @returns {Promise<{ company: Company | undefined; problem: LeetCodeProblem | undefined }>}
+ * @returns {Promise<ApiResponse<{ company: Company; problem: LeetCodeProblem }>>}
  */
 export async function getProblemByCompanySlugAndProblemSlugAction(
   companySlug: string,
   problemSlug: string,
-) {
+): Promise<ApiResponse<{ company: unknown; problem: LeetCodeProblem }>> {
   try {
-    return await problemService.getProblemByCompanySlugAndProblemSlug(companySlug, problemSlug);
+    const result = await problemService.getProblemByCompanySlugAndProblemSlug(companySlug, problemSlug);
+    
+    if (result.isFailure) {
+      return errorResponse({
+        code: result.error.code,
+        message: result.error.message,
+      });
+    }
+    
+    return successResponse(result.value);
   } catch (error) {
-    handleServerActionError(
+    const errorMessage = handleServerActionError(
       error,
       "getProblemByCompanySlugAndProblemSlugAction",
       { companySlug, problemSlug },
     );
-    return { company: undefined, problem: undefined };
+    return errorResponse({
+      code: "INTERNAL_ERROR",
+      message: errorMessage,
+    });
   }
 }
 
@@ -191,16 +208,16 @@ export async function getProblemByCompanySlugAndProblemSlugAction(
  * @param {string} cursor - The cursor to start fetching from.
  * @param {ProblemListFilters} filters - The current filters to apply.
  * @param {number} pageSize - The number of items to fetch.
- * @returns {Promise<PaginatedProblemsResponse>}
+ * @returns {Promise<ApiResponse<PaginatedProblemsResponse>>}
  */
 export async function loadMoreProblemsAction(
   companyId: string,
   cursor: string | undefined | null,
   filters: ProblemListFilters,
   pageSize: number = 10
-) {
+): Promise<ApiResponse<PaginatedProblemsResponse>> {
   try {
-    return await problemService.getPublicProblems(companyId, {
+    const result = await problemService.getPublicProblems(companyId, {
       cursor: cursor ?? undefined,
       pageSize,
       difficultyFilter: filters.difficultyFilter,
@@ -208,13 +225,25 @@ export async function loadMoreProblemsAction(
       searchTerm: filters.searchTerm,
       sortKey: filters.sortKey,
     });
+    
+    if (result.isFailure) {
+      return errorResponse({
+        code: result.error.code,
+        message: result.error.message,
+      });
+    }
+    
+    return successResponse(result.value);
   } catch (error) {
     const message = handleServerActionError(error, "loadMoreProblemsAction", {
       companyId,
       filters,
       cursor,
     });
-    throw new Error(message);
+    return errorResponse({
+      code: "INTERNAL_ERROR",
+      message,
+    });
   }
 }
 
@@ -224,15 +253,15 @@ export async function loadMoreProblemsAction(
  * @param {string} cursor - The cursor to start fetching from.
  * @param {ProblemListFilters} filters - The current filters to apply.
  * @param {number} pageSize - The number of items to fetch.
- * @returns {Promise<PaginatedProblemsResponse>}
+ * @returns {Promise<ApiResponse<PaginatedProblemsResponse>>}
  */
 export async function loadMoreAllProblemsAction(
   cursor: string,
   filters: ProblemListFilters,
   pageSize: number = 50
-) {
+): Promise<ApiResponse<PaginatedProblemsResponse>> {
   try {
-    return await problemService.getAllProblemsPaginated({
+    const result = await problemService.getAllProblemsPaginated({
       cursor,
       pageSize,
       difficultyFilter: filters.difficultyFilter,
@@ -240,12 +269,24 @@ export async function loadMoreAllProblemsAction(
       searchTerm: filters.searchTerm,
       sortKey: filters.sortKey,
     });
+    
+    if (result.isFailure) {
+      return errorResponse({
+        code: result.error.code,
+        message: result.error.message,
+      });
+    }
+    
+    return successResponse(result.value);
   } catch (error) {
     handleServerActionError(error, "loadMoreAllProblemsAction", {
       filters,
       cursor,
     });
-    throw new Error("Failed to load more all problems");
+    return errorResponse({
+      code: "INTERNAL_ERROR",
+      message: "Failed to load more all problems",
+    });
   }
 }
 
@@ -257,9 +298,9 @@ export async function fetchProblemsAction(
   filters: ProblemListFilters,
   pageSize: number = 50,
   cursor?: string
-) {
+): Promise<ApiResponse<PaginatedProblemsResponse>> {
   try {
-    return await problemService.getAllProblemsPaginated({
+    const result = await problemService.getAllProblemsPaginated({
       cursor,
       pageSize,
       difficultyFilter: filters.difficultyFilter,
@@ -267,9 +308,21 @@ export async function fetchProblemsAction(
       searchTerm: filters.searchTerm,
       sortKey: filters.sortKey,
     });
+    
+    if (result.isFailure) {
+      return errorResponse({
+        code: result.error.code,
+        message: result.error.message,
+      });
+    }
+    
+    return successResponse(result.value);
   } catch (error) {
     handleServerActionError(error, "fetchProblemsAction", { filters, cursor });
-    throw new Error("Failed to fetch problems");
+    return errorResponse({
+      code: "INTERNAL_ERROR",
+      message: "Failed to fetch problems",
+    });
   }
 }
 

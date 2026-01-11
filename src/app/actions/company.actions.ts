@@ -14,6 +14,13 @@ import { companyService } from "@/features/companies/services/company.service";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { slugify } from "@/lib/utils";
 import { handleServerActionError } from "@/lib/utils/error-handler";
+import {
+  type ApiResponse,
+  successResponse,
+  errorResponse,
+  paginatedResponse,
+  type PaginationMeta,
+} from "@/lib/api/response";
 
 /**
  * Adds a new company to the database after validating and cleaning the input data.
@@ -25,16 +32,17 @@ import { handleServerActionError } from "@/lib/utils/error-handler";
  *
  * @param {Omit<Company, 'id' | 'normalizedName' | 'slug'>} companyDataInput - The data for the
  * new company, excluding fields that are generated automatically.
- * @returns {Promise<{ success: boolean; data?: Company; error?: string }>} A promise that resolves
- * to an object indicating the success of the operation. If successful, the `data` property
- * contains the newly created company object. If not, the `error` property contains a message.
+ * @returns {Promise<ApiResponse<Company>>} A promise that resolves to a standardized API response.
  */
 export async function addCompany(
   companyDataInput: Omit<Company, "id" | "normalizedName" | "slug">,
-): Promise<{ success: boolean; data?: Company; error?: string }> {
+): Promise<ApiResponse<Company>> {
   try {
     if (!companyDataInput.name) {
-      return { success: false, error: "Company name is required." };
+      return errorResponse({
+        code: "VALIDATION_ERROR",
+        message: "Company name is required.",
+      });
     }
 
     let companyData = { ...companyDataInput };
@@ -49,58 +57,60 @@ export async function addCompany(
       try {
         new URL(companyData.website);
       } catch {
-        return {
-          success: false,
-          error: `Invalid website URL: ${companyData.website}. Ensure it includes http:// or https://.`,
-        };
+        return errorResponse({
+          code: "VALIDATION_ERROR",
+          message: `Invalid website URL: ${companyData.website}. Ensure it includes http:// or https://.`,
+        });
       }
     }
     if (companyData.logo) {
       try {
         new URL(companyData.logo);
       } catch {
-        return {
-          success: false,
-          error: `Invalid logo URL: ${companyData.logo}. Ensure it includes http:// or https://.`,
-        };
+        return errorResponse({
+          code: "VALIDATION_ERROR",
+          message: `Invalid logo URL: ${companyData.logo}. Ensure it includes http:// or https://.`,
+        });
       }
     }
 
-    const {
-      id: newCompanyId,
-      error: dbError,
-      alreadyExists,
-    } = await companyService.addCompany(companyData);
+    const result = await companyService.addCompany(companyData);
 
-    if (dbError || !newCompanyId) {
-      if (alreadyExists) return { success: false, error: dbError };
-      return {
-        success: false,
-        error: dbError || "Failed to save company to the database.",
-      };
+    if (result.isFailure) {
+      return errorResponse({
+        code: result.error.code,
+        message: result.error.message,
+      });
     }
+
+    const { id: newCompanyId, alreadyExists } = result.value;
+
+    if (alreadyExists) {
+      return errorResponse({
+        code: "CONFLICT",
+        message: "A company with this name already exists.",
+      });
+    }
+
     revalidateTag("companies-collection-broad", 'max');
     revalidateTag("companies-list", 'max');
     revalidatePath("/");
     revalidatePath("/add-company");
-    return {
-      success: true,
-      data: {
-        ...companyData,
-        id: newCompanyId,
-        slug: slugify(companyData.name),
-        normalizedName: companyData.name.toLowerCase(),
-      },
-    };
+    
+    return successResponse({
+      ...companyData,
+      id: newCompanyId,
+      slug: slugify(companyData.name),
+      normalizedName: companyData.name.toLowerCase(),
+    });
   } catch (error) {
     const errorMessage = handleServerActionError(error, "addCompany", {
       name: companyDataInput.name,
-      // Avoid logging potentially large or sensitive URL fields unless necessary
     });
-    return {
-      success: false,
-      error: errorMessage,
-    };
+    return errorResponse({
+      code: "INTERNAL_ERROR",
+      message: errorMessage,
+    });
   }
 }
 
@@ -114,34 +124,43 @@ export async function addCompany(
  * @param {number} page - The page number to retrieve (1-indexed).
  * @param {number} pageSize - The number of companies to include per page.
  * @param {string} [searchTerm] - An optional string to filter companies by name.
- * @returns {Promise<{ companies: Company[]; totalPages: number; totalCompanies: number; currentPage: number; error?: string }>}
- * A promise that resolves to an object containing the list of companies for the requested
- * page and pagination metadata. If an error occurs, the `error` property will be set.
+ * @returns {Promise<ApiResponse<{ companies: Company[]; hasMore: boolean; nextCursor?: string }>>}
+ * A promise that resolves to a standardized API response with pagination metadata.
  */
 export async function fetchCompaniesAction(
   page: number,
   pageSize: number,
   searchTerm?: string,
   cursor?: string,
-): Promise<{
-  companies: Company[];
-  totalPages: number;
-  totalCompanies: number;
-  currentPage: number;
-  hasMore: boolean;
-  nextCursor?: string;
-  error?: string;
-}> {
+): Promise<ApiResponse<{ companies: Company[]; hasMore: boolean; nextCursor?: string }>> {
   try {
     const result = await companyService.getCompanies({ page, pageSize, searchTerm, cursor });
-    return {
-      ...result,
-      totalPages: result.totalPages ?? 0,
-      totalCompanies: result.totalCompanies ?? 0,
-      currentPage: result.currentPage ?? 1,
-      hasMore: result.hasMore ?? false,
-      nextCursor: result.nextCursor,
+    
+    if (result.isFailure) {
+      return errorResponse({
+        code: result.error.code,
+        message: result.error.message,
+      });
+    }
+
+    const data = result.value;
+    const pagination: PaginationMeta = {
+      page: data.currentPage ?? page,
+      pageSize,
+      totalItems: data.totalCompanies ?? 0,
+      totalPages: data.totalPages ?? 0,
+      hasNext: data.hasMore ?? false,
+      hasPrevious: page > 1,
     };
+
+    return successResponse(
+      {
+        companies: data.companies,
+        hasMore: data.hasMore ?? false,
+        nextCursor: data.nextCursor,
+      },
+      { pagination }
+    );
   } catch (error) {
     const errorMessage = handleServerActionError(error, "fetchCompaniesAction", {
       page,
@@ -149,14 +168,10 @@ export async function fetchCompaniesAction(
       searchTerm,
       cursor,
     });
-    return {
-      companies: [],
-      totalPages: 0,
-      totalCompanies: 0,
-      currentPage: 1,
-      hasMore: false,
-      error: errorMessage,
-    };
+    return errorResponse({
+      code: "INTERNAL_ERROR",
+      message: errorMessage,
+    });
   }
 }
 
@@ -169,27 +184,36 @@ export async function fetchCompaniesAction(
  *
  * @param {string} searchTerm - The search term to match against the beginning of company names.
  * @param {number} [limitNum=5] - The maximum number of suggestions to return. Defaults to 5.
- * @returns {Promise<Array<Pick<Company, 'id' | 'name' | 'slug' | 'logo'>> | { error: string }>}
- * A promise that resolves to an array of company suggestion objects or an error object.
- * Returns an empty array if the search term is too short.
+ * @returns {Promise<ApiResponse<Array<Pick<Company, 'id' | 'name' | 'slug' | 'logo'>>>>}
+ * A promise that resolves to a standardized API response with company suggestions.
  */
 export async function fetchCompanySuggestionsAction(
   searchTerm: string,
   limitNum: number = 5,
-): Promise<
-  Array<Pick<Company, "id" | "name" | "slug" | "logo">> | { error: string }
-> {
+): Promise<ApiResponse<Array<Pick<Company, "id" | "name" | "slug" | "logo">>>> {
   if (!searchTerm || searchTerm.trim().length < 1) {
-    return [];
+    return successResponse([]);
   }
   try {
-    return await companyService.fetchCompanySuggestions(searchTerm, limitNum);
+    const result = await companyService.fetchCompanySuggestions(searchTerm, limitNum);
+    
+    if (result.isFailure) {
+      return errorResponse({
+        code: result.error.code,
+        message: result.error.message,
+      });
+    }
+    
+    return successResponse(result.value);
   } catch (error) {
     const errorMessage = handleServerActionError(error, "fetchCompanySuggestionsAction", {
       searchTerm,
       limitNum,
     });
-    return { error: errorMessage };
+    return errorResponse({
+      code: "INTERNAL_ERROR",
+      message: errorMessage,
+    });
   }
 }
 

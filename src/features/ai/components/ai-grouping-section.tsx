@@ -147,14 +147,14 @@ const AIGroupingSection: React.FC<AIGroupingSectionProps> = ({
     const result = await performQuestionGrouping(problemInputs);
 
     setIsAILoading(false);
-    if ("error" in result) {
+    if (!result.success || !result.data) {
       toast({
         title: "AI Grouping Failed",
-        description: result.error,
+        description: result.error?.message || "Unknown error occurred",
         variant: "destructive",
       });
     } else {
-      setGroupedData(result);
+      setGroupedData(result.data);
       startCooldown(); // Start cooldown on successful AI operation
       toast({
         title: "AI Grouping Complete!",

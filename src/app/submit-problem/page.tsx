@@ -35,7 +35,13 @@ export const metadata = {
  */
 export default async function SubmitProblemPage() {
   // Fetch a manageable number of companies for the dropdown.
-  const companiesData = await companyService.getCompanies({ pageSize: 200 });
+  const companiesResult = await companyService.getCompanies({ pageSize: 200 });
+  
+  if (!companiesResult.isSuccess) {
+    throw new Error(companiesResult.error.message);
+  }
+
+  const companiesData = companiesResult.value;
   const allCompanies = companiesData.companies;
 
   return (

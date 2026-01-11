@@ -74,9 +74,11 @@ export function CompaniesPageContent({
       try {
         // Fetch first page of search results
         const result = await fetchCompaniesAction(1, ITEMS_PER_PAGE, searchTerm);
-        setCompanies(result.companies);
-        setHasMore(result.hasMore);
-        setNextCursor(result.nextCursor);
+        if (result.success && result.data) {
+          setCompanies(result.data.companies);
+          setHasMore(result.data.hasMore);
+          setNextCursor(result.data.nextCursor);
+        }
       } catch (error) {
         console.error("Failed to fetch companies:", error);
       } finally {
@@ -98,9 +100,11 @@ export function CompaniesPageContent({
           // Action signature: (page, pageSize, term, cursor)
           const result = await fetchCompaniesAction(1, ITEMS_PER_PAGE, searchTerm, nextCursor);
           
-          setCompanies(prev => [...prev, ...result.companies]);
-          setHasMore(result.hasMore);
-          setNextCursor(result.nextCursor);
+          if (result.success && result.data) {
+            setCompanies(prev => [...prev, ...result.data!.companies]);
+            setHasMore(result.data.hasMore);
+            setNextCursor(result.data.nextCursor);
+          }
       } catch (error) {
           console.error("Failed to load more companies:", error);
       } finally {

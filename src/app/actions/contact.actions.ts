@@ -3,6 +3,11 @@
 import { z } from "zod";
 import { contactService } from "@/features/contact/services/contact.service";
 import { handleServerActionError } from "@/lib/utils/error-handler";
+import {
+  type ApiResponse,
+  successResponse,
+  errorResponse,
+} from "@/lib/api/response";
 
 /**
  * Zod schema for validating the contact form data.
@@ -23,6 +28,7 @@ const contactSchema = z.object({
 });
 
 export type ContactFormState = {
+  success?: boolean;
   errors?: {
     name?: string[];
     email?: string[];
@@ -57,14 +63,23 @@ export async function sendContactMessage(
 
   if (!validatedFields.success) {
     return {
+      success: false,
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
 
   try {
-    await contactService.submitMessage(validatedFields.data);
+    const result = await contactService.submitMessage(validatedFields.data);
+
+    if (result.isFailure) {
+      return {
+        success: false,
+        message: result.error.message,
+      };
+    }
 
     return {
+      success: true,
       message: "Your message has been sent successfully!",
     };
   } catch (error) {
@@ -72,6 +87,7 @@ export async function sendContactMessage(
     // to prevent logging sensitive user data.
     const errorMessage = handleServerActionError(error, "sendContactMessage");
     return {
+      success: false,
       message: errorMessage || "An error occurred while sending your message. Please try again later.",
     };
   }
