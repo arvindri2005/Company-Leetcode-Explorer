@@ -34,7 +34,8 @@ export function CompanyTable({ companies }: CompanyTableProps) {
   );
 }
 
-function CompanyRow({ company }: { company: Company }) {
+// Memoized to prevent re-renders of existing rows when new data is appended (infinite scroll)
+const CompanyRow = React.memo(function CompanyRow({ company }: { company: Company }) {
   const imgSrc = getLogoUrl(company.logo) || "/icon.png";
   
   // Get top 2 tags
@@ -79,7 +80,7 @@ function CompanyRow({ company }: { company: Company }) {
       </td>
     </tr>
   );
-}
+});
 
 
 
