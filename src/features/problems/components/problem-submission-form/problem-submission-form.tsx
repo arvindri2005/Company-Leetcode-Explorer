@@ -173,7 +173,9 @@ export default function ProblemSubmissionForm({
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Problem Title</FormLabel>
+              <FormLabel>
+                Problem Title <span className="text-destructive">*</span>
+              </FormLabel>
               <FormControl>
                 <Input placeholder="e.g., Two Sum" {...field} />
               </FormControl>
@@ -191,7 +193,9 @@ export default function ProblemSubmissionForm({
             name="difficulty"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Difficulty</FormLabel>
+                <FormLabel>
+                  Difficulty <span className="text-destructive">*</span>
+                </FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
@@ -222,7 +226,7 @@ export default function ProblemSubmissionForm({
                     size={16}
                     className="mr-1.5 text-muted-foreground"
                   />
-                  Last Asked Period
+                  Last Asked Period <span className="text-destructive ml-1">*</span>
                 </FormLabel>
                 <Select
                   onValueChange={field.onChange}
@@ -252,7 +256,9 @@ export default function ProblemSubmissionForm({
           name="link"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>LeetCode Link</FormLabel>
+              <FormLabel>
+                LeetCode Link <span className="text-destructive">*</span>
+              </FormLabel>
               <FormControl>
                 <Input
                   placeholder="https://leetcode.com/problems/..."
@@ -293,7 +299,9 @@ export default function ProblemSubmissionForm({
           name="companyId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Company</FormLabel>
+              <FormLabel>
+                Company <span className="text-destructive">*</span>
+              </FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
