@@ -5,7 +5,7 @@
  * a list of company suggestions as the user types. It is designed to be a controlled
  * component, with its state managed by a parent component.
  */
-import React, { useRef,useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { Building2, Loader2, Search } from "lucide-react";
 
@@ -61,7 +61,23 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
   onSearch,
 }) => {
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.key === "/" || ((e.metaKey || e.ctrlKey) && e.key === "k")) &&
+        !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
+      ) {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Reset index when suggestions change
   const [prevSuggestions, setPrevSuggestions] = useState(suggestions);
@@ -146,16 +162,25 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
             }
             ref={inputRef}
             data-testid="search-input"
-            className="w-full p-5 pr-17 text-lg border border-white/10 rounded-full bg-white/5 text-white backdrop-blur-lg transition-all duration-300 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/30 placeholder:text-white/50"
+            className="w-full p-5 pr-24 text-lg border border-white/10 rounded-full bg-white/5 text-white backdrop-blur-lg transition-all duration-300 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/30 placeholder:text-white/50"
             placeholder={`Search for ${placeholder}|`}
             value={searchTermInput}
             onChange={(e) => setSearchTermInput(e.target.value)}
             onFocus={() => {
+              setIsFocused(true);
               if (suggestions.length > 0 || searchTermInput.trim().length > 0)
                 {setShowSuggestions(true);}
             }}
+            onBlur={() => setIsFocused(false)}
             aria-label="Search for companies"
           />
+          {!isFocused && !searchTermInput && (
+            <div className="absolute right-20 top-1/2 -translate-y-1/2 hidden sm:flex pointer-events-none select-none">
+              <kbd className="h-6 flex items-center gap-1 rounded border border-white/20 bg-white/5 px-2 font-mono text-[10px] font-medium text-white/50">
+                <span className="text-xs">⌘</span>K
+              </kbd>
+            </div>
+          )}
           <button
             type="submit"
             aria-label="Submit company search"
