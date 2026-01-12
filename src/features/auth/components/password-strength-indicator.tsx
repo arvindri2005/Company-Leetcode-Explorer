@@ -1,10 +1,12 @@
 "use client";
 
+import { memo } from "react";
+
 interface PasswordStrengthIndicatorProps {
   score: number; // 0 to 4
 }
 
-export function PasswordStrengthIndicator({
+export const PasswordStrengthIndicator = memo(function PasswordStrengthIndicator({
   score,
 }: PasswordStrengthIndicatorProps) {
   const getStrengthColor = (score: number) => {
@@ -42,18 +44,29 @@ export function PasswordStrengthIndicator({
   };
 
   return (
-    <div className="space-y-2">
+    <div
+      className="space-y-2"
+      role="meter"
+      aria-label="Password strength"
+      aria-valuenow={score}
+      aria-valuemin={0}
+      aria-valuemax={4}
+      aria-valuetext={getStrengthText(score)}
+    >
       <div className="flex justify-between text-xs text-muted-foreground">
         <span>Password Strength</span>
         <span className="font-medium">{getStrengthText(score)}</span>
       </div>
-      <div className="flex gap-1 h-1.5 overflow-hidden rounded-full bg-secondary/30">
+      <div
+        className="flex gap-1 h-1.5 overflow-hidden rounded-full bg-secondary/30"
+        aria-hidden="true"
+      >
         {[1, 2, 3, 4].map((level) => (
           <div
             key={level}
             style={{
-                backgroundColor: score >= level ? undefined : undefined,
-                opacity: score >= level ? 1 : 0.2,
+              backgroundColor: score >= level ? undefined : undefined,
+              opacity: score >= level ? 1 : 0.2,
             }}
             className={`flex-1 h-full rounded-full transition-all duration-300 ${
               score >= level ? getStrengthColor(score) : "bg-muted"
@@ -63,10 +76,4 @@ export function PasswordStrengthIndicator({
       </div>
     </div>
   );
-}
-
-
-
-
-
-
+});
