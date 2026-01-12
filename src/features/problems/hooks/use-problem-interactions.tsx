@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback,useEffect, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
-import { usePathname,useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { ToastAction } from "@/components/ui/toast";
 import { PROBLEM_STATUS_OPTIONS } from "@/features/problems/constants";
@@ -24,26 +24,45 @@ export function useProblemInteractions(
   const router = useRouter();
   const pathname = usePathname();
 
-  const [isBookmarked, setIsBookmarked] = useState(initialIsBookmarked);
+  // -- State Management for Bookmark --
+  // We want to avoid useEffect syncing props to state to prevent double renders.
+  // We use a "committed" state that defaults to the prop, but can be updated locally.
+  // We also track the prop to update our committed state if the prop changes externally.
+  const [committedIsBookmarked, setCommittedIsBookmarked] =
+    useState(initialIsBookmarked);
+  const prevInitialIsBookmarked = useRef(initialIsBookmarked);
+
+  // If prop changes, sync it to committed state during render (Derived State pattern)
+  if (initialIsBookmarked !== prevInitialIsBookmarked.current) {
+    prevInitialIsBookmarked.current = initialIsBookmarked;
+    setCommittedIsBookmarked(initialIsBookmarked);
+  }
+
+  const [optimisticIsBookmarked, setOptimisticIsBookmarked] = useState<
+    boolean | null
+  >(null);
+  const isBookmarked = optimisticIsBookmarked ?? committedIsBookmarked;
   const [isTogglingBookmark, setIsTogglingBookmark] = useState(false);
 
-  const [currentStatus, setCurrentStatus] =
-    useState<ProblemStatus>(problemStatus);
+  // -- State Management for Status --
+  const [committedStatus, setCommittedStatus] = useState(problemStatus);
+  const prevProblemStatus = useRef(problemStatus);
+
+  if (problemStatus !== prevProblemStatus.current) {
+    prevProblemStatus.current = problemStatus;
+    setCommittedStatus(problemStatus);
+  }
+
+  const [optimisticStatus, setOptimisticStatus] =
+    useState<ProblemStatus | null>(null);
+  const currentStatus = optimisticStatus ?? committedStatus;
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-
-  useEffect(() => {
-    setIsBookmarked(initialIsBookmarked);
-  }, [initialIsBookmarked]);
-
-  useEffect(() => {
-    setCurrentStatus(problemStatus);
-  }, [problemStatus]);
 
   const promptLogin = useCallback(() => {
     toast({
       title: "Authentication Required",
       description: "Please log in to save your progress.",
-      className: "border-primary shadow-[0_0_25px_rgba(45,212,191,0.6)]", // Stronger teal glow
+      className: "border-primary shadow-[0_0_25px_rgba(45,212,191,0.6)]",
       action: (
         <ToastAction
           altText="Login"
@@ -63,10 +82,14 @@ export function useProblemInteractions(
       promptLogin();
       return;
     }
-    if (isTogglingBookmark) {return;}
+    if (isTogglingBookmark) {
+      return;
+    }
+
+    const nextValue = !isBookmarked;
+    // Set optimistic state immediately
+    setOptimisticIsBookmarked(nextValue);
     setIsTogglingBookmark(true);
-    const oldStatus = isBookmarked;
-    setIsBookmarked(!oldStatus);
 
     try {
       const effectiveCompanySlug = problem.companySlug || companySlug;
@@ -77,16 +100,23 @@ export function useProblemInteractions(
         problem.slug,
       );
       if (result.isSuccess) {
-        setIsBookmarked(result.value.isBookmarked ?? oldStatus);
+        const finalValue = result.value.isBookmarked ?? nextValue;
+        
+        // Update committed state to the new value
+        setCommittedIsBookmarked(finalValue);
+        // Clear optimistic state
+        setOptimisticIsBookmarked(null);
+
+        onBookmarkChanged?.(problem.id, finalValue);
+
         toast({
-          title: result.value.isBookmarked ? "⭐ Bookmarked!" : "📖 Bookmark Removed",
+          title: finalValue ? "⭐ Bookmarked!" : "📖 Bookmark Removed",
           description: `"${problem.title}" ${
-            result.value.isBookmarked ? "saved to" : "removed from"
+            finalValue ? "saved to" : "removed from"
           } your collection.`,
         });
-        onBookmarkChanged?.(problem.id, result.value.isBookmarked ?? oldStatus);
       } else {
-        setIsBookmarked(oldStatus);
+        setOptimisticIsBookmarked(null); // Revert to committed state
         toast({
           title: "Bookmark Error",
           description: result.error?.message || "Failed to update bookmark.",
@@ -94,7 +124,7 @@ export function useProblemInteractions(
         });
       }
     } catch {
-      setIsBookmarked(oldStatus);
+      setOptimisticIsBookmarked(null); // Revert to committed state
       toast({
         title: "Connection Error",
         description: "Please check your connection and try again.",
@@ -110,10 +140,12 @@ export function useProblemInteractions(
       promptLogin();
       return;
     }
-    if (isUpdatingStatus) {return;}
+    if (isUpdatingStatus) {
+      return;
+    }
+
+    setOptimisticStatus(newStatus);
     setIsUpdatingStatus(true);
-    const oldUiStatus = currentStatus;
-    setCurrentStatus(newStatus);
 
     try {
       const effectiveCompanySlug = problem.companySlug || companySlug;
@@ -125,6 +157,11 @@ export function useProblemInteractions(
         problem.slug,
       );
       if (result.isSuccess) {
+        setCommittedStatus(newStatus);
+        setOptimisticStatus(null);
+        
+        onProblemStatusChange?.(problem.id, newStatus);
+
         const statusLabel =
           newStatus === "none"
             ? "cleared"
@@ -136,9 +173,8 @@ export function useProblemInteractions(
           title: "✅ Status Updated!",
           description: `"${problem.title}" ${statusLabel}.`,
         });
-        onProblemStatusChange?.(problem.id, newStatus);
       } else {
-        setCurrentStatus(oldUiStatus);
+        setOptimisticStatus(null); // Revert
         toast({
           title: "Update Failed",
           description: result.error?.message || "Failed to update status.",
@@ -146,7 +182,7 @@ export function useProblemInteractions(
         });
       }
     } catch {
-      setCurrentStatus(oldUiStatus);
+      setOptimisticStatus(null); // Revert
       toast({
         title: "Connection Error",
         description: "Please check your connection and try again.",
@@ -167,9 +203,3 @@ export function useProblemInteractions(
     promptLogin,
   };
 }
-
-
-
-
-
-
