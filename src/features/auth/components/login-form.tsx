@@ -35,6 +35,7 @@ import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useToast } from "@/hooks/use-toast";
 import { auth } from "@/lib/api/firebase";
 import { Logger } from "@/lib/utils/logger";
+import { isValidRedirectUrl } from "@/lib/utils/url";
 
 import GoogleAuthButton from "./google-auth-button";
 
@@ -96,7 +97,7 @@ export default function LoginForm() {
         description: "Welcome back!",
       });
       const redirectUrl = searchParams.get("redirectUrl");
-      if (redirectUrl) {
+      if (isValidRedirectUrl(redirectUrl)) {
         router.push(redirectUrl);
       } else {
         router.push("/profile");

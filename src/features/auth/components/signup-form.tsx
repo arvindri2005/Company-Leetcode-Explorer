@@ -36,6 +36,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useToast } from "@/hooks/use-toast";
 import { auth } from "@/lib/api/firebase";
+import { isValidRedirectUrl } from "@/lib/utils/url";
 import { useAuth } from "@/providers";
 
 import GoogleAuthButton from "./google-auth-button";
@@ -135,7 +136,7 @@ export default function SignupForm() {
       });
 
       const redirectUrl = searchParams.get("redirectUrl");
-      if (redirectUrl) {
+      if (isValidRedirectUrl(redirectUrl)) {
         router.push(redirectUrl);
       } else {
         router.push("/profile");
