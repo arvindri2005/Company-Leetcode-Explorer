@@ -79,7 +79,12 @@ export const LeetCodeProblemSchema = z.object({
   id: z.string(),
   title: z.string(),
   difficulty: DifficultySchema,
-  link: z.string().url(),
+  link: z
+    .string()
+    .url()
+    .refine((val) => val.startsWith("http:") || val.startsWith("https:"), {
+      message: "Must be a valid HTTP or HTTPS URL",
+    }),
   tags: z.array(z.string()),
   companyId: z.string(),
   companySlug: SlugSchema,
