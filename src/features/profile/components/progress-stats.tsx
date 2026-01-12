@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { BarChart3, CheckCircle2, ListTodo,Pencil } from "lucide-react";
+import { BarChart3, CheckCircle2, ListTodo, Pencil } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -58,10 +58,12 @@ const ProgressStats: React.FC<ProgressStatsProps> = ({ stats }) => {
   );
 };
 
-export default ProgressStats;
+function arePropsEqual(prevProps: ProgressStatsProps, nextProps: ProgressStatsProps) {
+  return (
+    prevProps.stats.solved === nextProps.stats.solved &&
+    prevProps.stats.attempted === nextProps.stats.attempted &&
+    prevProps.stats.todo === nextProps.stats.todo
+  );
+}
 
-
-
-
-
-
+export default React.memo(ProgressStats, arePropsEqual);
