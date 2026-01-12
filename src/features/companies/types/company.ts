@@ -36,9 +36,30 @@ export const CompanySchema = z.object({
   name: z.string(),
   normalizedName: z.string().optional(),
   slug: SlugSchema,
-  logo: z.string().optional(),
+  logo: z
+    .string()
+    .refine(
+      (url) =>
+        url.startsWith("http://") ||
+        url.startsWith("https://") ||
+        url.startsWith("/"),
+      {
+        message: "Logo must be a valid URL (http/https) or relative path",
+      }
+    )
+    .optional(),
   description: z.string().optional(),
-  website: z.string().url().optional().or(z.literal("")),
+  website: z
+    .string()
+    .url()
+    .refine(
+      (url) => url.startsWith("http://") || url.startsWith("https://"),
+      {
+        message: "Website must start with http:// or https://",
+      }
+    )
+    .optional()
+    .or(z.literal("")),
   problemCount: z.number().optional(),
   difficultyCounts: z
     .object({
