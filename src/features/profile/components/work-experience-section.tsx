@@ -235,9 +235,24 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
             );
           }
           return (
-            <p className="text-muted-foreground text-center py-4">
-              No work experience added yet.
-            </p>
+            <div className="flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed border-muted rounded-xl bg-muted/5">
+              <div className="bg-background p-3 rounded-full mb-4 ring-1 ring-border shadow-sm">
+                <Briefcase className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-medium text-foreground mb-1">
+                No work experience
+              </h3>
+              <p className="text-sm text-muted-foreground max-w-xs mb-4">
+                Add your professional experience to build your profile.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsWorkDialogOpen(true)}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" /> Add Work Experience
+              </Button>
+            </div>
           );
         })()}
       </div>
