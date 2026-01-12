@@ -9,8 +9,7 @@
  */
 "use client";
 
-import { useState } from "react";
-import { useEffect } from "react";
+import { useMemo,useState } from "react";
 import { useForm } from "react-hook-form";
 
 import Link from "next/link";
@@ -79,7 +78,6 @@ export default function SignupForm() {
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { syncUserProfileIfNeeded } = useAuth();
-  const [passwordScore, setPasswordScore] = useState(0);
   const isOnline = useOnlineStatus();
 
   const form = useForm<SignupFormValues>({
@@ -92,17 +90,16 @@ export default function SignupForm() {
 
   // Calculate password strength
   const password = form.watch("password");
-  useEffect(() => {
+  const passwordScore = useMemo(() => {
     let score = 0;
     if (!password) {
-      setPasswordScore(0);
-      return;
+      return 0;
     }
     if (password.length > 6) {score += 1;}
     if (password.length > 10) {score += 1;}
     if (/[0-9]/.test(password)) {score += 1;}
     if (/[^A-Za-z0-9]/.test(password)) {score += 1;}
-    setPasswordScore(score);
+    return score;
   }, [password]);
 
   async function onSubmit(data: SignupFormValues) {
