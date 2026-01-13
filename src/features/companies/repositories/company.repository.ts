@@ -451,6 +451,13 @@ export class CompanyRepository implements ICompanyRepository {
         return { success: false, error: "Company ID is required" };
       }
 
+      // Validate input using Zod (partial schema)
+      // This protects against invalid data types and malicious inputs (e.g. javascript: URLs)
+      const validation = CompanySchema.partial().safeParse(companyData);
+      if (!validation.success) {
+        return { success: false, error: validation.error.issues[0].message };
+      }
+
       const updates: Record<string, unknown> = { ...companyData };
 
       if (updates.name && typeof updates.name === "string") {
