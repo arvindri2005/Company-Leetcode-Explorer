@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef,useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import dynamic from "next/dynamic";
 import { usePathname,useRouter, useSearchParams } from "next/navigation";
@@ -206,7 +206,9 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
 
 
   // -- Helper to derive current filters from URL --
-  const getCurrentFilters = useCallback((): ProblemListFilters => {
+  // Optimization: Memoize the object to prevent ProblemListControls from re-rendering
+  // on every ProblemList render (e.g. infinite scroll, status toggle)
+  const currentFilters = useMemo((): ProblemListFilters => {
      const params = new URLSearchParams(searchParams.toString());
       
      return {
@@ -218,6 +220,37 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
      };
   }, [searchParams]);
 
+  // -- Optimized Handlers for ProblemListControls --
+  // These stable callbacks prevent ProblemListControls from re-rendering
+  // when AllProblemsList re-renders (e.g. during infinite scroll)
+  const handleDifficultyChange = useCallback(
+    (value: typeof DifficultySchema.options[number][]) => {
+      handleFilterChange({ difficultyFilter: value });
+    },
+    [handleFilterChange]
+  );
+
+  const handleSortKeyChange = useCallback(
+    (value: SortKey) => {
+      handleFilterChange({ sortKey: value });
+    },
+    [handleFilterChange]
+  );
+
+  const handleLastAskedChange = useCallback(
+    (value: typeof LastAskedPeriodSchema.options[number][]) => {
+      handleFilterChange({ lastAskedFilter: value });
+    },
+    [handleFilterChange]
+  );
+
+  const handleStatusChange = useCallback(
+    (value: typeof ProblemStatusSchema.options[number][]) => {
+      handleFilterChange({ statusFilter: value });
+    },
+    [handleFilterChange]
+  );
+
   // -- Infinite Scroll Loader --
   const loadMore = useCallback(async () => {
     // If not mounted, abort early
@@ -227,11 +260,10 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
     setIsLoadingMore(true);
     try {
       const { loadMoreAllProblemsAction } = await import("@/app/actions/problem.actions");
-      const currentFilters = getCurrentFilters();
       
       const result = await loadMoreAllProblemsAction(
           cursor, 
-          currentFilters, // Use current filters!
+          currentFilters,
           itemsPerPage
       );
       
@@ -258,7 +290,7 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
          setIsLoadingMore(false);
       }
     }
-  }, [cursor, hasMoreState, isLoadingMore, getCurrentFilters, itemsPerPage, toast]);
+  }, [cursor, hasMoreState, isLoadingMore, currentFilters, itemsPerPage, toast]);
 
   // -- Intersection Observer --
   useEffect(() => {
@@ -371,29 +403,19 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
     []
   );
 
-  const currentFilters = getCurrentFilters();
-
   return (
     <div>
       <h2 className="sr-only">All Problems</h2>
 
       <ProblemListControls
         difficultyFilter={currentFilters.difficultyFilter}
-        onDifficultyFilterChange={(value) =>
-           handleFilterChange({ difficultyFilter: value })
-        }
+        onDifficultyFilterChange={handleDifficultyChange}
         sortKey={currentFilters.sortKey}
-        onSortKeyChange={(value: SortKey) =>
-           handleFilterChange({ sortKey: value })
-        }
+        onSortKeyChange={handleSortKeyChange}
         lastAskedFilter={currentFilters.lastAskedFilter}
-        onLastAskedFilterChange={(value) =>
-          handleFilterChange({ lastAskedFilter: value })
-        }
+        onLastAskedFilterChange={handleLastAskedChange}
         statusFilter={currentFilters.statusFilter}
-        onStatusFilterChange={(value) =>
-          handleFilterChange({ statusFilter: value })
-        }
+        onStatusFilterChange={handleStatusChange}
         showStatusFilter={!!user} 
       />
 
