@@ -104,6 +104,32 @@ export const LeetCodeProblemSchema = z.object({
   currentStatus: ProblemStatusSchema.optional(),
 });
 
+/**
+ * @description Schema for validating problem creation data.
+ * Matches CreateProblemDTO.
+ */
+export const CreateProblemSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  difficulty: DifficultySchema,
+  link: z
+    .string()
+    .url()
+    .refine((val) => val.startsWith("http:") || val.startsWith("https:"), {
+      message: "Must be a valid HTTP or HTTPS URL",
+    }),
+  tags: z.array(z.string()),
+  normalizedTitle: z.string().min(1),
+  acceptanceRate: z.number().optional(),
+  lastAskedPeriod: LastAskedPeriodSchema.optional(),
+});
+
+/**
+ * @description Schema for validating problem update data.
+ * Matches UpdateProblemDTO.
+ */
+export const UpdateProblemSchema = CreateProblemSchema.partial();
+
 // --- Types for Problem List Pagination & Filtering ---
 /**
  * @description Represents the difficulty filter options for a problem list.
@@ -144,9 +170,3 @@ export interface PaginatedProblemsResponse {
   totalPages?: number;
   currentPage?: number;
 }
-
-
-
-
-
-

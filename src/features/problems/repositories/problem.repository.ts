@@ -30,6 +30,7 @@ import { Logger } from "@/lib/utils/logger";
 import type { PaginatedResult } from "@/shared/interfaces";
 import {
   type Company,
+  CreateProblemSchema,
   type DifficultyFilter,
   type LastAskedFilter,
   type LastAskedPeriod,
@@ -38,6 +39,7 @@ import {
   type PaginatedProblemsResponse,
   type ProblemSummaryDTO,
   type SortKey,
+  UpdateProblemSchema,
 } from "@/types";
 
 import type {
@@ -150,11 +152,14 @@ export class ProblemRepository implements IProblemRepository {
    * Implements IBaseRepository.save
    */
   async save(data: CreateProblemDTO): Promise<Problem> {
-    const problemSlug = slugify(data.title);
+    // Validate input using Zod schema
+    const validatedData = CreateProblemSchema.parse(data);
+
+    const problemSlug = slugify(validatedData.title);
     const problemDocRef = doc(getFirestore(), "problems", problemSlug);
 
     const dataToSave = {
-      ...data,
+      ...validatedData,
       slug: problemSlug,
       companyIds: [],
       companies: {},
@@ -164,14 +169,14 @@ export class ProblemRepository implements IProblemRepository {
 
     return ProblemMapper.toDomain({
       id: problemSlug,
-      title: data.title,
-      description: data.description,
-      difficulty: data.difficulty,
-      link: data.link,
-      tags: data.tags,
-      normalizedTitle: data.normalizedTitle,
-      acceptanceRate: data.acceptanceRate,
-      lastAskedPeriod: data.lastAskedPeriod,
+      title: validatedData.title,
+      description: validatedData.description,
+      difficulty: validatedData.difficulty,
+      link: validatedData.link,
+      tags: validatedData.tags,
+      normalizedTitle: validatedData.normalizedTitle,
+      acceptanceRate: validatedData.acceptanceRate,
+      lastAskedPeriod: validatedData.lastAskedPeriod,
       companyId: "",
       companySlug: "",
       slug: problemSlug,
@@ -183,6 +188,9 @@ export class ProblemRepository implements IProblemRepository {
    * Implements IBaseRepository.update
    */
   async update(id: string, data: UpdateProblemDTO): Promise<Problem> {
+    // Validate input using Zod schema
+    const validatedData = UpdateProblemSchema.parse(data);
+
     const problemDocRef = doc(getFirestore(), "problems", id);
     const problemSnap = await getDoc(problemDocRef);
 
@@ -190,7 +198,7 @@ export class ProblemRepository implements IProblemRepository {
       throw new Error(`Problem not found: ${id}`);
     }
 
-    await updateDoc(problemDocRef, data as { [x: string]: unknown });
+    await updateDoc(problemDocRef, validatedData as { [x: string]: unknown });
 
     const updatedSnap = await getDoc(problemDocRef);
     const updatedData = updatedSnap.data()!;
@@ -1135,7 +1143,33 @@ export class ProblemRepository implements IProblemRepository {
     > & { normalizedTitle: string },
   ): Promise<{ id: string | null; updated: boolean; error?: string }> {
     try {
-      const problemSlug = slugify(problemData.title);
+      // Validate input (mostly CreateProblemSchema but some fields might vary slightly)
+      // Since addProblem input signature is slightly looser than CreateProblemDTO, we construct a partial validation or rely on runtime checks.
+      // However, for security, we should enforce the critical parts.
+      // Mapping input to something we can validate against CreateProblemSchema.
+      // Note: problemData lacks 'description', but CreateProblemSchema makes it optional.
+
+      // We explicitly cast to unknown then CreateProblemDTO for validation purpose
+      // This ensures title, link, difficulty, etc are valid.
+      // If problemData is missing required fields, parsing will fail.
+      const dataToValidate = {
+        description: "", // Provide default if missing
+        ...problemData,
+      };
+      // We use safeParse here to not break existing flexible signature if strict schema mismatch
+      // But we WANT to catch bad URLs.
+      const parseResult = CreateProblemSchema.safeParse(dataToValidate);
+
+      if (!parseResult.success) {
+        const errorMessage = parseResult.error.issues
+          .map((i) => `${i.path.join(".")}: ${i.message}`)
+          .join(", ");
+        throw new Error(`Validation failed: ${errorMessage}`);
+      }
+
+      const validatedData = parseResult.data;
+
+      const problemSlug = slugify(validatedData.title);
       const problemDocRef = doc(getFirestore(), "problems", problemSlug);
       const problemSnap = await getDoc(problemDocRef);
 
@@ -1146,11 +1180,11 @@ export class ProblemRepository implements IProblemRepository {
 
         const companiesMap = existingData.companies || {};
         companiesMap[companyId] = {
-          lastAskedPeriod: problemData.lastAskedPeriod,
+          lastAskedPeriod: validatedData.lastAskedPeriod,
         };
 
         await updateDoc(problemDocRef, {
-          ...problemData,
+          ...validatedData,
           slug: problemSlug,
           companyIds: Array.from(companyIds),
           companies: companiesMap,
@@ -1159,12 +1193,12 @@ export class ProblemRepository implements IProblemRepository {
       } else {
         const companiesMap = {
           [companyId]: {
-            lastAskedPeriod: problemData.lastAskedPeriod,
+            lastAskedPeriod: validatedData.lastAskedPeriod,
           },
         };
 
         const dataToSave = {
-          ...problemData,
+          ...validatedData,
           slug: problemSlug,
           companyIds: [companyId],
           companies: companiesMap,
