@@ -35,6 +35,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useToast } from "@/hooks/use-toast";
 import { auth } from "@/lib/api/firebase";
+import { Logger } from "@/lib/utils/logger";
 import { isValidRedirectUrl } from "@/lib/utils/url";
 import { useAuth } from "@/providers";
 
@@ -141,7 +142,9 @@ export default function SignupForm() {
             errorMessage = "The password is too weak.";
             break;
           default:
-            errorMessage = firebaseError.message || errorMessage;
+            // Log the raw error internally but show a generic message to the user
+            Logger.error("Unhandled signup error", firebaseError);
+            errorMessage = "An error occurred during sign up. Please try again.";
         }
       }
 

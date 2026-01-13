@@ -121,7 +121,9 @@ export default function LoginForm() {
             errorMessage = "Too many login attempts. Please try again later.";
             break;
           default:
-            errorMessage = firebaseError.message || errorMessage;
+            // Log the raw error internally but show a generic message to the user
+            Logger.error("Unhandled auth error", firebaseError);
+            errorMessage = "An error occurred during sign in. Please try again.";
         }
       }
 

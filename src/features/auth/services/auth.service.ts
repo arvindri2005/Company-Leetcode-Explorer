@@ -41,7 +41,7 @@ export class AuthService {
       Logger.error("Google sign-in failed", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to sign in with Google",
+        error: "Failed to sign in with Google. Please try again.",
       };
     }
   }
@@ -65,7 +65,7 @@ export class AuthService {
       Logger.error("Sign out failed", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to sign out",
+        error: "Failed to sign out. Please try again.",
       };
     }
   }
@@ -93,7 +93,7 @@ export class AuthService {
         });
         return {
           success: false,
-          error: result.error.message,
+          error: "Failed to sync user profile. Please try again.",
         };
       }
 
@@ -106,7 +106,7 @@ export class AuthService {
       });
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to sync user profile",
+        error: "Failed to sync user profile. Please try again.",
       };
     }
   }
