@@ -148,7 +148,7 @@ describe("ProblemList", () => {
         />
       );
       
-      expect(screen.getByText(/No problems match/)).toBeInTheDocument();
+      expect(screen.getByText(/No problems found/)).toBeInTheDocument();
       
       // Verify service was called (triggers the pending promise)
       expect(userService.getUserGlobalProblemStats).toHaveBeenCalled();

@@ -5,10 +5,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import { Loader2 } from "lucide-react";
+import { FilterX, Loader2 } from "lucide-react";
 
 import { loadMoreProblemsAction } from "@/app/actions/problem.actions";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
+import { Button } from "@/components/ui/button";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import { Skeleton } from "@/components/ui/skeleton";
 import { userService } from "@/features/profile/services/user.service";
@@ -476,9 +477,22 @@ const ProblemList: React.FC<ProblemListProps> = ({
           ))}
         </div>
       ) : (
-        <p className="text-center text-muted-foreground py-10">
-          No problems match the current filters or search term for this company.
-        </p>
+        <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+          <div className="bg-muted/50 p-4 rounded-full mb-4">
+            <FilterX className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">No problems found</h3>
+          <p className="text-muted-foreground max-w-sm mb-6">
+            We couldn&apos;t find any problems matching your current filters. Try
+            adjusting your search or filters.
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => router.push(pathname, { scroll: false })}
+          >
+            Clear all filters
+          </Button>
+        </div>
       )}
 
       {/* Infinite Scroll Sentinel / Loading Indicator */}
