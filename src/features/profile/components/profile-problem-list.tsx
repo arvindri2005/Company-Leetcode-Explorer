@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { memo } from "react";
 
 import { ClipboardList } from "lucide-react";
 
@@ -101,10 +101,9 @@ const ProfileProblemList: React.FC<ProfileProblemListProps> = ({
   );
 };
 
-export default ProfileProblemList;
+// Optimized with React.memo to prevent unnecessary re-renders when parent components update
+// but props (especially the problems array) remain referentially stable.
+const MemoizedProfileProblemList = memo(ProfileProblemList);
+MemoizedProfileProblemList.displayName = "ProfileProblemList";
 
-
-
-
-
-
+export default MemoizedProfileProblemList;
