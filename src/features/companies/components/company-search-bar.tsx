@@ -1,17 +1,23 @@
 /**
- * @fileoverview A reusable search bar component with autocomplete suggestions for companies.
+ * @fileoverview A smart search bar component with autocomplete suggestions for companies.
  *
- * This client-side component provides a search input field that fetches and displays
- * a list of company suggestions as the user types. It is designed to be a controlled
- * component, with its state managed by a parent component.
+ * This client-side component manages its own state for the search input and suggestions.
+ * It fetches company suggestions as the user types and handles user interactions.
+ * It exposes an onSearch callback for when the user submits a search.
  */
+"use client";
+
 import React, { useEffect, useRef, useState } from "react";
 
-import { Building2, Loader2, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
 
+import { Building2, Loader2, Search } from "lucide-react";
+import { useDebounce } from "use-debounce";
+
+import { fetchCompanySuggestionsAction } from "@/app/actions";
 import { OfflineImage } from "@/components/ui/offline-image";
 import { useTypingPlaceholder } from "@/features/tools/hooks/use-typing-placeholder";
-import { cn,getLogoUrl } from "@/lib/utils";
+import { cn, getLogoUrl } from "@/lib/utils";
 
 /**
  * Represents the structure of a single search suggestion item.
@@ -27,57 +33,107 @@ interface Suggestion {
  * Props for the CompanySearchBar component.
  */
 interface SearchBarProps {
-  searchTermInput: string;
-  setSearchTermInput: (value: string) => void;
-  isLoadingSuggestions: boolean;
-  suggestions: Suggestion[];
-  showSuggestions: boolean;
-  setShowSuggestions: (value: boolean) => void;
-  handleSuggestionClick: (suggestion: Suggestion) => void;
-  suggestionsRef: React.RefObject<HTMLDivElement | null>;
-  onSearch?: () => void;
+  /** The initial value for the search input. */
+  initialSearchTerm?: string;
+  /** Callback fired when the user submits the search (e.g., presses Enter). */
+  onSearch?: (term: string) => void;
+  /** Custom class name for the wrapper. */
+  className?: string;
 }
 
 /**
- * Renders a search bar for finding companies, complete with autocomplete suggestions.
+ * Renders a smart search bar for finding companies.
  *
- * This component is a controlled input that displays a dropdown of company suggestions
- * as the user types. It handles keyboard events (like "Enter" to search), click events
- * on suggestions, and the display of loading states. The actual fetching of suggestions
- * and the search action are handled by the parent component through callbacks and props.
+ * This component manages the search input state, fetches autocomplete suggestions
+ * from the server, and handles navigation to company pages when a suggestion is clicked.
+ * When the user submits a search (Enter key or search button), the `onSearch` callback
+ * is invoked with the current search term.
  *
- * @param {SearchBarProps} props - The props for configuring the search bar's state and behavior.
- * @returns {JSX.Element} The rendered company search bar component.
+ * @param {SearchBarProps} props - The component props.
+ * @returns {JSX.Element} The rendered search bar.
  */
 const CompanySearchBar: React.FC<SearchBarProps> = ({
-  searchTermInput,
-  setSearchTermInput,
-  isLoadingSuggestions,
-  suggestions,
-  showSuggestions,
-  setShowSuggestions,
-  handleSuggestionClick,
-  suggestionsRef,
+  initialSearchTerm = "",
   onSearch,
+  className,
 }) => {
+  const [searchTermInput, setSearchTermInput] = useState(initialSearchTerm);
+  const [debouncedSearchTerm] = useDebounce(searchTermInput, 300);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [isFocused, setIsFocused] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
 
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+
+  // Handle global keyboard shortcuts
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if (
         (e.key === "/" || ((e.metaKey || e.ctrlKey) && e.key === "k")) &&
-        !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
+        !(
+          e.target instanceof HTMLInputElement ||
+          e.target instanceof HTMLTextAreaElement
+        )
       ) {
         e.preventDefault();
         inputRef.current?.focus();
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
   }, []);
+
+  // Fetch suggestions when search input changes
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (debouncedSearchTerm.trim().length < 2) {
+        setSuggestions([]);
+        setShowSuggestions(false);
+        return;
+      }
+      setIsLoadingSuggestions(true);
+      try {
+        const result = await fetchCompanySuggestionsAction(
+          debouncedSearchTerm.trim(),
+        );
+        if (result.success && Array.isArray(result.data)) {
+          setSuggestions(result.data.slice(0, 5));
+          setShowSuggestions(true);
+        } else {
+            setSuggestions([]);
+        }
+      } catch (error) {
+        console.error("Error fetching suggestions:", error);
+        setSuggestions([]);
+      } finally {
+        setIsLoadingSuggestions(false);
+      }
+    };
+    fetchSuggestions();
+  }, [debouncedSearchTerm]);
+
+  // Handle click outside to close suggestions
+  useEffect(() => {
+    if (!showSuggestions) {return;}
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showSuggestions]);
 
   // Reset index when suggestions change
   const [prevSuggestions, setPrevSuggestions] = useState(suggestions);
@@ -86,11 +142,24 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
     setActiveIndex(-1);
   }
 
+  const handleSuggestionClick = (suggestion: Suggestion) => {
+    setSearchTermInput(suggestion.name);
+    setShowSuggestions(false);
+    router.push(`/company/${suggestion.slug}`);
+  };
+
+  const handleSearchSubmit = () => {
+    setShowSuggestions(false);
+    if (onSearch) {
+      onSearch(searchTermInput);
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!showSuggestions || suggestions.length === 0) {
       if (e.key === "Enter") {
-        e.preventDefault(); // Prevent form submission to allow custom onSearch
-        onSearch?.();
+        e.preventDefault();
+        handleSearchSubmit();
       }
       return;
     }
@@ -100,13 +169,15 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
       setActiveIndex((prev) => (prev + 1) % suggestions.length);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setActiveIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
+      setActiveIndex(
+        (prev) => (prev - 1 + suggestions.length) % suggestions.length,
+      );
     } else if (e.key === "Enter") {
       e.preventDefault();
       if (activeIndex >= 0) {
         handleSuggestionClick(suggestions[activeIndex]);
       } else {
-        onSearch?.();
+        handleSearchSubmit();
       }
     } else if (e.key === "Escape") {
       setShowSuggestions(false);
@@ -127,7 +198,7 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
 
   return (
     <section
-      className="relative w-full max-w-4xl mx-auto"
+      className={cn("relative w-full max-w-4xl mx-auto", className)}
       aria-label="Company Search"
     >
       <div className="max-w-4xl mx-auto text-center">
@@ -137,8 +208,7 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
           aria-label="Search for companies"
           onSubmit={(e) => {
             e.preventDefault();
-            // onSearch is handled by onKeyDown for Enter, but if triggered by other means:
-            onSearch?.();
+            handleSearchSubmit();
           }}
         >
           <label htmlFor="company-search-input" className="sr-only">
@@ -168,8 +238,9 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
             onChange={(e) => setSearchTermInput(e.target.value)}
             onFocus={() => {
               setIsFocused(true);
-              if (suggestions.length > 0 || searchTermInput.trim().length > 0)
-                {setShowSuggestions(true);}
+              if (suggestions.length > 0 || searchTermInput.trim().length > 0) {
+                setShowSuggestions(true);
+              }
             }}
             onBlur={() => setIsFocused(false)}
             aria-label="Search for companies"
@@ -230,7 +301,8 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
                     "hover:bg-gradient-to-r hover:from-brand-teal/30 hover:to-brand-purple/30 hover:text-white",
                     idx === activeIndex &&
                       "bg-gradient-to-r from-brand-teal/30 to-brand-purple/30 text-white",
-                    idx !== suggestions.length - 1 && "border-b border-white/10",
+                    idx !== suggestions.length - 1 &&
+                      "border-b border-white/10",
                   )}
                 >
                   <OfflineImage
@@ -264,9 +336,3 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
 };
 
 export default CompanySearchBar;
-
-
-
-
-
-

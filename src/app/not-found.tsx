@@ -8,20 +8,13 @@
  */
 "use client";
 
-import { useEffect, useRef,useState } from "react";
-
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { AlertTriangle, Home } from "lucide-react";
-import { useDebounce } from "use-debounce";
 
-import { fetchCompanySuggestionsAction } from "@/app/actions/company.actions";
 import { Button } from "@/components/ui/button";
 import CompanySearchBar from "@/features/companies/components/company-search-bar";
-import type { Company } from "@/types";
-
-interface Suggestion extends Pick<Company, "id" | "name" | "slug" | "logo"> {}
 
 /**
  * Renders the 404 "Page Not Found" error page.
@@ -34,66 +27,11 @@ interface Suggestion extends Pick<Company, "id" | "name" | "slug" | "logo"> {}
  * @returns {JSX.Element} The rendered 404 Not Found page.
  */
 export default function NotFound() {
-  const [searchTermInput, setSearchTermInput] = useState("");
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
-  const suggestionsRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const [debouncedSearchTerm] = useDebounce(searchTermInput, 300);
 
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (debouncedSearchTerm.trim().length < 2) {
-        setSuggestions([]);
-        setShowSuggestions(false);
-        return;
-      }
-
-      setIsLoadingSuggestions(true);
-      try {
-        const result = await fetchCompanySuggestionsAction(
-          debouncedSearchTerm.trim(),
-        );
-        if (Array.isArray(result)) {
-          setSuggestions(result.slice(0, 5));
-          setShowSuggestions(true);
-        }
-      } catch (error) {
-        console.error("Error fetching suggestions:", error);
-      } finally {
-        setIsLoadingSuggestions(false);
-      }
-    };
-
-    fetchSuggestions();
-  }, [debouncedSearchTerm]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        suggestionsRef.current &&
-        !suggestionsRef.current.contains(event.target as Node)
-      ) {
-        setShowSuggestions(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleSuggestionClick = (suggestion: Suggestion) => {
-    setSearchTermInput(suggestion.name);
-    setShowSuggestions(false);
-    router.push(`/company/${suggestion.slug}`);
-  };
-
-  const handleSearch = () => {
-    if (searchTermInput.trim()) {
-      router.push(
-        `/companies?search=${encodeURIComponent(searchTermInput.trim())}`,
-      );
+  const handleSearch = (term: string) => {
+    if (term.trim()) {
+      router.push(`/companies?search=${encodeURIComponent(term.trim())}`);
     }
   };
   return (
@@ -104,17 +42,7 @@ export default function NotFound() {
         The page you&apos;re looking for doesn&apos;t exist or has been moved.
       </p>
 
-      <CompanySearchBar
-        searchTermInput={searchTermInput}
-        setSearchTermInput={setSearchTermInput}
-        isLoadingSuggestions={isLoadingSuggestions}
-        suggestions={suggestions}
-        showSuggestions={showSuggestions}
-        setShowSuggestions={setShowSuggestions}
-        handleSuggestionClick={handleSuggestionClick}
-        suggestionsRef={suggestionsRef}
-        onSearch={handleSearch}
-      />
+      <CompanySearchBar onSearch={handleSearch} />
       <div className="mt-12 flex flex-col sm:flex-row gap-4">
         <Button asChild variant="outline" size="lg">
           <Link href="/">
@@ -130,9 +58,3 @@ export default function NotFound() {
     </div>
   );
 }
-
-
-
-
-
-

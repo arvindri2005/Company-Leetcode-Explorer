@@ -8,13 +8,10 @@
  */
 "use client";
 
-import { useCallback,useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import { useDebounce } from "use-debounce";
-
-import { fetchCompanySuggestionsAction } from "@/app/actions";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import type { Company } from "@/features/companies/types";
 import { useCursorPagination } from "@/hooks/use-cursor-pagination";
@@ -62,11 +59,9 @@ const CompanyList: React.FC<CompanyListProps> = ({
   initialNextCursor,
   itemsPerPage,
 }) => {
-  const [searchTermInput, setSearchTermInput] = useState(initialSearchTerm);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [debouncedSearchTerm] = useDebounce(searchTermInput, 300);
   const [displayedCompanies, setDisplayedCompanies] =
     useState<Company[]>(initialCompanies);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -76,12 +71,6 @@ const CompanyList: React.FC<CompanyListProps> = ({
   );
 
   const { fetchCompaniesWithCursor } = useCursorPagination();
-
-  interface Suggestion extends Pick<Company, "id" | "name" | "slug" | "logo"> {}
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
-  const suggestionsRef = useRef<HTMLDivElement>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement>(null);
 
   // Reset displayed companies when initial data changes
@@ -92,18 +81,11 @@ const CompanyList: React.FC<CompanyListProps> = ({
     setIsLoadingMore(false);
   }, [initialCompanies, initialHasMore, initialNextCursor]);
 
-  // Handle suggestion click
-  const handleSuggestionClick = (suggestion: Suggestion) => {
-    setSearchTermInput(suggestion.name);
-    setShowSuggestions(false);
-    router.push(`/company/${suggestion.slug}`);
-  };
-
   // Handle search
-  const handleSearch = () => {
+  const handleSearch = (term: string) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (searchTermInput.trim()) {
-      params.set("search", searchTermInput.trim());
+    if (term.trim()) {
+      params.set("search", term.trim());
     } else {
       params.delete("search");
     }
@@ -113,7 +95,9 @@ const CompanyList: React.FC<CompanyListProps> = ({
   };
 
   const loadMoreCompanies = useCallback(async () => {
-    if (isLoadingMore || !hasMore || !nextCursor) {return;}
+    if (isLoadingMore || !hasMore || !nextCursor) {
+      return;
+    }
     setIsLoadingMore(true);
     const currentSearchQueryInUrl = searchParams.get("search") || "";
     try {
@@ -145,58 +129,21 @@ const CompanyList: React.FC<CompanyListProps> = ({
     fetchCompaniesWithCursor,
   ]);
 
-  // Fetch suggestions when search input changes
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (debouncedSearchTerm.trim().length < 2) {
-        setSuggestions([]);
-        setShowSuggestions(false);
-        return;
-      }
-      setIsLoadingSuggestions(true);
-      try {
-        const result = await fetchCompanySuggestionsAction(
-          debouncedSearchTerm.trim(),
-        );
-        if (Array.isArray(result)) {
-          setSuggestions(result.slice(0, 5));
-          setShowSuggestions(true);
-        }
-      } finally {
-        setIsLoadingSuggestions(false);
-      }
-    };
-    fetchSuggestions();
-  }, [debouncedSearchTerm]);
-
   // Infinite scroll
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting) {loadMoreCompanies();}
+        if (entries[0]?.isIntersecting) {
+          loadMoreCompanies();
+        }
       },
       { threshold: 0.1, rootMargin: "500px" },
     );
-    if (loadMoreTriggerRef.current)
-      {observer.observe(loadMoreTriggerRef.current);}
+    if (loadMoreTriggerRef.current) {
+      observer.observe(loadMoreTriggerRef.current);
+    }
     return () => observer.disconnect();
   }, [loadMoreCompanies]);
-
-  // Click outside suggestions
-  useEffect(() => {
-    if (!showSuggestions) {return;}
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        suggestionsRef.current &&
-        !suggestionsRef.current.contains(event.target as Node)
-      ) {
-        setShowSuggestions(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showSuggestions]);
 
   return (
     <section
@@ -205,14 +152,7 @@ const CompanyList: React.FC<CompanyListProps> = ({
     >
       <div className="space-y-4 sm:space-y-6 lg:space-y-8">
         <CompanySearchBar
-          searchTermInput={searchTermInput}
-          setSearchTermInput={setSearchTermInput}
-          isLoadingSuggestions={isLoadingSuggestions}
-          suggestions={suggestions}
-          showSuggestions={showSuggestions}
-          setShowSuggestions={setShowSuggestions}
-          handleSuggestionClick={handleSuggestionClick}
-          suggestionsRef={suggestionsRef}
+          initialSearchTerm={initialSearchTerm}
           onSearch={handleSearch}
         />
         {displayedCompanies.length > 0 ? (
@@ -265,9 +205,3 @@ const CompanyList: React.FC<CompanyListProps> = ({
 };
 
 export default CompanyList;
-
-
-
-
-
-
