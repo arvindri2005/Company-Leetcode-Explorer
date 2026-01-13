@@ -1,6 +1,7 @@
 import { updateDoc } from "firebase/firestore";
 
 import { userRepository } from "@/features/profile/repositories/user.repository";
+import { auth } from "@/lib/api/firebase";
 import { EducationExperienceSchema, WorkExperienceSchema } from "@/types";
 
 // Mock Firebase
@@ -68,6 +69,7 @@ describe("User Input Validation Security", () => {
   describe("updateUserDisplayName", () => {
       it("should reject extremely long display names", async () => {
           (updateDoc as jest.Mock).mockResolvedValueOnce();
+          (auth as any).currentUser = { uid: "user1" };
           
           const result = await userRepository.updateUserDisplayName("user1", LONG_STRING);
           

@@ -572,6 +572,8 @@ export class UserRepository implements IUserRepository {
     companySlug: string,
     problemSlug: string,
   ): Promise<{ isBookmarked: boolean; error?: string }> {
+    if (!this.isAuthorized(userId)) {return { isBookmarked: false, error: "Unauthorized access to user profile." };}
+
     if (!userId || !problemId)
       {return {
         isBookmarked: false,
@@ -628,6 +630,8 @@ export class UserRepository implements IUserRepository {
     companySlug: string,
     problemSlug: string,
   ): Promise<{ success: boolean; error?: string }> {
+    if (!this.isAuthorized(userId)) {return { success: false, error: "Unauthorized access to user profile." };}
+
     if (!userId || !problemId)
       {return { success: false, error: "User ID and Problem ID are required." };}
     
@@ -679,6 +683,8 @@ export class UserRepository implements IUserRepository {
     userId: string,
     newDisplayName: string,
   ): Promise<{ success: boolean; error?: string }> {
+    if (!this.isAuthorized(userId)) {return { success: false, error: "Unauthorized access to user profile." };}
+
     if (!userId) {return { success: false, error: "User ID is required." };}
     if (!newDisplayName || newDisplayName.trim().length < 2) {
       return {
@@ -710,6 +716,8 @@ export class UserRepository implements IUserRepository {
     userId: string,
     educationData: Omit<EducationExperience, "id">,
   ): Promise<{ id: string | null; error?: string }> {
+    if (!this.isAuthorized(userId)) {return { id: null, error: "Unauthorized access to user profile." };}
+
     if (!userId) {return { id: null, error: "User ID is required." };}
 
     // Validate data using Zod schema
@@ -749,6 +757,8 @@ export class UserRepository implements IUserRepository {
     userId: string,
     workData: Omit<WorkExperience, "id">,
   ): Promise<{ id: string | null; error?: string }> {
+    if (!this.isAuthorized(userId)) {return { id: null, error: "Unauthorized access to user profile." };}
+
     if (!userId) {return { id: null, error: "User ID is required." };}
 
     // Validate data using Zod schema
@@ -791,6 +801,8 @@ export class UserRepository implements IUserRepository {
       "preparationStrategy" | "focusTopics" | "todoItems"
     >,
   ): Promise<{ success: boolean; error?: string }> {
+    if (!this.isAuthorized(userId)) {return { success: false, error: "Unauthorized access to user profile." };}
+
     if (!userId || !companyId)
       {return { success: false, error: "User ID and Company ID are required." };}
     const todoListDocRef = doc(
@@ -827,6 +839,8 @@ export class UserRepository implements IUserRepository {
     itemIndex: number,
     isCompleted: boolean,
   ): Promise<{ success: boolean; error?: string }> {
+    if (!this.isAuthorized(userId)) {return { success: false, error: "Unauthorized access to user profile." };}
+
     if (!userId || !companyId || itemIndex < 0) {
       return {
         success: false,
@@ -911,6 +925,11 @@ export class UserRepository implements IUserRepository {
         error: "An unknown error occurred while syncing user profile.",
       };
     }
+  }
+
+  private isAuthorized(userId: string): boolean {
+    const currentUser = auth.currentUser;
+    return !!currentUser && currentUser.uid === userId;
   }
 }
 
