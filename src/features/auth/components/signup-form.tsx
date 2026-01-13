@@ -9,7 +9,7 @@
  */
 "use client";
 
-import { useMemo,useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import Link from "next/link";
@@ -39,7 +39,7 @@ import { isValidRedirectUrl } from "@/lib/utils/url";
 import { useAuth } from "@/providers";
 
 import GoogleAuthButton from "./google-auth-button";
-import { PasswordStrengthIndicator } from "./password-strength-indicator";
+import { SignupPasswordStrength } from "./signup-password-strength";
 
 /**
  * Zod schema for validating the sign-up form fields.
@@ -88,20 +88,6 @@ export default function SignupForm() {
     },
   });
 
-  // Calculate password strength
-  const password = form.watch("password");
-  const passwordScore = useMemo(() => {
-    let score = 0;
-    if (!password) {
-      return 0;
-    }
-    if (password.length > 6) {score += 1;}
-    if (password.length > 10) {score += 1;}
-    if (/[0-9]/.test(password)) {score += 1;}
-    if (/[^A-Za-z0-9]/.test(password)) {score += 1;}
-    return score;
-  }, [password]);
-
   async function onSubmit(data: SignupFormValues) {
     if (!isOnline) {
       toast({
@@ -111,7 +97,7 @@ export default function SignupForm() {
       });
       return;
     }
-    
+
     setIsSubmitting(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(
@@ -133,7 +119,7 @@ export default function SignupForm() {
       });
 
       const redirectUrl = searchParams.get("redirectUrl");
-      if (isValidRedirectUrl(redirectUrl)) {
+      if (redirectUrl && isValidRedirectUrl(redirectUrl)) {
         router.push(redirectUrl);
       } else {
         router.push("/profile");
@@ -178,11 +164,17 @@ export default function SignupForm() {
         onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500"
       >
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100" style={{ animationFillMode: 'both' }}>
+        <div
+          className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100"
+          style={{ animationFillMode: "both" }}
+        >
           <GoogleAuthButton />
         </div>
 
-        <div className="relative my-6 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-150" style={{ animationFillMode: 'both' }}>
+        <div
+          className="relative my-6 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-150"
+          style={{ animationFillMode: "both" }}
+        >
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
           </div>
@@ -197,7 +189,10 @@ export default function SignupForm() {
           control={form.control}
           name="displayName"
           render={({ field }) => (
-            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-200" style={{ animationFillMode: 'both' }}>
+            <div
+              className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-200"
+              style={{ animationFillMode: "both" }}
+            >
               <FormItem>
                 <FormLabel>Display Name</FormLabel>
                 <FormControl>
@@ -209,11 +204,12 @@ export default function SignupForm() {
                       autoCapitalize="words"
                       className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
                     />
-                     {field.value && !form.getFieldState("displayName").invalid && (
-                      <div className="absolute right-3 top-3 text-green-500 animate-in fade-in zoom-in">
-                        <Check className="h-4 w-4" />
-                      </div>
-                    )}
+                    {field.value &&
+                      !form.getFieldState("displayName").invalid && (
+                        <div className="absolute right-3 top-3 text-green-500 animate-in fade-in zoom-in">
+                          <Check className="h-4 w-4" />
+                        </div>
+                      )}
                   </div>
                 </FormControl>
                 <FormMessage />
@@ -225,7 +221,10 @@ export default function SignupForm() {
           control={form.control}
           name="email"
           render={({ field }) => (
-            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-300" style={{ animationFillMode: 'both' }}>
+            <div
+              className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-300"
+              style={{ animationFillMode: "both" }}
+            >
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
@@ -254,24 +253,30 @@ export default function SignupForm() {
           control={form.control}
           name="password"
           render={({ field }) => (
-            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-400" style={{ animationFillMode: 'both' }}>
+            <div
+              className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-400"
+              style={{ animationFillMode: "both" }}
+            >
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                    <PasswordInput
-                      placeholder="••••••••"
-                      {...field}
-                      autoComplete="new-password"
-                      className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
-                    />
+                  <PasswordInput
+                    placeholder="••••••••"
+                    {...field}
+                    autoComplete="new-password"
+                    className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                  />
                 </FormControl>
-                <PasswordStrengthIndicator score={passwordScore} />
+                <SignupPasswordStrength />
                 <FormMessage />
               </FormItem>
             </div>
           )}
         />
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-500" style={{ animationFillMode: 'both' }}>
+        <div
+          className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-500"
+          style={{ animationFillMode: "both" }}
+        >
           <Button
             type="submit"
             disabled={isSubmitting || !isOnline}
@@ -294,13 +299,16 @@ export default function SignupForm() {
           </Button>
         </div>
 
-        <p className="text-center text-sm text-muted-foreground mt-6 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-600" style={{ animationFillMode: 'both' }}>
+        <p
+          className="text-center text-sm text-muted-foreground mt-6 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-600"
+          style={{ animationFillMode: "both" }}
+        >
           Already have an account?{" "}
           <Link
             href={`/login${
               searchParams.get("redirectUrl")
                 ? `?redirectUrl=${encodeURIComponent(
-                    searchParams.get("redirectUrl")!
+                    searchParams.get("redirectUrl")!,
                   )}`
                 : ""
             }`}
@@ -313,9 +321,3 @@ export default function SignupForm() {
     </Form>
   );
 }
-
-
-
-
-
-

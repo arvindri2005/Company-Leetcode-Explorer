@@ -97,7 +97,7 @@ export default function LoginForm() {
         description: "Welcome back!",
       });
       const redirectUrl = searchParams.get("redirectUrl");
-      if (isValidRedirectUrl(redirectUrl)) {
+      if (redirectUrl && isValidRedirectUrl(redirectUrl)) {
         router.push(redirectUrl);
       } else {
         router.push("/profile");
