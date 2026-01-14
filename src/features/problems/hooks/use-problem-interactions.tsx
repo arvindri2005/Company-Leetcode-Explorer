@@ -8,7 +8,6 @@ import { ToastAction } from "@/components/ui/toast";
 import { PROBLEM_STATUS_OPTIONS } from "@/features/problems/constants";
 import { userService } from "@/features/profile/services/user.service";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/providers";
 import type { LeetCodeProblem, ProblemStatus } from "@/types";
 
 export function useProblemInteractions(
@@ -16,11 +15,11 @@ export function useProblemInteractions(
   companySlug: string,
   initialIsBookmarked: boolean,
   problemStatus: ProblemStatus,
+  userId?: string,
   onBookmarkChanged?: (problemId: string, newStatus: boolean) => void,
   onProblemStatusChange?: (problemId: string, newStatus: ProblemStatus) => void,
 ) {
   const { toast } = useToast();
-  const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -78,7 +77,7 @@ export function useProblemInteractions(
   }, [router, pathname, toast]);
 
   const handleToggleBookmark = async () => {
-    if (!user) {
+    if (!userId) {
       promptLogin();
       return;
     }
@@ -94,7 +93,7 @@ export function useProblemInteractions(
     try {
       const effectiveCompanySlug = problem.companySlug || companySlug;
       const result = await userService.toggleBookmarkProblem(
-        user.uid,
+        userId,
         problem.id,
         effectiveCompanySlug,
         problem.slug,
@@ -136,7 +135,7 @@ export function useProblemInteractions(
   };
 
   const handleStatusUpdate = async (newStatus: ProblemStatus) => {
-    if (!user) {
+    if (!userId) {
       promptLogin();
       return;
     }
@@ -150,7 +149,7 @@ export function useProblemInteractions(
     try {
       const effectiveCompanySlug = problem.companySlug || companySlug;
       const result = await userService.setProblemStatus(
-        user.uid,
+        userId,
         problem.id,
         newStatus,
         effectiveCompanySlug,

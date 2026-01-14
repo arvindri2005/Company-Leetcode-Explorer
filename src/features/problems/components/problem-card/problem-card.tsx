@@ -31,7 +31,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useProblemInteractions } from "@/features/problems/hooks/use-problem-interactions";
 import { cn, getDeterministicRandom } from "@/lib/utils";
-import { useAuth } from "@/providers";
 
 import type { LeetCodeProblem, ProblemStatus } from "../../types";
 import { ProblemAIActions } from "../problem-ai-actions";
@@ -45,6 +44,7 @@ interface ProblemCardProps {
   problemStatus?: ProblemStatus;
   onProblemStatusChange?: (problemId: string, status: ProblemStatus) => void;
   showCompanies?: boolean;
+  userId?: string;
 }
 
 const statusIcons: Record<ProblemStatus, React.ElementType> = {
@@ -62,8 +62,8 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
   problemStatus = "none",
   onProblemStatusChange,
   showCompanies = false,
+  userId,
 }) => {
-  useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
   // Optimization: Lazy load AI hooks/components only after first interaction
   const [wasEverExpanded, setWasEverExpanded] = useState(false);
@@ -86,6 +86,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
     companySlug,
     initialIsBookmarked,
     problemStatus,
+    userId,
     onBookmarkChanged,
     onProblemStatusChange,
   );

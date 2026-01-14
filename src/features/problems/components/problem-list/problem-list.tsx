@@ -468,6 +468,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
                   onBookmarkChanged={handleProblemBookmarkChange}
                   problemStatus={problem.currentStatus || "none"}
                   onProblemStatusChange={handleProblemStatusChange}
+                  userId={user?.uid}
                 />
               </ErrorBoundary>
               {(index + 1) % 20 === 0 && (

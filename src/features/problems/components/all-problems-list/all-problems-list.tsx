@@ -450,6 +450,7 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
                     problemStatus={computedStatus}
                     onProblemStatusChange={handleProblemStatusChange}
                     showCompanies={true}
+                    userId={user?.uid}
                   />
                 </ErrorBoundary>
                 {(index + 1) % 25 === 0 && (
