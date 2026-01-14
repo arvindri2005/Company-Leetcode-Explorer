@@ -91,8 +91,9 @@ describe("ProblemCard", () => {
     render(<ProblemCard problem={mockProblem} companySlug="google" />);
     // Expand the card first to see the button
     fireEvent.click(screen.getByText("Two Sum"));
-    const linkButton = screen.getByRole("button", { name: /Solve on LeetCode/i });
+    const linkButton = screen.getByRole("link", { name: /Solve on LeetCode/i });
     expect(linkButton).toBeInTheDocument();
+    expect(linkButton).toHaveAttribute("href", mockProblem.link);
   });
 });
 
