@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { FormProvider, useFormContext } from "react-hook-form";
 
 import type { User as FirebaseUser } from "firebase/auth";
@@ -66,7 +66,18 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
   handleLogout,
   getInitials,
 }) => {
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const displayNameForm = useFormContext<DisplayNameFormValues>();
+
+  const handleLogoutClick = async () => {
+    setIsLoggingOut(true);
+    try {
+      await handleLogout();
+    } catch (error) {
+      console.error("Logout failed", error);
+      setIsLoggingOut(false);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -196,12 +207,13 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                   </Button>
                 )}
                 <Button
-                  onClick={handleLogout}
+                  onClick={handleLogoutClick}
                   variant="ghost"
                   size="sm"
+                  isLoading={isLoggingOut}
                   className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                 >
-                  <LogOut className="h-4 w-4 mr-2" />
+                  {!isLoggingOut && <LogOut className="h-4 w-4 mr-2" />}
                   Log Out
                 </Button>
               </div>
@@ -226,11 +238,12 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                 </Button>
               )}
               <Button
-                onClick={handleLogout}
+                onClick={handleLogoutClick}
                 variant="ghost"
+                isLoading={isLoggingOut}
                 className="w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 border border-dashed border-border"
               >
-                <LogOut className="h-4 w-4 mr-2" />
+                {!isLoggingOut && <LogOut className="h-4 w-4 mr-2" />}
                 Log Out
               </Button>
             </div>
