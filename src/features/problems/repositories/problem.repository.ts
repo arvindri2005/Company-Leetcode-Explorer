@@ -54,6 +54,9 @@ import { ProblemMapper } from "../mappers/problem.mapper";
 problemFilterRegistry.register(new DifficultyFilterImplementation());
 problemFilterRegistry.register(new LastAskedFilterImplementation());
 
+const MAX_PAGE_SIZE = 50;
+const MAX_OFFSET_LIMIT = 2000;
+
 function getFirestore(): Firestore {
   if (!db) {
     throw new Error(
@@ -260,6 +263,8 @@ export class ProblemRepository implements IProblemRepository {
       recencyCounts,
     } = params;
 
+    this.validatePaginationParams(page, pageSize);
+
     return await this.fetchProblemsByCompanyCore(companyId, {
       cursor,
       page,
@@ -297,6 +302,8 @@ export class ProblemRepository implements IProblemRepository {
       sortKey = "title",
       userId,
     } = params;
+
+    this.validatePaginationParams(page, pageSize);
 
     const {
       problems,
@@ -433,6 +440,20 @@ export class ProblemRepository implements IProblemRepository {
         error,
       );
       return [];
+    }
+  }
+
+  private validatePaginationParams(page: number | undefined, pageSize: number) {
+    if (pageSize > MAX_PAGE_SIZE) {
+      throw new Error(
+        `Page size exceeds limit of ${MAX_PAGE_SIZE}. Requested: ${pageSize}`,
+      );
+    }
+
+    if (page && page * pageSize > MAX_OFFSET_LIMIT) {
+      throw new Error(
+        `Deep pagination limit exceeded. Maximum offset is ${MAX_OFFSET_LIMIT}. Please use cursor-based pagination or refine your filters.`,
+      );
     }
   }
 
