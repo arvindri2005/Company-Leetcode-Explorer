@@ -3,7 +3,9 @@
 import React, {
   createContext,
   type ReactNode,
+  useCallback,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
@@ -36,30 +38,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   });
   const [isUserProfileSynced, setIsUserProfileSynced] = useState(false);
 
-  const syncUserProfileIfNeeded = async (firebaseUser: FirebaseUser) => {
-    // Only sync if the user is newly authenticated and not yet synced in this session
-    // This is a basic check; more robust logic might be needed depending on session handling
-    if (firebaseUser && !isUserProfileSynced) {
-      const result = await authService.syncUserProfile(firebaseUser);
-      if (result.success) {
-        setIsUserProfileSynced(true);
-      } else {
-        Logger.error("Failed to sync user profile", result.error, {
-          userId: firebaseUser.uid,
-        });
+  const syncUserProfileIfNeeded = useCallback(
+    async (firebaseUser: FirebaseUser) => {
+      // Only sync if the user is newly authenticated and not yet synced in this session
+      // This is a basic check; more robust logic might be needed depending on session handling
+      if (firebaseUser && !isUserProfileSynced) {
+        const result = await authService.syncUserProfile(firebaseUser);
+        if (result.success) {
+          setIsUserProfileSynced(true);
+        } else {
+          Logger.error("Failed to sync user profile", result.error, {
+            userId: firebaseUser.uid,
+          });
+        }
       }
-    }
-  };
+    },
+    [isUserProfileSynced],
+  );
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       setLoading(false);
-      
+
       if (firebaseUser) {
         // Set cookie to indicate user is authenticated
-        document.cookie = "auth_status=authenticated; path=/; max-age=2592000; SameSite=Strict; Secure"; // 30 days
-        
+        document.cookie =
+          "auth_status=authenticated; path=/; max-age=2592000; SameSite=Strict; Secure"; // 30 days
+
         // Reset sync flag on new auth state if needed, or manage more carefully
         // For simplicity here, we'll attempt sync if user is present.
         // A more robust solution might check a flag in localStorage or Firestore
@@ -67,8 +73,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // For now, this will call sync on first load if user is already logged in.
         await syncUserProfileIfNeeded(firebaseUser);
       } else {
-         // Remove cookie on logout
-        document.cookie = "auth_status=; path=/; max-age=0; SameSite=Strict; Secure";
+        // Remove cookie on logout
+        document.cookie =
+          "auth_status=; path=/; max-age=0; SameSite=Strict; Secure";
         setIsUserProfileSynced(false); // Reset sync flag on logout
       }
     });
@@ -77,19 +84,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // isUserProfileSynced removed from deps to avoid loop if sync fails
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        isUserProfileSynced,
-        syncUserProfileIfNeeded,
-        setUser,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  // Memoize the context value to prevent unnecessary re-renders in consumers
+  const value = useMemo(
+    () => ({
+      user,
+      loading,
+      isUserProfileSynced,
+      syncUserProfileIfNeeded,
+      setUser,
+    }),
+    [user, loading, isUserProfileSynced, syncUserProfileIfNeeded],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 
