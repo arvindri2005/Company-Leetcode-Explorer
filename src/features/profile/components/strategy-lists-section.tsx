@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { memo } from "react";
 import ReactMarkdown from "react-markdown";
 
 import { Brain, FolderKanban, ListChecks, Loader2, Target } from "lucide-react";
@@ -22,15 +22,11 @@ import {
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
-import type { SavedStrategyTodoList } from "@/types";
+import type { SavedStrategyTodoList, StrategyTodoItem as StrategyTodoItemType } from "@/types";
 
 /**
  * @interface StrategyListsSectionProps
  * @description Props for the StrategyListsSection component.
- * @property {SavedStrategyTodoList[]} strategyTodoLists - An array of saved strategy to-do lists.
- * @property {boolean} isLoadingStrategyTodoLists - Flag indicating whether the strategy lists are being loaded.
- * @property {string | null} updatingTodoItemId - The ID of the to-do item currently being updated, or null if none.
- * @property {(companyId: string, itemIndex: number, newStatus: boolean) => Promise<void>} handleToggleTodoItem - Function to handle toggling the completion status of a to-do item.
  */
 interface StrategyListsSectionProps {
   strategyTodoLists: SavedStrategyTodoList[];
@@ -43,11 +39,154 @@ interface StrategyListsSectionProps {
   ) => Promise<void>;
 }
 
+// --- Components for optimization ---
+
+/**
+ * @component StrategyTodoItem
+ * @description Memoized component for a single todo item to prevent unnecessary re-renders of siblings.
+ */
+const StrategyTodoItem = memo(
+  ({
+    item,
+    companyId,
+    index,
+    isUpdating,
+    onToggle,
+  }: {
+    item: StrategyTodoItemType;
+    companyId: string;
+    index: number;
+    isUpdating: boolean;
+    onToggle: (companyId: string, itemIndex: number, newStatus: boolean) => void;
+  }) => {
+    const itemId = `${companyId}-${index}`;
+    
+    // Create a stable handler call
+    const handleCheckedChange = (checked: boolean) => {
+      onToggle(companyId, index, !!checked);
+    };
+
+    return (
+      <li className="flex items-center space-x-2 p-2 border-b last:border-b-0">
+        <Checkbox
+          id={itemId}
+          checked={item.isCompleted}
+          onCheckedChange={handleCheckedChange}
+          disabled={isUpdating}
+          aria-label={`Mark to-do item as ${item.isCompleted ? "incomplete" : "complete"}`}
+        />
+        <label
+          htmlFor={itemId}
+          className={cn(
+            "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-grow prose prose-sm dark:prose-invert max-w-full",
+            item.isCompleted && "line-through text-muted-foreground",
+          )}
+        >
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              p: "span",
+            }}
+          >
+            {item.text}
+          </ReactMarkdown>
+        </label>
+        {isUpdating && <Loader2 className="h-4 w-4 animate-spin" />}
+      </li>
+    );
+  }
+);
+StrategyTodoItem.displayName = "StrategyTodoItem";
+
+/**
+ * @component StrategyListItem
+ * @description Memoized component for a company's strategy list.
+ * This ensures that when one company's list updates, others do not re-render.
+ */
+const StrategyListItem = memo(
+  ({
+    list,
+    updatingTodoItemId,
+    onToggle,
+  }: {
+    list: SavedStrategyTodoList;
+    updatingTodoItemId: string | null;
+    onToggle: (companyId: string, itemIndex: number, newStatus: boolean) => void;
+  }) => {
+    return (
+      <AccordionItem
+        value={list.companyId}
+        className="bg-card border border-border rounded-xl shadow-smborder shadow-sm"
+      >
+        <AccordionTrigger className="p-4 text-lg font-semibold hover:no-underline">
+          Strategy for {list.companyName}
+        </AccordionTrigger>
+        <AccordionContent className="p-4 pt-0 space-y-4">
+          <div>
+            <h4 className="text-md font-semibold mb-2 flex items-center">
+              <ListChecks size={18} className="mr-2 text-primary" />
+              Overall Strategy
+            </h4>
+            <div className="prose prose-sm dark:prose-invert max-w-none p-3 bg-muted/50 rounded-md">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {list.preparationStrategy}
+              </ReactMarkdown>
+            </div>
+          </div>
+          {list.focusTopics.length > 0 && (
+            <div>
+              <h4 className="text-md font-semibold mb-2 flex items-center">
+                <Target size={18} className="mr-2 text-primary" />
+                Key Focus Topics
+              </h4>
+              <ul className="list-disc space-y-1 pl-5">
+                {list.focusTopics.map((topic, idx) => (
+                  <li
+                    key={idx}
+                    className="prose prose-sm dark:prose-invert max-w-none"
+                  >
+                    <strong>{topic.topic}:</strong> {topic.reason}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {list.items.length > 0 && (
+            <div>
+              <h4 className="text-md font-semibold mb-2 flex items-center">
+                <FolderKanban size={18} className="mr-2 text-primary" />
+                To-Do Items
+              </h4>
+              <ul className="space-y-2">
+                {list.items.map((item, index) => {
+                  const itemId = `${list.companyId}-${index}`;
+                  return (
+                    <StrategyTodoItem
+                      key={itemId}
+                      item={item}
+                      companyId={list.companyId}
+                      index={index}
+                      isUpdating={updatingTodoItemId === itemId}
+                      onToggle={onToggle}
+                    />
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground mt-3">
+            Saved on: {new Date(list.savedAt).toLocaleDateString()}
+          </p>
+        </AccordionContent>
+      </AccordionItem>
+    );
+  }
+);
+StrategyListItem.displayName = "StrategyListItem";
+
 /**
  * @function StrategyListsSection
  * @description A component that displays a user's saved AI-generated strategy to-do lists for various companies.
- * @param {StrategyListsSectionProps} props - The props for the component.
- * @returns {JSX.Element} The rendered section with an accordion of strategy lists, a loading state, or an empty state message.
  */
 const StrategyListsSection: React.FC<StrategyListsSectionProps> = ({
   strategyTodoLists,
@@ -92,114 +231,29 @@ const StrategyListsSection: React.FC<StrategyListsSectionProps> = ({
       </CardHeader>
       <CardContent>
         <Accordion type="multiple" className="w-full space-y-3">
-          {strategyTodoLists.map((list) => (
-            <AccordionItem
-              value={list.companyId}
-              key={list.companyId}
-              className="bg-card border border-border rounded-xl shadow-smborder shadow-sm"
-            >
-              <AccordionTrigger className="p-4 text-lg font-semibold hover:no-underline">
-                Strategy for {list.companyName}
-              </AccordionTrigger>
-              <AccordionContent className="p-4 pt-0 space-y-4">
-                <div>
-                  <h4 className="text-md font-semibold mb-2 flex items-center">
-                    <ListChecks size={18} className="mr-2 text-primary" />
-                    Overall Strategy
-                  </h4>
-                  <div className="prose prose-sm dark:prose-invert max-w-none p-3 bg-muted/50 rounded-md">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {list.preparationStrategy}
-                    </ReactMarkdown>
-                  </div>
-                </div>
-                {list.focusTopics.length > 0 && (
-                  <div>
-                    <h4 className="text-md font-semibold mb-2 flex items-center">
-                      <Target size={18} className="mr-2 text-primary" />
-                      Key Focus Topics
-                    </h4>
-                    <ul className="list-disc space-y-1 pl-5">
-                      {list.focusTopics.map((topic, idx) => (
-                        <li
-                          key={idx}
-                          className="prose prose-sm dark:prose-invert max-w-none"
-                        >
-                          <strong>{topic.topic}:</strong> {topic.reason}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {list.items.length > 0 && (
-                  <div>
-                    <h4 className="text-md font-semibold mb-2 flex items-center">
-                      <FolderKanban size={18} className="mr-2 text-primary" />
-                      To-Do Items
-                    </h4>
-                    <ul className="space-y-2">
-                      {list.items.map((item, index) => {
-                        const itemId = `${list.companyId}-${index}`;
-                        return (
-                          <li
-                            key={itemId}
-                            className="flex items-center space-x-2 p-2 border-b last:border-b-0"
-                          >
-                            <Checkbox
-                              id={itemId}
-                              checked={item.isCompleted}
-                              onCheckedChange={(checked) =>
-                                handleToggleTodoItem(
-                                  list.companyId,
-                                  index,
-                                  !!checked,
-                                )
-                              }
-                              disabled={updatingTodoItemId === itemId}
-                              aria-label={`Mark to-do item as ${item.isCompleted ? "incomplete" : "complete"}`}
-                            />
-                            <label
-                              htmlFor={itemId}
-                              className={cn(
-                                "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-grow prose prose-sm dark:prose-invert max-w-full",
-                                item.isCompleted &&
-                                  "line-through text-muted-foreground",
-                              )}
-                            >
-                              <ReactMarkdown
-                                remarkPlugins={[remarkGfm]}
-                                components={{
-                                  p: "span",
-                                }}
-                              >
-                                {item.text}
-                              </ReactMarkdown>
-                            </label>
-                            {updatingTodoItemId === itemId && (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            )}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                )}
-                <p className="text-xs text-muted-foreground mt-3">
-                  Saved on: {new Date(list.savedAt).toLocaleDateString()}
-                </p>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
+          {strategyTodoLists.map((list) => {
+            // Optimization: Only pass the updating ID if it belongs to this company list.
+            // This allows memoized StrategyListItem to skip re-rendering for other companies
+            // even when updatingTodoItemId changes (from null to string or vice-versa).
+            const activeUpdatingId =
+              updatingTodoItemId &&
+              updatingTodoItemId.startsWith(`${list.companyId}-`)
+                ? updatingTodoItemId
+                : null;
+
+            return (
+              <StrategyListItem
+                key={list.companyId}
+                list={list}
+                updatingTodoItemId={activeUpdatingId}
+                onToggle={handleToggleTodoItem}
+              />
+            );
+          })}
         </Accordion>
       </CardContent>
     </Card>
   );
 };
 
-export default StrategyListsSection;
-
-
-
-
-
-
+export default memo(StrategyListsSection);
