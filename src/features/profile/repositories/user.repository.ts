@@ -47,6 +47,8 @@ import type {
 } from "../interfaces/user.repository.interface";
 import { type UserDocument,UserMapper } from "../mappers/user.mapper";
 
+const MAX_PAGE_SIZE = 50;
+
 /**
  * Repository for User-related data access.
  * Implements IUserRepository interface for dependency injection
@@ -93,7 +95,7 @@ export class UserRepository implements IUserRepository {
   async findAll(params?: PaginationParams): Promise<PaginatedResult<UserEntity>> {
     try {
       const usersColRef = collection(db, "users");
-      const pageSize = params?.pageSize ?? 20;
+      const pageSize = Math.min(params?.pageSize ?? 20, MAX_PAGE_SIZE);
       
       let q = query(usersColRef, orderBy("createdAt", "desc"), limit(pageSize + 1));
       
@@ -934,9 +936,3 @@ export class UserRepository implements IUserRepository {
 }
 
 export const userRepository = new UserRepository();
-
-
-
-
-
-

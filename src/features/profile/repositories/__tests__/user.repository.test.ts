@@ -34,7 +34,7 @@ jest.mock('firebase/firestore', () => {
     where: jest.fn(),
     limit: jest.fn(),
     startAfter: jest.fn(),
-    getCountFromServer: jest.fn(),
+    getCountFromServer: jest.fn(() => ({ data: () => ({ count: 0 }) })),
     documentId: jest.fn(),
   };
 });
@@ -43,6 +43,7 @@ describe('UserRepository Security Tests', () => {
   let repository: UserRepository;
   let updateDocMock: any;
   let docMock: any;
+  let limitMock: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -52,6 +53,7 @@ describe('UserRepository Security Tests', () => {
     const firestore = require('firebase/firestore');
     updateDocMock = firestore.updateDoc;
     docMock = firestore.doc;
+    limitMock = firestore.limit;
   });
 
   it('should PREVENT modifying another user\'s profile (IDOR protection)', async () => {
@@ -71,5 +73,15 @@ describe('UserRepository Security Tests', () => {
     expect(result.success).toBe(false);
     expect(result.error).toBe('Unauthorized access to user profile.');
     expect(updateDocMock).not.toHaveBeenCalled();
+  });
+
+  it('should enforce MAX_PAGE_SIZE in findAll to prevent DoS', async () => {
+    // Action: Call findAll with a large pageSize
+    const largePageSize = 1000;
+    await repository.findAll({ pageSize: largePageSize });
+
+    // Assertion: The limit() function should be called with 51 (MAX_PAGE_SIZE + 1)
+    // because MAX_PAGE_SIZE is 50, and code does limit(pageSize + 1)
+    expect(limitMock).toHaveBeenCalledWith(51); 
   });
 });
