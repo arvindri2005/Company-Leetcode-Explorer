@@ -13,6 +13,7 @@ import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useToast } from "@/hooks/use-toast";
 import { auth } from "@/lib/api/firebase";
 import { Logger } from "@/lib/utils/logger";
+import { isValidRedirectUrl } from "@/lib/utils/url";
 import { useAuth } from "@/providers";
 
 export default function GoogleAuthButton() {
@@ -48,7 +49,7 @@ export default function GoogleAuthButton() {
       });
 
       const redirectUrl = searchParams.get("redirectUrl");
-      if (redirectUrl) {
+      if (redirectUrl && isValidRedirectUrl(redirectUrl)) {
         router.push(redirectUrl);
       } else {
         router.push("/profile");
