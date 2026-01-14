@@ -53,6 +53,16 @@ describe("Company Actions Error Handling", () => {
       );
       expect(result.error?.message).toBe("DB Error");
     });
+
+    it("should prevent deep pagination DoS", async () => {
+      // page 1000 * pageSize 50 = 50000 > 10000
+      const result = await fetchCompaniesAction(1000, 50);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe("BAD_REQUEST");
+      expect(result.error?.message).toContain("Pagination limit exceeded");
+      expect(companyService.getCompanies).not.toHaveBeenCalled();
+    });
   });
 });
 

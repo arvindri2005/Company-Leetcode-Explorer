@@ -134,7 +134,25 @@ export async function fetchCompaniesAction(
   cursor?: string,
 ): Promise<ApiResponse<{ companies: Company[]; hasMore: boolean; nextCursor?: string }>> {
   try {
-    const result = await companyService.getCompanies({ page, pageSize, searchTerm, cursor });
+    // SENTINEL: Input validation and DoS prevention
+    const safePage = Math.max(1, page);
+    const safePageSize = Math.min(50, Math.max(1, pageSize));
+    const safeSearchTerm = searchTerm?.slice(0, 100);
+
+    // Prevent deep pagination DoS via offset (limit 10k items)
+    if (safePage * safePageSize > 10000 && !cursor) {
+       return errorResponse({
+        code: "BAD_REQUEST",
+        message: "Pagination limit exceeded. Please narrow your search.",
+      });
+    }
+
+    const result = await companyService.getCompanies({ 
+      page: safePage, 
+      pageSize: safePageSize, 
+      searchTerm: safeSearchTerm, 
+      cursor 
+    });
     
     if (result.isFailure) {
       return errorResponse({
@@ -191,11 +209,15 @@ export async function fetchCompanySuggestionsAction(
   searchTerm: string,
   limitNum: number = 5,
 ): Promise<ApiResponse<Array<Pick<Company, "id" | "name" | "slug" | "logo">>>> {
-  if (!searchTerm || searchTerm.trim().length < 1) {
+  // SENTINEL: Input validation
+  const safeSearchTerm = searchTerm?.slice(0, 100) || "";
+  const safeLimit = Math.min(20, Math.max(1, limitNum));
+
+  if (!safeSearchTerm || safeSearchTerm.trim().length < 1) {
     return successResponse([]);
   }
   try {
-    const result = await companyService.fetchCompanySuggestions(searchTerm, limitNum);
+    const result = await companyService.fetchCompanySuggestions(safeSearchTerm, safeLimit);
     
     if (result.isFailure) {
       return errorResponse({

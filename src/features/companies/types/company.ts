@@ -33,11 +33,12 @@ export interface Company {
  */
 export const CompanySchema = z.object({
   id: z.string(),
-  name: z.string(),
+  name: z.string().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
   normalizedName: z.string().optional(),
   slug: SlugSchema,
   logo: z
     .string()
+    .max(2048, "Logo URL is too long")
     .refine(
       (url) =>
         url.startsWith("http://") ||
@@ -48,9 +49,10 @@ export const CompanySchema = z.object({
       }
     )
     .optional(),
-  description: z.string().optional(),
+  description: z.string().max(2000, "Description must be less than 2000 characters").optional(),
   website: z
     .string()
+    .max(2048, "Website URL is too long")
     .url()
     .refine(
       (url) => url.startsWith("http://") || url.startsWith("https://"),
@@ -84,7 +86,7 @@ export const CompanySchema = z.object({
       })
     )
     .optional(),
-  relatedCompanies: z.array(z.string()).optional(),
+  relatedCompanies: z.array(z.string().max(100)).max(20, "Cannot have more than 20 related companies").optional(),
   statsLastUpdatedAt: z.date().optional(),
 });
 
