@@ -41,6 +41,17 @@ interface SearchBarProps {
   className?: string;
 }
 
+const COMPANIES = [
+  "Google",
+  "Amazon",
+  "Microsoft",
+  "Meta",
+  "Netflix",
+  "Apple",
+  "Uber",
+  "Airbnb",
+];
+
 /**
  * Renders a smart search bar for finding companies.
  *
@@ -184,17 +195,7 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
     }
   };
 
-  const companies = [
-    "Google",
-    "Amazon",
-    "Microsoft",
-    "Meta",
-    "Netflix",
-    "Apple",
-    "Uber",
-    "Airbnb",
-  ];
-  const placeholder = useTypingPlaceholder(companies);
+  const placeholder = useTypingPlaceholder(COMPANIES);
 
   return (
     <section
@@ -335,4 +336,4 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
   );
 };
 
-export default CompanySearchBar;
+export default React.memo(CompanySearchBar);

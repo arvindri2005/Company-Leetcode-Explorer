@@ -82,17 +82,20 @@ const CompanyList: React.FC<CompanyListProps> = ({
   }, [initialCompanies, initialHasMore, initialNextCursor]);
 
   // Handle search
-  const handleSearch = (term: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (term.trim()) {
-      params.set("search", term.trim());
-    } else {
-      params.delete("search");
-    }
-    // Reset page to 1 on new search
-    params.delete("page");
-    router.push(`${pathname}?${params.toString()}`);
-  };
+  const handleSearch = useCallback(
+    (term: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (term.trim()) {
+        params.set("search", term.trim());
+      } else {
+        params.delete("search");
+      }
+      // Reset page to 1 on new search
+      params.delete("page");
+      router.push(`${pathname}?${params.toString()}`);
+    },
+    [pathname, router, searchParams],
+  );
 
   const loadMoreCompanies = useCallback(async () => {
     if (isLoadingMore || !hasMore || !nextCursor) {
