@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { usePathname, useRouter } from "next/navigation";
 
@@ -24,37 +24,35 @@ export function useProblemInteractions(
   const pathname = usePathname();
 
   // -- State Management for Bookmark --
-  // We want to avoid useEffect syncing props to state to prevent double renders.
-  // We use a "committed" state that defaults to the prop, but can be updated locally.
-  // We also track the prop to update our committed state if the prop changes externally.
-  const [committedIsBookmarked, setCommittedIsBookmarked] =
-    useState(initialIsBookmarked);
-  const prevInitialIsBookmarked = useRef(initialIsBookmarked);
-
-  // If prop changes, sync it to committed state during render (Derived State pattern)
-  if (initialIsBookmarked !== prevInitialIsBookmarked.current) {
-    prevInitialIsBookmarked.current = initialIsBookmarked;
-    setCommittedIsBookmarked(initialIsBookmarked);
-  }
-
+  // Optimization: Removed duplicate "committed" state and effects.
+  // We rely on "Optimistic UI" pattern:
+  // 1. User acts -> Set optimistic state.
+  // 2. Prop updates -> If prop matches optimistic, clear optimistic (yield to prop).
+  // 3. Fallback -> If prop never updates (uncontrolled), optimistic state persists as local state.
+  
   const [optimisticIsBookmarked, setOptimisticIsBookmarked] = useState<
     boolean | null
   >(null);
-  const isBookmarked = optimisticIsBookmarked ?? committedIsBookmarked;
+
+  // If the prop has caught up to our optimistic state, we can clear the override.
+  // This "update during render" pattern allows React to restart the render immediately with clean state,
+  // preventing a double-paint flicker.
+  if (optimisticIsBookmarked === initialIsBookmarked) {
+    setOptimisticIsBookmarked(null);
+  }
+
+  const isBookmarked = optimisticIsBookmarked ?? initialIsBookmarked;
   const [isTogglingBookmark, setIsTogglingBookmark] = useState(false);
 
   // -- State Management for Status --
-  const [committedStatus, setCommittedStatus] = useState(problemStatus);
-  const prevProblemStatus = useRef(problemStatus);
-
-  if (problemStatus !== prevProblemStatus.current) {
-    prevProblemStatus.current = problemStatus;
-    setCommittedStatus(problemStatus);
-  }
-
   const [optimisticStatus, setOptimisticStatus] =
     useState<ProblemStatus | null>(null);
-  const currentStatus = optimisticStatus ?? committedStatus;
+
+  if (optimisticStatus === problemStatus) {
+    setOptimisticStatus(null);
+  }
+
+  const currentStatus = optimisticStatus ?? problemStatus;
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const promptLogin = useCallback(() => {
@@ -101,10 +99,11 @@ export function useProblemInteractions(
       if (result.isSuccess) {
         const finalValue = result.value.isBookmarked ?? nextValue;
         
-        // Update committed state to the new value
-        setCommittedIsBookmarked(finalValue);
-        // Clear optimistic state
-        setOptimisticIsBookmarked(null);
+        // If the result differs from our optimistic guess (rare), update optimistic to match result.
+        // Otherwise, keep optimistic state until prop updates.
+        if (finalValue !== nextValue) {
+             setOptimisticIsBookmarked(finalValue);
+        }
 
         onBookmarkChanged?.(problem.id, finalValue);
 
@@ -115,7 +114,7 @@ export function useProblemInteractions(
           } your collection.`,
         });
       } else {
-        setOptimisticIsBookmarked(null); // Revert to committed state
+        setOptimisticIsBookmarked(null); // Revert to prop
         toast({
           title: "Bookmark Error",
           description: result.error?.message || "Failed to update bookmark.",
@@ -123,7 +122,7 @@ export function useProblemInteractions(
         });
       }
     } catch {
-      setOptimisticIsBookmarked(null); // Revert to committed state
+      setOptimisticIsBookmarked(null); // Revert to prop
       toast({
         title: "Connection Error",
         description: "Please check your connection and try again.",
@@ -156,8 +155,7 @@ export function useProblemInteractions(
         problem.slug,
       );
       if (result.isSuccess) {
-        setCommittedStatus(newStatus);
-        setOptimisticStatus(null);
+        // Keep optimistic status until prop updates
         
         onProblemStatusChange?.(problem.id, newStatus);
 
