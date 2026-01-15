@@ -90,4 +90,10 @@ describe("GoogleAuthButton Security", () => {
       expect(mockPush).toHaveBeenCalledWith("/dashboard");
     });
   });
+
+  it("should respect the disabled prop", () => {
+    render(<GoogleAuthButton disabled={true} />);
+    const button = screen.getByRole("button", { name: /continue with google/i });
+    expect(button).toBeDisabled();
+  });
 });

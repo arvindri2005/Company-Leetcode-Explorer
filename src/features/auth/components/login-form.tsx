@@ -140,7 +140,7 @@ export default function LoginForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <GoogleAuthButton />
+        <GoogleAuthButton disabled={isSubmitting} />
 
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
@@ -168,6 +168,7 @@ export default function LoginForm() {
                       autoComplete="email"
                       inputMode="email"
                       className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                      disabled={isSubmitting}
                     />
                 </FormControl>
                 <FormMessage />
@@ -186,6 +187,7 @@ export default function LoginForm() {
                     {...field}
                     autoComplete="current-password"
                     className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                    disabled={isSubmitting}
                   />
                 </FormControl>
                 <FormMessage />
@@ -196,7 +198,7 @@ export default function LoginForm() {
 
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Checkbox id="remember" />
+            <Checkbox id="remember" disabled={isSubmitting} />
             <label
               htmlFor="remember"
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -254,9 +256,3 @@ export default function LoginForm() {
     </Form>
   );
 }
-
-
-
-
-
-

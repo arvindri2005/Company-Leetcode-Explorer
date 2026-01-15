@@ -16,7 +16,11 @@ import { Logger } from "@/lib/utils/logger";
 import { isValidRedirectUrl } from "@/lib/utils/url";
 import { useAuth } from "@/providers";
 
-export default function GoogleAuthButton() {
+interface GoogleAuthButtonProps {
+  disabled?: boolean;
+}
+
+export default function GoogleAuthButton({ disabled }: GoogleAuthButtonProps) {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -82,7 +86,7 @@ export default function GoogleAuthButton() {
       type="button"
       className="w-full"
       onClick={handleGoogleSignIn}
-      disabled={isLoading || !isOnline}
+      disabled={isLoading || !isOnline || disabled}
     >
       {isLoading ? (
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -93,9 +97,3 @@ export default function GoogleAuthButton() {
     </Button>
   );
 }
-
-
-
-
-
-

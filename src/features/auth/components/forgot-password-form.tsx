@@ -125,6 +125,7 @@ export default function ForgotPasswordForm() {
                   {...field}
                   autoComplete="email"
                   className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                  disabled={isSubmitting}
                 />
               </FormControl>
               <FormMessage />
@@ -158,9 +159,3 @@ export default function ForgotPasswordForm() {
     </Form>
   );
 }
-
-
-
-
-
-

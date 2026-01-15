@@ -171,7 +171,7 @@ export default function SignupForm() {
           className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100"
           style={{ animationFillMode: "both" }}
         >
-          <GoogleAuthButton />
+          <GoogleAuthButton disabled={isSubmitting} />
         </div>
 
         <div
@@ -206,6 +206,7 @@ export default function SignupForm() {
                       autoComplete="name"
                       autoCapitalize="words"
                       className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                      disabled={isSubmitting}
                     />
                     {field.value &&
                       !form.getFieldState("displayName").invalid && (
@@ -239,6 +240,7 @@ export default function SignupForm() {
                       {...field}
                       autoComplete="email"
                       className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                      disabled={isSubmitting}
                     />
                     {field.value && !form.getFieldState("email").invalid && (
                       <div className="absolute right-3 top-3 text-green-500 animate-in fade-in zoom-in">
@@ -268,6 +270,7 @@ export default function SignupForm() {
                     {...field}
                     autoComplete="new-password"
                     className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                    disabled={isSubmitting}
                   />
                 </FormControl>
                 <SignupPasswordStrength />
