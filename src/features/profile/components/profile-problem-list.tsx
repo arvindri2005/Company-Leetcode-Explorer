@@ -2,9 +2,12 @@
 
 import React, { memo } from "react";
 
+import Link from "next/link";
+
 import { ClipboardList } from "lucide-react";
 
 import { ProblemCardSkeleton } from "@/components/skeletons/problem-skeletons";
+import { Button } from "@/components/ui/button";
 import { ProblemCard } from "@/features/problems";
 import type { LeetCodeProblem, ProblemStatus } from "@/types";
 
@@ -67,15 +70,21 @@ const ProfileProblemList: React.FC<ProfileProblemListProps> = ({
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed border-muted rounded-xl bg-muted/5">
         <div className="bg-background p-3 rounded-full mb-4 ring-1 ring-border shadow-sm">
-          <ClipboardList className="h-6 w-6 text-muted-foreground" />
+          <ClipboardList
+            className="h-6 w-6 text-muted-foreground"
+            aria-hidden="true"
+          />
         </div>
         <h3 className="text-lg font-medium text-foreground mb-1">
           No problems found
         </h3>
-        <p className="text-sm text-muted-foreground max-w-xs">
+        <p className="text-sm text-muted-foreground max-w-xs mb-4">
           This list is currently empty. Start solving or bookmarking problems to
           see them here!
         </p>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/problems">Browse Problems</Link>
+        </Button>
       </div>
     );
   }

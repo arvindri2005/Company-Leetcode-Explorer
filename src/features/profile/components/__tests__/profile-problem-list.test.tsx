@@ -67,6 +67,10 @@ describe("ProfileProblemList", () => {
     );
 
     expect(screen.getByText("No problems found")).toBeInTheDocument();
+    
+    const browseLink = screen.getByRole("link", { name: /browse problems/i });
+    expect(browseLink).toBeInTheDocument();
+    expect(browseLink).toHaveAttribute("href", "/problems");
   });
 
   it("renders list of problems", () => {
