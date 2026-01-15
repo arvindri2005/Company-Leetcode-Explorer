@@ -45,15 +45,19 @@ import { SignupPasswordStrength } from "./signup-password-strength";
 /**
  * Zod schema for validating the sign-up form fields.
  */
-const signupFormSchema = z.object({
+export const signupFormSchema = z.object({
   displayName: z
     .string()
     .min(2, { message: "Display name must be at least 2 characters." })
     .max(50),
-  email: z.string().email({ message: "Please enter a valid email address." }),
+  email: z
+    .string()
+    .email({ message: "Please enter a valid email address." })
+    .max(255, { message: "Email must be less than 255 characters." }),
   password: z
     .string()
-    .min(6, { message: "Password must be at least 6 characters." }),
+    .min(6, { message: "Password must be at least 6 characters." })
+    .max(128, { message: "Password must be less than 128 characters." }),
 });
 
 type SignupFormValues = z.infer<typeof signupFormSchema>;

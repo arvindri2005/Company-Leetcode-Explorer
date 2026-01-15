@@ -23,8 +23,11 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { auth } from "@/lib/api/firebase";
 
-const forgotPasswordSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address." }),
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .email({ message: "Please enter a valid email address." })
+    .max(255, { message: "Email must be less than 255 characters." }),
 });
 
 type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;

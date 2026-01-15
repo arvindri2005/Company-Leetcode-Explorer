@@ -42,11 +42,15 @@ import GoogleAuthButton from "./google-auth-button";
 /**
  * Zod schema for validating the login form fields.
  */
-const loginFormSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address." }),
+export const loginFormSchema = z.object({
+  email: z
+    .string()
+    .email({ message: "Please enter a valid email address." })
+    .max(255, { message: "Email must be less than 255 characters." }),
   password: z
     .string()
-    .min(6, { message: "Password must be at least 6 characters." }),
+    .min(6, { message: "Password must be at least 6 characters." })
+    .max(128, { message: "Password must be less than 128 characters." }),
 });
 
 type LoginFormValues = z.infer<typeof loginFormSchema>;
