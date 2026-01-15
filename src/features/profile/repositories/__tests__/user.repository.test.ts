@@ -44,6 +44,7 @@ describe('UserRepository Security Tests', () => {
   let updateDocMock: any;
   let docMock: any;
   let limitMock: any;
+  let setDocMock: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -54,6 +55,7 @@ describe('UserRepository Security Tests', () => {
     updateDocMock = firestore.updateDoc;
     docMock = firestore.doc;
     limitMock = firestore.limit;
+    setDocMock = firestore.setDoc;
   });
 
   it('should PREVENT modifying another user\'s profile (IDOR protection)', async () => {
@@ -83,5 +85,53 @@ describe('UserRepository Security Tests', () => {
     // Assertion: The limit() function should be called with 51 (MAX_PAGE_SIZE + 1)
     // because MAX_PAGE_SIZE is 50, and code does limit(pageSize + 1)
     expect(limitMock).toHaveBeenCalledWith(51); 
+  });
+
+  it('should reject strategy data that exceeds size limits', async () => {
+    const userId = "test-user-id";
+    (auth as any).currentUser = { uid: userId };
+    
+    // Create oversized data
+    const hugeString = "a".repeat(10001); // Exceeds 10000 limit
+    const strategyData = {
+      preparationStrategy: hugeString,
+      focusTopics: [],
+      todoItems: []
+    };
+
+    const result = await repository.saveStrategyTodoList(
+      userId, 
+      "company-id", 
+      "Company Name", 
+      strategyData
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Preparation strategy is too long");
+    expect(setDocMock).not.toHaveBeenCalled();
+  });
+
+  it('should reject strategy data with too many items', async () => {
+    const userId = "test-user-id";
+    (auth as any).currentUser = { uid: userId };
+    
+    // Create too many items
+    const manyItems = Array(101).fill({ text: "todo", isCompleted: false }); // Exceeds 100 limit
+    const strategyData = {
+      preparationStrategy: "Valid strategy",
+      focusTopics: [],
+      todoItems: manyItems
+    };
+
+    const result = await repository.saveStrategyTodoList(
+      userId, 
+      "company-id", 
+      "Company Name", 
+      strategyData
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Too many todo items");
+    expect(setDocMock).not.toHaveBeenCalled();
   });
 });

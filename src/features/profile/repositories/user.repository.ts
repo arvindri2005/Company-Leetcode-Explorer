@@ -34,6 +34,7 @@ import {
   type GenerateCompanyStrategyOutput,
   type ProblemStatus,
   type SavedStrategyTodoList,
+  SavedStrategyTodoListSchema,
   type StrategyTodoItem,
   type UserProblemStatusInfo,
   type WorkExperience,
@@ -815,7 +816,7 @@ export class UserRepository implements IUserRepository {
       companyId,
     );
 
-    const dataToSave: SavedStrategyTodoList = {
+    const rawData = {
       companyId: companyId,
       companyName: companyName,
       savedAt: new Date(),
@@ -824,8 +825,23 @@ export class UserRepository implements IUserRepository {
       items: strategyData.todoItems,
     };
 
+    // Validate data using Zod schema
+    const validationResult = SavedStrategyTodoListSchema.safeParse(rawData);
+
+    if (!validationResult.success) {
+      const errorMessage = validationResult.error.issues
+        .map((e) => e.message)
+        .join(", ");
+      Logger.warn("Invalid strategy data provided", {
+        userId,
+        errors: errorMessage,
+      });
+      return { success: false, error: errorMessage };
+    }
+
     try {
-      await setDoc(todoListDocRef, dataToSave, { merge: true });
+      // Use validated data, casting to SavedStrategyTodoList is safe here as schema matches
+      await setDoc(todoListDocRef, validationResult.data as SavedStrategyTodoList, { merge: true });
       return { success: true };
     } catch (error) {
       const message =
