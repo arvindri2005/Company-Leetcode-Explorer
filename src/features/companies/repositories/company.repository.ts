@@ -33,6 +33,10 @@ import type {
   UpdateCompanyDTO,
 } from "../interfaces/company.repository.interface";
 
+const MAX_PAGE_SIZE = 50;
+const MAX_OFFSET_LIMIT = 2000;
+const MAX_SUGGESTION_LIMIT = 20;
+
 // Make sure db is initialized
 function getFirestore(): Firestore {
   if (!db) {
@@ -184,12 +188,22 @@ export class CompanyRepository implements ICompanyRepository {
     try {
       const normalizedSearchTerm = searchTerm?.trim().toLowerCase();
 
+      // Security: Clamp page size to prevent large reads
+      const safePageSize = Math.min(pageSize, MAX_PAGE_SIZE);
+
       // Strategy: Cursor provided (Load More)
       if (cursor) {
         return await this.fetchCompaniesWithCursor(
-          pageSize,
+          safePageSize,
           normalizedSearchTerm,
           cursor,
+        );
+      }
+
+      // Security: Prevent deep pagination DoS
+      if (page * safePageSize > MAX_OFFSET_LIMIT) {
+        throw new Error(
+          `Pagination limit exceeded. Please refine your search or use filters.`,
         );
       }
 
@@ -208,9 +222,9 @@ export class CompanyRepository implements ICompanyRepository {
       }
 
       // Calculate limit to fetch enough for the current page + 1 (to check hasMore)
-      const limitCount = page * pageSize + 1;
+      const limitCount = page * safePageSize + 1;
       queryConstraints.push(limit(limitCount));
-      
+
       // Ensure consistent sorting with cursor-based query
       queryConstraints.push(orderBy(documentId(), "asc"));
 
@@ -220,17 +234,19 @@ export class CompanyRepository implements ICompanyRepository {
 
       let hasMore = false;
       let companies: Company[] = [];
-      const startIndex = (page - 1) * pageSize;
+      const startIndex = (page - 1) * safePageSize;
 
-      if (docs.length > page * pageSize) {
-          hasMore = true;
+      if (docs.length > page * safePageSize) {
+        hasMore = true;
       }
 
       let nextCursor: string | undefined;
       // Slice the results for the current page
       if (docs.length > startIndex) {
-        const sliceEnd = Math.min(docs.length, startIndex + pageSize);
-        companies = docs.slice(startIndex, sliceEnd).map(mapFirestoreDocToCompany);
+        const sliceEnd = Math.min(docs.length, startIndex + safePageSize);
+        companies = docs
+          .slice(startIndex, sliceEnd)
+          .map(mapFirestoreDocToCompany);
         
         // Generate cursor for the last item if we have more
         if (hasMore && companies.length > 0) {
@@ -496,6 +512,9 @@ export class CompanyRepository implements ICompanyRepository {
       return [];
     }
     try {
+      // Security: Clamp limit
+      const safeLimit = Math.min(limitNum, MAX_SUGGESTION_LIMIT);
+
       const companiesCol = collection(getFirestore(), "companies");
       const lowercasedSearchTerm = searchTerm.toLowerCase().trim();
 
@@ -504,7 +523,7 @@ export class CompanyRepository implements ICompanyRepository {
         orderBy("normalizedName"),
         where("normalizedName", ">=", lowercasedSearchTerm),
         where("normalizedName", "<=", lowercasedSearchTerm + "\uf8ff"),
-        limit(limitNum),
+        limit(safeLimit),
       );
 
       const querySnapshot = await getDocs(q);
