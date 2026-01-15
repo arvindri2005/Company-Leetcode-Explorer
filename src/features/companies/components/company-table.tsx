@@ -35,15 +35,24 @@ export function CompanyTable({ companies }: CompanyTableProps) {
 }
 
 // Memoized to prevent re-renders of existing rows when new data is appended (infinite scroll)
-const CompanyRow = React.memo(function CompanyRow({ company }: { company: Company }) {
+const CompanyRow = React.memo(function CompanyRow({
+  company,
+}: {
+  company: Company;
+}) {
   const imgSrc = getLogoUrl(company.logo) || "/icon.png";
-  
-  // Get top 2 tags
-  const topTags = company.commonTags
-    ?.sort((a, b) => b.count - a.count)
-    .slice(0, 2)
-    .map(t => t.tag)
-    .join(", ") || "Tech";
+
+  // Get top 2 tags - Memoized to prevent recalculation and array mutation on render
+  const topTags = React.useMemo(() => {
+    const tags = company.commonTags
+      ? [...company.commonTags] // Create a copy before sorting to avoid mutating the original prop
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 2)
+          .map((t) => t.tag)
+          .join(", ")
+      : "";
+    return tags || "Tech";
+  }, [company.commonTags]);
 
   return (
     <tr className="group hover:bg-white/[0.02] transition-colors">
