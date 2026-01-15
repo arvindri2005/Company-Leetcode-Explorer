@@ -6,6 +6,7 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -36,16 +37,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     return true; // Default to loading on server/SSR
   });
-  const [isUserProfileSynced, setIsUserProfileSynced] = useState(false);
+  const isUserProfileSyncedRef = useRef(false);
 
   const syncUserProfileIfNeeded = useCallback(
     async (firebaseUser: FirebaseUser) => {
       // Only sync if the user is newly authenticated and not yet synced in this session
       // This is a basic check; more robust logic might be needed depending on session handling
-      if (firebaseUser && !isUserProfileSynced) {
+      if (firebaseUser && !isUserProfileSyncedRef.current) {
         const result = await authService.syncUserProfile(firebaseUser);
         if (result.success) {
-          setIsUserProfileSynced(true);
+          isUserProfileSyncedRef.current = true;
         } else {
           Logger.error("Failed to sync user profile", result.error, {
             userId: firebaseUser.uid,
@@ -53,7 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
     },
-    [isUserProfileSynced],
+    [],
   );
 
   useEffect(() => {
@@ -76,7 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Remove cookie on logout
         document.cookie =
           "auth_status=; path=/; max-age=0; SameSite=Strict; Secure";
-        setIsUserProfileSynced(false); // Reset sync flag on logout
+        isUserProfileSyncedRef.current = false; // Reset sync flag on logout
       }
     });
 
@@ -89,11 +90,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     () => ({
       user,
       loading,
-      isUserProfileSynced,
       syncUserProfileIfNeeded,
       setUser,
     }),
-    [user, loading, isUserProfileSynced, syncUserProfileIfNeeded],
+    [user, loading, syncUserProfileIfNeeded],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
