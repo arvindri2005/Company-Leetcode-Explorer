@@ -77,15 +77,16 @@ export const ProblemStatusSchema = z.enum(VALID_STATUSES);
  */
 export const LeetCodeProblemSchema = z.object({
   id: z.string(),
-  title: z.string(),
+  title: z.string().max(255),
   difficulty: DifficultySchema,
   link: z
     .string()
     .url()
+    .max(2048)
     .refine((val) => val.startsWith("http:") || val.startsWith("https:"), {
       message: "Must be a valid HTTP or HTTPS URL",
     }),
-  tags: z.array(z.string()),
+  tags: z.array(z.string().max(50)).max(20),
   companyId: z.string(),
   companySlug: SlugSchema,
   companyIds: z.array(z.string()).optional(),
@@ -95,10 +96,10 @@ export const LeetCodeProblemSchema = z.object({
       lastAskedPeriod: LastAskedPeriodSchema.optional(),
     })
   ).optional(),
-  problemCompanyName: z.string().optional(),
+  problemCompanyName: z.string().max(255).optional(),
   slug: SlugSchema,
   lastAskedPeriod: LastAskedPeriodSchema.optional(),
-  normalizedTitle: z.string(),
+  normalizedTitle: z.string().max(255),
   acceptanceRate: z.number().optional(),
   isBookmarked: z.boolean().optional(),
   currentStatus: ProblemStatusSchema.optional(),
@@ -109,17 +110,18 @@ export const LeetCodeProblemSchema = z.object({
  * Matches CreateProblemDTO.
  */
 export const CreateProblemSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().optional(),
+  title: z.string().min(1, "Title is required").max(255),
+  description: z.string().max(10000).optional(),
   difficulty: DifficultySchema,
   link: z
     .string()
     .url()
+    .max(2048)
     .refine((val) => val.startsWith("http:") || val.startsWith("https:"), {
       message: "Must be a valid HTTP or HTTPS URL",
     }),
-  tags: z.array(z.string()),
-  normalizedTitle: z.string().min(1),
+  tags: z.array(z.string().max(50)).max(20),
+  normalizedTitle: z.string().min(1).max(255),
   acceptanceRate: z.number().optional(),
   lastAskedPeriod: LastAskedPeriodSchema.optional(),
 });
