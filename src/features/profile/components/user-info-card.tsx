@@ -94,6 +94,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
           <Avatar className="h-24 w-24 ring-4 ring-background shadow-lg shrink-0 transition-transform hover:scale-105 duration-300">
             <AvatarImage
               src={user.photoURL || undefined}
+              alt={user.displayName || "User avatar"}
               data-ai-hint="profile avatar"
               className="object-cover"
             />
@@ -111,19 +112,19 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                       {user.displayName || "Anonymous User"}
                     </h2>
                     {user.emailVerified && (
-                      <BadgeCheck className="h-5 w-5 text-brand-teal" aria-label="Verified User" />
+                      <BadgeCheck className="h-5 w-5 text-brand-teal" aria-label="Verified User" role="img" />
                     )}
                   </div>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1.5">
-                      <Mail className="h-3.5 w-3.5" />
+                      <Mail className="h-3.5 w-3.5" aria-hidden="true" />
                       <span className="truncate max-w-[200px] sm:max-w-none">
                         {user.email}
                       </span>
                     </div>
                     {user.metadata.creationTime && (
                       <div className="flex items-center gap-1.5">
-                        <CalendarDays className="h-3.5 w-3.5" />
+                        <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
                         <span>Member since {formatDate(user.metadata.creationTime)}</span>
                       </div>
                     )}
@@ -148,6 +149,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                                 <Input
                                   {...field}
                                   placeholder="Enter display name"
+                                  aria-label="Display Name"
                                   className="text-lg font-medium h-10"
                                   autoFocus
                                   autoComplete="name"
@@ -167,7 +169,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                             isLoading={isSubmittingDisplayName}
                           >
                             {!isSubmittingDisplayName && (
-                              <Save className="h-3.5 w-3.5 mr-2" />
+                              <Save className="h-3.5 w-3.5 mr-2" aria-hidden="true" />
                             )}
                             Save
                           </Button>
@@ -178,7 +180,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                             onClick={() => setIsEditingDisplayName(false)}
                             disabled={isSubmittingDisplayName}
                           >
-                            <X className="h-3.5 w-3.5 mr-2" /> Cancel
+                            <X className="h-3.5 w-3.5 mr-2" aria-hidden="true" /> Cancel
                           </Button>
                         </div>
                       </form>
@@ -202,7 +204,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                     }}
                     className="h-9 hover:bg-secondary/50 transition-colors"
                   >
-                    <Edit className="h-3.5 w-3.5 mr-2" />
+                    <Edit className="h-3.5 w-3.5 mr-2" aria-hidden="true" />
                     Edit Profile
                   </Button>
                 )}
@@ -213,7 +215,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                   isLoading={isLoggingOut}
                   className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                 >
-                  {!isLoggingOut && <LogOut className="h-4 w-4 mr-2" />}
+                  {!isLoggingOut && <LogOut className="h-4 w-4 mr-2" aria-hidden="true" />}
                   Log Out
                 </Button>
               </div>
@@ -233,7 +235,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                   }}
                   className="w-full"
                 >
-                  <Edit className="h-4 w-4 mr-2" />
+                  <Edit className="h-4 w-4 mr-2" aria-hidden="true" />
                   Edit Profile
                 </Button>
               )}
@@ -243,7 +245,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                 isLoading={isLoggingOut}
                 className="w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 border border-dashed border-border"
               >
-                {!isLoggingOut && <LogOut className="h-4 w-4 mr-2" />}
+                {!isLoggingOut && <LogOut className="h-4 w-4 mr-2" aria-hidden="true" />}
                 Log Out
               </Button>
             </div>
