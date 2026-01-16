@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { memo } from "react";
 import { FormProvider,useFormContext } from "react-hook-form";
 
 import { Briefcase, Loader2,PlusCircle } from "lucide-react";
@@ -50,6 +50,28 @@ interface WorkExperienceSectionProps {
   isWorkDialogOpen: boolean;
   setIsWorkDialogOpen: (isOpen: boolean) => void;
 }
+
+/**
+ * @component WorkExperienceItem
+ * @description A memoized component to render a single work experience item.
+ * This prevents unnecessary re-renders of the list items when parent state changes.
+ */
+const WorkExperienceItem = memo(({ work }: { work: WorkExperience }) => (
+  <li className="bg-card border border-border rounded-xl p-6 mb-8 shadow-sm">
+    <h4 className="font-semibold">
+      {work.jobTitle} at {work.companyName}
+    </h4>
+    <p className="text-sm text-muted-foreground">
+      {work.startDate} - {work.endDate || "Present"}
+    </p>
+    {work.responsibilities && (
+      <p className="text-sm mt-1 whitespace-pre-line">
+        {work.responsibilities}
+      </p>
+    )}
+  </li>
+));
+WorkExperienceItem.displayName = "WorkExperienceItem";
 
 /**
  * @function WorkExperienceSection
@@ -214,22 +236,7 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
             return (
               <ul className="space-y-3 mt-4">
                 {workExperience.map((work) => (
-                  <li
-                    key={work.id}
-                    className="bg-card border border-border rounded-xl p-6 mb-8 shadow-sm"
-                  >
-                    <h4 className="font-semibold">
-                      {work.jobTitle} at {work.companyName}
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
-                      {work.startDate} - {work.endDate || "Present"}
-                    </p>
-                    {work.responsibilities && (
-                      <p className="text-sm mt-1 whitespace-pre-line">
-                        {work.responsibilities}
-                      </p>
-                    )}
-                  </li>
+                  <WorkExperienceItem key={work.id} work={work} />
                 ))}
               </ul>
             );
@@ -261,9 +268,3 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
 };
 
 export default WorkExperienceSection;
-
-
-
-
-
-

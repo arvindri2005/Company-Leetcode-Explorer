@@ -1,9 +1,9 @@
 "use client";
 
-import React from "react";
-import { FormProvider,useFormContext } from "react-hook-form";
+import React, { memo } from "react";
+import { FormProvider, useFormContext } from "react-hook-form";
 
-import { GraduationCap, Loader2,PlusCircle } from "lucide-react";
+import { GraduationCap, Loader2, PlusCircle } from "lucide-react";
 import { type z } from "zod";
 
 import { ExperienceListSkeleton } from "@/components/skeletons/experience-skeleton";
@@ -49,6 +49,25 @@ interface EducationExperienceSectionProps {
   isEducationDialogOpen: boolean;
   setIsEducationDialogOpen: (isOpen: boolean) => void;
 }
+
+/**
+ * @component EducationHistoryItem
+ * @description A memoized component to render a single education history item.
+ * This prevents unnecessary re-renders of the list items when parent state changes.
+ */
+const EducationHistoryItem = memo(({ edu }: { edu: EducationExperience }) => (
+  <li className="bg-card border border-border rounded-xl p-6 mb-8 shadow-sm">
+    <h4 className="font-semibold">
+      {edu.degree} in {edu.major}
+    </h4>
+    <p className="text-sm text-muted-foreground">
+      {edu.school}
+      {edu.graduationYear && `, Graduated ${edu.graduationYear}`}
+      {edu.gpa && `, GPA: ${edu.gpa}`}
+    </p>
+  </li>
+));
+EducationHistoryItem.displayName = "EducationHistoryItem";
 
 /**
  * @function EducationExperienceSection
@@ -211,19 +230,7 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
             return (
               <ul className="space-y-3 mt-4">
                 {educationHistory.map((edu) => (
-                  <li
-                    key={edu.id}
-                    className="bg-card border border-border rounded-xl p-6 mb-8 shadow-sm"
-                  >
-                    <h4 className="font-semibold">
-                      {edu.degree} in {edu.major}
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
-                      {edu.school}
-                      {edu.graduationYear && `, Graduated ${edu.graduationYear}`}
-                      {edu.gpa && `, GPA: ${edu.gpa}`}
-                    </p>
-                  </li>
+                  <EducationHistoryItem key={edu.id} edu={edu} />
                 ))}
               </ul>
             );
@@ -255,9 +262,3 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
 };
 
 export default EducationExperienceSection;
-
-
-
-
-
-
