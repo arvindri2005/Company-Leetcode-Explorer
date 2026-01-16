@@ -114,28 +114,44 @@ export function CompaniesPageContent({
       }
   }, [loadingMore, hasMore, nextCursor, searchTerm]);
 
+  // Keep a stable ref to loadMore to prevent observer recreation
+  const loadMoreRef = useRef(loadMore);
+  useEffect(() => {
+    loadMoreRef.current = loadMore;
+  }, [loadMore]);
+
+  // Keep state refs to use in observer callback without adding dependencies
+  const stateRef = useRef({ hasMore, loadingMore, isLoading });
+  useEffect(() => {
+    stateRef.current = { hasMore, loadingMore, isLoading };
+  }, [hasMore, loadingMore, isLoading]);
+
   // Intersection Observer
+  // Optimized to only depend on hasMore (for target existence), preventing unnecessary teardown/setup on every loading state change
   useEffect(() => {
       const currentTarget = observerTarget.current;
+      // If we don't have a target to observe (e.g. hasMore is false), don't set up observer
+      if (!currentTarget) {
+        return;
+      }
+
       const observer = new IntersectionObserver(
           (entries) => {
-              if (entries[0].isIntersecting && hasMore && !loadingMore && !isLoading) {
-                  loadMore();
+              const { hasMore: currentHasMore, loadingMore: currentLoadingMore, isLoading: currentIsLoading } = stateRef.current;
+              // Access fresh state via ref to prevent stale closures or excessive re-subscriptions
+              if (entries[0].isIntersecting && currentHasMore && !currentLoadingMore && !currentIsLoading) {
+                  loadMoreRef.current();
               }
           },
           { threshold: 0.1 } // Trigger when 10% visible
       );
 
-      if (currentTarget) {
-          observer.observe(currentTarget);
-      }
+      observer.observe(currentTarget);
 
       return () => {
-          if (currentTarget) {
-              observer.unobserve(currentTarget);
-          }
+          observer.unobserve(currentTarget);
       };
-  }, [hasMore, loadingMore, isLoading, nextCursor, searchTerm, loadMore]);
+  }, [hasMore]);
 
   return (
     <main className="min-h-screen w-full text-white flex flex-col">
