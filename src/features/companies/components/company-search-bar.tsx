@@ -80,6 +80,11 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
+  // Sync internal state with prop
+  useEffect(() => {
+    setSearchTermInput(initialSearchTerm);
+  }, [initialSearchTerm]);
+
   // Handle global keyboard shortcuts
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {

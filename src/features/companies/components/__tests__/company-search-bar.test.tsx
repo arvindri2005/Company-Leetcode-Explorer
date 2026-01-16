@@ -115,4 +115,17 @@ describe("CompanySearchBar", () => {
 
     expect(mockOnSearch).toHaveBeenCalledWith("Amazon");
   });
+
+  it("updates internal state when initialSearchTerm prop changes", () => {
+    const { rerender } = render(
+      <CompanySearchBar initialSearchTerm="Initial" />,
+    );
+    const input = screen.getByRole("combobox", {
+      name: /search for companies/i,
+    });
+    expect(input).toHaveValue("Initial");
+
+    rerender(<CompanySearchBar initialSearchTerm="Updated" />);
+    expect(input).toHaveValue("Updated");
+  });
 });
