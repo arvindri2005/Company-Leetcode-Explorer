@@ -73,7 +73,7 @@ const ProblemInfoCard: React.FC<ProblemInfoCardProps> = ({
   problemStatus = "none",
   onProblemStatusChange,
 }) => {
-  useAuth();
+  const { user } = useAuth();
   
   // We use "unknown" as companySlug since this card is used in the global list
   // where we might not have a specific company context for the interaction hooks.
@@ -94,6 +94,7 @@ const ProblemInfoCard: React.FC<ProblemInfoCardProps> = ({
     interactionCompanySlug,
     initialIsBookmarked,
     problemStatus,
+    user?.uid,
     onBookmarkChanged,
     onProblemStatusChange,
   );
@@ -247,9 +248,3 @@ const ProblemInfoCard: React.FC<ProblemInfoCardProps> = ({
 };
 
 export default ProblemInfoCard;
-
-
-
-
-
-
