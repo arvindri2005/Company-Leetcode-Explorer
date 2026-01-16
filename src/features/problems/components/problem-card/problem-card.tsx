@@ -68,12 +68,12 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
   // Optimization: Lazy load AI hooks/components only after first interaction
   const [wasEverExpanded, setWasEverExpanded] = useState(false);
 
-  const handleToggleExpand = () => {
+  const handleToggleExpand = React.useCallback(() => {
     if (!wasEverExpanded) {
-        setWasEverExpanded(true);
+      setWasEverExpanded(true);
     }
-    setIsExpanded(!isExpanded);
-  };
+    setIsExpanded((prev) => !prev);
+  }, [wasEverExpanded]);
 
   const {
     isBookmarked,
@@ -89,6 +89,22 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
     userId,
     onBookmarkChanged,
     onProblemStatusChange,
+  );
+
+  const onBookmarkClick = React.useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      handleToggleBookmark();
+    },
+    [handleToggleBookmark],
+  );
+
+  const onExpandClick = React.useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      handleToggleExpand();
+    },
+    [handleToggleExpand],
   );
 
   const displayTime = useMemo(() => {
@@ -217,10 +233,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                         <Button
                             variant="ghost"
                             size="icon"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleToggleBookmark();
-                            }}
+                            onClick={onBookmarkClick}
                             isLoading={isTogglingBookmark}
                             className="h-11 w-11 md:h-9 md:w-9 text-muted-foreground hover:text-primary hover:bg-primary/5"
                             aria-label={isBookmarked ? "Remove from bookmarks" : "Add to bookmarks"}
@@ -230,10 +243,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                          <Button
                             variant="ghost"
                             size="icon"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleToggleExpand();
-                            }}
+                            onClick={onExpandClick}
                             className={cn("h-11 w-11 md:h-9 md:w-9 text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-transform duration-200", isExpanded && "rotate-180")}
                             aria-label={isExpanded ? "Collapse details" : "Expand details"}
                             aria-expanded={isExpanded}

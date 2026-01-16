@@ -74,7 +74,7 @@ export function useProblemInteractions(
     });
   }, [router, pathname, toast]);
 
-  const handleToggleBookmark = async () => {
+  const handleToggleBookmark = useCallback(async () => {
     if (!userId) {
       promptLogin();
       return;
@@ -98,11 +98,11 @@ export function useProblemInteractions(
       );
       if (result.isSuccess) {
         const finalValue = result.value.isBookmarked ?? nextValue;
-        
+
         // If the result differs from our optimistic guess (rare), update optimistic to match result.
         // Otherwise, keep optimistic state until prop updates.
         if (finalValue !== nextValue) {
-             setOptimisticIsBookmarked(finalValue);
+          setOptimisticIsBookmarked(finalValue);
         }
 
         onBookmarkChanged?.(problem.id, finalValue);
@@ -131,9 +131,21 @@ export function useProblemInteractions(
     } finally {
       setIsTogglingBookmark(false);
     }
-  };
+  }, [
+    userId,
+    promptLogin,
+    isTogglingBookmark,
+    isBookmarked,
+    problem.companySlug,
+    problem.id,
+    problem.slug,
+    problem.title,
+    companySlug,
+    onBookmarkChanged,
+    toast,
+  ]);
 
-  const handleStatusUpdate = async (newStatus: ProblemStatus) => {
+  const handleStatusUpdate = useCallback(async (newStatus: ProblemStatus) => {
     if (!userId) {
       promptLogin();
       return;
@@ -156,7 +168,7 @@ export function useProblemInteractions(
       );
       if (result.isSuccess) {
         // Keep optimistic status until prop updates
-        
+
         onProblemStatusChange?.(problem.id, newStatus);
 
         const statusLabel =
@@ -188,7 +200,18 @@ export function useProblemInteractions(
     } finally {
       setIsUpdatingStatus(false);
     }
-  };
+  }, [
+    userId,
+    promptLogin,
+    isUpdatingStatus,
+    problem.companySlug,
+    problem.id,
+    problem.slug,
+    problem.title,
+    companySlug,
+    onProblemStatusChange,
+    toast,
+  ]);
 
   return {
     isBookmarked,
