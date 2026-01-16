@@ -1,14 +1,19 @@
 "use client";
 
-import { useMemo } from "react";
-import { useFormContext } from "react-hook-form";
+import { memo, useMemo } from "react";
 
 import { PasswordStrengthIndicator } from "./password-strength-indicator";
 
-export function SignupPasswordStrength() {
-  const { watch } = useFormContext();
-  const password = watch("password");
+interface SignupPasswordStrengthProps {
+  password?: string;
+}
 
+const HAS_NUMBER = /[0-9]/;
+const HAS_SPECIAL = /[^A-Za-z0-9]/;
+
+export const SignupPasswordStrength = memo(function SignupPasswordStrength({
+  password = "",
+}: SignupPasswordStrengthProps) {
   const passwordScore = useMemo(() => {
     let score = 0;
     if (!password) {
@@ -20,14 +25,14 @@ export function SignupPasswordStrength() {
     if (password.length > 10) {
       score += 1;
     }
-    if (/[0-9]/.test(password)) {
+    if (HAS_NUMBER.test(password)) {
       score += 1;
     }
-    if (/[^A-Za-z0-9]/.test(password)) {
+    if (HAS_SPECIAL.test(password)) {
       score += 1;
     }
     return score;
   }, [password]);
 
   return <PasswordStrengthIndicator score={passwordScore} />;
-}
+});

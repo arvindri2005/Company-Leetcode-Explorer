@@ -277,7 +277,7 @@ export default function SignupForm() {
                     disabled={isSubmitting}
                   />
                 </FormControl>
-                <SignupPasswordStrength />
+                <SignupPasswordStrength password={field.value} />
                 <FormMessage />
               </FormItem>
             </div>
