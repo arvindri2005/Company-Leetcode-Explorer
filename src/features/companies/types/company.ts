@@ -81,10 +81,11 @@ export const CompanySchema = z.object({
   commonTags: z
     .array(
       z.object({
-        tag: z.string(),
-        count: z.number(),
+        tag: z.string().max(50, "Tag must be less than 50 characters"),
+        count: z.number().nonnegative(),
       })
     )
+    .max(50, "Cannot have more than 50 common tags")
     .optional(),
   relatedCompanies: z.array(z.string().max(100)).max(20, "Cannot have more than 20 related companies").optional(),
   statsLastUpdatedAt: z.date().optional(),
