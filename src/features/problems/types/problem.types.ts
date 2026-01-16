@@ -72,12 +72,39 @@ export const VALID_STATUS_FILTERS = ["solved", "attempted", "todo"] as const;
 export const ProblemStatusSchema = z.enum(VALID_STATUSES);
 
 /**
+ * @description Reusable strict validation schemas for security
+ */
+const SafeTitleSchema = z
+  .string()
+  .min(1, "Title is required")
+  .max(255)
+  // \P{C} matches any character that is NOT a control character (Unicode Category "Other")
+  .regex(/^[\P{C}]*$/u, "Title cannot contain control characters");
+
+const SafeTagSchema = z
+  .string()
+  .max(50)
+  .regex(
+    /^[a-zA-Z0-9\s\-\.\+\#]+$/,
+    "Tags can only contain alphanumeric characters, spaces, and common programming symbols (., -, +, #)"
+  );
+
+const SafeNormalizedTitleSchema = z
+  .string()
+  .min(1)
+  .max(255)
+  .regex(
+    /^[a-z0-9\s\-\.\+\#]+$/,
+    "Normalized title can only contain lowercase alphanumeric characters, spaces, and hyphens"
+  );
+
+/**
  * @description Zod schema for a LeetCode problem.
  * @see LeetCodeProblem
  */
 export const LeetCodeProblemSchema = z.object({
   id: z.string(),
-  title: z.string().max(255),
+  title: SafeTitleSchema,
   difficulty: DifficultySchema,
   link: z
     .string()
@@ -86,7 +113,7 @@ export const LeetCodeProblemSchema = z.object({
     .refine((val) => val.startsWith("http:") || val.startsWith("https:"), {
       message: "Must be a valid HTTP or HTTPS URL",
     }),
-  tags: z.array(z.string().max(50)).max(20),
+  tags: z.array(SafeTagSchema).max(20),
   companyId: z.string(),
   companySlug: SlugSchema,
   companyIds: z.array(z.string()).optional(),
@@ -99,7 +126,7 @@ export const LeetCodeProblemSchema = z.object({
   problemCompanyName: z.string().max(255).optional(),
   slug: SlugSchema,
   lastAskedPeriod: LastAskedPeriodSchema.optional(),
-  normalizedTitle: z.string().max(255),
+  normalizedTitle: SafeNormalizedTitleSchema,
   acceptanceRate: z.number().optional(),
   isBookmarked: z.boolean().optional(),
   currentStatus: ProblemStatusSchema.optional(),
@@ -110,7 +137,7 @@ export const LeetCodeProblemSchema = z.object({
  * Matches CreateProblemDTO.
  */
 export const CreateProblemSchema = z.object({
-  title: z.string().min(1, "Title is required").max(255),
+  title: SafeTitleSchema,
   description: z.string().max(10000).optional(),
   difficulty: DifficultySchema,
   link: z
@@ -120,8 +147,8 @@ export const CreateProblemSchema = z.object({
     .refine((val) => val.startsWith("http:") || val.startsWith("https:"), {
       message: "Must be a valid HTTP or HTTPS URL",
     }),
-  tags: z.array(z.string().max(50)).max(20),
-  normalizedTitle: z.string().min(1).max(255),
+  tags: z.array(SafeTagSchema).max(20),
+  normalizedTitle: SafeNormalizedTitleSchema,
   acceptanceRate: z.number().optional(),
   lastAskedPeriod: LastAskedPeriodSchema.optional(),
 });
