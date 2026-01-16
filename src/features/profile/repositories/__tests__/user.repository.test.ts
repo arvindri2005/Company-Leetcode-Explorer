@@ -134,4 +134,33 @@ describe('UserRepository Security Tests', () => {
     expect(result.error).toContain("Too many todo items");
     expect(setDocMock).not.toHaveBeenCalled();
   });
+
+  it('should enforce limits on sub-collections to prevent DoS', async () => {
+    const userId = "test-user-id";
+    
+    // Call getBookmarkedProblemsInfo
+    await repository.getBookmarkedProblemsInfo(userId);
+    expect(limitMock).toHaveBeenCalledWith(50); // MAX_PAGE_SIZE
+
+    // Reset mock
+    limitMock.mockClear();
+
+    // Call getUserEducation
+    await repository.getUserEducation(userId);
+    expect(limitMock).toHaveBeenCalledWith(50);
+
+    // Reset mock
+    limitMock.mockClear();
+
+    // Call getUserWorkExperience
+    await repository.getUserWorkExperience(userId);
+    expect(limitMock).toHaveBeenCalledWith(50);
+
+    // Reset mock
+    limitMock.mockClear();
+    
+    // Call getUserStrategyTodoLists
+    await repository.getUserStrategyTodoLists(userId);
+    expect(limitMock).toHaveBeenCalledWith(50);
+  });
 });

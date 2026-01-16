@@ -258,6 +258,7 @@ export class UserRepository implements IUserRepository {
       const q = query(
         collection(db, "users", userId, "bookmarkedProblems"),
         orderBy("bookmarkedAt", "desc"),
+        limit(MAX_PAGE_SIZE),
       );
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs
@@ -427,7 +428,7 @@ export class UserRepository implements IUserRepository {
     if (!userId) {return [];}
     try {
       const educationColRef = collection(db, "users", userId, "educationHistory");
-      const q = query(educationColRef, orderBy("createdAt", "desc"));
+      const q = query(educationColRef, orderBy("createdAt", "desc"), limit(MAX_PAGE_SIZE));
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map(
         (docSnap) =>
@@ -450,7 +451,7 @@ export class UserRepository implements IUserRepository {
     if (!userId) {return [];}
     try {
       const workColRef = collection(db, "users", userId, "workExperience");
-      const q = query(workColRef, orderBy("createdAt", "desc"));
+      const q = query(workColRef, orderBy("createdAt", "desc"), limit(MAX_PAGE_SIZE));
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map(
         (docSnap) =>
@@ -474,7 +475,7 @@ export class UserRepository implements IUserRepository {
         userId,
         "strategyTodoLists",
       );
-      const q = query(todoListsColRef, orderBy("companyName", "asc"));
+      const q = query(todoListsColRef, orderBy("companyName", "asc"), limit(MAX_PAGE_SIZE));
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map((docSnap) => {
         const data = docSnap.data();
