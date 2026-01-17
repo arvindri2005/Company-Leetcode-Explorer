@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef,useState } from "react";
 
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, RotateCcw, SearchX } from "lucide-react";
 
 import { fetchCompaniesAction } from "@/app/actions/company.actions";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
@@ -212,20 +212,29 @@ export function CompaniesPageContent({
                     );
                   }
                   return (
-                    <div className="text-center py-12 bg-brand-surface rounded-xl border border-white/5">
-                        <h2 className="text-lg font-semibold text-white mb-2">No Results</h2>
-                        <p className="text-gray-400">
+                    <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-center animate-fade-in px-4 bg-brand-surface rounded-xl border border-white/5">
+                      <div className="h-16 w-16 bg-white/5 rounded-full flex items-center justify-center mb-4 ring-1 ring-white/10">
+                        <SearchX
+                          className="h-8 w-8 text-white/40"
+                          aria-hidden="true"
+                        />
+                      </div>
+                      <h2 className="text-xl font-semibold mb-2 text-white">
+                        No companies found
+                      </h2>
+                      <p className="text-white/60 text-sm sm:text-base max-w-md mx-auto mb-6">
                         No companies found matching your criteria.
-                        </p>
-                        {searchTerm && (
-                          <button
-                            onClick={() => router.push("/companies")}
-                            className="mt-6 inline-flex items-center justify-center rounded-full bg-white/10 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
-                            aria-label="Clear all search filters"
-                          >
-                            Clear all filters
-                          </button>
-                        )}
+                      </p>
+                      {searchTerm && (
+                        <button
+                          onClick={() => router.push("/companies")}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors font-medium text-sm focus:outline-none focus:ring-2 focus:ring-white/50"
+                          aria-label="Clear all search filters"
+                        >
+                          <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                          Clear all filters
+                        </button>
+                      )}
                     </div>
                   );
                 })()}
