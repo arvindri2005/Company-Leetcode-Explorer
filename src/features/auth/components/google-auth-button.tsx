@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -20,7 +20,21 @@ interface GoogleAuthButtonProps {
   disabled?: boolean;
 }
 
-export default function GoogleAuthButton({ disabled }: GoogleAuthButtonProps) {
+/**
+ * A button component that handles Google Sign-In.
+ *
+ * @component
+ * @description
+ * This component is wrapped in `React.memo` to prevent unnecessary re-renders
+ * when used inside forms (like LoginForm/SignupForm). Since forms re-render
+ * on every keystroke (when using controlled inputs or watching state),
+ * memoizing this button prevents it from re-rendering unless the `disabled`
+ * prop changes.
+ *
+ * Performance impact: Reduces re-renders of this component from N (number of keystrokes)
+ * to 1 (only when submission state changes).
+ */
+const GoogleAuthButton = memo(function GoogleAuthButton({ disabled }: GoogleAuthButtonProps) {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -96,4 +110,6 @@ export default function GoogleAuthButton({ disabled }: GoogleAuthButtonProps) {
       {isOnline ? "Continue with Google" : "Offline"}
     </Button>
   );
-}
+});
+
+export default GoogleAuthButton;

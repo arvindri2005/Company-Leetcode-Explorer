@@ -141,6 +141,11 @@ export default function LoginForm() {
     }
   }
 
+  const redirectParams = searchParams.get("redirectUrl");
+  const signupUrl = `/signup${
+    redirectParams ? `?redirectUrl=${encodeURIComponent(redirectParams)}` : ""
+  }`;
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -247,13 +252,7 @@ export default function LoginForm() {
         <p className="text-center text-sm text-muted-foreground mt-6">
           Don&apos;t have an account?{" "}
           <Link
-            href={`/signup${
-              searchParams.get("redirectUrl")
-                ? `?redirectUrl=${encodeURIComponent(
-                    searchParams.get("redirectUrl")!
-                  )}`
-                : ""
-            }`}
+            href={signupUrl}
             className="font-medium text-primary hover:underline transition-colors"
           >
             Sign up

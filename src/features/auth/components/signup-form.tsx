@@ -165,6 +165,11 @@ export default function SignupForm() {
   // NOTE: Removed opacity-0 to prevent visibility issues after animation.
   // Using animationFillMode: 'both' ensures initial state (opacity 0 from fade-in) applies during delay.
 
+  const redirectParams = searchParams.get("redirectUrl");
+  const loginUrl = `/login${
+    redirectParams ? `?redirectUrl=${encodeURIComponent(redirectParams)}` : ""
+  }`;
+
   return (
     <Form {...form}>
       <form
@@ -318,13 +323,7 @@ export default function SignupForm() {
         >
           Already have an account?{" "}
           <Link
-            href={`/login${
-              searchParams.get("redirectUrl")
-                ? `?redirectUrl=${encodeURIComponent(
-                    searchParams.get("redirectUrl")!,
-                  )}`
-                : ""
-            }`}
+            href={loginUrl}
             className="font-medium text-primary hover:underline transition-colors"
           >
             Log in
