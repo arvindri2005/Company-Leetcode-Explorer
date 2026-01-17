@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -89,7 +90,7 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
       <div className="flex flex-row items-center justify-between bg-card border border-border rounded-xl p-6 mb-8 shadow-sm">
         <div className="space-y-1">
           <h3 className="text-2xl font-semibold flex items-center">
-            <GraduationCap className="mr-3 text-primary" />
+            <GraduationCap className="mr-3 text-primary" aria-hidden="true" />
             Educational Background
           </h3>
           <p className="text-muted-foreground">Your academic qualifications.</p>
@@ -101,12 +102,15 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
         >
           <DialogTrigger asChild>
             <Button variant="outline" size="sm">
-              <PlusCircle className="mr-2 h-4 w-4" /> Add Education
+              <PlusCircle className="mr-2 h-4 w-4" aria-hidden="true" /> Add Education
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Add Educational Experience</DialogTitle>
+              <DialogDescription>
+                Enter your school details, degree, and graduation year.
+              </DialogDescription>
             </DialogHeader>
             <FormProvider {...educationForm}>
               <Form {...educationForm}>
@@ -238,7 +242,7 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
           return (
             <div className="flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed border-muted rounded-xl bg-muted/5">
               <div className="bg-background p-3 rounded-full mb-4 ring-1 ring-border shadow-sm">
-                <GraduationCap className="h-6 w-6 text-muted-foreground" />
+                <GraduationCap className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
               </div>
               <h3 className="text-lg font-medium text-foreground mb-1">
                 No education added
@@ -251,7 +255,7 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
                 size="sm"
                 onClick={() => setIsEducationDialogOpen(true)}
               >
-                <PlusCircle className="mr-2 h-4 w-4" /> Add Education
+                <PlusCircle className="mr-2 h-4 w-4" aria-hidden="true" /> Add Education
               </Button>
             </div>
           );
