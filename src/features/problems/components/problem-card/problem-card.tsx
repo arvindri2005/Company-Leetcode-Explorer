@@ -54,6 +54,22 @@ const statusIcons: Record<ProblemStatus, React.ElementType> = {
   none: Circle,
 };
 
+// Optimization: Move static lookups outside component to avoid re-creation and switch logic on every render
+const DIFFICULTY_COLORS: Record<string, string> = {
+  Easy: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
+  Medium: "text-amber-500 bg-amber-500/10 border-amber-500/20",
+  Hard: "text-rose-500 bg-rose-500/10 border-rose-500/20",
+};
+const DEFAULT_DIFFICULTY_COLOR = "text-slate-500 bg-slate-500/10 border-slate-500/20";
+
+const STATUS_COLORS: Partial<Record<ProblemStatus, string>> = {
+  solved: "text-emerald-500",
+  attempted: "text-amber-500",
+};
+const DEFAULT_STATUS_COLOR = "text-muted-foreground/40 group-hover:text-muted-foreground/60";
+
+const EMPTY_TAGS: string[] = [];
+
 const ProblemCard: React.FC<ProblemCardProps> = ({
   problem,
   companySlug,
@@ -135,21 +151,12 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
 
   const StatusIcon = statusIcons[currentStatus];
   
-  // Optimization: Simple string lookups are faster than useMemo overhead
-  let difficultyColor = "text-slate-500 bg-slate-500/10 border-slate-500/20";
-  switch(problem.difficulty) {
-      case 'Easy': difficultyColor = "text-emerald-500 bg-emerald-500/10 border-emerald-500/20"; break;
-      case 'Medium': difficultyColor = "text-amber-500 bg-amber-500/10 border-amber-500/20"; break;
-      case 'Hard': difficultyColor = "text-rose-500 bg-rose-500/10 border-rose-500/20"; break;
-  }
+  // Optimization: Simple lookup is O(1) and avoids switch statement overhead
+  const difficultyColor = DIFFICULTY_COLORS[problem.difficulty] || DEFAULT_DIFFICULTY_COLOR;
+  const statusColor = STATUS_COLORS[currentStatus] || DEFAULT_STATUS_COLOR;
 
-  let statusColor = "text-muted-foreground/40 group-hover:text-muted-foreground/60";
-  switch(currentStatus) {
-      case 'solved': statusColor = "text-emerald-500"; break;
-      case 'attempted': statusColor = "text-amber-500"; break;
-  }
-
-  const problemTags = problem.tags || [];
+  // Optimization: Use stable empty array to prevent unnecessary re-renders of children
+  const problemTags = problem.tags || EMPTY_TAGS;
 
   return (
       <div className="group relative">
@@ -317,9 +324,3 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
 };
 
 export default React.memo(ProblemCard);
-
-
-
-
-
-
