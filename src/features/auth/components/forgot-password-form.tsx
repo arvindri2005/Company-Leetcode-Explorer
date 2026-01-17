@@ -59,15 +59,18 @@ export default function ForgotPasswordForm() {
 
       if (error instanceof Error && "code" in error) {
         const firebaseError = error as { code: string; message: string };
+        
+        // SECURITY: Treat user-not-found as success to prevent email enumeration
+        if (firebaseError.code === "auth/user-not-found") {
+          setIsEmailSent(true);
+          toast({
+            title: "Email Sent! 📧",
+            description: "Check your inbox and spam folder for the password reset link.",
+          });
+          return;
+        }
+
         switch (firebaseError.code) {
-          case "auth/user-not-found":
-            // For security reasons, it's often better not to explicitly say the user doesn't exist,
-            // but for this app's UX we might want to be helpful or just vague.
-            // Let's stick to a generic success message or a specific error if we want to be helpful.
-            // Actually, Firebase often doesn't throw user-not-found if email enumeration protection is on.
-            // But if it does:
-            errorMessage = "If that email exists, we sent a link."; 
-            break;
           case "auth/invalid-email":
             errorMessage = "The email address is not valid.";
             break;
@@ -75,7 +78,8 @@ export default function ForgotPasswordForm() {
             errorMessage = "Too many attempts. Please try again later.";
             break;
           default:
-            errorMessage = firebaseError.message || errorMessage;
+            // Don't leak internal error messages
+            errorMessage = "An error occurred. Please try again.";
         }
       }
 
