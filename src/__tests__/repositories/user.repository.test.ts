@@ -16,7 +16,9 @@ jest.mock("firebase/firestore", () => ({
 
 jest.mock("@/lib/api/firebase", () => ({
   db: {},
-  auth: {},
+  auth: {
+    currentUser: { uid: "user1" },
+  },
 }));
 
 jest.mock("@/lib/utils/logger", () => ({
@@ -109,9 +111,10 @@ describe("UserRepository", () => {
         createMockFirestoreDoc({}, "p1")
       ];
 
+      // Mock getDocs to return proper structure for fetchDocsByIds
+      // fetchDocsByIds returns an array of query snapshots
       (getDocs as jest.Mock).mockResolvedValue({
         docs: mockDocs,
-        forEach: (callback: any) => mockDocs.forEach(callback),
       });
 
       const result = await userRepository.getBookmarksForIds(userId, problemIds);

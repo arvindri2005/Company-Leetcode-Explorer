@@ -253,6 +253,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async getBookmarkedProblemsInfo(userId: string): Promise<BookmarkedProblemInfo[]> {
+    if (!this.isAuthorized(userId)) {return [];}
     if (!userId) {return [];}
     try {
       const q = query(
@@ -372,6 +373,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async getBookmarksForIds(userId: string, problemIds: string[]): Promise<Set<string>> {
+    if (!this.isAuthorized(userId)) {return new Set();}
     if (!userId || !problemIds || problemIds.length === 0) {return new Set();}
     const bookmarkedIds = new Set<string>();
 
@@ -467,6 +469,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async getUserStrategyTodoLists(userId: string): Promise<SavedStrategyTodoList[]> {
+    if (!this.isAuthorized(userId)) {return [];}
     if (!userId) {return [];}
     try {
       const todoListsColRef = collection(
@@ -520,6 +523,7 @@ export class UserRepository implements IUserRepository {
     userId: string,
     companyId: string,
   ): Promise<SavedStrategyTodoList | null> {
+    if (!this.isAuthorized(userId)) {return null;}
     if (!userId || !companyId) {return null;}
     const todoListDocRef = doc(
       db,
