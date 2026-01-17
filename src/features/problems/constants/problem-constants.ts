@@ -1,6 +1,12 @@
 import { type LastAskedPeriod,type ProblemStatus } from "../types";
 
 /**
+ * @description Maximum number of companies that can be associated with a single problem.
+ * This limit prevents unbounded array growth and potential DoS vulnerabilities.
+ */
+export const MAX_COMPANIES_PER_PROBLEM = 50;
+
+/**
  * @description Options for selecting the last asked period in UI elements, with user-friendly labels.
  */
 export const lastAskedPeriodOptions: ReadonlyArray<{
@@ -64,9 +70,3 @@ export const PROBLEM_STATUS_DISPLAY: Record<
   },
   todo: { label: "To-Do", iconName: "ListTodo", colorClass: "text-blue-500" },
 };
-
-
-
-
-
-

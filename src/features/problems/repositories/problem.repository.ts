@@ -18,6 +18,7 @@ import {
 
 import type { Problem } from "@/domain/entities/problem.entity";
 import { companyRepository } from "@/features/companies/repositories/company.repository";
+import { MAX_COMPANIES_PER_PROBLEM } from "@/features/problems/constants/problem-constants";
 import {
   DifficultyFilterImplementation,
   LastAskedFilterImplementation,
@@ -1197,6 +1198,19 @@ export class ProblemRepository implements IProblemRepository {
       if (problemSnap.exists()) {
         const existingData = problemSnap.data();
         const companyIds = new Set(existingData.companyIds || []);
+
+        // Security: Prevent unbounded growth of companies array
+        if (
+          companyIds.size >= MAX_COMPANIES_PER_PROBLEM &&
+          !companyIds.has(companyId)
+        ) {
+          return {
+            id: null,
+            updated: false,
+            error: `Maximum number of companies (${MAX_COMPANIES_PER_PROBLEM}) reached for this problem.`,
+          };
+        }
+
         companyIds.add(companyId);
 
         const companiesMap = existingData.companies || {};

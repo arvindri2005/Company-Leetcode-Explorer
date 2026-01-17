@@ -1,5 +1,6 @@
 import { ZodError } from "zod";
 
+import { MAX_COMPANIES_PER_PROBLEM } from "@/features/problems/constants/problem-constants";
 import { CreateProblemSchema } from "@/features/problems/types/problem.types";
 
 import type { CreateProblemDTO, UpdateProblemDTO } from "../../interfaces/problem.repository.interface";
@@ -96,6 +97,46 @@ describe("ProblemRepository Security Validation", () => {
       };
 
       await expect(problemRepository.update("some-id", maliciousUpdate)).rejects.toThrow(ZodError);
+    });
+  });
+
+  describe("addProblem", () => {
+    it("should prevent adding more companies than the limit", async () => {
+      const { getDoc } = require("firebase/firestore");
+
+      // Create an array of IDs from "1" to MAX_COMPANIES_PER_PROBLEM
+      const existingCompanyIds = Array.from(
+        { length: MAX_COMPANIES_PER_PROBLEM },
+        (_, i) => String(i + 1)
+      );
+
+      getDoc.mockResolvedValue({
+        exists: () => true,
+        data: () => ({
+          companyIds: existingCompanyIds,
+          companies: {},
+        }),
+      });
+
+      const validData = {
+        title: "Test Problem",
+        difficulty: "Easy",
+        link: "https://leetcode.com/problems/test",
+        tags: ["array"],
+        normalizedTitle: "test problem",
+        description: "test description",
+      };
+
+      const result = await problemRepository.addProblem(
+        "new-company-id",
+        // @ts-expect-error - Casting to match the expected Omit type
+        validData
+      );
+
+      expect(result.updated).toBe(false);
+      expect(result.error).toContain(
+        `Maximum number of companies (${MAX_COMPANIES_PER_PROBLEM}) reached`
+      );
     });
   });
 });
