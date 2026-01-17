@@ -109,6 +109,7 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
     const fetchSuggestions = async () => {
       if (debouncedSearchTerm.trim().length < 2) {
         setSuggestions([]);
+        setActiveIndex(-1);
         setShowSuggestions(false);
         return;
       }
@@ -119,13 +120,16 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
         );
         if (result.success && Array.isArray(result.data)) {
           setSuggestions(result.data.slice(0, 5));
+          setActiveIndex(-1);
           setShowSuggestions(true);
         } else {
-            setSuggestions([]);
+          setSuggestions([]);
+          setActiveIndex(-1);
         }
       } catch (error) {
         console.error("Error fetching suggestions:", error);
         setSuggestions([]);
+        setActiveIndex(-1);
       } finally {
         setIsLoadingSuggestions(false);
       }
@@ -150,13 +154,6 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showSuggestions]);
-
-  // Reset index when suggestions change
-  const [prevSuggestions, setPrevSuggestions] = useState(suggestions);
-  if (suggestions !== prevSuggestions) {
-    setPrevSuggestions(suggestions);
-    setActiveIndex(-1);
-  }
 
   const handleSuggestionClick = (suggestion: Suggestion) => {
     setSearchTermInput(suggestion.name);
