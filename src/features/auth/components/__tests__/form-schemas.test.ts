@@ -31,6 +31,14 @@ describe("Auth Form Schemas Security Limits", () => {
         expect(result.error.issues.some(i => i.message.includes("128 characters"))).toBe(true);
       }
     });
+
+    it("should accept password of 6 characters (backward compatibility)", () => {
+      const result = loginFormSchema.safeParse({
+        email: validEmail,
+        password: "123456",
+      });
+      expect(result.success).toBe(true);
+    });
   });
 
   describe("signupFormSchema", () => {
@@ -57,6 +65,18 @@ describe("Auth Form Schemas Security Limits", () => {
         expect(result.error.issues.some(i => i.message.includes("128 characters"))).toBe(true);
       }
     });
+
+    it("should reject password shorter than 8 characters", () => {
+      const result = signupFormSchema.safeParse({
+        displayName: "Test User",
+        email: validEmail,
+        password: "short",
+      });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues.some(i => i.message.includes("8 characters"))).toBe(true);
+      }
+    });
   });
 
   describe("forgotPasswordSchema", () => {
@@ -80,6 +100,17 @@ describe("Auth Form Schemas Security Limits", () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error.issues.some(i => i.message.includes("128 characters"))).toBe(true);
+      }
+    });
+
+    it("should reject password shorter than 8 characters", () => {
+      const result = resetPasswordSchema.safeParse({
+        password: "short",
+        confirmPassword: "short",
+      });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues.some(i => i.message.includes("8 characters"))).toBe(true);
       }
     });
   });
