@@ -131,4 +131,14 @@ describe("CompanyRepository Security", () => {
           expect(mockLimit).toHaveBeenCalledWith(20);
       });
   });
+
+  describe("getAllCompanySlugs (DoS Prevention)", () => {
+      it("should apply MAX_ALL_SLUGS_LIMIT (10000)", async () => {
+          // Act
+          await repository.getAllCompanySlugs();
+
+          // Assert
+          expect(mockLimit).toHaveBeenCalledWith(10000);
+      });
+  });
 });

@@ -36,6 +36,7 @@ import type {
 const MAX_PAGE_SIZE = 50;
 const MAX_OFFSET_LIMIT = 2000;
 const MAX_SUGGESTION_LIMIT = 20;
+const MAX_ALL_SLUGS_LIMIT = 10000;
 
 // Make sure db is initialized
 function getFirestore(): Firestore {
@@ -367,7 +368,8 @@ export class CompanyRepository implements ICompanyRepository {
   async getAllCompanySlugs(sorted: boolean = true): Promise<string[]> {
     try {
         const companiesCol = collection(getFirestore(), "companies");
-        const q = query(companiesCol);
+        // Security: Limit to prevent DoS on bulk retrieval
+        const q = query(companiesCol, limit(MAX_ALL_SLUGS_LIMIT));
         const companiesSnapshot = await getDocs(q);
         const slugs = companiesSnapshot.docs.map((docSnap) => docSnap.id);
         if (sorted) {
