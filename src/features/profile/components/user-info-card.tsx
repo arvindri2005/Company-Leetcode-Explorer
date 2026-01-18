@@ -146,17 +146,22 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                           render={({ field }) => (
                             <FormItem>
                               <FormControl>
-                                <Input
-                                  {...field}
-                                  placeholder="Enter display name"
-                                  aria-label="Display Name"
-                                  className="text-lg font-medium h-10"
-                                  autoFocus
-                                  autoComplete="name"
-                                  autoCapitalize="words"
-                                  maxLength={50}
-                                  enterKeyHint="done"
-                                />
+                                <div className="relative">
+                                  <Input
+                                    {...field}
+                                    placeholder="Enter display name"
+                                    aria-label="Display Name"
+                                    className="text-lg font-medium h-10 pr-12"
+                                    autoFocus
+                                    autoComplete="name"
+                                    autoCapitalize="words"
+                                    maxLength={50}
+                                    enterKeyHint="done"
+                                  />
+                                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
+                                    {field.value?.length || 0}/50
+                                  </span>
+                                </div>
                               </FormControl>
                               <FormMessage />
                             </FormItem>
