@@ -115,7 +115,7 @@ export default function SignupForm() {
         await updateProfile(userCredential.user, {
           displayName: data.displayName,
         });
-        await syncUserProfileIfNeeded(userCredential.user);
+        await syncUserProfileIfNeeded(userCredential.user, true);
       }
 
       toast({

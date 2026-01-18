@@ -40,18 +40,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isUserProfileSyncedRef = useRef(false);
 
   const syncUserProfileIfNeeded = useCallback(
-    async (firebaseUser: FirebaseUser) => {
-      // Only sync if the user is newly authenticated and not yet synced in this session
-      // This is a basic check; more robust logic might be needed depending on session handling
-      if (firebaseUser && !isUserProfileSyncedRef.current) {
-        const result = await authService.syncUserProfile(firebaseUser);
-        if (result.success) {
-          isUserProfileSyncedRef.current = true;
-        } else {
-          Logger.error("Failed to sync user profile", result.error, {
-            userId: firebaseUser.uid,
-          });
+    async (firebaseUser: FirebaseUser, force = false) => {
+      if (!firebaseUser) {
+        return;
+      }
+
+      // 1. Check in-memory ref first (fastest)
+      if (isUserProfileSyncedRef.current && !force) {
+        return;
+      }
+
+      // 2. Check session storage (persists across reloads)
+      const storageKey = `auth_synced:${firebaseUser.uid}`;
+      if (!force && typeof window !== "undefined") {
+        try {
+          if (sessionStorage.getItem(storageKey) === "true") {
+            isUserProfileSyncedRef.current = true;
+            return;
+          }
+        } catch {
+          // Ignore storage errors
         }
+      }
+
+      // 3. Perform sync
+      const result = await authService.syncUserProfile(firebaseUser);
+      if (result.success) {
+        isUserProfileSyncedRef.current = true;
+        if (typeof window !== "undefined") {
+          try {
+            sessionStorage.setItem(storageKey, "true");
+          } catch {
+            // Ignore storage errors
+          }
+        }
+      } else {
+        Logger.error("Failed to sync user profile", result.error, {
+          userId: firebaseUser.uid,
+        });
       }
     },
     [],

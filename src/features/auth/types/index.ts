@@ -9,7 +9,10 @@ export interface AuthContextType {
   /** Boolean indicating if the authentication state is still being loaded. */
   loading: boolean;
   /** Function to trigger a profile sync with Firestore if needed. */
-  syncUserProfileIfNeeded: (firebaseUser: FirebaseUser) => Promise<void>;
+  syncUserProfileIfNeeded: (
+    firebaseUser: FirebaseUser,
+    force?: boolean,
+  ) => Promise<void>;
   /** Function to set the user state, typically used for testing or specific auth flows. */
   setUser?: React.Dispatch<React.SetStateAction<FirebaseUser | null>>;
 }
