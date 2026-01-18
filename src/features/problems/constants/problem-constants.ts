@@ -7,6 +7,11 @@ import { type LastAskedPeriod,type ProblemStatus } from "../types";
 export const MAX_COMPANIES_PER_PROBLEM = 50;
 
 /**
+ * @description Maximum length of a search term to prevent DoS via massive query strings.
+ */
+export const MAX_SEARCH_TERM_LENGTH = 100;
+
+/**
  * @description Options for selecting the last asked period in UI elements, with user-friendly labels.
  */
 export const lastAskedPeriodOptions: ReadonlyArray<{

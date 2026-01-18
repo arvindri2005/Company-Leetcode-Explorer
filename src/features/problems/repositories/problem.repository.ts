@@ -18,7 +18,10 @@ import {
 
 import type { Problem } from "@/domain/entities/problem.entity";
 import { companyRepository } from "@/features/companies/repositories/company.repository";
-import { MAX_COMPANIES_PER_PROBLEM } from "@/features/problems/constants/problem-constants";
+import {
+  MAX_COMPANIES_PER_PROBLEM,
+  MAX_SEARCH_TERM_LENGTH,
+} from "@/features/problems/constants/problem-constants";
 import {
   DifficultyFilterImplementation,
   LastAskedFilterImplementation,
@@ -568,7 +571,11 @@ export class ProblemRepository implements IProblemRepository {
 
     // Optimization: Use Firestore range queries for search
     if (searchTerm.trim() !== "") {
-      const lowercasedSearchTerm = searchTerm.toLowerCase().trim();
+      const lowercasedSearchTerm = searchTerm
+        .toLowerCase()
+        .trim()
+        .slice(0, MAX_SEARCH_TERM_LENGTH);
+
       constraints.push(where("normalizedTitle", ">=", lowercasedSearchTerm));
       constraints.push(
         where("normalizedTitle", "<=", lowercasedSearchTerm + "\uf8ff"),
