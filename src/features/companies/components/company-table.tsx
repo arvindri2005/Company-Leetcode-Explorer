@@ -2,6 +2,7 @@ import React from "react";
 
 import Link from "next/link";
 
+import { Badge } from "@/components/ui/badge";
 import { OfflineImage } from "@/components/ui/offline-image";
 import { type Company } from "@/features/companies/types";
 import { getLogoUrl } from "@/lib/utils";
@@ -44,14 +45,13 @@ const CompanyRow = React.memo(function CompanyRow({
 
   // Get top 2 tags - Memoized to prevent recalculation and array mutation on render
   const topTags = React.useMemo(() => {
-    const tags = company.commonTags
-      ? [...company.commonTags] // Create a copy before sorting to avoid mutating the original prop
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 2)
-          .map((t) => t.tag)
-          .join(", ")
-      : "";
-    return tags || "Tech";
+    if (!company.commonTags || company.commonTags.length === 0) {
+      return null;
+    }
+    return [...company.commonTags] // Create a copy before sorting to avoid mutating the original prop
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 2)
+      .map((t) => t.tag);
   }, [company.commonTags]);
 
   return (
@@ -74,7 +74,21 @@ const CompanyRow = React.memo(function CompanyRow({
         </div>
       </td>
       <td className="p-4 text-gray-400 hidden md:table-cell">
-        {topTags}
+        <div className="flex flex-wrap gap-2">
+          {topTags ? (
+            topTags.map((tag) => (
+              <Badge
+                key={tag}
+                variant="secondary"
+                className="bg-white/10 hover:bg-white/20 text-gray-300 border-none font-normal"
+              >
+                {tag}
+              </Badge>
+            ))
+          ) : (
+            <span className="text-gray-500 italic text-xs">No tags</span>
+          )}
+        </div>
       </td>
       <td className="p-4 text-gray-400 hidden sm:table-cell">
         {company.problemCount}+
@@ -83,6 +97,7 @@ const CompanyRow = React.memo(function CompanyRow({
         <Link
           href={`/company/${company.slug}`}
           className="inline-flex items-center justify-center px-4 py-2 text-xs font-medium text-gray-300 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:text-white transition-colors"
+          aria-label={`View details for ${company.name}`}
         >
           View Details
         </Link>
@@ -90,9 +105,3 @@ const CompanyRow = React.memo(function CompanyRow({
     </tr>
   );
 });
-
-
-
-
-
-
