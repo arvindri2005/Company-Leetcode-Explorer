@@ -7,6 +7,8 @@
  */
 "use client";
 
+import React, { useMemo } from "react";
+
 import { ListChecks, TagsIcon } from "lucide-react";
 import {
   Bar,
@@ -19,8 +21,9 @@ import {
 } from "recharts";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { COLORS } from "@/constants/colors";
 import { TagBadge } from "@/features/problems";
-import type { Company, LastAskedPeriod,LeetCodeProblem } from "@/types";
+import type { Company, LastAskedPeriod, LeetCodeProblem } from "@/types";
 
 /**
  * Props for the CompanyProblemStats component.
@@ -28,8 +31,6 @@ import type { Company, LastAskedPeriod,LeetCodeProblem } from "@/types";
 interface CompanyProblemStatsProps {
   company: Company;
 }
-
-import { COLORS } from "@/constants/colors";
 
 const difficultyColors: Record<LeetCodeProblem["difficulty"], string> = {
   Easy: COLORS.difficulty.easy,
@@ -54,9 +55,29 @@ const recencyColors: Record<LastAskedPeriod, string> = {
  * @param {CompanyProblemStatsProps} props - The props for the component.
  * @returns {JSX.Element | null} The rendered statistics card, or null if stats are unavailable.
  */
-const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({
+const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = React.memo(({
   company,
 }) => {
+  // Memoize data preparation to avoid unnecessary re-renders of Recharts components
+  const difficultyData = useMemo(() => {
+    if (!company.difficultyCounts) {return [];}
+    return [
+      { name: "Easy", count: company.difficultyCounts.Easy },
+      { name: "Medium", count: company.difficultyCounts.Medium },
+      { name: "Hard", count: company.difficultyCounts.Hard },
+    ];
+  }, [company.difficultyCounts]);
+
+  const recencyData = useMemo(() => {
+    if (!company.recencyCounts) {return [];}
+    return [
+      { name: "1 month", count: company.recencyCounts.last_30_days },
+      { name: "3 months", count: company.recencyCounts.within_3_months },
+      { name: "6 months", count: company.recencyCounts.within_6_months },
+      { name: ">6 months", count: company.recencyCounts.older_than_6_months },
+    ];
+  }, [company.recencyCounts]);
+
   const {
     statsLastUpdatedAt,
     difficultyCounts,
@@ -72,19 +93,6 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({
   ) {
     return null;
   }
-
-  const difficultyData = [
-    { name: "Easy", count: difficultyCounts.Easy },
-    { name: "Medium", count: difficultyCounts.Medium },
-    { name: "Hard", count: difficultyCounts.Hard },
-  ];
-
-  const recencyData = [
-    { name: "1 month", count: recencyCounts.last_30_days },
-    { name: "3 months", count: recencyCounts.within_3_months },
-    { name: "6 months", count: recencyCounts.within_6_months },
-    { name: ">6 months", count: recencyCounts.older_than_6_months },
-  ];
 
   return (
     <Card className="bg-card border border-border rounded-xl p-6 mb-8 shadow-sm">
@@ -195,12 +203,8 @@ const CompanyProblemStats: React.FC<CompanyProblemStatsProps> = ({
       </CardContent>
     </Card>
   );
-};
+});
+
+CompanyProblemStats.displayName = "CompanyProblemStats";
 
 export default CompanyProblemStats;
-
-
-
-
-
-
