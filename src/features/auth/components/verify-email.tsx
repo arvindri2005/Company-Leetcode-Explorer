@@ -45,8 +45,12 @@ export default function VerifyEmail({ oobCode }: VerifyEmailProps) {
 
   if (status === "verifying") {
     return (
-      <div className="flex flex-col items-center justify-center space-y-4 py-8">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div
+        className="flex flex-col items-center justify-center space-y-4 py-8"
+        role="status"
+        aria-live="polite"
+      >
+        <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
         <p className="text-muted-foreground">{message}</p>
       </div>
     );
@@ -54,9 +58,9 @@ export default function VerifyEmail({ oobCode }: VerifyEmailProps) {
 
   if (status === "success") {
     return (
-      <div className="text-center space-y-6">
+      <div className="text-center space-y-6" role="status" aria-live="polite">
         <div className="mx-auto w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center">
-            <CheckCircle2 className="w-8 h-8 text-green-600" />
+          <CheckCircle2 className="w-8 h-8 text-green-600" aria-hidden="true" />
         </div>
         <div className="space-y-2">
             <h3 className="text-xl font-semibold text-green-600">Email Verified!</h3>
@@ -74,12 +78,14 @@ export default function VerifyEmail({ oobCode }: VerifyEmailProps) {
   }
 
   return (
-    <div className="text-center space-y-6">
-        <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
-            <XCircle className="w-8 h-8 text-destructive" />
-        </div>
-        <div className="space-y-2">
-            <h3 className="text-xl font-semibold text-destructive">Verification Failed</h3>
+    <div className="text-center space-y-6" role="alert" aria-live="assertive">
+      <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
+        <XCircle className="w-8 h-8 text-destructive" aria-hidden="true" />
+      </div>
+      <div className="space-y-2">
+        <h3 className="text-xl font-semibold text-destructive">
+          Verification Failed
+        </h3>
             <p className="text-muted-foreground">{message}</p>
         </div>
          <Button asChild variant="outline" className="w-full">
