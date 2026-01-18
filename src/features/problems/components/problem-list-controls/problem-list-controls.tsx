@@ -93,50 +93,22 @@ const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
   return (
     <div className="mb-4 md:mb-6 p-3 md:p-4 bg-card rounded-xl shadow">
       <div className="flex flex-wrap gap-2">
-        {difficultyOptions.map((option) => (
-          <Chip
-            key={`difficulty-${option.value}`}
-            selected={difficultyFilter.includes(option.value as DifficultyFilter)}
-            onClick={() =>
-              toggleFilter(
-                difficultyFilter,
-                option.value as DifficultyFilter,
-                onDifficultyFilterChange,
-              )
-            }
-            className={chipClassName}
-          >
-            {option.label}
-          </Chip>
-        ))}
-
-        {lastAskedPeriodOptions.map((option) => (
-          <Chip
-            key={`recency-${option.value}`}
-            selected={lastAskedFilter.includes(option.value as LastAskedFilter)}
-            onClick={() =>
-              toggleFilter(
-                lastAskedFilter,
-                option.value as LastAskedFilter,
-                onLastAskedFilterChange,
-              )
-            }
-            className={chipClassName}
-          >
-            {option.label}
-          </Chip>
-        ))}
-
-        {showStatusFilter &&
-          statusOptions.map((option) => (
+        <div
+          role="group"
+          aria-label="Filter by difficulty"
+          className="contents"
+        >
+          {difficultyOptions.map((option) => (
             <Chip
-              key={`status-${option.value}`}
-              selected={statusFilter.includes(option.value as StatusFilter)}
+              key={`difficulty-${option.value}`}
+              selected={difficultyFilter.includes(
+                option.value as DifficultyFilter,
+              )}
               onClick={() =>
                 toggleFilter(
-                  statusFilter,
-                  option.value as StatusFilter,
-                  onStatusFilterChange,
+                  difficultyFilter,
+                  option.value as DifficultyFilter,
+                  onDifficultyFilterChange,
                 )
               }
               className={chipClassName}
@@ -144,6 +116,49 @@ const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
               {option.label}
             </Chip>
           ))}
+        </div>
+
+        <div role="group" aria-label="Filter by recency" className="contents">
+          {lastAskedPeriodOptions.map((option) => (
+            <Chip
+              key={`recency-${option.value}`}
+              selected={lastAskedFilter.includes(
+                option.value as LastAskedFilter,
+              )}
+              onClick={() =>
+                toggleFilter(
+                  lastAskedFilter,
+                  option.value as LastAskedFilter,
+                  onLastAskedFilterChange,
+                )
+              }
+              className={chipClassName}
+            >
+              {option.label}
+            </Chip>
+          ))}
+        </div>
+
+        {showStatusFilter && (
+          <div role="group" aria-label="Filter by status" className="contents">
+            {statusOptions.map((option) => (
+              <Chip
+                key={`status-${option.value}`}
+                selected={statusFilter.includes(option.value as StatusFilter)}
+                onClick={() =>
+                  toggleFilter(
+                    statusFilter,
+                    option.value as StatusFilter,
+                    onStatusFilterChange,
+                  )
+                }
+                className={chipClassName}
+              >
+                {option.label}
+              </Chip>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
