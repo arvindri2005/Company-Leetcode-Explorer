@@ -9,8 +9,8 @@
  */
 "use client";
 
-import { useEffect, useState } from "react";
-import { FormProvider,useForm } from "react-hook-form";
+import { useCallback, useEffect, useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
 
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
@@ -295,11 +295,13 @@ export default function ProfilePage() {
     } else {setBookmarkedProblemDetails([]);}
   };
 
-  const fetchStatusData = async () => {
+  const fetchStatusData = useCallback(async () => {
     if (user?.uid) {
       setIsLoadingStatuses(true);
       try {
-        const statusResult = await userService.getAllUserProblemStatuses(user.uid);
+        const statusResult = await userService.getAllUserProblemStatuses(
+          user.uid,
+        );
         if (!statusResult.isSuccess) {
           toast({
             title: "Error",
@@ -355,9 +357,9 @@ export default function ProfilePage() {
       setProblemStatuses({});
       setProblemsWithStatusDetails([]);
     }
-  };
+  }, [user, toast]);
 
-  const fetchStrategyTodoLists = async () => {
+  const fetchStrategyTodoLists = useCallback(async () => {
     if (user?.uid) {
       setIsLoadingStrategyTodoLists(true);
       try {
@@ -379,8 +381,10 @@ export default function ProfilePage() {
         });
       }
       setIsLoadingStrategyTodoLists(false);
-    } else {setStrategyTodoLists([]);}
-  };
+    } else {
+      setStrategyTodoLists([]);
+    }
+  }, [user, toast]);
 
   useEffect(() => {
     if (user && !authLoading) {
@@ -435,51 +439,52 @@ export default function ProfilePage() {
     }
   };
 
-  const handleToggleTodoItem = async (
-    companyId: string,
-    itemIndex: number,
-    newStatus: boolean,
-  ) => {
-    if (!user) {return;}
-    const todoItemId = `${companyId}-${itemIndex}`;
-    setUpdatingTodoItemId(todoItemId);
-    const originalLists = [...strategyTodoLists]; // Keep a copy for optimistic update rollback
+  const handleToggleTodoItem = useCallback(
+    async (companyId: string, itemIndex: number, newStatus: boolean) => {
+      if (!user) {
+        return;
+      }
+      const todoItemId = `${companyId}-${itemIndex}`;
+      setUpdatingTodoItemId(todoItemId);
+      const originalLists = [...strategyTodoLists]; // Keep a copy for optimistic update rollback
 
-    // Optimistic UI update
-    setStrategyTodoLists((prevLists) =>
-      prevLists.map((list) =>
-        list.companyId === companyId
-          ? {
-              ...list,
-              items: list.items.map((item, index) =>
-                index === itemIndex
-                  ? { ...item, isCompleted: newStatus }
-                  : item,
-              ),
-            }
-          : list,
-      ),
-    );
+      // Optimistic UI update
+      setStrategyTodoLists((prevLists) =>
+        prevLists.map((list) =>
+          list.companyId === companyId
+            ? {
+                ...list,
+                items: list.items.map((item, index) =>
+                  index === itemIndex
+                    ? { ...item, isCompleted: newStatus }
+                    : item,
+                ),
+              }
+            : list,
+        ),
+      );
 
-    const result = await userService.updateStrategyTodoItemStatus(
-      user.uid,
-      companyId,
-      itemIndex,
-      newStatus,
-    );
-    setUpdatingTodoItemId(null);
+      const result = await userService.updateStrategyTodoItemStatus(
+        user.uid,
+        companyId,
+        itemIndex,
+        newStatus,
+      );
+      setUpdatingTodoItemId(null);
 
-    if (!result.isSuccess) {
-      toast({
-        title: "Update Failed",
-        description: result.error.message || "Could not update item status.",
-        variant: "destructive",
-      });
-      setStrategyTodoLists(originalLists); // Rollback UI on failure
-    } else {
-      fetchStrategyTodoLists(); // Re-fetch on success to ensure data consistency
-    }
-  };
+      if (!result.isSuccess) {
+        toast({
+          title: "Update Failed",
+          description: result.error.message || "Could not update item status.",
+          variant: "destructive",
+        });
+        setStrategyTodoLists(originalLists); // Rollback UI on failure
+      } else {
+        fetchStrategyTodoLists(); // Re-fetch on success to ensure data consistency
+      }
+    },
+    [user, strategyTodoLists, fetchStrategyTodoLists, toast],
+  );
 
   const handleLogout = async () => {
     try {
@@ -499,95 +504,107 @@ export default function ProfilePage() {
     }
   };
 
-  const handleProblemBookmarkChangeOnProfile = (
-    problemId: string,
-    newStatus: boolean,
-  ) => {
-    setBookmarkedProblemDetails(
-      (prev) =>
-        newStatus
-          ? prev.map((p) =>
-              p.id === problemId ? { ...p, isBookmarked: true } : p,
-            )
-          : prev.filter((p) => p.id !== problemId), // If unbookmarked, remove from list
-    );
-    // Optionally, re-fetch problem statuses if bookmarking could affect any lists based on problem status
-    fetchStatusData();
-  };
-
-  const handleProblemStatusChangeOnProfile = (
-    problemId: string,
-    newStatus: ProblemStatus,
-  ) => {
-    setProblemsWithStatusDetails((prev) => {
-      if (newStatus === "none") {return prev.filter((p) => p.id !== problemId);}
-      return prev.map((p) =>
-        p.id === problemId ? { ...p, currentStatus: newStatus } : p,
+  const handleProblemBookmarkChangeOnProfile = useCallback(
+    (problemId: string, newStatus: boolean) => {
+      setBookmarkedProblemDetails(
+        (prev) =>
+          newStatus
+            ? prev.map((p) =>
+                p.id === problemId ? { ...p, isBookmarked: true } : p,
+              )
+            : prev.filter((p) => p.id !== problemId), // If unbookmarked, remove from list
       );
-    });
-    // Re-fetch all status data to accurately update counts and lists
-    fetchStatusData();
-    // Bookmarks are independent, no need to re-fetch them here unless logic changes
-  };
+      // Optionally, re-fetch problem statuses if bookmarking could affect any lists based on problem status
+      fetchStatusData();
+    },
+    [fetchStatusData],
+  );
+
+  const handleProblemStatusChangeOnProfile = useCallback(
+    (problemId: string, newStatus: ProblemStatus) => {
+      setProblemsWithStatusDetails((prev) => {
+        if (newStatus === "none") {
+          return prev.filter((p) => p.id !== problemId);
+        }
+        return prev.map((p) =>
+          p.id === problemId ? { ...p, currentStatus: newStatus } : p,
+        );
+      });
+      // Re-fetch all status data to accurately update counts and lists
+      fetchStatusData();
+      // Bookmarks are independent, no need to re-fetch them here unless logic changes
+    },
+    [fetchStatusData],
+  );
 
   const getInitials = (name: string | null | undefined) => {
-    if (!name) {return "AU";} // Anonymous User
+    if (!name) {
+      return "AU";
+    } // Anonymous User
     const names = name.split(" ");
     const initials = names.map((n) => n[0]).join("");
     return initials.toUpperCase().slice(0, 2);
   };
 
-  const onSubmitDisplayName = async (data: DisplayNameFormValues) => {
-    if (!user) {return;}
-    setIsSubmittingDisplayName(true);
-    try {
-      // Update Firebase Auth profile
-      await updateFirebaseAuthProfile(user, {
-        displayName: data.displayName,
-      });
-      // Update Firestore profile
-      const firestoreResult = await userService.updateUserDisplayName(
-        user.uid,
-        data.displayName.trim(),
-      );
-
-      if (firestoreResult.isSuccess) {
-        // Manually update user object in AuthContext for immediate UI reflection
-        // Create a new user object to trigger re-renders
-        const updatedUser = {
-          ...user,
+  const onSubmitDisplayName = useCallback(
+    async (data: DisplayNameFormValues) => {
+      if (!user) {
+        return;
+      }
+      setIsSubmittingDisplayName(true);
+      try {
+        // Update Firebase Auth profile
+        await updateFirebaseAuthProfile(user, {
           displayName: data.displayName,
-        } as typeof user;
-        if (setUser) {
-          setUser(updatedUser); // Update context
-        }
-        await syncUserProfileIfNeeded(updatedUser); // Re-sync with potentially new displayName from Auth
-
-        toast({
-          title: "Success",
-          description: "Display name updated successfully!",
         });
-        setIsEditingDisplayName(false);
-      } else {
+        // Update Firestore profile
+        const firestoreResult = await userService.updateUserDisplayName(
+          user.uid,
+          data.displayName.trim(),
+        );
+
+        if (firestoreResult.isSuccess) {
+          // Manually update user object in AuthContext for immediate UI reflection
+          // Create a new user object to trigger re-renders
+          const updatedUser = {
+            ...user,
+            displayName: data.displayName,
+          } as typeof user;
+          if (setUser) {
+            setUser(updatedUser); // Update context
+          }
+          await syncUserProfileIfNeeded(updatedUser); // Re-sync with potentially new displayName from Auth
+
+          toast({
+            title: "Success",
+            description: "Display name updated successfully!",
+          });
+          setIsEditingDisplayName(false);
+        } else {
+          toast({
+            title: "Error",
+            description:
+              firestoreResult.error.message ||
+              "Failed to update display name in database.",
+            variant: "destructive",
+          });
+        }
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to update display name.";
         toast({
           title: "Error",
-          description:
-            firestoreResult.error.message ||
-            "Failed to update display name in database.",
+          description: errorMessage,
           variant: "destructive",
         });
+      } finally {
+        setIsSubmittingDisplayName(false);
       }
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to update display name.";
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmittingDisplayName(false);
-    }
-  };
+    },
+    [user, setUser, syncUserProfileIfNeeded, toast],
+  );
 
   if (authLoading) {return <ProfilePageSkeleton />;}
   if (!user) {
