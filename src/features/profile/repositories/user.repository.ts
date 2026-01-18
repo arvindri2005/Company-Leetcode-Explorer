@@ -933,8 +933,26 @@ export class UserRepository implements IUserRepository {
         lastSyncedAt: serverTimestamp(),
       };
 
-      if (email) {updates.email = email;}
-      if (displayName) {updates.displayName = displayName;}
+      // Security: Prioritize authenticated email if available
+      if (currentUser.email) {
+        updates.email = currentUser.email;
+      } else if (email) {
+        // Fallback to provided email only if auth email is unavailable (e.g. phone auth)
+        updates.email = email;
+      }
+
+      if (displayName) {
+        // Security: Sanitize display name
+        let safeName = displayName.trim();
+        // Truncate if too long (max 50 chars to match updateUserDisplayName limit)
+        if (safeName.length > 50) {
+          safeName = safeName.substring(0, 50);
+        }
+        
+        if (safeName.length > 0) {
+          updates.displayName = safeName;
+        }
+      }
 
       // We use setDoc with merge: true which creates if not exists, or updates if exists.
       await setDoc(userDocRef, updates, { merge: true });

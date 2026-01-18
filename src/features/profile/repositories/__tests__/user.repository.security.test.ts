@@ -140,3 +140,90 @@ describe('UserRepository Security Tests - IDOR on Reads', () => {
   });
 
 });
+
+describe('UserRepository Security - syncUserProfile', () => {
+  let repository: UserRepository;
+  let setDocMock: any;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    repository = new UserRepository();
+    const firestore = require('firebase/firestore');
+    setDocMock = firestore.setDoc;
+  });
+
+  it('should ignore provided email if it differs from authenticated user email', async () => {
+    // Setup: Auth user has 'real@email.com'
+    const realEmail = 'real@email.com';
+    const fakeEmail = 'fake@email.com';
+    (auth as any).currentUser = { uid: 'user-123', email: realEmail };
+
+    // Action: Try to sync with fake email
+    await repository.syncUserProfile(fakeEmail, 'Display Name');
+
+    // Assertion: setDoc should be called with realEmail
+    expect(setDocMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        email: realEmail
+      }),
+      expect.anything()
+    );
+    
+    // Ensure fake email was NOT used
+    const setDocArgs = setDocMock.mock.calls[0][1];
+    expect(setDocArgs.email).toBe(realEmail);
+    expect(setDocArgs.email).not.toBe(fakeEmail);
+  });
+
+  it('should use provided email only if auth email is null', async () => {
+    // Setup: Auth user has NO email (e.g. phone auth or anon)
+    (auth as any).currentUser = { uid: 'user-123', email: null };
+    const providedEmail = 'provided@email.com';
+
+    // Action
+    await repository.syncUserProfile(providedEmail, 'Display Name');
+
+    // Assertion
+    expect(setDocMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        email: providedEmail
+      }),
+      expect.anything()
+    );
+  });
+
+  it('should truncate excessively long display names', async () => {
+    (auth as any).currentUser = { uid: 'user-123', email: 'test@email.com' };
+    const longName = 'A'.repeat(100); // 100 chars
+
+    await repository.syncUserProfile('test@email.com', longName);
+
+    // Assertion
+    const setDocArgs = setDocMock.mock.calls[0][1];
+    expect(setDocArgs.displayName.length).toBeLessThanOrEqual(50);
+    expect(setDocArgs.displayName).toBe('A'.repeat(50));
+  });
+
+  it('should trim display names', async () => {
+    (auth as any).currentUser = { uid: 'user-123', email: 'test@email.com' };
+    const untrimmedName = '  Bob  ';
+
+    await repository.syncUserProfile('test@email.com', untrimmedName);
+
+    // Assertion
+    const setDocArgs = setDocMock.mock.calls[0][1];
+    expect(setDocArgs.displayName).toBe('Bob');
+  });
+
+  it('should fail if user is not authenticated', async () => {
+    (auth as any).currentUser = null;
+
+    const result = await repository.syncUserProfile('test@email.com', 'Bob');
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('User is not authenticated.');
+    expect(setDocMock).not.toHaveBeenCalled();
+  });
+});
