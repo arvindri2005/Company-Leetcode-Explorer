@@ -33,6 +33,7 @@ import { useProblemInteractions } from "@/features/problems/hooks/use-problem-in
 import { cn, getDeterministicRandom } from "@/lib/utils";
 
 import type { LeetCodeProblem, ProblemStatus } from "../../types";
+import CompanyBadge from "../company-badge/company-badge";
 import { ProblemAIActions } from "../problem-ai-actions";
 import TagBadge from "../tag-badge/tag-badge";
 
@@ -214,14 +215,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                        {showCompanies && problem.companyIds && problem.companyIds.length > 0 && (
                             <div className="flex items-center gap-1.5 flex-wrap">
                                 {problem.companyIds.map(companyId => (
-                                     <Link 
-                                        key={companyId} 
-                                        href={`/company/${companyId}`}
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="text-xs md:text-sm text-muted-foreground bg-muted px-1.5 rounded-sm border border-border/50 whitespace-nowrap capitalize hover:text-foreground hover:border-border transition-colors"
-                                     >
-                                        {companyId.replace(/-/g, ' ')}
-                                     </Link>
+                                     <CompanyBadge key={companyId} companyId={companyId} />
                                 ))}
                             </div>
                         )}
