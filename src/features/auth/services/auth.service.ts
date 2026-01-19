@@ -38,7 +38,15 @@ export class AuthService {
       const user = result.user;
 
       // Sync user profile after successful login
-      await this.syncUserProfile(user);
+      const syncResult = await this.syncUserProfile(user);
+      
+      if (!syncResult.success) {
+        // Log warning but don't fail login as the auth part succeeded
+        Logger.warn("User logged in but profile sync failed", { 
+          userId: user.uid,
+          error: syncResult.error 
+        });
+      }
 
       return {
         success: true,
@@ -89,9 +97,19 @@ export class AuthService {
     }
 
     try {
+      // Security: Sanitize display name before passing to service layer (Defense in Depth)
+      let sanitizedDisplayName = firebaseUser.displayName;
+      if (sanitizedDisplayName) {
+        sanitizedDisplayName = sanitizedDisplayName.trim();
+        // Truncate if too long (max 50 chars to match user repository limit)
+        if (sanitizedDisplayName.length > 50) {
+          sanitizedDisplayName = sanitizedDisplayName.substring(0, 50);
+        }
+      }
+
       const result = await userService.syncUserProfile(
         firebaseUser.email,
-        firebaseUser.displayName
+        sanitizedDisplayName
       );
 
       if (!result.isSuccess) {
@@ -127,9 +145,3 @@ export class AuthService {
 }
 
 export const authService = new AuthService();
-
-
-
-
-
-
