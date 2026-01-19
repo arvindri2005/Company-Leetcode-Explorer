@@ -84,16 +84,6 @@ function mapFirestoreDocToCompany(
         : undefined,
   };
 
-  // Validate at the edge
-  const result = CompanySchema.safeParse(company);
-  if (!result.success) {
-    Logger.warn(
-      `Data integrity issue in Company (ID: ${company.id}): ${result.error.issues
-        .map((i) => `${i.path.join(".")}: ${i.message}`)
-        .join(", ")}`,
-    );
-  }
-
   return company;
 }
 
