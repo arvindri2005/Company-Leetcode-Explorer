@@ -37,6 +37,7 @@ const MAX_PAGE_SIZE = 50;
 const MAX_OFFSET_LIMIT = 2000;
 const MAX_SUGGESTION_LIMIT = 20;
 const MAX_ALL_SLUGS_LIMIT = 10000;
+const MAX_SEARCH_TERM_LENGTH = 100;
 
 // Make sure db is initialized
 function getFirestore(): Firestore {
@@ -187,7 +188,11 @@ export class CompanyRepository implements ICompanyRepository {
     cursor,
   }: GetCompaniesParams = {}): Promise<PaginatedCompaniesResponse> {
     try {
-      const normalizedSearchTerm = searchTerm?.trim().toLowerCase();
+      // Security: Sanitize and limit search term length
+      const normalizedSearchTerm = searchTerm
+        ?.trim()
+        .slice(0, MAX_SEARCH_TERM_LENGTH)
+        .toLowerCase();
 
       // Security: Clamp page size to prevent large reads
       const safePageSize = Math.min(pageSize, MAX_PAGE_SIZE);
@@ -510,7 +515,12 @@ export class CompanyRepository implements ICompanyRepository {
     searchTerm: string,
     limitNum: number = 5,
   ): Promise<Array<Pick<Company, "id" | "name" | "slug" | "logo">>> {
-    if (!searchTerm || searchTerm.trim().length < 1) {
+    const sanitizedTerm = searchTerm
+      ?.trim()
+      .slice(0, MAX_SEARCH_TERM_LENGTH)
+      .toLowerCase();
+
+    if (!sanitizedTerm || sanitizedTerm.length < 1) {
       return [];
     }
     try {
@@ -518,13 +528,12 @@ export class CompanyRepository implements ICompanyRepository {
       const safeLimit = Math.min(limitNum, MAX_SUGGESTION_LIMIT);
 
       const companiesCol = collection(getFirestore(), "companies");
-      const lowercasedSearchTerm = searchTerm.toLowerCase().trim();
 
       const q = query(
         companiesCol,
         orderBy("normalizedName"),
-        where("normalizedName", ">=", lowercasedSearchTerm),
-        where("normalizedName", "<=", lowercasedSearchTerm + "\uf8ff"),
+        where("normalizedName", ">=", sanitizedTerm),
+        where("normalizedName", "<=", sanitizedTerm + "\uf8ff"),
         limit(safeLimit),
       );
 

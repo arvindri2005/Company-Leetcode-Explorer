@@ -1,4 +1,4 @@
-import { doc, getDocs, limit, updateDoc } from "firebase/firestore";
+import { doc, getDocs, limit, updateDoc, where } from "firebase/firestore";
 
 import { CompanyRepository } from "../company.repository";
 
@@ -30,6 +30,8 @@ jest.mock("firebase/firestore", () => {
     updateDoc: jest.fn(),
     limit: jest.fn((n) => ({ type: 'limit', value: n })),
     query: jest.fn(),
+    where: jest.fn((field, op, val) => ({ type: "where", field, op, val })),
+    orderBy: jest.fn(),
     getDocs: jest.fn(() => ({ docs: [] })),
   };
 });
@@ -40,6 +42,7 @@ describe("CompanyRepository Security", () => {
   const mockDoc = doc as jest.Mock;
   const mockLimit = limit as jest.Mock;
   const mockGetDocs = getDocs as jest.Mock;
+  const mockWhere = where as jest.Mock;
 
   beforeEach(() => {
     repository = new CompanyRepository();
@@ -119,17 +122,51 @@ describe("CompanyRepository Security", () => {
       // NOT 1001.
       expect(mockLimit).toHaveBeenCalledWith(51);
     });
-  });
-  
-  describe("fetchCompanySuggestions (Security)", () => {
-      it("should CLAMP limit to MAX_SUGGESTION_LIMIT (20)", async () => {
-          // Act
-          await repository.fetchCompanySuggestions("test", 1000);
 
-          // Assert
-          // limit should be called with 20
-          expect(mockLimit).toHaveBeenCalledWith(20);
-      });
+    it("should TRUNCATE search term to MAX_SEARCH_TERM_LENGTH (100)", async () => {
+      // Setup
+      const longTerm = "a".repeat(200);
+      const expectedTerm = "a".repeat(100);
+
+      // Act
+      await repository.getCompanies({ searchTerm: longTerm });
+
+      // Assert
+      // The repository performs: searchTerm?.trim().slice(0, 100).toLowerCase()
+      // We expect 'where' to be called with the truncated term
+      expect(mockWhere).toHaveBeenCalledWith(
+        "normalizedName",
+        ">=",
+        expectedTerm,
+      );
+    });
+  });
+
+  describe("fetchCompanySuggestions (Security)", () => {
+    it("should CLAMP limit to MAX_SUGGESTION_LIMIT (20)", async () => {
+      // Act
+      await repository.fetchCompanySuggestions("test", 1000);
+
+      // Assert
+      // limit should be called with 20
+      expect(mockLimit).toHaveBeenCalledWith(20);
+    });
+
+    it("should TRUNCATE search term to MAX_SEARCH_TERM_LENGTH (100)", async () => {
+      // Setup
+      const longTerm = "b".repeat(200);
+      const expectedTerm = "b".repeat(100);
+
+      // Act
+      await repository.fetchCompanySuggestions(longTerm);
+
+      // Assert
+      expect(mockWhere).toHaveBeenCalledWith(
+        "normalizedName",
+        ">=",
+        expectedTerm,
+      );
+    });
   });
 
   describe("getAllCompanySlugs (DoS Prevention)", () => {
