@@ -77,6 +77,7 @@ export default function LoginForm() {
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
+    mode: "onBlur",
     defaultValues: {
       email: "",
       password: "",
@@ -180,7 +181,7 @@ export default function LoginForm() {
                       disabled={isSubmitting}
                     />
                 </FormControl>
-                <FormMessage />
+                <FormMessage role="alert" />
               </FormItem>
             )}
           />
@@ -199,7 +200,7 @@ export default function LoginForm() {
                     disabled={isSubmitting}
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage role="alert" />
               </FormItem>
             )}
           />

@@ -87,6 +87,7 @@ export default function SignupForm() {
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupFormSchema),
+    mode: "onBlur",
     defaultValues: {
       displayName: "",
       password: "",
@@ -218,14 +219,15 @@ export default function SignupForm() {
                       disabled={isSubmitting}
                     />
                     {field.value &&
-                      !form.getFieldState("displayName").invalid && (
+                      signupFormSchema.shape.displayName.safeParse(field.value)
+                        .success && (
                         <div className="absolute right-3 top-3 text-green-500 animate-in fade-in zoom-in">
                           <Check className="h-4 w-4" />
                         </div>
                       )}
                   </div>
                 </FormControl>
-                <FormMessage />
+                <FormMessage role="alert" />
               </FormItem>
             </div>
           )}
@@ -251,14 +253,16 @@ export default function SignupForm() {
                       className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
                       disabled={isSubmitting}
                     />
-                    {field.value && !form.getFieldState("email").invalid && (
-                      <div className="absolute right-3 top-3 text-green-500 animate-in fade-in zoom-in">
-                        <Check className="h-4 w-4" />
-                      </div>
-                    )}
+                    {field.value &&
+                      signupFormSchema.shape.email.safeParse(field.value)
+                        .success && (
+                        <div className="absolute right-3 top-3 text-green-500 animate-in fade-in zoom-in">
+                          <Check className="h-4 w-4" />
+                        </div>
+                      )}
                   </div>
                 </FormControl>
-                <FormMessage />
+                <FormMessage role="alert" />
               </FormItem>
             </div>
           )}
@@ -283,7 +287,7 @@ export default function SignupForm() {
                   />
                 </FormControl>
                 <SignupPasswordStrength password={field.value} />
-                <FormMessage />
+                <FormMessage role="alert" />
               </FormItem>
             </div>
           )}
