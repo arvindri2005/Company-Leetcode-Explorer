@@ -5,6 +5,13 @@ import { type LeetCodeProblem } from "../../types";
 import ProblemCard from "./problem-card";
 
 // Mock hooks
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+  }),
+  usePathname: () => "/problems",
+}));
+
 jest.mock("@/providers", () => ({
   useAuth: () => ({ user: { uid: "test-user" } }),
 }));
@@ -70,15 +77,15 @@ describe("ProblemCard", () => {
     expect(screen.getByText("Easy")).toBeInTheDocument();
   });
 
-  it("renders tags when expanded", () => {
+  it("renders tags when expanded", async () => {
     render(<ProblemCard problem={mockProblem} companySlug="google" />);
     // Initial state not expaned, but let's check if we can toggle
     // The component structure puts click handler on the container or chevron
     // Assuming the chevron button is accessible, let's try finding the collapse trigger
     // Actually the click handler is on the main div and chevron button
-    fireEvent.click(screen.getByText("Two Sum"));
+    fireEvent.click(screen.getByLabelText("Expand details"));
     
-    expect(screen.getByText("Array")).toBeInTheDocument();
+    expect(await screen.findByText("Array")).toBeInTheDocument();
     expect(screen.getByText("Hash Table")).toBeInTheDocument();
   });
 
@@ -87,11 +94,11 @@ describe("ProblemCard", () => {
     expect(screen.getByText("google")).toBeInTheDocument();
   });
 
-  it("has accessible label for Write Code button", () => {
+  it("has accessible label for Write Code button", async () => {
     render(<ProblemCard problem={mockProblem} companySlug="google" />);
     // Expand the card first to see the button
-    fireEvent.click(screen.getByText("Two Sum"));
-    const linkButton = screen.getByRole("link", { name: /Solve on LeetCode/i });
+    fireEvent.click(screen.getByLabelText("Expand details"));
+    const linkButton = await screen.findByRole("link", { name: /Solve on LeetCode/i });
     expect(linkButton).toBeInTheDocument();
     expect(linkButton).toHaveAttribute("href", mockProblem.link);
   });

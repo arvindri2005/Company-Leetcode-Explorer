@@ -262,6 +262,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                   )}
               >
                    <div className="overflow-hidden">
+                     {wasEverExpanded && (
                        <div className="p-3 pt-2 flex flex-col gap-3">
                            {/* Tags */}
                            {problemTags.length > 0 && (
@@ -296,20 +297,13 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                                   </Link>
                                 </Button>
                                 
-                                {wasEverExpanded ? (
-                                  <ProblemAIActions 
-                                    problem={problem} 
-                                    companySlug={companySlug} 
-                                  />
-                                ) : (
-                                  /* Placeholders to prevent layout shift during expansion animation if loading is slow (though it's sync) */
-                                  <>
-                                     <Button variant="secondary" size="sm" className="h-8 text-sm md:text-base flex-1 bg-background hover:bg-muted border border-border/50" disabled>Similar</Button>
-                                     <Button variant="secondary" size="sm" className="h-8 text-sm md:text-base flex-1 bg-background hover:bg-muted border border-border/50" disabled>Hints</Button>
-                                  </>
-                                )}
+                                <ProblemAIActions 
+                                  problem={problem} 
+                                  companySlug={companySlug} 
+                                />
                            </div>
                        </div>
+                     )}
                    </div>
               </div>
           </div>
