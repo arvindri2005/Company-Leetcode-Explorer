@@ -1226,7 +1226,6 @@ export class ProblemRepository implements IProblemRepository {
         };
 
         await updateDoc(problemDocRef, {
-          ...validatedData,
           slug: problemSlug,
           companyIds: Array.from(companyIds),
           companies: companiesMap,

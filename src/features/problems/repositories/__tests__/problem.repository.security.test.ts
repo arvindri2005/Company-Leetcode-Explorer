@@ -138,5 +138,57 @@ describe("ProblemRepository Security Validation", () => {
         `Maximum number of companies (${MAX_COMPANIES_PER_PROBLEM}) reached`
       );
     });
+
+    it("should NOT overwrite existing problem details (link, difficulty) when adding a new company", async () => {
+      const { getDoc, updateDoc } = require("firebase/firestore");
+
+      // Mock existing problem
+      const existingData = {
+        title: "Existing Problem",
+        difficulty: "Hard", // Existing is Hard
+        link: "https://leetcode.com/problems/existing", // Existing link
+        tags: ["tree"],
+        companyIds: ["company-a"],
+        companies: { "company-a": {} },
+      };
+
+      getDoc.mockResolvedValue({
+        exists: () => true,
+        data: () => existingData,
+      });
+
+      // User submits the SAME problem (same title -> same slug) but tries to change details
+      const maliciousData = {
+        title: "Existing Problem", // Same title
+        difficulty: "Easy", // TRYING TO CHANGE TO EASY
+        link: "https://phishing-site.com", // TRYING TO CHANGE LINK
+        tags: ["array"],
+        normalizedTitle: "existing problem",
+        description: "changed description",
+        lastAskedPeriod: "last_30_days",
+      };
+
+      await problemRepository.addProblem(
+        "company-b",
+        // @ts-expect-error - Casting
+        maliciousData
+      );
+
+      // Verify updateDoc was called
+      expect(updateDoc).toHaveBeenCalled();
+
+      // Get the arguments passed to updateDoc
+      const updateArgs = updateDoc.mock.calls[0][1];
+
+      // CRITICAL CHECK: The update should NOT contain the malicious fields
+      expect(updateArgs).not.toHaveProperty("link");
+      expect(updateArgs).not.toHaveProperty("difficulty");
+      expect(updateArgs).not.toHaveProperty("tags");
+      expect(updateArgs).not.toHaveProperty("description");
+
+      // It SHOULD contain the company updates
+      expect(updateArgs.companyIds).toContain("company-b");
+      expect(updateArgs.companies).toHaveProperty("company-b");
+    });
   });
 });
