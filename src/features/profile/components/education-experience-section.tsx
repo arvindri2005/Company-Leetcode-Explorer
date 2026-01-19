@@ -127,6 +127,7 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
                         <FormControl>
                           <Input
                             {...field}
+                            autoFocus
                             autoComplete="organization"
                             autoCapitalize="words"
                           />
@@ -213,7 +214,10 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
                       disabled={educationForm.formState.isSubmitting}
                     >
                       {educationForm.formState.isSubmitting ? (
-                        <Loader2 className="animate-spin h-4 w-4" />
+                        <>
+                          <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                          Saving...
+                        </>
                       ) : (
                         "Save Education"
                       )}

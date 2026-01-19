@@ -133,6 +133,7 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                         <FormControl>
                           <Input
                             {...field}
+                            autoFocus
                             autoComplete="organization-title"
                             autoCapitalize="words"
                           />
@@ -219,7 +220,10 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                       disabled={workForm.formState.isSubmitting}
                     >
                       {workForm.formState.isSubmitting ? (
-                        <Loader2 className="animate-spin h-4 w-4" />
+                        <>
+                          <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                          Saving...
+                        </>
                       ) : (
                         "Save Experience"
                       )}
