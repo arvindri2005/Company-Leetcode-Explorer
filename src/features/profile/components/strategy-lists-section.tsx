@@ -42,8 +42,25 @@ interface StrategyListsSectionProps {
 // --- Components for optimization ---
 
 /**
+ * @component StrategyMarkdown
+ * @description Memoized component for rendering Markdown content.
+ * Prevents expensive re-parsing when the parent re-renders but content is unchanged.
+ */
+const StrategyMarkdown = memo(({ content, className, components }: { content: string, className?: string, components?: Record<string, React.ElementType | string> }) => {
+  return (
+    <div className={className}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+        {content}
+      </ReactMarkdown>
+    </div>
+  );
+});
+StrategyMarkdown.displayName = "StrategyMarkdown";
+
+/**
  * @component StrategyTodoItem
  * @description Memoized component for a single todo item to prevent unnecessary re-renders of siblings.
+ * Uses a custom comparison function to ignore reference changes when data is identical.
  */
 const StrategyTodoItem = memo(
   ({
@@ -82,17 +99,26 @@ const StrategyTodoItem = memo(
             item.isCompleted && "line-through text-muted-foreground",
           )}
         >
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            components={{
-              p: "span",
-            }}
-          >
-            {item.text}
-          </ReactMarkdown>
+          <StrategyMarkdown 
+             content={item.text} 
+             components={{ p: "span" }} 
+             className="contents" // "contents" display to maintain inline behavior
+          />
         </label>
         {isUpdating && <Loader2 className="h-4 w-4 animate-spin" />}
       </li>
+    );
+  },
+  (prev, next) => {
+    // Custom comparison to prevent re-renders when parent list is refreshed (new object references)
+    // but the item data for this specific item is identical.
+    return (
+      prev.companyId === next.companyId &&
+      prev.index === next.index &&
+      prev.isUpdating === next.isUpdating &&
+      prev.onToggle === next.onToggle &&
+      prev.item.isCompleted === next.item.isCompleted &&
+      prev.item.text === next.item.text
     );
   }
 );
@@ -128,9 +154,7 @@ const StrategyListItem = memo(
               Overall Strategy
             </h4>
             <div className="prose prose-sm dark:prose-invert max-w-none p-3 bg-muted/50 rounded-md">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {list.preparationStrategy}
-              </ReactMarkdown>
+              <StrategyMarkdown content={list.preparationStrategy} />
             </div>
           </div>
           {list.focusTopics.length > 0 && (
