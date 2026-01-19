@@ -7,7 +7,6 @@ import {
   deleteDoc,
   doc,
   documentId,
-  getCountFromServer,
   getDoc,
   getDocs,
   limit,
@@ -16,7 +15,6 @@ import {
   query,
   serverTimestamp,
   setDoc,
-  startAfter,
   updateDoc,
   where,
   writeBatch,
@@ -71,12 +69,22 @@ export class UserRepository implements IUserRepository {
       }
       
       const data = docSnap.data();
+
+      // Security: Check authorization
+      const currentUser = auth.currentUser;
+      const isOwner = currentUser && currentUser.uid === id;
+
+      // Create "Public Profile" view for non-owners
+      // If the requester is not the owner, we strip sensitive fields
+      const email = isOwner ? (data.email ?? null) : null;
+      const preferences = isOwner ? data.preferences : {};
+
       const userDoc: UserDocument = {
         uid: docSnap.id,
-        email: data.email ?? null,
+        email: email,
         displayName: data.displayName ?? null,
         photoUrl: data.photoUrl,
-        preferences: data.preferences,
+        preferences: preferences,
         lastSyncedAt: data.lastSyncedAt?.toDate?.() ?? data.lastSyncedAt,
         createdAt: data.createdAt?.toDate?.() ?? data.createdAt,
       };
@@ -93,58 +101,11 @@ export class UserRepository implements IUserRepository {
    * @param params - Optional pagination parameters
    * @returns Paginated result containing User entities
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async findAll(params?: PaginationParams): Promise<PaginatedResult<UserEntity>> {
-    try {
-      const usersColRef = collection(db, "users");
-      const pageSize = Math.min(params?.pageSize ?? 20, MAX_PAGE_SIZE);
-      
-      let q = query(usersColRef, orderBy("createdAt", "desc"), limit(pageSize + 1));
-      
-      if (params?.cursor) {
-        const cursorDoc = await getDoc(doc(db, "users", params.cursor));
-        if (cursorDoc.exists()) {
-          q = query(usersColRef, orderBy("createdAt", "desc"), startAfter(cursorDoc), limit(pageSize + 1));
-        }
-      }
-      
-      const querySnapshot = await getDocs(q);
-      const users: UserEntity[] = [];
-      let hasMore = false;
-      let nextCursor: string | undefined;
-      
-      querySnapshot.docs.forEach((docSnap, index) => {
-        if (index < pageSize) {
-          const data = docSnap.data();
-          const userDoc: UserDocument = {
-            uid: docSnap.id,
-            email: data.email ?? null,
-            displayName: data.displayName ?? null,
-            photoUrl: data.photoUrl,
-            preferences: data.preferences,
-            lastSyncedAt: data.lastSyncedAt?.toDate?.() ?? data.lastSyncedAt,
-            createdAt: data.createdAt?.toDate?.() ?? data.createdAt,
-          };
-          users.push(UserMapper.toDomain(userDoc));
-          nextCursor = docSnap.id;
-        } else {
-          hasMore = true;
-        }
-      });
-      
-      // Get total count
-      const countSnapshot = await getCountFromServer(usersColRef);
-      const totalItems = countSnapshot.data().count;
-      
-      return {
-        items: users,
-        totalItems,
-        hasMore,
-        nextCursor: hasMore ? nextCursor : undefined,
-      };
-    } catch (error) {
-      Logger.error("Error fetching all users", error);
-      return { items: [], totalItems: 0, hasMore: false };
-    }
+    // Security: Listing all users is disabled to prevent data scraping/enumeration.
+    // We return an empty list instead of throwing to be graceful to any potential generic callers.
+    return Promise.resolve({ items: [], totalItems: 0, hasMore: false });
   }
 
   /**

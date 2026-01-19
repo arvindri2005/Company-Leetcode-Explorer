@@ -77,14 +77,14 @@ describe('UserRepository Security Tests', () => {
     expect(updateDocMock).not.toHaveBeenCalled();
   });
 
-  it('should enforce MAX_PAGE_SIZE in findAll to prevent DoS', async () => {
-    // Action: Call findAll with a large pageSize
-    const largePageSize = 1000;
-    await repository.findAll({ pageSize: largePageSize });
+  it('should return empty list in findAll for security (Listing Disabled)', async () => {
+    // Action: Call findAll
+    const result = await repository.findAll({ pageSize: 10 });
 
-    // Assertion: The limit() function should be called with 51 (MAX_PAGE_SIZE + 1)
-    // because MAX_PAGE_SIZE is 50, and code does limit(pageSize + 1)
-    expect(limitMock).toHaveBeenCalledWith(51); 
+    // Assertion: Should return empty result and NOT call limit (as query is disabled)
+    expect(result.items).toEqual([]);
+    expect(result.totalItems).toBe(0);
+    expect(limitMock).not.toHaveBeenCalled();
   });
 
   it('should reject strategy data that exceeds size limits', async () => {
