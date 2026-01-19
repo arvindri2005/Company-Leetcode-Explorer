@@ -262,28 +262,27 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
           >
             <Search />
           </button>
+          {isLoadingSuggestions && (
+            <Loader2
+              className="absolute right-20 top-1/2 -translate-y-1/2 h-5 w-5 animate-spin text-white/50 pointer-events-none"
+              aria-label="Loading suggestions"
+            />
+          )}
         </form>
       </div>
-
-      {isLoadingSuggestions && (
-        <Loader2
-          className="absolute right-3 top-3 h-5 w-5 animate-spin text-gray-400"
-          aria-label="Loading suggestions"
-        />
-      )}
 
       {showSuggestions && searchTermInput.trim().length > 0 && (
         <div
           id="company-suggestions-list"
           ref={suggestionsRef}
           className="absolute z-20 mt-2 w-full rounded-2xl bg-white/10 backdrop-blur-[10px] shadow-[0_4px_32px_rgba(0,212,170,0.15)] border border-white/10 overflow-hidden animate-fade-in"
-          role="listbox"
+          role={suggestions.length > 0 ? "listbox" : undefined}
           aria-label="Company suggestions"
         >
           {(() => {
             if (isLoadingSuggestions && suggestions.length === 0) {
               return (
-                <p className="p-4 text-base text-gray-custom-500">
+                <p className="p-4 text-base text-gray-custom-500" role="status">
                   Loading suggestions...
                 </p>
               );
@@ -325,7 +324,7 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
             }
             if (!isLoadingSuggestions) {
               return (
-                <p className="p-4 text-base text-gray-custom-500">
+                <p className="p-4 text-base text-gray-custom-500" role="status">
                   No companies found matching &quot;{searchTermInput}&quot;.
                 </p>
               );
