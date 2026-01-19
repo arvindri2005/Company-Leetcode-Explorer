@@ -97,6 +97,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
     isTogglingBookmark,
     handleToggleBookmark,
     currentStatus,
+    isUpdatingStatus,
     handleStatusUpdate,
   } = useProblemInteractions(
     problem,
@@ -173,6 +174,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                                 <Button
                                     variant="ghost"
                                     size="icon"
+                                    isLoading={isUpdatingStatus}
                                     className="h-11 w-11 md:h-9 md:w-9 hover:bg-primary/5 rounded-full"
                                     aria-label={`Change status. Current status: ${currentStatus}`}
                                 >

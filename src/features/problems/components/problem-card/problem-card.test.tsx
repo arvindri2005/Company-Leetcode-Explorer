@@ -26,6 +26,7 @@ jest.mock("@/features/problems/hooks/use-problem-interactions", () => ({
     isTogglingBookmark: false,
     handleToggleBookmark: jest.fn(),
     currentStatus: "none",
+    isUpdatingStatus: false,
     handleStatusUpdate: jest.fn(),
     promptLogin: jest.fn(),
   }),
