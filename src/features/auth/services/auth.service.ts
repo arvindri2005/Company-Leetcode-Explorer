@@ -16,10 +16,17 @@ import type { AuthServiceResponse } from "../types";
  * @description Handles all authentication-related operations with Firebase
  */
 export class AuthService {
-  private googleProvider: GoogleAuthProvider;
+  private googleProvider: GoogleAuthProvider | null = null;
 
-  constructor() {
-    this.googleProvider = new GoogleAuthProvider();
+  /**
+   * @description Get or initialize the Google Auth Provider
+   * @private
+   */
+  private getGoogleProvider(): GoogleAuthProvider {
+    if (!this.googleProvider) {
+      this.googleProvider = new GoogleAuthProvider();
+    }
+    return this.googleProvider;
   }
 
   /**
@@ -27,7 +34,7 @@ export class AuthService {
    */
   async loginWithGoogle(): Promise<AuthServiceResponse<FirebaseUser>> {
     try {
-      const result = await signInWithPopup(auth, this.googleProvider);
+      const result = await signInWithPopup(auth, this.getGoogleProvider());
       const user = result.user;
 
       // Sync user profile after successful login
