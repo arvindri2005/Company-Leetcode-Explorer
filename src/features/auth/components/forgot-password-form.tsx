@@ -95,7 +95,7 @@ export default function ForgotPasswordForm() {
 
   if (isEmailSent) {
     return (
-      <div className="text-center space-y-6">
+      <div className="text-center space-y-6" role="status" aria-live="polite">
         <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
             <MailIcon className="w-8 h-8 text-primary" />
         </div>
@@ -146,11 +146,16 @@ export default function ForgotPasswordForm() {
           className="w-full h-11 text-base transition-all duration-200 hover:scale-102 shadow-lg hover:shadow-primary/25"
         >
           {isSubmitting ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Sending Link...
+            </>
           ) : (
-            <MailIcon className="mr-2 h-4 w-4" />
+            <>
+              <MailIcon className="mr-2 h-4 w-4" />
+              Send Reset Link
+            </>
           )}
-          Send Reset Link
         </Button>
 
         <div className="text-center">
