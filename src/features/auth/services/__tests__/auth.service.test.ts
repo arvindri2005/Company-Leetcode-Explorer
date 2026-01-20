@@ -41,6 +41,7 @@ describe("AuthService", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    sessionStorage.clear();
     authService = new AuthService();
   });
 
@@ -116,6 +117,66 @@ describe("AuthService", () => {
         expect.objectContaining({ message: "Sync failed" }),
         expect.any(Object)
       );
+    });
+
+    it("should use cached result if already synced", async () => {
+      const mockUser = {
+        uid: "test-uid",
+        email: "test@example.com",
+        displayName: "Test User",
+      } as FirebaseUser;
+
+      (userService.syncUserProfile as jest.Mock).mockResolvedValue(success());
+
+      // First call
+      await authService.syncUserProfile(mockUser);
+      expect(userService.syncUserProfile).toHaveBeenCalledTimes(1);
+
+      // Second call
+      await authService.syncUserProfile(mockUser);
+      expect(userService.syncUserProfile).toHaveBeenCalledTimes(1);
+    });
+
+    it("should bypass cache if force is true", async () => {
+      const mockUser = {
+        uid: "test-uid",
+        email: "test@example.com",
+        displayName: "Test User",
+      } as FirebaseUser;
+
+      (userService.syncUserProfile as jest.Mock).mockResolvedValue(success());
+
+      // First call
+      await authService.syncUserProfile(mockUser);
+      expect(userService.syncUserProfile).toHaveBeenCalledTimes(1);
+
+      // Second call with force
+      await authService.syncUserProfile(mockUser, true);
+      expect(userService.syncUserProfile).toHaveBeenCalledTimes(2);
+    });
+
+    it("should clear memory cache on logout", async () => {
+      const mockUser = {
+        uid: "test-uid",
+        email: "test@example.com",
+        displayName: "Test User",
+      } as FirebaseUser;
+
+      (userService.syncUserProfile as jest.Mock).mockResolvedValue(success());
+
+      // First call
+      await authService.syncUserProfile(mockUser);
+      expect(userService.syncUserProfile).toHaveBeenCalledTimes(1);
+
+      // Logout
+      await authService.logout();
+
+      // Manually clear session storage to verify memory cache was cleared by logout
+      sessionStorage.clear();
+
+      // Second call should sync again (because memory is cleared AND storage is cleared)
+      await authService.syncUserProfile(mockUser);
+      expect(userService.syncUserProfile).toHaveBeenCalledTimes(2);
     });
   });
 });

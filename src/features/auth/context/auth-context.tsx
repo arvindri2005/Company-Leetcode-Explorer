@@ -6,7 +6,6 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 
@@ -37,44 +36,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     return true; // Default to loading on server/SSR
   });
-  const isUserProfileSyncedRef = useRef(false);
-
   const syncUserProfileIfNeeded = useCallback(
     async (firebaseUser: FirebaseUser, force = false) => {
       if (!firebaseUser) {
         return;
       }
 
-      // 1. Check in-memory ref first (fastest)
-      if (isUserProfileSyncedRef.current && !force) {
-        return;
-      }
+      const result = await authService.syncUserProfile(firebaseUser, force);
 
-      // 2. Check session storage (persists across reloads)
-      const storageKey = `auth_synced:${firebaseUser.uid}`;
-      if (!force && typeof window !== "undefined") {
-        try {
-          if (sessionStorage.getItem(storageKey) === "true") {
-            isUserProfileSyncedRef.current = true;
-            return;
-          }
-        } catch {
-          // Ignore storage errors
-        }
-      }
-
-      // 3. Perform sync
-      const result = await authService.syncUserProfile(firebaseUser);
-      if (result.success) {
-        isUserProfileSyncedRef.current = true;
-        if (typeof window !== "undefined") {
-          try {
-            sessionStorage.setItem(storageKey, "true");
-          } catch {
-            // Ignore storage errors
-          }
-        }
-      } else {
+      if (!result.success) {
         Logger.error("Failed to sync user profile", result.error, {
           userId: firebaseUser.uid,
         });
@@ -103,7 +73,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Remove cookie on logout
         document.cookie =
           "auth_status=; path=/; max-age=0; SameSite=Strict; Secure";
-        isUserProfileSyncedRef.current = false; // Reset sync flag on logout
       }
     });
 

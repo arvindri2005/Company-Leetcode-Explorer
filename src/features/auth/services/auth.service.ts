@@ -17,6 +17,7 @@ import type { AuthServiceResponse } from "../types";
  */
 export class AuthService {
   private googleProvider: GoogleAuthProvider | null = null;
+  private syncedUserId: string | null = null;
 
   /**
    * @description Get or initialize the Google Auth Provider
@@ -38,7 +39,7 @@ export class AuthService {
       const user = result.user;
 
       // Sync user profile after successful login
-      const syncResult = await this.syncUserProfile(user);
+      const syncResult = await this.syncUserProfile(user, false);
       
       if (!syncResult.success) {
         // Log warning but don't fail login as the auth part succeeded
@@ -68,6 +69,8 @@ export class AuthService {
     try {
       await signOut(auth);
       
+      this.syncedUserId = null;
+
       // Clear auth cookie
       if (typeof window !== "undefined") {
         document.cookie = "auth_status=; path=/; max-age=0; SameSite=Strict; Secure";
@@ -88,12 +91,30 @@ export class AuthService {
   /**
    * @description Sync user profile with backend
    */
-  async syncUserProfile(firebaseUser: FirebaseUser | null): Promise<AuthServiceResponse> {
+  async syncUserProfile(firebaseUser: FirebaseUser | null, force = false): Promise<AuthServiceResponse> {
     if (!firebaseUser) {
       return {
         success: false,
         error: "No user to sync",
       };
+    }
+
+    // Performance: Check in-memory cache
+    if (this.syncedUserId === firebaseUser.uid && !force) {
+      return { success: true };
+    }
+
+    // Performance: Check session storage (persists across reloads)
+    const storageKey = `auth_synced:${firebaseUser.uid}`;
+    if (!force && typeof window !== "undefined") {
+      try {
+        if (sessionStorage.getItem(storageKey) === "true") {
+          this.syncedUserId = firebaseUser.uid;
+          return { success: true };
+        }
+      } catch {
+        // Ignore storage errors
+      }
     }
 
     try {
@@ -120,6 +141,16 @@ export class AuthService {
           success: false,
           error: "Failed to sync user profile. Please try again.",
         };
+      }
+
+      // Update cache on success
+      this.syncedUserId = firebaseUser.uid;
+      if (typeof window !== "undefined") {
+        try {
+          sessionStorage.setItem(storageKey, "true");
+        } catch {
+          // Ignore storage errors
+        }
       }
 
       return {
