@@ -245,6 +245,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async getUserGlobalProblemStats(userId: string): Promise<{ solvedProblemIds: string[], attemptedProblemIds: string[], bookmarkedProblemIds: string[] }> {
+      if (!this.isAuthorized(userId)) {return { solvedProblemIds: [], attemptedProblemIds: [], bookmarkedProblemIds: [] };}
       if (!userId) {return { solvedProblemIds: [], attemptedProblemIds: [], bookmarkedProblemIds: [] };}
       try {
           const docRef = doc(db, "users", userId, "aggregates", "problemStats");
@@ -266,6 +267,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async getAllUserProblemStatuses(userId: string): Promise<Record<string, UserProblemStatusInfo>> {
+    if (!this.isAuthorized(userId)) {return {};}
     if (!userId) {return {};}
     const statuses: Record<string, UserProblemStatusInfo> = {};
     try {
@@ -299,6 +301,7 @@ export class UserRepository implements IUserRepository {
     userId: string,
     problemIds: string[],
   ): Promise<Record<string, UserProblemStatusInfo>> {
+    if (!this.isAuthorized(userId)) {return {};}
     if (!userId || !problemIds || problemIds.length === 0) {return {};}
     const statuses: Record<string, UserProblemStatusInfo> = {};
 
@@ -388,6 +391,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async getUserEducation(userId: string): Promise<EducationExperience[]> {
+    if (!this.isAuthorized(userId)) {return [];}
     if (!userId) {return [];}
     try {
       const educationColRef = collection(db, "users", userId, "educationHistory");
@@ -411,6 +415,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async getUserWorkExperience(userId: string): Promise<WorkExperience[]> {
+    if (!this.isAuthorized(userId)) {return [];}
     if (!userId) {return [];}
     try {
       const workColRef = collection(db, "users", userId, "workExperience");

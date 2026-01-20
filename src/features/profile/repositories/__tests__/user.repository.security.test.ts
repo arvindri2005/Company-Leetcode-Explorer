@@ -86,34 +86,44 @@ describe('UserRepository Security Tests - IDOR on Reads', () => {
       name: 'getStrategyTodoListForCompany',
       call: (repo, uid) => repo.getStrategyTodoListForCompany(uid, 'comp1'),
       expectedReturn: null
-    }
-  ];
-
-  // PUBLIC/ALLOWED METHODS: Should CALL Firestore
-  const publicMethods: Array<{
-    name: string;
-    call: (repo: UserRepository, userId: string) => Promise<any>;
-  }> = [
+    },
     {
       name: 'getUserGlobalProblemStats',
       call: (repo, uid) => repo.getUserGlobalProblemStats(uid),
+      expectedReturn: { solvedProblemIds: [], attemptedProblemIds: [], bookmarkedProblemIds: [] }
     },
     {
       name: 'getAllUserProblemStatuses',
       call: (repo, uid) => repo.getAllUserProblemStatuses(uid),
+      expectedReturn: {}
     },
     {
       name: 'getProblemStatusesForIds',
       call: (repo, uid) => repo.getProblemStatusesForIds(uid, ['prob1']),
+      expectedReturn: {}
     },
     {
       name: 'getUserEducation',
       call: (repo, uid) => repo.getUserEducation(uid),
+      expectedReturn: []
     },
     {
       name: 'getUserWorkExperience',
       call: (repo, uid) => repo.getUserWorkExperience(uid),
+      expectedReturn: []
     }
+  ];
+
+  // PUBLIC/ALLOWED METHODS: Should CALL Firestore
+  // Note: Most user profile methods are now protected to prevent IDOR.
+  // The only public interactions should be generic or strictly controlled via other mechanisms.
+  const publicMethods: Array<{
+    name: string;
+    call: (repo: UserRepository, userId: string) => Promise<any>;
+  }> = [
+    // Currently no public methods in this test suite, as even basic profile fetching
+    // is covered by specific findById tests or returns sanitized data.
+    // Keeping this array for future extensibility.
   ];
 
   protectedMethods.forEach(method => {
