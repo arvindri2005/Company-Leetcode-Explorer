@@ -1181,9 +1181,17 @@ export class ProblemRepository implements IProblemRepository {
       // We explicitly cast to unknown then CreateProblemDTO for validation purpose
       // This ensures title, link, difficulty, etc are valid.
       // If problemData is missing required fields, parsing will fail.
+      // Sanitize the title to generate a safe normalized title
+      // We explicitly ignore the client-provided normalizedTitle to prevent search poisoning
+      const safeNormalizedTitle = (problemData.title || "")
+        .toLowerCase()
+        .replace(/[^a-z0-9\s\-\.\+\#]/g, "")
+        .trim();
+
       const dataToValidate = {
         description: "", // Provide default if missing
         ...problemData,
+        normalizedTitle: safeNormalizedTitle,
       };
       // We use safeParse here to not break existing flexible signature if strict schema mismatch
       // But we WANT to catch bad URLs.

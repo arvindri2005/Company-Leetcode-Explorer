@@ -1,3 +1,4 @@
+import { getFirestore } from "firebase/firestore";
 import { ZodError } from "zod";
 
 import { MAX_COMPANIES_PER_PROBLEM } from "@/features/problems/constants/problem-constants";
@@ -7,20 +8,25 @@ import type { CreateProblemDTO, UpdateProblemDTO } from "../../interfaces/proble
 import { problemRepository } from "../problem.repository";
 
 // Mock Firebase dependencies
-jest.mock("firebase/firestore", () => ({
-  collection: jest.fn(),
-  doc: jest.fn(),
-  getDoc: jest.fn(),
-  getDocs: jest.fn(),
-  setDoc: jest.fn(),
-  updateDoc: jest.fn(),
-  query: jest.fn(),
-  where: jest.fn(),
-  limit: jest.fn(),
-  orderBy: jest.fn(),
-  startAfter: jest.fn(),
-  getCountFromServer: jest.fn(),
-}));
+jest.mock("firebase/firestore", () => {
+    const original = jest.requireActual("firebase/firestore");
+    return {
+      ...original,
+      getFirestore: jest.fn(),
+      collection: jest.fn(),
+      doc: jest.fn(),
+      getDoc: jest.fn(),
+      getDocs: jest.fn(),
+      setDoc: jest.fn(),
+      updateDoc: jest.fn(),
+      query: jest.fn(),
+      where: jest.fn(),
+      limit: jest.fn(),
+      orderBy: jest.fn(),
+      startAfter: jest.fn(),
+      getCountFromServer: jest.fn(),
+    }
+});
 
 jest.mock("@/lib/api/firebase", () => ({
   db: {},
@@ -35,6 +41,11 @@ jest.mock("@/lib/utils/logger", () => ({
 }));
 
 describe("ProblemRepository Security Validation", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (getFirestore as jest.Mock).mockReturnValue({});
+  });
+
   describe("save", () => {
     it("should validate input using CreateProblemSchema", async () => {
       const invalidData: any = {
@@ -189,6 +200,73 @@ describe("ProblemRepository Security Validation", () => {
       // It SHOULD contain the company updates
       expect(updateArgs.companyIds).toContain("company-b");
       expect(updateArgs.companies).toHaveProperty("company-b");
+    });
+  });
+
+  describe("Security - Search Poisoning Prevention", () => {
+    it("should prevent search poisoning by enforcing normalizedTitle generation server-side", async () => {
+      const { getDoc, setDoc, doc } = require("firebase/firestore");
+      
+      // Setup - Problem does not exist
+      getDoc.mockResolvedValue({
+        exists: () => false,
+        data: () => {},
+      });
+      // Ensure doc mock returns an object with ID
+      doc.mockImplementation((_: any, _col: any, id: string) => ({ id, path: `problems/${id}` }));
+  
+      const maliciousInput = {
+        title: "Safe Title",
+        difficulty: "Easy" as const,
+        link: "https://leetcode.com/problems/safe-title",
+        tags: ["Array"],
+        normalizedTitle: "malicious-search-term", // Attack: Trying to poison the search index
+        lastAskedPeriod: "last_30_days" as const,
+      };
+  
+      // Execute
+      await problemRepository.addProblem("company-1", maliciousInput);
+  
+      // Verify
+      expect(setDoc).toHaveBeenCalledTimes(1);
+      const savedData = setDoc.mock.calls[0][1];
+  
+      // The saved normalizedTitle should be derived from the TITLE ("safe title"), 
+      // NOT the provided malicious input ("malicious-search-term").
+      expect(savedData.normalizedTitle).toBe("safe title");
+      expect(savedData.normalizedTitle).not.toBe("malicious-search-term");
+    });
+  
+    it("should sanitize normalizedTitle correctly when title contains special characters", async () => {
+      const { getDoc, setDoc, doc } = require("firebase/firestore");
+
+      // Setup - Problem does not exist
+      getDoc.mockResolvedValue({
+        exists: () => false,
+        data: () => {},
+      });
+      doc.mockImplementation((_: any, _col: any, id: string) => ({ id, path: `problems/${id}` }));
+  
+      const inputWithSpecialChars = {
+        title: "Two Sum? (Target)",
+        difficulty: "Easy" as const,
+        link: "https://leetcode.com/problems/two-sum",
+        tags: ["Array"],
+        normalizedTitle: "irrelevant", 
+        lastAskedPeriod: "last_30_days" as const,
+      };
+  
+      // Execute
+      await problemRepository.addProblem("company-1", inputWithSpecialChars);
+  
+      // Verify
+      expect(setDoc).toHaveBeenCalledTimes(1);
+      const savedData = setDoc.mock.calls[0][1];
+  
+      // We expect the result to match the schema
+      const schemaRegex = /^[a-z0-9\s\-\.\+\#]+$/;
+      expect(savedData.normalizedTitle).toMatch(schemaRegex);
+      expect(savedData.normalizedTitle).toContain("two sum");
     });
   });
 });
