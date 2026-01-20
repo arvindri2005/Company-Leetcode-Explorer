@@ -7,7 +7,8 @@ describe("Auth Form Schemas Security Limits", () => {
   const longString256 = "a".repeat(256);
   const longString129 = "a".repeat(129);
   const validEmail = "test@example.com";
-  const validPassword = "password123";
+  // Updated to meet new complexity requirements: 8+ chars, upper, lower, number, special
+  const validPassword = "Password123!";
 
   describe("loginFormSchema", () => {
     it("should reject email longer than 255 characters", () => {
@@ -70,11 +71,59 @@ describe("Auth Form Schemas Security Limits", () => {
       const result = signupFormSchema.safeParse({
         displayName: "Test User",
         email: validEmail,
-        password: "short",
+        password: "Short1!",
       });
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error.issues.some(i => i.message.includes("8 characters"))).toBe(true);
+      }
+    });
+
+    it("should reject password without uppercase letter", () => {
+      const result = signupFormSchema.safeParse({
+        displayName: "Test User",
+        email: validEmail,
+        password: "password123!",
+      });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues.some(i => i.message.includes("uppercase"))).toBe(true);
+      }
+    });
+
+    it("should reject password without lowercase letter", () => {
+      const result = signupFormSchema.safeParse({
+        displayName: "Test User",
+        email: validEmail,
+        password: "PASSWORD123!",
+      });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues.some(i => i.message.includes("lowercase"))).toBe(true);
+      }
+    });
+
+    it("should reject password without number", () => {
+      const result = signupFormSchema.safeParse({
+        displayName: "Test User",
+        email: validEmail,
+        password: "Password!!!!",
+      });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues.some(i => i.message.includes("number"))).toBe(true);
+      }
+    });
+
+    it("should reject password without special character", () => {
+      const result = signupFormSchema.safeParse({
+        displayName: "Test User",
+        email: validEmail,
+        password: "Password1234",
+      });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues.some(i => i.message.includes("special character"))).toBe(true);
       }
     });
   });
