@@ -41,6 +41,9 @@ interface ProfileProblemListProps {
   onBookmarkChanged?: (problemId: string, newStatus: boolean) => void;
   onProblemStatusChange?: (problemId: string, newStatus: ProblemStatus) => void;
   companySlugForProblemCard?: string; // If all problems belong to one company, for fallback
+  emptyStateMessage?: string;
+  emptyStateDescription?: string;
+  emptyStateIcon?: React.ReactNode;
 }
 
 /**
@@ -55,6 +58,9 @@ const ProfileProblemList: React.FC<ProfileProblemListProps> = ({
   onBookmarkChanged,
   onProblemStatusChange,
   companySlugForProblemCard,
+  emptyStateMessage,
+  emptyStateDescription,
+  emptyStateIcon,
 }) => {
   if (isLoading) {
     return (
@@ -70,17 +76,19 @@ const ProfileProblemList: React.FC<ProfileProblemListProps> = ({
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed border-muted rounded-xl bg-muted/5">
         <div className="bg-background p-3 rounded-full mb-4 ring-1 ring-border shadow-sm">
-          <ClipboardList
-            className="h-6 w-6 text-muted-foreground"
-            aria-hidden="true"
-          />
+          {emptyStateIcon || (
+            <ClipboardList
+              className="h-6 w-6 text-muted-foreground"
+              aria-hidden="true"
+            />
+          )}
         </div>
         <h3 className="text-lg font-medium text-foreground mb-1">
-          No problems found
+          {emptyStateMessage || "No problems found"}
         </h3>
         <p className="text-sm text-muted-foreground max-w-xs mb-4">
-          This list is currently empty. Start solving or bookmarking problems to
-          see them here!
+          {emptyStateDescription ||
+            "This list is currently empty. Start solving or bookmarking problems to see them here!"}
         </p>
         <Button asChild variant="outline" size="sm">
           <Link href="/problems">Browse Problems</Link>

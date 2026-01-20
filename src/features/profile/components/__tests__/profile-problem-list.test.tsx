@@ -88,4 +88,23 @@ describe("ProfileProblemList", () => {
     expect(screen.getByText("Two Sum")).toBeInTheDocument();
     expect(screen.getByText("Add Two Numbers")).toBeInTheDocument();
   });
+
+  it("renders custom empty state message and description", () => {
+    const customMessage = "Custom Message";
+    const customDescription = "Custom Description";
+
+    render(
+      <ProfileProblemList
+        title="Test List"
+        problems={[]}
+        isLoading={false}
+        listType="bookmarks"
+        emptyStateMessage={customMessage}
+        emptyStateDescription={customDescription}
+      />,
+    );
+
+    expect(screen.getByText(customMessage)).toBeInTheDocument();
+    expect(screen.getByText(customDescription)).toBeInTheDocument();
+  });
 });

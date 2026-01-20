@@ -694,6 +694,14 @@ export default function ProfilePage() {
                       listType="bookmarks"
                       onBookmarkChanged={handleProblemBookmarkChangeOnProfile}
                       onProblemStatusChange={handleProblemStatusChangeOnProfile}
+                      emptyStateMessage="No bookmarks yet"
+                      emptyStateDescription="Save interesting problems to your bookmarks to easily find them later."
+                      emptyStateIcon={
+                        <Bookmark
+                          className="h-6 w-6 text-muted-foreground"
+                          aria-hidden="true"
+                        />
+                      }
                     />
                   </CardContent>
                 </Card>
@@ -720,6 +728,14 @@ export default function ProfilePage() {
                       listType="status"
                       onBookmarkChanged={handleProblemBookmarkChangeOnProfile}
                       onProblemStatusChange={handleProblemStatusChangeOnProfile}
+                      emptyStateMessage="No solved problems"
+                      emptyStateDescription="You haven't solved any problems yet. Start your journey today!"
+                      emptyStateIcon={
+                        <CheckCircle2
+                          className="h-6 w-6 text-muted-foreground"
+                          aria-hidden="true"
+                        />
+                      }
                     />
                   </CardContent>
                 </Card>
@@ -749,6 +765,14 @@ export default function ProfilePage() {
                       listType="status"
                       onBookmarkChanged={handleProblemBookmarkChangeOnProfile}
                       onProblemStatusChange={handleProblemStatusChangeOnProfile}
+                      emptyStateMessage="No attempted problems"
+                      emptyStateDescription="Problems you've started but haven't finished will appear here."
+                      emptyStateIcon={
+                        <Pencil
+                          className="h-6 w-6 text-muted-foreground"
+                          aria-hidden="true"
+                        />
+                      }
                     />
                   </CardContent>
                 </Card>
@@ -775,6 +799,14 @@ export default function ProfilePage() {
                       listType="status"
                       onBookmarkChanged={handleProblemBookmarkChangeOnProfile}
                       onProblemStatusChange={handleProblemStatusChangeOnProfile}
+                      emptyStateMessage="Your to-do list is empty"
+                      emptyStateDescription="Plan your practice by adding problems to your to-do list."
+                      emptyStateIcon={
+                        <ListTodo
+                          className="h-6 w-6 text-muted-foreground"
+                          aria-hidden="true"
+                        />
+                      }
                     />
                   </CardContent>
                 </Card>
