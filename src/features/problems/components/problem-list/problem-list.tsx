@@ -369,7 +369,6 @@ const ProblemList: React.FC<ProblemListProps> = ({
 
   // -- Infinite Scroll Logic --
   const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const loadMoreProblems = useCallback(async () => {
     if (isLoadingMore || !hasMore || !nextCursor) {return;}
@@ -416,28 +415,35 @@ const ProblemList: React.FC<ProblemListProps> = ({
     toast,
   ]);
 
+  // Optimization: Keep the latest loadMoreProblems in a ref to avoid re-creating the observer
+  // every time the loading state or cursor changes.
+  const loadMoreProblemsRef = useRef(loadMoreProblems);
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          loadMoreProblems();
-        }
-      },
-      { threshold: 0.1 }
-    );
+    loadMoreProblemsRef.current = loadMoreProblems;
+  }, [loadMoreProblems]);
 
-    if (loadMoreRef.current) {
-      observer.observe(loadMoreRef.current);
+  // Optimization: Use a callback ref to handle the sentinel element's lifecycle.
+  // This ensures the observer is only created when the element actually mounts,
+  // and isn't destroyed/recreated unnecessarily when dependencies change.
+  const loadMoreRef = useCallback((node: HTMLDivElement | null) => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
     }
 
-    observerRef.current = observer;
-
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
-  }, [loadMoreProblems]);
+    if (node) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting) {
+            loadMoreProblemsRef.current();
+          }
+        },
+        { threshold: 0.1 }
+      );
+      observer.observe(node);
+      observerRef.current = observer;
+    }
+  }, []);
 
 
 
