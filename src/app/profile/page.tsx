@@ -486,7 +486,7 @@ export default function ProfilePage() {
     [user, strategyTodoLists, fetchStrategyTodoLists, toast],
   );
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       await signOut(auth);
       toast({
@@ -502,7 +502,7 @@ export default function ProfilePage() {
         variant: "destructive",
       });
     }
-  };
+  }, [toast, router]);
 
   const handleProblemBookmarkChangeOnProfile = useCallback(
     (problemId: string, newStatus: boolean) => {
@@ -537,14 +537,14 @@ export default function ProfilePage() {
     [fetchStatusData],
   );
 
-  const getInitials = (name: string | null | undefined) => {
+  const getInitials = useCallback((name: string | null | undefined) => {
     if (!name) {
       return "AU";
     } // Anonymous User
     const names = name.split(" ");
     const initials = names.map((n) => n[0]).join("");
     return initials.toUpperCase().slice(0, 2);
-  };
+  }, []);
 
   const onSubmitDisplayName = useCallback(
     async (data: DisplayNameFormValues) => {

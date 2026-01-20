@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { memo,useState } from "react";
 import { FormProvider, useFormContext } from "react-hook-form";
 
 import type { User as FirebaseUser } from "firebase/auth";
@@ -261,10 +261,21 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
   );
 };
 
-export default UserInfoCard;
+function arePropsEqual(prevProps: UserInfoCardProps, nextProps: UserInfoCardProps) {
+  return (
+    prevProps.isEditingDisplayName === nextProps.isEditingDisplayName &&
+    prevProps.isSubmittingDisplayName === nextProps.isSubmittingDisplayName &&
+    prevProps.user.uid === nextProps.user.uid &&
+    prevProps.user.displayName === nextProps.user.displayName &&
+    prevProps.user.photoURL === nextProps.user.photoURL &&
+    prevProps.user.email === nextProps.user.email &&
+    prevProps.user.emailVerified === nextProps.user.emailVerified &&
+    prevProps.user.metadata.creationTime === nextProps.user.metadata.creationTime &&
+    prevProps.setIsEditingDisplayName === nextProps.setIsEditingDisplayName &&
+    prevProps.onSubmitDisplayName === nextProps.onSubmitDisplayName &&
+    prevProps.handleLogout === nextProps.handleLogout &&
+    prevProps.getInitials === nextProps.getInitials
+  );
+}
 
-
-
-
-
-
+export default memo(UserInfoCard, arePropsEqual);
