@@ -110,10 +110,20 @@ const CompanyList: React.FC<CompanyListProps> = ({
         currentSearchQueryInUrl,
       );
       setDisplayedCompanies((prev) => {
-        const existingIds = new Set(prev.map((c: Company) => c.id));
+        // Optimization: Create Set directly from loop to avoid intermediate array allocation
+        const existingIds = new Set<string>();
+        for (const c of prev) {
+          existingIds.add(c.id);
+        }
+
         const newCompanies = (result.companies as Company[]).filter(
           (c: Company) => !existingIds.has(c.id),
         );
+        
+        if (newCompanies.length === 0) {
+          return prev;
+        }
+
         return [...prev, ...newCompanies];
       });
       setHasMore(result.hasMore);
@@ -132,21 +142,32 @@ const CompanyList: React.FC<CompanyListProps> = ({
     fetchCompaniesWithCursor,
   ]);
 
+  // Keep a ref to the latest loadMore callback to avoid re-creating the observer
+  const loadMoreCompaniesRef = useRef(loadMoreCompanies);
+  useEffect(() => {
+    loadMoreCompaniesRef.current = loadMoreCompanies;
+  }, [loadMoreCompanies]);
+
   // Infinite scroll
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
-          loadMoreCompanies();
+          loadMoreCompaniesRef.current();
         }
       },
       { threshold: 0.1, rootMargin: "500px" },
     );
-    if (loadMoreTriggerRef.current) {
-      observer.observe(loadMoreTriggerRef.current);
+    
+    const trigger = loadMoreTriggerRef.current;
+    if (trigger) {
+      observer.observe(trigger);
     }
-    return () => observer.disconnect();
-  }, [loadMoreCompanies]);
+    
+    return () => {
+      observer.disconnect();
+    };
+  }, []); // Stable observer
 
   return (
     <section
