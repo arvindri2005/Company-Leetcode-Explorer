@@ -399,25 +399,28 @@ export class CompanyRepository implements ICompanyRepository {
            return { id: null, error: validation.error.issues[0].message };
       }
 
-      const companySlug = slugify(companyData.name);
-      const normalizedName = companyData.name.toLowerCase().trim();
+      // Security: Use validated data
+      const safeData = validation.data;
+
+      const companySlug = slugify(safeData.name);
+      const normalizedName = safeData.name.toLowerCase().trim();
 
       const existingCompany = await this.getCompanyBySlug(companySlug);
       if (existingCompany) {
         return {
           id: existingCompany.id,
-          error: `Company with name "${companyData.name}" already exists.`,
+          error: `Company with name "${safeData.name}" already exists.`,
           alreadyExists: true,
         };
       }
 
       const dataForFirestore: Omit<Company, "id"> = {
-        name: companyData.name.trim(),
+        name: safeData.name.trim(),
         normalizedName,
         slug: companySlug,
-        logo: companyData.logo,
-        description: companyData.description?.trim(),
-        website: companyData.website?.trim(),
+        logo: safeData.logo,
+        description: safeData.description?.trim(),
+        website: safeData.website?.trim(),
         problemCount: 0,
         difficultyCounts: { Easy: 0, Medium: 0, Hard: 0 },
         recencyCounts: {
@@ -427,7 +430,7 @@ export class CompanyRepository implements ICompanyRepository {
           older_than_6_months: 0,
         },
         commonTags: [],
-        relatedCompanies: companyData.relatedCompanies || [],
+        relatedCompanies: safeData.relatedCompanies || [],
         statsLastUpdatedAt: undefined,
       };
 
@@ -471,7 +474,8 @@ export class CompanyRepository implements ICompanyRepository {
         return { success: false, error: validation.error.issues[0].message };
       }
 
-      const updates: Record<string, unknown> = { ...companyData };
+      // Security: Use validated data to strip unknown fields (Mass Assignment prevention)
+      const updates: Record<string, unknown> = { ...validation.data };
 
       if (updates.name && typeof updates.name === "string") {
         updates.normalizedName = updates.name.toLowerCase().trim();

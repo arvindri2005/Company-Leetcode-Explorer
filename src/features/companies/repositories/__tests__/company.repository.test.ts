@@ -86,6 +86,39 @@ describe("CompanyRepository Security", () => {
         expect(result.success).toBe(true);
         expect(mockUpdateDoc).toHaveBeenCalledTimes(1);
       });
+
+    it("should PREVENT extra fields from being saved (Mass Assignment)", async () => {
+      // Setup
+      const companyId = "test-company-id";
+      const massAssignmentAttempt = {
+        name: "Valid Name",
+        isAdmin: true, // Malicious extra field
+        roles: ["admin"], // Another malicious extra field
+      };
+      
+      mockDoc.mockReturnValue("mock-doc-ref");
+      mockUpdateDoc.mockResolvedValue();
+
+      // Act
+      // @ts-ignore - simulating untyped input or casted input
+      await repository.updateCompany(companyId, massAssignmentAttempt);
+
+      // Assert
+      // Verify what was passed to updateDoc
+      const updateCallArgs = mockUpdateDoc.mock.calls[0];
+      // updateCallArgs[0] is docRef, updateCallArgs[1] is data
+      // However, check how updateDoc mock was called. In beforeEach it's cleared.
+      // If previous test ran, mock might have calls. But beforeEach clears it.
+      
+      const updatesPassed = updateCallArgs[1];
+
+      // Expect 'name' to be present
+      expect(updatesPassed).toHaveProperty("name", "Valid Name");
+
+      // Expect malicious fields to be ABSENT
+      expect(updatesPassed).not.toHaveProperty("isAdmin");
+      expect(updatesPassed).not.toHaveProperty("roles");
+    });
   });
 
   describe("getCompanies (Pagination Security)", () => {
