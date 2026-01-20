@@ -40,6 +40,7 @@ export function TechCompanyCard({ company, priority = false }: TechCompanyCardPr
         <Link
           href={`/company/${company.slug}`}
           className="inline-block text-xs font-medium bg-white/5 hover:bg-white/10 text-gray-300 px-3 py-1.5 rounded-md transition-colors after:absolute after:inset-0 after:z-10"
+          aria-label={`View details for ${company.name}`}
         >
           View
         </Link>
