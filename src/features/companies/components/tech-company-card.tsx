@@ -11,7 +11,17 @@ interface TechCompanyCardProps {
   priority?: boolean;
 }
 
-export function TechCompanyCard({ company, priority = false }: TechCompanyCardProps) {
+/**
+ * Renders a card for a tech company.
+ *
+ * Memoized to prevent unnecessary re-renders when the parent component updates
+ * (e.g., during infinite scroll or search state changes), as the trending companies
+ * list is static after initial load.
+ */
+export const TechCompanyCard = React.memo(function TechCompanyCard({
+  company,
+  priority = false,
+}: TechCompanyCardProps) {
   const imgSrc = getLogoUrl(company.logo) || "/icon.png";
 
   return (
@@ -47,7 +57,7 @@ export function TechCompanyCard({ company, priority = false }: TechCompanyCardPr
       </div>
     </div>
   );
-}
+});
 
 
 
