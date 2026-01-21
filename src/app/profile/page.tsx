@@ -187,7 +187,7 @@ export default function ProfilePage() {
       {displayNameForm.reset({ displayName: user.displayName });}
   }, [user?.displayName, displayNameForm]);
 
-  const fetchEducation = async () => {
+  const fetchEducation = useCallback(async () => {
     if (user?.uid) {
       setIsLoadingEducation(true);
       try {
@@ -212,9 +212,9 @@ export default function ProfilePage() {
       }
       setIsLoadingEducation(false);
     } else {setEducationHistory([]);}
-  };
+  }, [user, toast]);
 
-  const fetchWorkExperience = async () => {
+  const fetchWorkExperience = useCallback(async () => {
     if (user?.uid) {
       setIsLoadingWorkExperience(true);
       try {
@@ -239,9 +239,9 @@ export default function ProfilePage() {
       }
       setIsLoadingWorkExperience(false);
     } else {setWorkExperience([]);}
-  };
+  }, [user, toast]);
 
-  const fetchBookmarkedData = async () => {
+  const fetchBookmarkedData = useCallback(async () => {
     if (user?.uid) {
       setIsLoadingBookmarks(true);
       try {
@@ -293,7 +293,7 @@ export default function ProfilePage() {
       }
       setIsLoadingBookmarks(false);
     } else {setBookmarkedProblemDetails([]);}
-  };
+  }, [user, toast]);
 
   const fetchStatusData = useCallback(async () => {
     if (user?.uid) {
@@ -397,7 +397,7 @@ export default function ProfilePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading]);
 
-  const handleAddEducation = async (data: EducationFormValues) => {
+  const handleAddEducation = useCallback(async (data: EducationFormValues) => {
     if (!user) {return;}
     educationForm.clearErrors(); // Clear previous errors
     const result = await userService.addUserEducation(user.uid, data);
@@ -416,9 +416,9 @@ export default function ProfilePage() {
         variant: "destructive",
       });
     }
-  };
+  }, [user, educationForm, fetchEducation, toast]);
 
-  const handleAddWorkExperience = async (data: WorkExperienceFormValues) => {
+  const handleAddWorkExperience = useCallback(async (data: WorkExperienceFormValues) => {
     if (!user) {return;}
     workForm.clearErrors(); // Clear previous errors
     const result = await userService.addUserWorkExperience(user.uid, data);
@@ -437,7 +437,7 @@ export default function ProfilePage() {
         variant: "destructive",
       });
     }
-  };
+  }, [user, workForm, fetchWorkExperience, toast]);
 
   const handleToggleTodoItem = useCallback(
     async (companyId: string, itemIndex: number, newStatus: boolean) => {
@@ -864,9 +864,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-
-
-
-
-

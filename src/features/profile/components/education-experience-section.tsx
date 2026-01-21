@@ -269,4 +269,4 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
   );
 };
 
-export default EducationExperienceSection;
+export default memo(EducationExperienceSection);

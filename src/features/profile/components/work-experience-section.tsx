@@ -275,4 +275,4 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
   );
 };
 
-export default WorkExperienceSection;
+export default memo(WorkExperienceSection);
