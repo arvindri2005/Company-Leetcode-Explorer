@@ -158,6 +158,10 @@ export class UserRepository implements IUserRepository {
    * @returns The updated User entity
    */
   async update(id: string, data: UpdateUserDTO): Promise<UserEntity> {
+    if (!this.isAuthorized(id)) {
+      throw new Error("Unauthorized access to user profile.");
+    }
+
     try {
       const userDocRef = doc(db, "users", id);
       
@@ -187,6 +191,10 @@ export class UserRepository implements IUserRepository {
    * @param id - The user's unique identifier
    */
   async delete(id: string): Promise<void> {
+    if (!this.isAuthorized(id)) {
+      throw new Error("Unauthorized access to user profile.");
+    }
+
     try {
       const userDocRef = doc(db, "users", id);
       await deleteDoc(userDocRef);

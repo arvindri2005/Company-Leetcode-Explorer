@@ -330,3 +330,46 @@ describe('UserRepository Security - findById', () => {
       expect(result?.preferences).toEqual({});
     });
 });
+
+describe('UserRepository Security - Write Operations', () => {
+  let repository: UserRepository;
+  let updateDocMock: any;
+  let deleteDocMock: any;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    repository = new UserRepository();
+    const firestore = require('firebase/firestore');
+    updateDocMock = firestore.updateDoc;
+    deleteDocMock = firestore.deleteDoc;
+    
+    // Mock getDoc for update check (it calls findById after update)
+    // We use the top-level mockGetDoc here
+    mockGetDoc.mockResolvedValue({
+        exists: () => true,
+        data: () => ({ uid: 'victim' })
+    });
+  });
+
+  it('should prevent UPDATE of another user profile', async () => {
+    (auth as any).currentUser = { uid: 'attacker' };
+    const victimId = 'victim';
+    
+    // We expect this to throw "Unauthorized access to user profile"
+    // BUT currently it will NOT throw, and will call updateDoc.
+    await expect(repository.update(victimId, { displayName: 'Hacked' }))
+      .rejects.toThrow('Unauthorized access to user profile');
+      
+    expect(updateDocMock).not.toHaveBeenCalled();
+  });
+
+  it('should prevent DELETE of another user profile', async () => {
+    (auth as any).currentUser = { uid: 'attacker' };
+    const victimId = 'victim';
+    
+    await expect(repository.delete(victimId))
+      .rejects.toThrow('Unauthorized access to user profile');
+      
+    expect(deleteDocMock).not.toHaveBeenCalled();
+  });
+});
