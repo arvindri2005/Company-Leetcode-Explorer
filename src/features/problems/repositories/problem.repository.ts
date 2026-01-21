@@ -162,11 +162,19 @@ export class ProblemRepository implements IProblemRepository {
     // Validate input using Zod schema
     const validatedData = CreateProblemSchema.parse(data);
 
+    // Security: Generate normalizedTitle server-side to prevent search poisoning
+    // We strictly ignore the client-provided normalizedTitle
+    const safeNormalizedTitle = validatedData.title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s\-\.\+\#]/g, "")
+      .trim();
+
     const problemSlug = slugify(validatedData.title);
     const problemDocRef = doc(getFirestore(), "problems", problemSlug);
 
     const dataToSave = {
       ...validatedData,
+      normalizedTitle: safeNormalizedTitle,
       slug: problemSlug,
       companyIds: [],
       companies: {},
@@ -181,7 +189,7 @@ export class ProblemRepository implements IProblemRepository {
       difficulty: validatedData.difficulty,
       link: validatedData.link,
       tags: validatedData.tags,
-      normalizedTitle: validatedData.normalizedTitle,
+      normalizedTitle: safeNormalizedTitle,
       acceptanceRate: validatedData.acceptanceRate,
       lastAskedPeriod: validatedData.lastAskedPeriod,
       companyId: "",
@@ -197,6 +205,19 @@ export class ProblemRepository implements IProblemRepository {
   async update(id: string, data: UpdateProblemDTO): Promise<Problem> {
     // Validate input using Zod schema
     const validatedData = UpdateProblemSchema.parse(data);
+
+    // Security: Handle normalizedTitle securely
+    if (validatedData.title) {
+      // If title changes, strictly enforce server-generated normalizedTitle
+      validatedData.normalizedTitle = validatedData.title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s\-\.\+\#]/g, "")
+        .trim();
+    } else {
+      // If title is not changing, we disallow updating normalizedTitle independently
+      // to prevent poisoning the index for the existing title
+      delete validatedData.normalizedTitle;
+    }
 
     const problemDocRef = doc(getFirestore(), "problems", id);
     const problemSnap = await getDoc(problemDocRef);

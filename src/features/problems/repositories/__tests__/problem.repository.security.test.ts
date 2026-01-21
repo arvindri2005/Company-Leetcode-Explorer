@@ -1,31 +1,40 @@
-import { getFirestore } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  getFirestore,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
 import { ZodError } from "zod";
 
 import { MAX_COMPANIES_PER_PROBLEM } from "@/features/problems/constants/problem-constants";
 import { CreateProblemSchema } from "@/features/problems/types/problem.types";
 
-import type { CreateProblemDTO, UpdateProblemDTO } from "../../interfaces/problem.repository.interface";
+import type {
+  CreateProblemDTO,
+  UpdateProblemDTO,
+} from "../../interfaces/problem.repository.interface";
 import { problemRepository } from "../problem.repository";
 
 // Mock Firebase dependencies
 jest.mock("firebase/firestore", () => {
-    const original = jest.requireActual("firebase/firestore");
-    return {
-      ...original,
-      getFirestore: jest.fn(),
-      collection: jest.fn(),
-      doc: jest.fn(),
-      getDoc: jest.fn(),
-      getDocs: jest.fn(),
-      setDoc: jest.fn(),
-      updateDoc: jest.fn(),
-      query: jest.fn(),
-      where: jest.fn(),
-      limit: jest.fn(),
-      orderBy: jest.fn(),
-      startAfter: jest.fn(),
-      getCountFromServer: jest.fn(),
-    }
+  const original = jest.requireActual("firebase/firestore");
+  return {
+    ...original,
+    getFirestore: jest.fn(),
+    collection: jest.fn(),
+    doc: jest.fn(),
+    getDoc: jest.fn(),
+    getDocs: jest.fn(),
+    setDoc: jest.fn(),
+    updateDoc: jest.fn(),
+    query: jest.fn(),
+    where: jest.fn(),
+    limit: jest.fn(),
+    orderBy: jest.fn(),
+    startAfter: jest.fn(),
+    getCountFromServer: jest.fn(),
+  };
 });
 
 jest.mock("@/lib/api/firebase", () => ({
@@ -53,7 +62,9 @@ describe("ProblemRepository Security Validation", () => {
         // Missing difficulty, link, etc.
       };
 
-      await expect(problemRepository.save(invalidData)).rejects.toThrow(ZodError);
+      await expect(problemRepository.save(invalidData)).rejects.toThrow(
+        ZodError,
+      );
     });
 
     it("should reject malicious URLs in link", async () => {
@@ -65,14 +76,15 @@ describe("ProblemRepository Security Validation", () => {
         normalizedTitle: "malicious problem",
       };
 
-      await expect(problemRepository.save(maliciousData)).rejects.toThrow(ZodError);
+      await expect(problemRepository.save(maliciousData)).rejects.toThrow(
+        ZodError,
+      );
     });
 
     it("should accept valid data", async () => {
       // Mock implementation to avoid actual DB calls failing
-      const { setDoc, doc } = require("firebase/firestore");
-      doc.mockReturnValue({});
-      setDoc.mockResolvedValue();
+      (doc as jest.Mock).mockReturnValue({});
+      (setDoc as jest.Mock).mockResolvedValue();
 
       const validData: CreateProblemDTO = {
         title: "Valid Problem",
@@ -82,21 +94,21 @@ describe("ProblemRepository Security Validation", () => {
         normalizedTitle: "valid problem",
       };
 
-      // We expect this to resolve (or fail deeper in execution if mocks aren't perfect, 
+      // We expect this to resolve (or fail deeper in execution if mocks aren't perfect,
       // but it should pass the validation step)
       // Since we mocked setDoc, it should proceed until it tries to return domain object
       // ProblemMapper.toDomain might throw if we don't mock it, but let's see.
-      
+
       // Actually, let's just spy on CreateProblemSchema.parse
       const parseSpy = jest.spyOn(CreateProblemSchema, "parse");
-      
+
       try {
         await problemRepository.save(validData);
       } catch (e) {
         // Ignore downstream errors, we just want to know if parse was called
         console.log(e);
       }
-      
+
       expect(parseSpy).toHaveBeenCalledWith(validData);
     });
   });
@@ -107,21 +119,21 @@ describe("ProblemRepository Security Validation", () => {
         link: "javascript:alert(1)",
       };
 
-      await expect(problemRepository.update("some-id", maliciousUpdate)).rejects.toThrow(ZodError);
+      await expect(
+        problemRepository.update("some-id", maliciousUpdate),
+      ).rejects.toThrow(ZodError);
     });
   });
 
   describe("addProblem", () => {
     it("should prevent adding more companies than the limit", async () => {
-      const { getDoc } = require("firebase/firestore");
-
       // Create an array of IDs from "1" to MAX_COMPANIES_PER_PROBLEM
       const existingCompanyIds = Array.from(
         { length: MAX_COMPANIES_PER_PROBLEM },
-        (_, i) => String(i + 1)
+        (_, i) => String(i + 1),
       );
 
-      getDoc.mockResolvedValue({
+      (getDoc as jest.Mock).mockResolvedValue({
         exists: () => true,
         data: () => ({
           companyIds: existingCompanyIds,
@@ -141,18 +153,16 @@ describe("ProblemRepository Security Validation", () => {
       const result = await problemRepository.addProblem(
         "new-company-id",
         // @ts-expect-error - Casting to match the expected Omit type
-        validData
+        validData,
       );
 
       expect(result.updated).toBe(false);
       expect(result.error).toContain(
-        `Maximum number of companies (${MAX_COMPANIES_PER_PROBLEM}) reached`
+        `Maximum number of companies (${MAX_COMPANIES_PER_PROBLEM}) reached`,
       );
     });
 
     it("should NOT overwrite existing problem details (link, difficulty) when adding a new company", async () => {
-      const { getDoc, updateDoc } = require("firebase/firestore");
-
       // Mock existing problem
       const existingData = {
         title: "Existing Problem",
@@ -163,7 +173,7 @@ describe("ProblemRepository Security Validation", () => {
         companies: { "company-a": {} },
       };
 
-      getDoc.mockResolvedValue({
+      (getDoc as jest.Mock).mockResolvedValue({
         exists: () => true,
         data: () => existingData,
       });
@@ -182,14 +192,14 @@ describe("ProblemRepository Security Validation", () => {
       await problemRepository.addProblem(
         "company-b",
         // @ts-expect-error - Casting
-        maliciousData
+        maliciousData,
       );
 
       // Verify updateDoc was called
       expect(updateDoc).toHaveBeenCalled();
 
       // Get the arguments passed to updateDoc
-      const updateArgs = updateDoc.mock.calls[0][1];
+      const updateArgs = (updateDoc as jest.Mock).mock.calls[0][1];
 
       // CRITICAL CHECK: The update should NOT contain the malicious fields
       expect(updateArgs).not.toHaveProperty("link");
@@ -205,16 +215,16 @@ describe("ProblemRepository Security Validation", () => {
 
   describe("Security - Search Poisoning Prevention", () => {
     it("should prevent search poisoning by enforcing normalizedTitle generation server-side", async () => {
-      const { getDoc, setDoc, doc } = require("firebase/firestore");
-      
       // Setup - Problem does not exist
-      getDoc.mockResolvedValue({
+      (getDoc as jest.Mock).mockResolvedValue({
         exists: () => false,
         data: () => {},
       });
       // Ensure doc mock returns an object with ID
-      doc.mockImplementation((_: any, _col: any, id: string) => ({ id, path: `problems/${id}` }));
-  
+      (doc as jest.Mock).mockImplementation(
+        (_: any, _col: any, id: string) => ({ id, path: `problems/${id}` }),
+      );
+
       const maliciousInput = {
         title: "Safe Title",
         difficulty: "Easy" as const,
@@ -223,50 +233,104 @@ describe("ProblemRepository Security Validation", () => {
         normalizedTitle: "malicious-search-term", // Attack: Trying to poison the search index
         lastAskedPeriod: "last_30_days" as const,
       };
-  
+
       // Execute
       await problemRepository.addProblem("company-1", maliciousInput);
-  
+
       // Verify
       expect(setDoc).toHaveBeenCalledTimes(1);
-      const savedData = setDoc.mock.calls[0][1];
-  
-      // The saved normalizedTitle should be derived from the TITLE ("safe title"), 
+      const savedData = (setDoc as jest.Mock).mock.calls[0][1];
+
+      // The saved normalizedTitle should be derived from the TITLE ("safe title"),
       // NOT the provided malicious input ("malicious-search-term").
       expect(savedData.normalizedTitle).toBe("safe title");
       expect(savedData.normalizedTitle).not.toBe("malicious-search-term");
     });
-  
-    it("should sanitize normalizedTitle correctly when title contains special characters", async () => {
-      const { getDoc, setDoc, doc } = require("firebase/firestore");
 
+    it("should sanitize normalizedTitle correctly when title contains special characters", async () => {
       // Setup - Problem does not exist
-      getDoc.mockResolvedValue({
+      (getDoc as jest.Mock).mockResolvedValue({
         exists: () => false,
         data: () => {},
       });
-      doc.mockImplementation((_: any, _col: any, id: string) => ({ id, path: `problems/${id}` }));
-  
+      (doc as jest.Mock).mockImplementation(
+        (_: any, _col: any, id: string) => ({ id, path: `problems/${id}` }),
+      );
+
       const inputWithSpecialChars = {
         title: "Two Sum? (Target)",
         difficulty: "Easy" as const,
         link: "https://leetcode.com/problems/two-sum",
         tags: ["Array"],
-        normalizedTitle: "irrelevant", 
+        normalizedTitle: "irrelevant",
         lastAskedPeriod: "last_30_days" as const,
       };
-  
+
       // Execute
       await problemRepository.addProblem("company-1", inputWithSpecialChars);
-  
+
       // Verify
       expect(setDoc).toHaveBeenCalledTimes(1);
-      const savedData = setDoc.mock.calls[0][1];
-  
+      const savedData = (setDoc as jest.Mock).mock.calls[0][1];
+
       // We expect the result to match the schema
       const schemaRegex = /^[a-z0-9\s\-\.\+\#]+$/;
       expect(savedData.normalizedTitle).toMatch(schemaRegex);
       expect(savedData.normalizedTitle).toContain("two sum");
+    });
+  });
+
+  describe("Security - Update Search Poisoning", () => {
+    it("should prevent search poisoning when updating title", async () => {
+      (doc as jest.Mock).mockReturnValue({});
+      (getDoc as jest.Mock).mockResolvedValue({
+        exists: () => true,
+        data: () => ({
+          title: "Old Title",
+          normalizedTitle: "old title",
+          difficulty: "Easy",
+        }),
+        id: "problem-id",
+      });
+      (updateDoc as jest.Mock).mockResolvedValue();
+
+      const maliciousUpdate: UpdateProblemDTO = {
+        title: "New Safe Title",
+        normalizedTitle: "poisoned-update-index", // User tries to poison the index on update
+      };
+
+      await problemRepository.update("problem-id", maliciousUpdate);
+
+      const updateArgs = (updateDoc as jest.Mock).mock.calls[0][1];
+
+      expect(updateArgs.normalizedTitle).toBe("new safe title");
+      expect(updateArgs.normalizedTitle).not.toBe("poisoned-update-index");
+    });
+
+    it("should ignore normalizedTitle update if title is NOT updated", async () => {
+      (doc as jest.Mock).mockReturnValue({});
+      (getDoc as jest.Mock).mockResolvedValue({
+        exists: () => true,
+        data: () => ({
+          title: "Existing Title",
+          normalizedTitle: "existing title",
+          difficulty: "Easy",
+        }),
+        id: "problem-id",
+      });
+      (updateDoc as jest.Mock).mockResolvedValue();
+
+      const maliciousUpdate: UpdateProblemDTO = {
+        // No title update
+        normalizedTitle: "poisoned-standalone-update",
+      };
+
+      await problemRepository.update("problem-id", maliciousUpdate);
+
+      const updateArgs = (updateDoc as jest.Mock).mock.calls[0][1];
+
+      // We expect normalizedTitle to NOT be present in the update arguments
+      expect(updateArgs).not.toHaveProperty("normalizedTitle");
     });
   });
 });
