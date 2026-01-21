@@ -111,7 +111,11 @@ export default function ResetPasswordForm({ oobCode }: ResetPasswordFormProps) {
 
   if (isVerifying) {
     return (
-      <div className="flex flex-col items-center justify-center space-y-4 py-8">
+      <div
+        className="flex flex-col items-center justify-center space-y-4 py-8"
+        role="status"
+        aria-live="polite"
+      >
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <p className="text-muted-foreground">Verifying secure link...</p>
       </div>
@@ -120,7 +124,7 @@ export default function ResetPasswordForm({ oobCode }: ResetPasswordFormProps) {
 
   if (error) {
     return (
-      <div className="text-center space-y-6">
+      <div className="text-center space-y-6" role="alert" aria-live="assertive">
         <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
           <LockKeyhole className="w-8 h-8 text-destructive" />
         </div>
@@ -139,7 +143,7 @@ export default function ResetPasswordForm({ oobCode }: ResetPasswordFormProps) {
 
   if (isSuccess) {
     return (
-      <div className="text-center space-y-6">
+      <div className="text-center space-y-6" role="status" aria-live="polite">
         <div className="mx-auto w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center">
           <CheckCircle2 className="w-8 h-8 text-green-600" />
         </div>
@@ -182,7 +186,7 @@ export default function ResetPasswordForm({ oobCode }: ResetPasswordFormProps) {
                     className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage role="alert" />
               </FormItem>
             )}
           />
@@ -201,7 +205,7 @@ export default function ResetPasswordForm({ oobCode }: ResetPasswordFormProps) {
                     className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage role="alert" />
               </FormItem>
             )}
           />
@@ -212,11 +216,16 @@ export default function ResetPasswordForm({ oobCode }: ResetPasswordFormProps) {
             className="w-full h-11 text-base transition-all duration-200 hover:scale-102 shadow-lg hover:shadow-primary/25 mt-2"
           >
             {isSubmitting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Updating Password...
+              </>
             ) : (
-              <LockKeyhole className="mr-2 h-4 w-4" />
+              <>
+                <LockKeyhole className="mr-2 h-4 w-4" />
+                Update Password
+              </>
             )}
-            Update Password
           </Button>
         </form>
       </Form>
