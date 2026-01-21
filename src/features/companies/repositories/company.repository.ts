@@ -485,6 +485,14 @@ export class CompanyRepository implements ICompanyRepository {
       delete updates.id;
       delete updates.slug;
 
+      // Security: Prevent Mass Assignment of computed/readonly fields
+      // These fields should only be updated by the system (e.g., ProblemRepository)
+      delete updates.problemCount;
+      delete updates.difficultyCounts;
+      delete updates.recencyCounts;
+      delete updates.commonTags;
+      delete updates.statsLastUpdatedAt;
+
       Object.keys(updates).forEach((key) => {
         if (updates[key] === undefined) {
           delete updates[key];
