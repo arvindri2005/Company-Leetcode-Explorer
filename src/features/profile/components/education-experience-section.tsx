@@ -127,6 +127,7 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
                         <FormControl>
                           <Input
                             {...field}
+                            placeholder="e.g. Stanford University"
                             autoFocus
                             autoComplete="organization"
                             autoCapitalize="words"
@@ -145,6 +146,7 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
                         <FormControl>
                           <Input
                             {...field}
+                            placeholder="e.g. Bachelor of Science"
                             autoComplete="off"
                             autoCapitalize="words"
                           />
@@ -162,6 +164,7 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
                         <FormControl>
                           <Input
                             {...field}
+                            placeholder="e.g. Computer Science"
                             autoComplete="off"
                             autoCapitalize="words"
                           />

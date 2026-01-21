@@ -133,6 +133,7 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                         <FormControl>
                           <Input
                             {...field}
+                            placeholder="e.g. Senior Software Engineer"
                             autoFocus
                             autoComplete="organization-title"
                             autoCapitalize="words"
@@ -151,6 +152,7 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                         <FormControl>
                           <Input
                             {...field}
+                            placeholder="e.g. Tech Corp"
                             autoComplete="organization"
                             autoCapitalize="words"
                           />
@@ -208,7 +210,11 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                       <FormItem>
                         <FormLabel>Key Responsibilities (Optional)</FormLabel>
                         <FormControl>
-                          <Textarea {...field} rows={3} />
+                          <Textarea 
+                            {...field} 
+                            rows={3} 
+                            placeholder="e.g. Led a team of 5 developers to ship a new feature..."
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
