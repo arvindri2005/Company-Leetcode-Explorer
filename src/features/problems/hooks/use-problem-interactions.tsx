@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { usePathname, useRouter } from "next/navigation";
 
@@ -24,35 +24,28 @@ export function useProblemInteractions(
   const pathname = usePathname();
 
   // -- State Management for Bookmark --
-  // Optimization: Removed duplicate "committed" state and effects.
-  // We rely on "Optimistic UI" pattern:
-  // 1. User acts -> Set optimistic state.
-  // 2. Prop updates -> If prop matches optimistic, clear optimistic (yield to prop).
-  // 3. Fallback -> If prop never updates (uncontrolled), optimistic state persists as local state.
+  // Optimization: Use ref for optimistic state to avoid double-render on sync.
+  const optimisticIsBookmarkedRef = useRef<boolean | null>(null);
   
-  const [optimisticIsBookmarked, setOptimisticIsBookmarked] = useState<
-    boolean | null
-  >(null);
+  // Force update trigger to ensure renders when ref changes
+  const [, setForceUpdate] = useState(0);
 
-  // If the prop has caught up to our optimistic state, we can clear the override.
-  // This "update during render" pattern allows React to restart the render immediately with clean state,
-  // preventing a double-paint flicker.
-  if (optimisticIsBookmarked === initialIsBookmarked) {
-    setOptimisticIsBookmarked(null);
+  // Sync logic: If props match optimistic, clear optimistic.
+  if (optimisticIsBookmarkedRef.current === initialIsBookmarked) {
+    optimisticIsBookmarkedRef.current = null;
   }
 
-  const isBookmarked = optimisticIsBookmarked ?? initialIsBookmarked;
+  const isBookmarked = optimisticIsBookmarkedRef.current ?? initialIsBookmarked;
   const [isTogglingBookmark, setIsTogglingBookmark] = useState(false);
 
   // -- State Management for Status --
-  const [optimisticStatus, setOptimisticStatus] =
-    useState<ProblemStatus | null>(null);
+  const optimisticStatusRef = useRef<ProblemStatus | null>(null);
 
-  if (optimisticStatus === problemStatus) {
-    setOptimisticStatus(null);
+  if (optimisticStatusRef.current === problemStatus) {
+    optimisticStatusRef.current = null;
   }
 
-  const currentStatus = optimisticStatus ?? problemStatus;
+  const currentStatus = optimisticStatusRef.current ?? problemStatus;
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const promptLogin = useCallback(() => {
@@ -84,8 +77,9 @@ export function useProblemInteractions(
     }
 
     const nextValue = !isBookmarked;
-    // Set optimistic state immediately
-    setOptimisticIsBookmarked(nextValue);
+    
+    optimisticIsBookmarkedRef.current = nextValue;
+    setForceUpdate((prev) => prev + 1);
     setIsTogglingBookmark(true);
 
     try {
@@ -99,10 +93,9 @@ export function useProblemInteractions(
       if (result.isSuccess) {
         const finalValue = result.value.isBookmarked ?? nextValue;
 
-        // If the result differs from our optimistic guess (rare), update optimistic to match result.
-        // Otherwise, keep optimistic state until prop updates.
         if (finalValue !== nextValue) {
-          setOptimisticIsBookmarked(finalValue);
+          optimisticIsBookmarkedRef.current = finalValue;
+          // No need to force update here if we are about to update in finally
         }
 
         onBookmarkChanged?.(problem.id, finalValue);
@@ -114,7 +107,7 @@ export function useProblemInteractions(
           } your collection.`,
         });
       } else {
-        setOptimisticIsBookmarked(null); // Revert to prop
+        optimisticIsBookmarkedRef.current = null; 
         toast({
           title: "Bookmark Error",
           description: result.error?.message || "Failed to update bookmark.",
@@ -122,7 +115,7 @@ export function useProblemInteractions(
         });
       }
     } catch {
-      setOptimisticIsBookmarked(null); // Revert to prop
+      optimisticIsBookmarkedRef.current = null; 
       toast({
         title: "Connection Error",
         description: "Please check your connection and try again.",
@@ -130,6 +123,7 @@ export function useProblemInteractions(
       });
     } finally {
       setIsTogglingBookmark(false);
+      setForceUpdate((prev) => prev + 1);
     }
   }, [
     userId,
@@ -154,7 +148,8 @@ export function useProblemInteractions(
       return;
     }
 
-    setOptimisticStatus(newStatus);
+    optimisticStatusRef.current = newStatus;
+    setForceUpdate((prev) => prev + 1);
     setIsUpdatingStatus(true);
 
     try {
@@ -167,8 +162,6 @@ export function useProblemInteractions(
         problem.slug,
       );
       if (result.isSuccess) {
-        // Keep optimistic status until prop updates
-
         onProblemStatusChange?.(problem.id, newStatus);
 
         const statusLabel =
@@ -183,7 +176,7 @@ export function useProblemInteractions(
           description: `"${problem.title}" ${statusLabel}.`,
         });
       } else {
-        setOptimisticStatus(null); // Revert
+        optimisticStatusRef.current = null; 
         toast({
           title: "Update Failed",
           description: result.error?.message || "Failed to update status.",
@@ -191,7 +184,7 @@ export function useProblemInteractions(
         });
       }
     } catch {
-      setOptimisticStatus(null); // Revert
+      optimisticStatusRef.current = null; 
       toast({
         title: "Connection Error",
         description: "Please check your connection and try again.",
@@ -199,6 +192,7 @@ export function useProblemInteractions(
       });
     } finally {
       setIsUpdatingStatus(false);
+      setForceUpdate((prev) => prev + 1);
     }
   }, [
     userId,
