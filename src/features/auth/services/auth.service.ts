@@ -18,6 +18,7 @@ import type { AuthServiceResponse } from "../types";
 export class AuthService {
   private googleProvider: GoogleAuthProvider | null = null;
   private syncedUserId: string | null = null;
+  private syncInProgress: Promise<AuthServiceResponse> | null = null;
 
   /**
    * @description Get or initialize the Google Auth Provider
@@ -70,6 +71,7 @@ export class AuthService {
       await signOut(auth);
       
       this.syncedUserId = null;
+      this.syncInProgress = null;
 
       // Clear auth cookie
       if (typeof window !== "undefined") {
@@ -117,54 +119,65 @@ export class AuthService {
       }
     }
 
-    try {
-      // Security: Sanitize display name before passing to service layer (Defense in Depth)
-      let sanitizedDisplayName = firebaseUser.displayName;
-      if (sanitizedDisplayName) {
-        sanitizedDisplayName = sanitizedDisplayName.trim();
-        // Truncate if too long (max 50 chars to match user repository limit)
-        if (sanitizedDisplayName.length > 50) {
-          sanitizedDisplayName = sanitizedDisplayName.substring(0, 50);
+    // Performance: Deduplicate concurrent sync requests
+    if (this.syncInProgress) {
+      return this.syncInProgress;
+    }
+
+    this.syncInProgress = (async () => {
+      try {
+        // Security: Sanitize display name before passing to service layer (Defense in Depth)
+        let sanitizedDisplayName = firebaseUser.displayName;
+        if (sanitizedDisplayName) {
+          sanitizedDisplayName = sanitizedDisplayName.trim();
+          // Truncate if too long (max 50 chars to match user repository limit)
+          if (sanitizedDisplayName.length > 50) {
+            sanitizedDisplayName = sanitizedDisplayName.substring(0, 50);
+          }
         }
-      }
 
-      const result = await userService.syncUserProfile(
-        firebaseUser.email,
-        sanitizedDisplayName
-      );
+        const result = await userService.syncUserProfile(
+          firebaseUser.email,
+          sanitizedDisplayName
+        );
 
-      if (!result.isSuccess) {
-        Logger.error("Failed to sync user profile", result.error, {
+        if (!result.isSuccess) {
+          Logger.error("Failed to sync user profile", result.error, {
+            userId: firebaseUser.uid,
+          });
+          return {
+            success: false,
+            error: "Failed to sync user profile. Please try again.",
+          };
+        }
+
+        // Update cache on success
+        this.syncedUserId = firebaseUser.uid;
+        if (typeof window !== "undefined") {
+          try {
+            sessionStorage.setItem(storageKey, "true");
+          } catch {
+            // Ignore storage errors
+          }
+        }
+
+        return {
+          success: true,
+        };
+      } catch (error) {
+        Logger.error("Error calling syncUserProfile", error, {
           userId: firebaseUser.uid,
         });
         return {
           success: false,
           error: "Failed to sync user profile. Please try again.",
         };
+      } finally {
+        this.syncInProgress = null;
       }
+    })();
 
-      // Update cache on success
-      this.syncedUserId = firebaseUser.uid;
-      if (typeof window !== "undefined") {
-        try {
-          sessionStorage.setItem(storageKey, "true");
-        } catch {
-          // Ignore storage errors
-        }
-      }
-
-      return {
-        success: true,
-      };
-    } catch (error) {
-      Logger.error("Error calling syncUserProfile", error, {
-        userId: firebaseUser.uid,
-      });
-      return {
-        success: false,
-        error: "Failed to sync user profile. Please try again.",
-      };
-    }
+    return this.syncInProgress;
   }
 
   /**
