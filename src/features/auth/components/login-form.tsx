@@ -15,7 +15,12 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import {
+  browserLocalPersistence,
+  browserSessionPersistence,
+  setPersistence,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import { Loader2, LogInIcon } from "lucide-react";
 import { z } from "zod";
 
@@ -51,6 +56,7 @@ export const loginFormSchema = z.object({
     .string()
     .min(6, { message: "Password must be at least 6 characters." })
     .max(128, { message: "Password must be less than 128 characters." }),
+  rememberMe: z.boolean(),
 });
 
 type LoginFormValues = z.infer<typeof loginFormSchema>;
@@ -81,6 +87,7 @@ export default function LoginForm() {
     defaultValues: {
       email: "",
       password: "",
+      rememberMe: false,
     },
   });
 
@@ -96,6 +103,11 @@ export default function LoginForm() {
 
     setIsSubmitting(true);
     try {
+      await setPersistence(
+        auth,
+        data.rememberMe ? browserLocalPersistence : browserSessionPersistence,
+      );
+
       await signInWithEmailAndPassword(auth, data.email, data.password);
       toast({
         title: "Login Successful! 🎉",
@@ -207,15 +219,24 @@ export default function LoginForm() {
         </div>
 
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Checkbox id="remember" disabled={isSubmitting} />
-            <label
-              htmlFor="remember"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Remember me
-            </label>
-          </div>
+          <FormField
+            control={form.control}
+            name="rememberMe"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={isSubmitting}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Remember me</FormLabel>
+                </div>
+              </FormItem>
+            )}
+          />
           <Link
             href="/forgot-password"
             className="text-sm font-medium text-primary hover:underline"

@@ -37,6 +37,7 @@ describe("Auth Form Schemas Security Limits", () => {
       const result = loginFormSchema.safeParse({
         email: validEmail,
         password: "123456",
+        rememberMe: false,
       });
       expect(result.success).toBe(true);
     });
