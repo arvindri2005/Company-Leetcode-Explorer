@@ -61,6 +61,13 @@ describe("UserInfoCard", () => {
     expect(screen.getByPlaceholderText("Enter display name")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /save/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /cancel/i })).toBeInTheDocument();
+
+    // Accessibility check
+    const input = screen.getByPlaceholderText("Enter display name");
+    expect(input).toHaveAttribute("aria-describedby", "display-name-counter");
+    // We can't easily check for sr-only text visibility here without advanced matchers, 
+    // but we can check if the element exists
+    expect(document.getElementById("display-name-counter")).toBeInTheDocument();
   });
 
   it("calls setIsEditingDisplayName when edit button is clicked", () => {

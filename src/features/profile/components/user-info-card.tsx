@@ -151,6 +151,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                                     {...field}
                                     placeholder="Enter display name"
                                     aria-label="Display Name"
+                                    aria-describedby="display-name-counter"
                                     className="text-lg font-medium h-10 pr-12"
                                     autoFocus
                                     autoComplete="name"
@@ -158,8 +159,17 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                                     maxLength={50}
                                     enterKeyHint="done"
                                   />
-                                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
-                                    {field.value?.length || 0}/50
+                                  <span
+                                    id="display-name-counter"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none"
+                                  >
+                                    <span className="sr-only">
+                                      Character count:{" "}
+                                    </span>
+                                    {field.value?.length || 0}
+                                    <span className="sr-only"> out of </span>
+                                    <span aria-hidden="true">/</span>
+                                    50
                                   </span>
                                 </div>
                               </FormControl>
