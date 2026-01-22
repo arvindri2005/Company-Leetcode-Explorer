@@ -596,12 +596,12 @@ export class UserRepository implements IUserRepository {
       await batch.commit();
       return { isBookmarked };
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "An unknown error occurred while toggling bookmark.";
+      // Security: Return generic error message to prevent leaking internal details
       Logger.error("Error toggling bookmark in Firestore", error);
-      return { isBookmarked: false, error: message };
+      return { 
+        isBookmarked: false, 
+        error: "An unexpected error occurred while toggling bookmark." 
+      };
     }
   }
 
@@ -652,12 +652,9 @@ export class UserRepository implements IUserRepository {
       await batch.commit();
       return { success: true };
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to update problem status.";
+      // Security: Return generic error message to prevent leaking internal details
       Logger.error("Error setting problem status in Firestore", error);
-      return { success: false, error: message };
+      return { success: false, error: "An unexpected error occurred while updating problem status." };
     }
   }
 
@@ -668,29 +665,42 @@ export class UserRepository implements IUserRepository {
     if (!this.isAuthorized(userId)) {return { success: false, error: "Unauthorized access to user profile." };}
 
     if (!userId) {return { success: false, error: "User ID is required." };}
-    if (!newDisplayName || newDisplayName.trim().length < 2) {
+    
+    const trimmedName = newDisplayName ? newDisplayName.trim() : "";
+    
+    if (trimmedName.length < 2) {
       return {
         success: false,
         error: "Display name must be at least 2 characters.",
       };
     }
-    if (newDisplayName.trim().length > 50) {
+    if (trimmedName.length > 50) {
       return {
         success: false,
         error: "Display name must be less than 50 characters.",
       };
     }
+
+    // Security: Validate display name to prevent stored XSS or injection
+    if (/[<>]/.test(trimmedName)) {
+      Logger.warn("Blocked attempt to set display name with invalid characters", { userId, displayName: trimmedName });
+      return {
+        success: false,
+        error: "Display name contains invalid characters.",
+      };
+    }
+
     const userDocRef = doc(db, "users", userId);
     try {
-      await updateDoc(userDocRef, { displayName: newDisplayName.trim() });
+      await updateDoc(userDocRef, { displayName: trimmedName });
       return { success: true };
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to update display name in Firestore.";
+      // Security: Return generic error message to prevent leaking internal details
       Logger.error("Error updating user display name in Firestore", error);
-      return { success: false, error: message };
+      return { 
+        success: false, 
+        error: "An unexpected error occurred while updating display name." 
+      };
     }
   }
 
@@ -726,12 +736,9 @@ export class UserRepository implements IUserRepository {
       });
       return { id: docRef.id };
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to add education experience.";
+      // Security: Return generic error message to prevent leaking internal details
       Logger.error("Error adding education experience to Firestore", error);
-      return { id: null, error: message };
+      return { id: null, error: "An unexpected error occurred while adding education experience." };
     }
   }
 
@@ -767,10 +774,9 @@ export class UserRepository implements IUserRepository {
       });
       return { id: docRef.id };
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to add work experience.";
+      // Security: Return generic error message to prevent leaking internal details
       Logger.error("Error adding work experience to Firestore", error);
-      return { id: null, error: message };
+      return { id: null, error: "An unexpected error occurred while adding work experience." };
     }
   }
 
@@ -823,10 +829,9 @@ export class UserRepository implements IUserRepository {
       await setDoc(todoListDocRef, validationResult.data as SavedStrategyTodoList, { merge: true });
       return { success: true };
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to save strategy.";
+      // Security: Return generic error message to prevent leaking internal details
       Logger.error("Error saving strategy to Firestore", error);
-      return { success: false, error: message };
+      return { success: false, error: "An unexpected error occurred while saving strategy." };
     }
   }
 
@@ -871,12 +876,9 @@ export class UserRepository implements IUserRepository {
       });
       return { success: true };
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to update todo item status.";
+      // Security: Return generic error message to prevent leaking internal details
       Logger.error("Error updating todo item status in Firestore", error);
-      return { success: false, error: message };
+      return { success: false, error: "An unexpected error occurred while updating todo item." };
     }
   }
 
@@ -923,6 +925,13 @@ export class UserRepository implements IUserRepository {
           safeName = safeName.substring(0, 50);
         }
         
+        // Security: Remove invalid characters
+        if (/[<>]/.test(safeName)) {
+           // If it comes from a provider with weird chars, we could strip them or just log.
+           // Since this is sync, we might just want to strip them instead of failing completely.
+           safeName = safeName.replace(/[<>]/g, "");
+        }
+
         if (safeName.length > 0) {
           updates.displayName = safeName;
         }
@@ -933,11 +942,11 @@ export class UserRepository implements IUserRepository {
 
       return { success: true };
     } catch (error) {
+      // Security: Return generic error message to prevent leaking internal details
       Logger.error("Error syncing user profile to Firestore", error);
-      if (error instanceof Error) {return { success: false, error: error.message };}
       return {
         success: false,
-        error: "An unknown error occurred while syncing user profile.",
+        error: "An unexpected error occurred while syncing user profile.",
       };
     }
   }
