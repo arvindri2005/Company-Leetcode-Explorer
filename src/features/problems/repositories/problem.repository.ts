@@ -170,6 +170,12 @@ export class ProblemRepository implements IProblemRepository {
       .trim();
 
     const problemSlug = slugify(validatedData.title);
+    
+    // Security: Ensure generated slug is valid to prevent database errors
+    if (!problemSlug) {
+      throw new Error("Title results in an empty slug. Please include alphanumeric characters.");
+    }
+
     const problemDocRef = doc(getFirestore(), "problems", problemSlug);
 
     const dataToSave = {
@@ -1228,6 +1234,16 @@ export class ProblemRepository implements IProblemRepository {
       const validatedData = parseResult.data;
 
       const problemSlug = slugify(validatedData.title);
+
+      // Security: Ensure generated slug is valid to prevent database errors
+      if (!problemSlug) {
+        return {
+          id: null,
+          updated: false,
+          error: "Title results in an empty slug. Please include alphanumeric characters.",
+        };
+      }
+
       const problemDocRef = doc(getFirestore(), "problems", problemSlug);
       const problemSnap = await getDoc(problemDocRef);
 
