@@ -477,13 +477,14 @@ export class CompanyRepository implements ICompanyRepository {
       // Security: Use validated data to strip unknown fields (Mass Assignment prevention)
       const updates: Record<string, unknown> = { ...validation.data };
 
-      if (updates.name && typeof updates.name === "string") {
-        updates.normalizedName = updates.name.toLowerCase().trim();
-      }
-
       // Remove fields that shouldn't be updated directly
       delete updates.id;
       delete updates.slug;
+      delete updates.normalizedName;
+
+      if (updates.name && typeof updates.name === "string") {
+        updates.normalizedName = updates.name.toLowerCase().trim();
+      }
 
       // Security: Prevent Mass Assignment of computed/readonly fields
       // These fields should only be updated by the system (e.g., ProblemRepository)

@@ -88,4 +88,53 @@ describe("CompanyRepository Security (Mass Assignment)", () => {
     expect(updatesPassed).not.toHaveProperty("commonTags");
     expect(updatesPassed).not.toHaveProperty("statsLastUpdatedAt");
   });
+
+  it("should PREVENT Search Index Poisoning (normalizedName override)", async () => {
+    // Setup
+    const companyId = "test-company-id";
+    // Malicious payload: Try to set normalizedName to something different than name
+    const maliciousUpdate = {
+      normalizedName: "hidden-search-term",
+    };
+    
+    mockDoc.mockReturnValue("mock-doc-ref");
+    mockUpdateDoc.mockResolvedValue();
+
+    // Act
+    // @ts-ignore - explicitly testing behavior with invalid/extra fields that might pass Zod weak checks
+    const result = await repository.updateCompany(companyId, maliciousUpdate);
+
+    // Assert
+    expect(result.success).toBe(true);
+
+    const updateCallArgs = mockUpdateDoc.mock.calls[0];
+    const updatesPassed = updateCallArgs[1];
+
+    // normalizedName should be removed because name was not provided
+    expect(updatesPassed).not.toHaveProperty("normalizedName");
+  });
+
+  it("should correctly re-derive normalizedName when name is updated", async () => {
+    // Setup
+    const companyId = "test-company-id";
+    const validUpdate = {
+      name: "New Name",
+    };
+    
+    mockDoc.mockReturnValue("mock-doc-ref");
+    mockUpdateDoc.mockResolvedValue();
+
+    // Act
+    const result = await repository.updateCompany(companyId, validUpdate);
+
+    // Assert
+    expect(result.success).toBe(true);
+
+    const updateCallArgs = mockUpdateDoc.mock.calls[0];
+    const updatesPassed = updateCallArgs[1];
+
+    expect(updatesPassed).toHaveProperty("name", "New Name");
+    // Should auto-generate normalized name
+    expect(updatesPassed).toHaveProperty("normalizedName", "new name");
+  });
 });
