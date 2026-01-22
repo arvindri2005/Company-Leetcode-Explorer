@@ -4,17 +4,15 @@ import { memo, useState } from "react";
 
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { Loader2 } from "lucide-react";
 
 import { GoogleIcon } from "@/components/icons/google-icon";
 import { Button } from "@/components/ui/button";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useToast } from "@/hooks/use-toast";
-import { auth } from "@/lib/api/firebase";
-import { Logger } from "@/lib/utils/logger";
 import { isValidRedirectUrl } from "@/lib/utils/url";
-import { useAuth } from "@/providers";
+
+import { authService } from "../services/auth.service";
 
 interface GoogleAuthButtonProps {
   disabled?: boolean;
@@ -39,7 +37,6 @@ const GoogleAuthButton = memo(function GoogleAuthButton({ disabled }: GoogleAuth
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
-  const { syncUserProfileIfNeeded } = useAuth();
   const isOnline = useOnlineStatus();
 
   const handleGoogleSignIn = async () => {
@@ -54,39 +51,38 @@ const GoogleAuthButton = memo(function GoogleAuthButton({ disabled }: GoogleAuth
 
     setIsLoading(true);
     try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
+      // Use the centralized authService which handles:
+      // 1. Lazy loading of GoogleAuthProvider (Performance)
+      // 2. Profile synchronization with Firestore (including caching/deduplication)
+      // 3. Error logging
+      const response = await authService.loginWithGoogle();
 
-      // Sync user profile to Firestore
-      await syncUserProfileIfNeeded(user);
+      if (response.success && response.data) {
+        toast({
+          title: "Login Successful! 🎉",
+          description: `Welcome back, ${response.data.displayName || "User"}!`,
+        });
 
-      toast({
-        title: "Login Successful! 🎉",
-        description: `Welcome back, ${user.displayName || "User"}!`,
-      });
-
-      const redirectUrl = searchParams.get("redirectUrl");
-      if (redirectUrl && isValidRedirectUrl(redirectUrl)) {
-        router.push(redirectUrl);
+        const redirectUrl = searchParams.get("redirectUrl");
+        if (redirectUrl && isValidRedirectUrl(redirectUrl)) {
+          router.push(redirectUrl);
+        } else {
+          router.push("/profile");
+        }
       } else {
-        router.push("/profile");
+        // Handle failure
+        toast({
+          title: "Login Failed",
+          description: response.error || "An unknown error occurred. Please try again.",
+          variant: "destructive",
+        });
       }
-    } catch (error: unknown) {
-      Logger.error("Google Sign-In Error:", error);
-      let errorMessage = "An unknown error occurred. Please try again.";
-      const firebaseError = error as { code?: string; message?: string };
-      if (firebaseError.code === "auth/popup-closed-by-user") {
-        errorMessage = "Sign-in cancelled.";
-      } else if (firebaseError.code === "auth/popup-blocked") {
-        errorMessage = "Sign-in popup blocked. Please allow popups for this site.";
-      } else {
-        errorMessage = firebaseError.message || errorMessage;
-      }
-
+    } catch {
+      // This catch block might not be reached if authService handles everything,
+      // but kept for safety against unexpected errors in the component logic itself.
       toast({
         title: "Login Failed",
-        description: errorMessage,
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {

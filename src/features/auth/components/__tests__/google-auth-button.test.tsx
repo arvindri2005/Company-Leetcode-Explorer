@@ -2,10 +2,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { signInWithPopup } from "firebase/auth";
 
 import { useOnlineStatus } from "@/hooks/use-online-status";
 
+import { authService } from "../../services/auth.service";
 import GoogleAuthButton from "../google-auth-button";
 
 // Mocks
@@ -14,14 +14,10 @@ jest.mock("next/navigation", () => ({
   useSearchParams: jest.fn(),
 }));
 
-jest.mock("firebase/auth", () => ({
-  getAuth: jest.fn(),
-  GoogleAuthProvider: jest.fn(),
-  signInWithPopup: jest.fn(),
-}));
-
-jest.mock("@/lib/api/firebase", () => ({
-  auth: {},
+jest.mock("../../services/auth.service", () => ({
+  authService: {
+    loginWithGoogle: jest.fn(),
+  },
 }));
 
 jest.mock("@/hooks/use-online-status", () => ({
@@ -32,10 +28,6 @@ jest.mock("@/hooks/use-toast", () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 
-jest.mock("@/providers", () => ({
-  useAuth: () => ({ syncUserProfileIfNeeded: jest.fn() }),
-}));
-
 jest.mock("@/lib/utils/logger", () => ({
   Logger: {
     error: jest.fn(),
@@ -44,7 +36,7 @@ jest.mock("@/lib/utils/logger", () => ({
 
 describe("GoogleAuthButton Security", () => {
   const mockPush = jest.fn();
-  const mockSignInWithPopup = signInWithPopup as jest.Mock;
+  const mockLoginWithGoogle = authService.loginWithGoogle as jest.Mock;
   const mockUseSearchParams = useSearchParams as jest.Mock;
   const mockUseOnlineStatus = useOnlineStatus as jest.Mock;
 
@@ -52,8 +44,9 @@ describe("GoogleAuthButton Security", () => {
     jest.clearAllMocks();
     (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
     mockUseOnlineStatus.mockReturnValue(true);
-    mockSignInWithPopup.mockResolvedValue({
-      user: { displayName: "Test User", email: "test@example.com" },
+    mockLoginWithGoogle.mockResolvedValue({
+      success: true,
+      data: { displayName: "Test User", email: "test@example.com", uid: "123" },
     });
   });
 
