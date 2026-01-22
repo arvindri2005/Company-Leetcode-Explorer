@@ -32,6 +32,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAICooldown } from "@/features/ai";
 import { ProblemCard } from "@/features/problems";
 import { useToast } from "@/hooks/use-toast";
@@ -264,41 +265,43 @@ const AIGroupingSection: React.FC<AIGroupingSectionProps> = ({
                       {group.groupName} ({group.questions.length} problems)
                     </AccordionTrigger>
                     <AccordionContent className="pt-2">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-2 bg-muted/30 rounded-md">
-                        {group.questions.map((problemData, index) => {
-                          const originalProblem = problems.find(
-                            (p) =>
-                              p.title === problemData.title,
-                          );
-                          const displayProblem: LeetCodeProblem =
-                            originalProblem
-                              ? {
-                                  ...originalProblem,
-                                  ...problemData,
-                                  companySlug:
-                                    originalProblem.companySlug || companySlug,
-                                }
-                              : {
-                                  id: `ai-${group.groupName}-${index}`,
-                                  companyId: "",
-                                  companySlug: companySlug,
-                                  slug: slugify(problemData.title),
-                                  normalizedTitle:
-                                    problemData.title.toLowerCase(),
-                                  ...problemData,
-                                };
+                      <TooltipProvider delayDuration={300}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-2 bg-muted/30 rounded-md">
+                          {group.questions.map((problemData, index) => {
+                            const originalProblem = problems.find(
+                              (p) => p.title === problemData.title,
+                            );
+                            const displayProblem: LeetCodeProblem =
+                              originalProblem
+                                ? {
+                                    ...originalProblem,
+                                    ...problemData,
+                                    companySlug:
+                                      originalProblem.companySlug ||
+                                      companySlug,
+                                  }
+                                : {
+                                    id: `ai-${group.groupName}-${index}`,
+                                    companyId: "",
+                                    companySlug: companySlug,
+                                    slug: slugify(problemData.title),
+                                    normalizedTitle:
+                                      problemData.title.toLowerCase(),
+                                    ...problemData,
+                                  };
 
-                          return (
-                            <ProblemCard
-                              key={`${group.groupName}-${slugify(
-                                problemData.title,
-                              )}-${index}`}
-                              problem={displayProblem}
-                              companySlug={displayProblem.companySlug}
-                            />
-                          );
-                        })}
-                      </div>
+                            return (
+                              <ProblemCard
+                                key={`${group.groupName}-${slugify(
+                                  problemData.title,
+                                )}-${index}`}
+                                problem={displayProblem}
+                                companySlug={displayProblem.companySlug}
+                              />
+                            );
+                          })}
+                        </div>
+                      </TooltipProvider>
                     </AccordionContent>
                   </AccordionItem>
                 ))}

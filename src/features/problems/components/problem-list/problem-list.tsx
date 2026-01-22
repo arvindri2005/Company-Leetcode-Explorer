@@ -12,6 +12,7 @@ import AdPlaceholder from "@/components/ads/ad-placeholder";
 import { Button } from "@/components/ui/button";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { userService } from "@/features/profile/services/user.service";
 import { useToast } from "@/hooks/use-toast";
 import { parseArrayValid } from "@/lib/utils";
@@ -448,10 +449,12 @@ const ProblemList: React.FC<ProblemListProps> = ({
 
 
   return (
-    <div>
-      <h2 className="sr-only">Problems</h2>
-      <ProblemListControls
-        difficultyFilter={currentFilters.difficultyFilter}
+    // Optimization: Hoist TooltipProvider to reduce context creation for each ProblemCard (performance)
+    <TooltipProvider delayDuration={300}>
+      <div>
+        <h2 className="sr-only">Problems</h2>
+        <ProblemListControls
+          difficultyFilter={currentFilters.difficultyFilter}
         onDifficultyFilterChange={handleDifficultyChange}
         sortKey={currentFilters.sortKey}
         onSortKeyChange={handleSortKeyChange}
@@ -503,15 +506,16 @@ const ProblemList: React.FC<ProblemListProps> = ({
       )}
 
       {/* Infinite Scroll Sentinel / Loading Indicator */}
-      {(hasMore || isLoadingMore) && (
-        <div
-          ref={loadMoreRef}
-          className="py-8 flex justify-center items-center w-full"
-        >
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      )}
-    </div>
+        {(hasMore || isLoadingMore) && (
+          <div
+            ref={loadMoreRef}
+            className="py-8 flex justify-center items-center w-full"
+          >
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        )}
+      </div>
+    </TooltipProvider>
   );
 };
 

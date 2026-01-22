@@ -1,6 +1,8 @@
 import { fireEvent,render, screen } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 
+import { TooltipProvider } from "@/components/ui/tooltip";
+
 import { type LeetCodeProblem } from "../../types";
 
 import ProblemCard from "./problem-card";
@@ -79,14 +81,18 @@ describe("ProblemCard", () => {
     jest.clearAllMocks();
   });
 
+  const renderWithTooltip = (ui: React.ReactNode) => {
+    return render(<TooltipProvider>{ui}</TooltipProvider>);
+  };
+
   it("renders problem title and difficulty", () => {
-    render(<ProblemCard problem={mockProblem} companySlug="google" />);
+    renderWithTooltip(<ProblemCard problem={mockProblem} companySlug="google" />);
     expect(screen.getByText("Two Sum")).toBeInTheDocument();
     expect(screen.getByText("Easy")).toBeInTheDocument();
   });
 
   it("renders tags when expanded", async () => {
-    render(<ProblemCard problem={mockProblem} companySlug="google" />);
+    renderWithTooltip(<ProblemCard problem={mockProblem} companySlug="google" />);
     // Initial state not expaned, but let's check if we can toggle
     // The component structure puts click handler on the container or chevron
     // Assuming the chevron button is accessible, let's try finding the collapse trigger
@@ -98,12 +104,12 @@ describe("ProblemCard", () => {
   });
 
   it("renders company tags if showCompanies is true", () => {
-    render(<ProblemCard problem={mockProblem} companySlug="google" showCompanies={true} />);
+    renderWithTooltip(<ProblemCard problem={mockProblem} companySlug="google" showCompanies={true} />);
     expect(screen.getByText("google")).toBeInTheDocument();
   });
 
   it("has accessible label for Write Code button", async () => {
-    render(<ProblemCard problem={mockProblem} companySlug="google" />);
+    renderWithTooltip(<ProblemCard problem={mockProblem} companySlug="google" />);
     // Expand the card first to see the button
     fireEvent.click(screen.getByLabelText("Expand details"));
     const linkButton = await screen.findByRole("link", { name: /Solve on LeetCode/i });
@@ -113,7 +119,7 @@ describe("ProblemCard", () => {
 
   it("renders status dropdown with checkbox items", async () => {
     const user = userEvent.setup();
-    render(<ProblemCard problem={mockProblem} companySlug="google" />);
+    renderWithTooltip(<ProblemCard problem={mockProblem} companySlug="google" />);
 
     // Find the status trigger button. It has an aria-label with the current status.
     // Default status in mock is "none".

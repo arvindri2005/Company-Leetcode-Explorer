@@ -32,7 +32,6 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useProblemInteractions } from "@/features/problems/hooks/use-problem-interactions";
@@ -177,34 +176,33 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
         <div className="flex items-center gap-3 p-3 md:p-4">
           {/* Status Toggle */}
           <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-            <TooltipProvider delayDuration={300}>
-              <DropdownMenu>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        isLoading={isUpdatingStatus}
-                        className="h-11 w-11 md:h-9 md:w-9 hover:bg-primary/5 rounded-full"
-                        aria-label={`Change status. Current status: ${currentStatus}`}
-                      >
-                        <StatusIcon
-                          className={cn(
-                            "h-5 w-5 transition-colors",
-                            statusColor,
-                          )}
-                        />
-                      </Button>
-                    </DropdownMenuTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Change status</p>
-                  </TooltipContent>
-                </Tooltip>
-                <DropdownMenuContent align="start" className="w-40">
-                  <DropdownMenuCheckboxItem
-                    checked={currentStatus === "solved"}
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      isLoading={isUpdatingStatus}
+                      className="h-11 w-11 md:h-9 md:w-9 hover:bg-primary/5 rounded-full"
+                      aria-label={`Change status. Current status: ${currentStatus}`}
+                    >
+                      <StatusIcon
+                        className={cn(
+                          "h-5 w-5 transition-colors",
+                          statusColor,
+                        )}
+                      />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Change status</p>
+                </TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="start" className="w-40">
+                <DropdownMenuCheckboxItem
+                  checked={currentStatus === "solved"}
                   onCheckedChange={() => handleStatusUpdate("solved")}
                   className="text-sm"
                 >
@@ -218,16 +216,15 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                 >
                   <XCircle className="h-4 w-4 mr-2 text-amber-500" /> Attempted
                 </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={currentStatus === "none"}
-                    onCheckedChange={() => handleStatusUpdate("none")}
-                    className="text-sm"
-                  >
-                    <ListTodo className="h-4 w-4 mr-2 text-slate-500" /> To Do
-                  </DropdownMenuCheckboxItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TooltipProvider>
+                <DropdownMenuCheckboxItem
+                  checked={currentStatus === "none"}
+                  onCheckedChange={() => handleStatusUpdate("none")}
+                  className="text-sm"
+                >
+                  <ListTodo className="h-4 w-4 mr-2 text-slate-500" /> To Do
+                </DropdownMenuCheckboxItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Title & Key Info */}
@@ -274,64 +271,60 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
               </div>
             )}
 
-            <TooltipProvider delayDuration={300}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={onBookmarkClick}
-                    isLoading={isTogglingBookmark}
-                    className="h-11 w-11 md:h-9 md:w-9 text-muted-foreground hover:text-primary hover:bg-primary/5"
-                    aria-label={
-                      isBookmarked
-                        ? "Remove from bookmarks"
-                        : "Add to bookmarks"
-                    }
-                  >
-                    {!isTogglingBookmark && (
-                      <Bookmark
-                        className={cn(
-                          "h-4 w-4",
-                          isBookmarked && "fill-primary text-primary",
-                        )}
-                      />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
-                    {isBookmarked
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onBookmarkClick}
+                  isLoading={isTogglingBookmark}
+                  className="h-11 w-11 md:h-9 md:w-9 text-muted-foreground hover:text-primary hover:bg-primary/5"
+                  aria-label={
+                    isBookmarked
                       ? "Remove from bookmarks"
-                      : "Add to bookmarks"}
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider delayDuration={300}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={onExpandClick}
-                    className={cn(
-                      "h-11 w-11 md:h-9 md:w-9 text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-transform duration-200",
-                      isExpanded && "rotate-180",
-                    )}
-                    aria-label={
-                      isExpanded ? "Collapse details" : "Expand details"
-                    }
-                    aria-expanded={isExpanded}
-                  >
-                    <ChevronDown className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{isExpanded ? "Collapse details" : "Expand details"}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+                      : "Add to bookmarks"
+                  }
+                >
+                  {!isTogglingBookmark && (
+                    <Bookmark
+                      className={cn(
+                        "h-4 w-4",
+                        isBookmarked && "fill-primary text-primary",
+                      )}
+                    />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  {isBookmarked
+                    ? "Remove from bookmarks"
+                    : "Add to bookmarks"}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onExpandClick}
+                  className={cn(
+                    "h-11 w-11 md:h-9 md:w-9 text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-transform duration-200",
+                    isExpanded && "rotate-180",
+                  )}
+                  aria-label={
+                    isExpanded ? "Collapse details" : "Expand details"
+                  }
+                  aria-expanded={isExpanded}
+                >
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{isExpanded ? "Collapse details" : "Expand details"}</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
 

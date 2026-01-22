@@ -8,6 +8,7 @@ import { ClipboardList } from "lucide-react";
 
 import { ProblemCardSkeleton } from "@/components/skeletons/problem-skeletons";
 import { Button } from "@/components/ui/button";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { ProblemCard } from "@/features/problems";
 import type { LeetCodeProblem, ProblemStatus } from "@/types";
 
@@ -98,23 +99,25 @@ const ProfileProblemList: React.FC<ProfileProblemListProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {problems.map((problem) => (
-        <ProblemCard
-          key={problem.id}
-          problem={problem}
-          companySlug={
-            problem.companySlug ||
-            companySlugForProblemCard ||
-            "unknown-company"
-          }
-          initialIsBookmarked={problem.isBookmarked}
-          onBookmarkChanged={onBookmarkChanged}
-          problemStatus={problem.currentStatus || "none"}
-          onProblemStatusChange={onProblemStatusChange}
-        />
-      ))}
-    </div>
+    <TooltipProvider delayDuration={300}>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {problems.map((problem) => (
+          <ProblemCard
+            key={problem.id}
+            problem={problem}
+            companySlug={
+              problem.companySlug ||
+              companySlugForProblemCard ||
+              "unknown-company"
+            }
+            initialIsBookmarked={problem.isBookmarked}
+            onBookmarkChanged={onBookmarkChanged}
+            problemStatus={problem.currentStatus || "none"}
+            onProblemStatusChange={onProblemStatusChange}
+          />
+        ))}
+      </div>
+    </TooltipProvider>
   );
 };
 

@@ -8,6 +8,7 @@ import { usePathname,useRouter, useSearchParams } from "next/navigation";
 import AdPlaceholder from "@/components/ads/ad-placeholder";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { userService } from "@/features/profile/services/user.service";
 import { useToast } from "@/hooks/use-toast";
 import { parseArrayValid } from "@/lib/utils";
@@ -404,11 +405,13 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
   );
 
   return (
-    <div>
-      <h2 className="sr-only">All Problems</h2>
+    // Optimization: Hoist TooltipProvider to reduce context creation for each ProblemCard (performance)
+    <TooltipProvider delayDuration={300}>
+      <div>
+        <h2 className="sr-only">All Problems</h2>
 
-      <ProblemListControls
-        difficultyFilter={currentFilters.difficultyFilter}
+        <ProblemListControls
+          difficultyFilter={currentFilters.difficultyFilter}
         onDifficultyFilterChange={handleDifficultyChange}
         sortKey={currentFilters.sortKey}
         onSortKeyChange={handleSortKeyChange}
@@ -465,15 +468,16 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
       )}
       
       {/* Infinite Scroll Trigger */}
-      {hasMoreState && (
-        <div 
-            ref={observerTarget}
-            className="py-10 text-center text-muted-foreground"
-        >
-            {isLoadingMore ? "Loading more problems..." : "Scroll to load more"}
-        </div>
-      )}
-    </div>
+        {hasMoreState && (
+          <div 
+              ref={observerTarget}
+              className="py-10 text-center text-muted-foreground"
+          >
+              {isLoadingMore ? "Loading more problems..." : "Scroll to load more"}
+          </div>
+        )}
+      </div>
+    </TooltipProvider>
   );
 };
 
