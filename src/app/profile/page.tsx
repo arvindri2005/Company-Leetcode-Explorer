@@ -79,6 +79,7 @@ interface ProblemWithDetails extends LeetCodeProblem {
 const displayNameFormSchema = z.object({
   displayName: z
     .string()
+    .trim()
     .min(2, { message: "Display name must be at least 2 characters." })
     .max(50, { message: "Display name cannot exceed 50 characters." }),
 });

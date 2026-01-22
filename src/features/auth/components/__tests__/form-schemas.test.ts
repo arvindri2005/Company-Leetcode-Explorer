@@ -127,6 +127,18 @@ describe("Auth Form Schemas Security Limits", () => {
         expect(result.error.issues.some(i => i.message.includes("special character"))).toBe(true);
       }
     });
+
+    it("should trim whitespace from display name", () => {
+      const result = signupFormSchema.safeParse({
+        displayName: "  Test User  ",
+        email: validEmail,
+        password: validPassword,
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.displayName).toBe("Test User");
+      }
+    });
   });
 
   describe("forgotPasswordSchema", () => {

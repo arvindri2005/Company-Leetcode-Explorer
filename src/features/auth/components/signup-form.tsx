@@ -48,6 +48,7 @@ import { SignupPasswordStrength } from "./signup-password-strength";
 export const signupFormSchema = z.object({
   displayName: z
     .string()
+    .trim()
     .min(2, { message: "Display name must be at least 2 characters." })
     .max(50),
   email: z
