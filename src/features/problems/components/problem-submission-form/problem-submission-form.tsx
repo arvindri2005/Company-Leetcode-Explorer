@@ -40,6 +40,7 @@ import type { Company } from "@/types";
 
 import { lastAskedPeriodOptions } from "../../constants";
 import type { LeetCodeProblem } from "../../types";
+import TagBadge from "../tag-badge/tag-badge";
 
 /**
  * Props for the ProblemSubmissionForm component.
@@ -276,22 +277,42 @@ export default function ProblemSubmissionForm({
         <FormField
           control={form.control}
           name="tags"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tags (Optional)</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="e.g., Array, Hash Table, Dynamic Programming"
-                  className="resize-none"
-                  {...field}
-                />
-              </FormControl>
-              <FormDescription>
-                Comma-separated list of relevant tags. Can be left empty.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            const tagsList = field.value
+              ? field.value
+                  .split(",")
+                  .map((t) => t.trim())
+                  .filter((t) => t.length > 0)
+              : [];
+
+            return (
+              <FormItem>
+                <FormLabel>Tags (Optional)</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="e.g., Array, Hash Table, Dynamic Programming"
+                    className="resize-none"
+                    {...field}
+                  />
+                </FormControl>
+                {tagsList.length > 0 && (
+                  <div
+                    className="flex flex-wrap gap-2 mt-2 animate-in fade-in zoom-in-95 duration-200"
+                    role="status"
+                    aria-label="Parsed tags preview"
+                  >
+                    {tagsList.map((tag, i) => (
+                      <TagBadge key={`${tag}-${i}`} tag={tag} />
+                    ))}
+                  </div>
+                )}
+                <FormDescription>
+                  Comma-separated list of relevant tags. Can be left empty.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
 
         <FormField
