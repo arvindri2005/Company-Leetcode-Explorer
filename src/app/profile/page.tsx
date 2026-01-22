@@ -9,7 +9,7 @@
  */
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 
 import dynamic from "next/dynamic";
@@ -123,6 +123,8 @@ export default function ProfilePage() {
   const router = useRouter();
   const { toast } = useToast();
 
+  const [activeTab, setActiveTab] = useState("bookmarks");
+
   const [bookmarkedProblemDetails, setBookmarkedProblemDetails] = useState<
     ProblemWithDetails[]
   >([]);
@@ -135,12 +137,18 @@ export default function ProfilePage() {
     ProblemWithDetails[]
   >([]);
   const [isLoadingStatuses, setIsLoadingStatuses] = useState(false);
+  const [hasFetchedStatusMap, setHasFetchedStatusMap] = useState(false);
+  // Track which statuses we have already hydrated to prevent re-fetching
+  const hydratedStatusesRef = useRef<Set<ProblemStatus>>(new Set());
+  // Track which statuses are currently being fetched to prevent race conditions
+  const fetchingStatusesRef = useRef<Set<ProblemStatus>>(new Set());
 
   const [strategyTodoLists, setStrategyTodoLists] = useState<
     SavedStrategyTodoList[]
   >([]);
   const [isLoadingStrategyTodoLists, setIsLoadingStrategyTodoLists] =
     useState(false);
+  const [hasFetchedStrategyLists, setHasFetchedStrategyLists] = useState(false);
   const [updatingTodoItemId, setUpdatingTodoItemId] = useState<string | null>(
     null,
   );
@@ -150,10 +158,12 @@ export default function ProfilePage() {
   >([]);
   const [isLoadingEducation, setIsLoadingEducation] = useState(false);
   const [isEducationDialogOpen, setIsEducationDialogOpen] = useState(false);
+  const [hasFetchedEducation, setHasFetchedEducation] = useState(false);
 
   const [workExperience, setWorkExperience] = useState<WorkExperience[]>([]);
   const [isLoadingWorkExperience, setIsLoadingWorkExperience] = useState(false);
   const [isWorkDialogOpen, setIsWorkDialogOpen] = useState(false);
+  const [hasFetchedWorkExperience, setHasFetchedWorkExperience] = useState(false);
 
   const [isEditingDisplayName, setIsEditingDisplayName] = useState(false);
   const [isSubmittingDisplayName, setIsSubmittingDisplayName] = useState(false);
@@ -212,6 +222,7 @@ export default function ProfilePage() {
         setEducationHistory([]);
       }
       setIsLoadingEducation(false);
+      setHasFetchedEducation(true);
     } else {setEducationHistory([]);}
   }, [user, toast]);
 
@@ -239,6 +250,7 @@ export default function ProfilePage() {
         setWorkExperience([]);
       }
       setIsLoadingWorkExperience(false);
+      setHasFetchedWorkExperience(true);
     } else {setWorkExperience([]);}
   }, [user, toast]);
 
@@ -296,32 +308,77 @@ export default function ProfilePage() {
     } else {setBookmarkedProblemDetails([]);}
   }, [user, toast]);
 
-  const fetchStatusData = useCallback(async () => {
+  // Fetches only the status map (ID -> Status), lightweight
+  const fetchStatusMap = useCallback(async () => {
     if (user?.uid) {
-      setIsLoadingStatuses(true);
+      // We don't set global loading here because this is background/initial fetch for stats
       try {
         const statusResult = await userService.getAllUserProblemStatuses(
           user.uid,
         );
-        if (!statusResult.isSuccess) {
+        if (statusResult.isSuccess) {
+          setProblemStatuses(statusResult.value);
+        } else {
           toast({
             title: "Error",
             description: "Could not fetch problem statuses.",
             variant: "destructive",
           });
-          setProblemsWithStatusDetails([]);
-          setIsLoadingStatuses(false);
-          return;
         }
-        setProblemStatuses(statusResult.value);
-        const problemRefsWithStatus = Object.values(statusResult.value).filter(
-          (info) =>
-            info &&
-            info.status !== "none" &&
-            info.companySlug &&
-            info.problemSlug,
+      } catch {
+        toast({
+          title: "Error",
+          description: "Could not fetch problem statuses.",
+          variant: "destructive",
+        });
+      }
+      setHasFetchedStatusMap(true);
+    } else {
+      setProblemStatuses({});
+      setHasFetchedStatusMap(true);
+    }
+  }, [user, toast]);
+
+  // Hydrates problem details for a specific status (Solved, Attempted, etc.)
+  const hydrateProblemsForStatus = useCallback(async (status: ProblemStatus) => {
+     if (!user?.uid) {return;}
+     
+     // Wait for the map to be fetched
+     if (!hasFetchedStatusMap) {
+       return; 
+     }
+
+     // Prevent duplicate hydration or concurrent fetches
+     if (hydratedStatusesRef.current.has(status) || fetchingStatusesRef.current.has(status)) {
+       return;
+     }
+
+     fetchingStatusesRef.current.add(status);
+     setIsLoadingStatuses(true);
+     try {
+        // Use current problemStatuses map to find items needing hydration
+        // We use functional update or ref logic if problemStatuses might be stale, 
+        // but here we rely on the state being up to date from initial mount.
+        const itemsToHydrate = Object.values(problemStatuses).filter(
+          (info) => 
+            info && 
+            info.status === status && 
+            info.companySlug && 
+            info.problemSlug
         );
-        const detailedProblemsPromises = problemRefsWithStatus.map(
+
+        // Filter out items that are ALREADY in problemsWithStatusDetails
+        // (Though with strict status segregation, overlap should be minimal unless status changed)
+        const existingIds = new Set(problemsWithStatusDetails.map(p => p.id));
+        const uniqueItems = itemsToHydrate.filter(info => !existingIds.has(info.problemId));
+
+        if (uniqueItems.length === 0) {
+           hydratedStatusesRef.current.add(status);
+           setIsLoadingStatuses(false);
+           return;
+        }
+
+        const detailedProblemsPromises = uniqueItems.map(
           async (info) => {
             try {
               const result = await getProblemByCompanySlugAndProblemSlugAction(
@@ -340,25 +397,24 @@ export default function ProfilePage() {
             }
           },
         );
-        setProblemsWithStatusDetails(
-          (await Promise.all(detailedProblemsPromises)).filter(
-            Boolean,
-          ) as ProblemWithDetails[],
-        );
-      } catch {
-        toast({
-          title: "Error",
-          description: "Could not fetch problem statuses.",
-          variant: "destructive",
-        });
-        setProblemsWithStatusDetails([]);
-      }
-      setIsLoadingStatuses(false);
-    } else {
-      setProblemStatuses({});
-      setProblemsWithStatusDetails([]);
-    }
-  }, [user, toast]);
+        
+        const newDetails = (await Promise.all(detailedProblemsPromises)).filter(Boolean) as ProblemWithDetails[];
+        
+        setProblemsWithStatusDetails(prev => [...prev, ...newDetails]);
+        hydratedStatusesRef.current.add(status);
+
+     } catch (error) {
+       console.error("Failed to hydrate problems", error);
+       toast({
+         title: "Error",
+         description: `Could not load ${status} problems details.`,
+         variant: "destructive"
+       });
+     } finally {
+       fetchingStatusesRef.current.delete(status);
+       setIsLoadingStatuses(false);
+     }
+  }, [user, hasFetchedStatusMap, problemStatuses, problemsWithStatusDetails, toast]);
 
   const fetchStrategyTodoLists = useCallback(async () => {
     if (user?.uid) {
@@ -382,21 +438,66 @@ export default function ProfilePage() {
         });
       }
       setIsLoadingStrategyTodoLists(false);
+      setHasFetchedStrategyLists(true);
     } else {
       setStrategyTodoLists([]);
     }
   }, [user, toast]);
 
+  // Initial Fetch: Status Map (for counts) and Bookmarks (default tab)
   useEffect(() => {
     if (user && !authLoading) {
-      fetchEducation();
-      fetchWorkExperience();
-      fetchBookmarkedData();
-      fetchStatusData();
-      fetchStrategyTodoLists();
+      fetchStatusMap();
+      fetchBookmarkedData(); // Fetch immediately as it is the default active tab
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading]);
+
+  // Lazy Load Effect
+  useEffect(() => {
+    if (!user || authLoading) {return;}
+
+    switch (activeTab) {
+      case "solved":
+        hydrateProblemsForStatus("solved");
+        break;
+      case "attempted":
+        hydrateProblemsForStatus("attempted");
+        break;
+      case "todo":
+        hydrateProblemsForStatus("todo");
+        break;
+      case "strategyLists":
+        if (!hasFetchedStrategyLists && !isLoadingStrategyTodoLists) {
+          fetchStrategyTodoLists();
+        }
+        break;
+      case "background":
+        if (!hasFetchedEducation && !isLoadingEducation) {
+          fetchEducation();
+        }
+        if (!hasFetchedWorkExperience && !isLoadingWorkExperience) {
+          fetchWorkExperience();
+        }
+        break;
+      default:
+        break;
+    }
+  }, [
+    activeTab, 
+    user, 
+    authLoading, 
+    hydrateProblemsForStatus, 
+    fetchStrategyTodoLists, 
+    hasFetchedStrategyLists, 
+    isLoadingStrategyTodoLists,
+    fetchEducation, 
+    hasFetchedEducation, 
+    isLoadingEducation,
+    fetchWorkExperience, 
+    hasFetchedWorkExperience, 
+    isLoadingWorkExperience
+  ]);
 
   const handleAddEducation = useCallback(async (data: EducationFormValues) => {
     if (!user) {return;}
@@ -481,10 +582,12 @@ export default function ProfilePage() {
         });
         setStrategyTodoLists(originalLists); // Rollback UI on failure
       } else {
-        fetchStrategyTodoLists(); // Re-fetch on success to ensure data consistency
+        // In this case, we don't need to re-fetch full lists if we trust our optimistic update
+        // But for consistency we can
+        // fetchStrategyTodoLists(); 
       }
     },
-    [user, strategyTodoLists, fetchStrategyTodoLists, toast],
+    [user, strategyTodoLists, toast],
   );
 
   const handleLogout = useCallback(async () => {
@@ -515,10 +618,10 @@ export default function ProfilePage() {
               )
             : prev.filter((p) => p.id !== problemId), // If unbookmarked, remove from list
       );
-      // Optionally, re-fetch problem statuses if bookmarking could affect any lists based on problem status
-      fetchStatusData();
+      // We don't need to re-fetch status map for bookmark changes usually, but if needed:
+      // fetchStatusMap();
     },
-    [fetchStatusData],
+    [],
   );
 
   const handleProblemStatusChangeOnProfile = useCallback(
@@ -531,11 +634,14 @@ export default function ProfilePage() {
           p.id === problemId ? { ...p, currentStatus: newStatus } : p,
         );
       });
-      // Re-fetch all status data to accurately update counts and lists
-      fetchStatusData();
-      // Bookmarks are independent, no need to re-fetch them here unless logic changes
+      // Re-fetch status map to ensure counts are accurate
+      fetchStatusMap();
+      
+      // We might need to mark the new status as needing hydration if it wasn't before?
+      // But simpler is to assume we might be inconsistent until refresh, or just rely on the map update.
+      // Since we updated local state 'problemsWithStatusDetails', the list should be correct.
     },
-    [fetchStatusData],
+    [fetchStatusMap],
   );
 
   const getInitials = useCallback((name: string | null | undefined) => {
@@ -646,7 +752,7 @@ export default function ProfilePage() {
 
         {/* Right Column */}
         <div className="lg:col-span-8 xl:col-span-9">
-          <Tabs defaultValue="bookmarks" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid h-auto w-full grid-cols-2 gap-2 mb-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
               <TabsTrigger value="bookmarks">
                 <Bookmark className="mr-2 h-4 w-4" />
