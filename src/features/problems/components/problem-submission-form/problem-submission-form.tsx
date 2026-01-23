@@ -61,7 +61,10 @@ const problemFormSchema = z.object({
   difficulty: z.enum(["Easy", "Medium", "Hard"]),
   link: z
     .string()
-    .url({ message: "Please enter a valid Interview Problem URL." }),
+    .url({ message: "Please enter a valid Interview Problem URL." })
+    .refine((val) => val.startsWith("http://") || val.startsWith("https://"), {
+      message: "Must be a valid HTTP or HTTPS URL.",
+    }),
   tags: z.string().optional(),
   companyId: z.string(),
   lastAskedPeriod: z.enum(

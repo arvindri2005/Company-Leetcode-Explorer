@@ -10,6 +10,7 @@ import {
   orderBy,
   query,
   type QueryConstraint,
+  runTransaction,
   setDoc,
   startAfter,
   updateDoc,
@@ -1245,54 +1246,57 @@ export class ProblemRepository implements IProblemRepository {
       }
 
       const problemDocRef = doc(getFirestore(), "problems", problemSlug);
-      const problemSnap = await getDoc(problemDocRef);
 
-      if (problemSnap.exists()) {
-        const existingData = problemSnap.data();
-        const companyIds = new Set(existingData.companyIds || []);
+      return await runTransaction(getFirestore(), async (transaction) => {
+        const problemSnap = await transaction.get(problemDocRef);
 
-        // Security: Prevent unbounded growth of companies array
-        if (
-          companyIds.size >= MAX_COMPANIES_PER_PROBLEM &&
-          !companyIds.has(companyId)
-        ) {
-          return {
-            id: null,
-            updated: false,
-            error: `Maximum number of companies (${MAX_COMPANIES_PER_PROBLEM}) reached for this problem.`,
-          };
-        }
+        if (problemSnap.exists()) {
+          const existingData = problemSnap.data();
+          const companyIds = new Set(existingData.companyIds || []);
 
-        companyIds.add(companyId);
+          // Security: Prevent unbounded growth of companies array
+          if (
+            companyIds.size >= MAX_COMPANIES_PER_PROBLEM &&
+            !companyIds.has(companyId)
+          ) {
+            return {
+              id: null,
+              updated: false,
+              error: `Maximum number of companies (${MAX_COMPANIES_PER_PROBLEM}) reached for this problem.`,
+            };
+          }
 
-        const companiesMap = existingData.companies || {};
-        companiesMap[companyId] = {
-          lastAskedPeriod: validatedData.lastAskedPeriod,
-        };
+          companyIds.add(companyId);
 
-        await updateDoc(problemDocRef, {
-          slug: problemSlug,
-          companyIds: Array.from(companyIds),
-          companies: companiesMap,
-        });
-        return { id: problemSlug, updated: true };
-      } else {
-        const companiesMap = {
-          [companyId]: {
+          const companiesMap = existingData.companies || {};
+          companiesMap[companyId] = {
             lastAskedPeriod: validatedData.lastAskedPeriod,
-          },
-        };
+          };
 
-        const dataToSave = {
-          ...validatedData,
-          slug: problemSlug,
-          companyIds: [companyId],
-          companies: companiesMap,
-        };
+          transaction.update(problemDocRef, {
+            slug: problemSlug,
+            companyIds: Array.from(companyIds),
+            companies: companiesMap,
+          });
+          return { id: problemSlug, updated: true };
+        } else {
+          const companiesMap = {
+            [companyId]: {
+              lastAskedPeriod: validatedData.lastAskedPeriod,
+            },
+          };
 
-        await setDoc(problemDocRef, dataToSave);
-        return { id: problemSlug, updated: false };
-      }
+          const dataToSave = {
+            ...validatedData,
+            slug: problemSlug,
+            companyIds: [companyId],
+            companies: companiesMap,
+          };
+
+          transaction.set(problemDocRef, dataToSave);
+          return { id: problemSlug, updated: false };
+        }
+      });
     } catch (error: unknown) {
       const message =
         error instanceof Error

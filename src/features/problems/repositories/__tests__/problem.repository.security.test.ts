@@ -2,6 +2,7 @@ import {
   doc,
   getDoc,
   getFirestore,
+  runTransaction,
   setDoc,
   updateDoc,
 } from "firebase/firestore";
@@ -28,6 +29,13 @@ jest.mock("firebase/firestore", () => {
     getDocs: jest.fn(),
     setDoc: jest.fn(),
     updateDoc: jest.fn(),
+    runTransaction: jest.fn(async (_firestore, callback) => {
+      return callback({
+        get: jest.fn(),
+        set: jest.fn(),
+        update: jest.fn(),
+      });
+    }),
     query: jest.fn(),
     where: jest.fn(),
     limit: jest.fn(),
@@ -133,13 +141,23 @@ describe("ProblemRepository Security Validation", () => {
         (_, i) => String(i + 1),
       );
 
-      (getDoc as jest.Mock).mockResolvedValue({
+      const transactionGet = jest.fn().mockResolvedValue({
         exists: () => true,
         data: () => ({
           companyIds: existingCompanyIds,
           companies: {},
         }),
       });
+      const transactionUpdate = jest.fn();
+      const transactionSet = jest.fn();
+
+      (runTransaction as jest.Mock).mockImplementation(async (_, cb) =>
+        cb({
+          get: transactionGet,
+          update: transactionUpdate,
+          set: transactionSet,
+        }),
+      );
 
       const validData = {
         title: "Test Problem",
@@ -160,6 +178,7 @@ describe("ProblemRepository Security Validation", () => {
       expect(result.error).toContain(
         `Maximum number of companies (${MAX_COMPANIES_PER_PROBLEM}) reached`,
       );
+      expect(transactionUpdate).not.toHaveBeenCalled();
     });
 
     it("should NOT overwrite existing problem details (link, difficulty) when adding a new company", async () => {
@@ -173,10 +192,20 @@ describe("ProblemRepository Security Validation", () => {
         companies: { "company-a": {} },
       };
 
-      (getDoc as jest.Mock).mockResolvedValue({
+      const transactionGet = jest.fn().mockResolvedValue({
         exists: () => true,
         data: () => existingData,
       });
+      const transactionUpdate = jest.fn();
+      const transactionSet = jest.fn();
+
+      (runTransaction as jest.Mock).mockImplementation(async (_, cb) =>
+        cb({
+          get: transactionGet,
+          update: transactionUpdate,
+          set: transactionSet,
+        }),
+      );
 
       // User submits the SAME problem (same title -> same slug) but tries to change details
       const maliciousData = {
@@ -196,10 +225,10 @@ describe("ProblemRepository Security Validation", () => {
       );
 
       // Verify updateDoc was called
-      expect(updateDoc).toHaveBeenCalled();
+      expect(transactionUpdate).toHaveBeenCalled();
 
       // Get the arguments passed to updateDoc
-      const updateArgs = (updateDoc as jest.Mock).mock.calls[0][1];
+      const updateArgs = transactionUpdate.mock.calls[0][1];
 
       // CRITICAL CHECK: The update should NOT contain the malicious fields
       expect(updateArgs).not.toHaveProperty("link");
@@ -216,10 +245,21 @@ describe("ProblemRepository Security Validation", () => {
   describe("Security - Search Poisoning Prevention", () => {
     it("should prevent search poisoning by enforcing normalizedTitle generation server-side", async () => {
       // Setup - Problem does not exist
-      (getDoc as jest.Mock).mockResolvedValue({
+      const transactionGet = jest.fn().mockResolvedValue({
         exists: () => false,
         data: () => {},
       });
+      const transactionSet = jest.fn();
+      const transactionUpdate = jest.fn();
+
+      (runTransaction as jest.Mock).mockImplementation(async (_, cb) =>
+        cb({
+          get: transactionGet,
+          set: transactionSet,
+          update: transactionUpdate,
+        }),
+      );
+
       // Ensure doc mock returns an object with ID
       (doc as jest.Mock).mockImplementation(
         (_: any, _col: any, id: string) => ({ id, path: `problems/${id}` }),
@@ -238,8 +278,8 @@ describe("ProblemRepository Security Validation", () => {
       await problemRepository.addProblem("company-1", maliciousInput);
 
       // Verify
-      expect(setDoc).toHaveBeenCalledTimes(1);
-      const savedData = (setDoc as jest.Mock).mock.calls[0][1];
+      expect(transactionSet).toHaveBeenCalledTimes(1);
+      const savedData = transactionSet.mock.calls[0][1];
 
       // The saved normalizedTitle should be derived from the TITLE ("safe title"),
       // NOT the provided malicious input ("malicious-search-term").
@@ -249,10 +289,21 @@ describe("ProblemRepository Security Validation", () => {
 
     it("should sanitize normalizedTitle correctly when title contains special characters", async () => {
       // Setup - Problem does not exist
-      (getDoc as jest.Mock).mockResolvedValue({
+      const transactionGet = jest.fn().mockResolvedValue({
         exists: () => false,
         data: () => {},
       });
+      const transactionSet = jest.fn();
+      const transactionUpdate = jest.fn();
+
+      (runTransaction as jest.Mock).mockImplementation(async (_, cb) =>
+        cb({
+          get: transactionGet,
+          set: transactionSet,
+          update: transactionUpdate,
+        }),
+      );
+
       (doc as jest.Mock).mockImplementation(
         (_: any, _col: any, id: string) => ({ id, path: `problems/${id}` }),
       );
@@ -270,8 +321,8 @@ describe("ProblemRepository Security Validation", () => {
       await problemRepository.addProblem("company-1", inputWithSpecialChars);
 
       // Verify
-      expect(setDoc).toHaveBeenCalledTimes(1);
-      const savedData = (setDoc as jest.Mock).mock.calls[0][1];
+      expect(transactionSet).toHaveBeenCalledTimes(1);
+      const savedData = transactionSet.mock.calls[0][1];
 
       // We expect the result to match the schema
       const schemaRegex = /^[a-z0-9\s\-\.\+\#]+$/;
