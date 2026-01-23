@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { slugify } from "@/lib/utils";
+import { cn, slugify } from "@/lib/utils";
 import type { Company } from "@/types";
 
 import { lastAskedPeriodOptions } from "../../constants";
@@ -79,6 +79,12 @@ const problemFormSchema = z.object({
 
 type ProblemFormValues = z.infer<typeof problemFormSchema>;
 
+const DIFFICULTY_TEXT_COLORS = {
+  Easy: "text-emerald-500",
+  Medium: "text-amber-500",
+  Hard: "text-rose-500",
+};
+
 /**
  * Renders a form for users to submit a new coding interview problem.
  *
@@ -111,6 +117,9 @@ export default function ProblemSubmissionForm({
       lastAskedPeriod: undefined,
     },
   });
+
+  const titleValue = form.watch("title");
+  const titleLength = titleValue ? titleValue.length : 0;
 
   async function onSubmit(data: ProblemFormValues) {
     setIsSubmitting(true);
@@ -177,8 +186,18 @@ export default function ProblemSubmissionForm({
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                Problem Title <span className="text-destructive">*</span>
+              <FormLabel className="flex justify-between items-center">
+                <span>
+                  Problem Title <span className="text-destructive">*</span>
+                </span>
+                <span
+                  className={cn(
+                    "text-xs text-muted-foreground font-normal",
+                    titleLength >= 150 && "text-destructive font-medium",
+                  )}
+                >
+                  {titleLength}/150
+                </span>
               </FormLabel>
               <FormControl>
                 <Input placeholder="e.g., Two Sum" {...field} />
@@ -210,9 +229,17 @@ export default function ProblemSubmissionForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="Easy">Easy</SelectItem>
-                    <SelectItem value="Medium">Medium</SelectItem>
-                    <SelectItem value="Hard">Hard</SelectItem>
+                    <SelectItem value="Easy">
+                      <span className={DIFFICULTY_TEXT_COLORS.Easy}>Easy</span>
+                    </SelectItem>
+                    <SelectItem value="Medium">
+                      <span className={DIFFICULTY_TEXT_COLORS.Medium}>
+                        Medium
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="Hard">
+                      <span className={DIFFICULTY_TEXT_COLORS.Hard}>Hard</span>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
