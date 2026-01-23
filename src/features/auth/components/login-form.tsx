@@ -21,7 +21,7 @@ import {
   setPersistence,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import { Loader2, LogInIcon } from "lucide-react";
+import { Check, Loader2, LogInIcon } from "lucide-react";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -183,15 +183,24 @@ export default function LoginForm() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
+                  <div className="relative">
                     <Input
                       type="email"
                       placeholder="you@example.com"
                       {...field}
                       autoComplete="email"
                       inputMode="email"
-                      className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                      className="h-11 pr-10 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
                       disabled={isSubmitting}
                     />
+                    {field.value &&
+                      loginFormSchema.shape.email.safeParse(field.value)
+                        .success && (
+                        <div className="absolute right-3 top-3 text-green-500 animate-in fade-in zoom-in pointer-events-none">
+                          <Check className="h-4 w-4" aria-hidden="true" />
+                        </div>
+                      )}
+                  </div>
                 </FormControl>
                 <FormMessage role="alert" />
               </FormItem>
@@ -268,8 +277,6 @@ export default function LoginForm() {
             </>
           )}
         </Button>
-
-
 
         <p className="text-center text-sm text-muted-foreground mt-6">
           Don&apos;t have an account?{" "}
