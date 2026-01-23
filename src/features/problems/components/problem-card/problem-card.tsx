@@ -9,8 +9,6 @@
 
 import React, { useMemo, useState } from "react";
 
-import Link from "next/link";
-
 import {
   Bookmark,
   CheckCircle,
@@ -230,7 +228,8 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
           {/* Title & Key Info */}
           <div className="flex-1 min-w-0 flex flex-col gap-1">
             <div className="flex items-center gap-2">
-              <Link
+              {/* Optimization: Use native <a> for external links to avoid next/link overhead (listeners, context) */}
+              <a
                 href={problem.link}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -239,7 +238,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                 aria-label={`${problem.title} (opens in a new tab)`}
               >
                 {problem.title}
-              </Link>
+              </a>
               <span
                 className={cn(
                   "text-xs md:text-sm px-2 py-0.5 rounded-full border font-medium uppercase tracking-wider",
@@ -361,7 +360,8 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                     className="h-8 text-sm md:text-base flex-1 bg-background hover:bg-muted border border-border/50"
                     asChild
                   >
-                    <Link
+                    {/* Optimization: Use native <a> for external links to avoid next/link overhead */}
+                    <a
                       href={problem.link}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -370,7 +370,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
                     >
                       <ExternalLink className="h-3.5 w-3.5 mr-2" />
                       Write Code
-                    </Link>
+                    </a>
                   </Button>
 
                   <ProblemAIActions
