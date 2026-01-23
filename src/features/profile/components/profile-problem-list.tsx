@@ -65,7 +65,7 @@ const ProfileProblemList: React.FC<ProfileProblemListProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid gap-2">
         {[...Array(6)].map((_, i) => (
           <ProblemCardSkeleton key={i} />
         ))}
@@ -100,7 +100,7 @@ const ProfileProblemList: React.FC<ProfileProblemListProps> = ({
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid gap-2">
         {problems.map((problem) => (
           <ProblemCard
             key={problem.id}
