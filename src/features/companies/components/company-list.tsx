@@ -73,12 +73,19 @@ const CompanyList: React.FC<CompanyListProps> = ({
   const { fetchCompaniesWithCursor } = useCursorPagination();
   const loadMoreTriggerRef = useRef<HTMLDivElement>(null);
 
+  // Track existing IDs to avoid O(N) set creation on every load
+  const existingIdsRef = useRef<Set<string>>(
+    new Set(initialCompanies.map((c) => c.id)),
+  );
+
   // Reset displayed companies when initial data changes
   useEffect(() => {
     setDisplayedCompanies(initialCompanies);
     setHasMore(initialHasMore);
     setNextCursor(initialNextCursor);
     setIsLoadingMore(false);
+    // Sync ref with new initial data
+    existingIdsRef.current = new Set(initialCompanies.map((c) => c.id));
   }, [initialCompanies, initialHasMore, initialNextCursor]);
 
   // Handle search
@@ -109,23 +116,22 @@ const CompanyList: React.FC<CompanyListProps> = ({
         itemsPerPage,
         currentSearchQueryInUrl,
       );
-      setDisplayedCompanies((prev) => {
-        // Optimization: Create Set directly from loop to avoid intermediate array allocation
-        const existingIds = new Set<string>();
-        for (const c of prev) {
-          existingIds.add(c.id);
-        }
+      
+      // Filter duplicates using Ref (O(1) lookup vs O(N) reconstruction)
+      const newCompanies: Company[] = [];
+      const incomingCompanies = result.companies as Company[];
 
-        const newCompanies = (result.companies as Company[]).filter(
-          (c: Company) => !existingIds.has(c.id),
-        );
-        
-        if (newCompanies.length === 0) {
-          return prev;
+      for (const c of incomingCompanies) {
+        if (!existingIdsRef.current.has(c.id)) {
+          existingIdsRef.current.add(c.id);
+          newCompanies.push(c);
         }
+      }
 
-        return [...prev, ...newCompanies];
-      });
+      if (newCompanies.length > 0) {
+        setDisplayedCompanies((prev) => [...prev, ...newCompanies]);
+      }
+      
       setHasMore(result.hasMore);
       setNextCursor(result.nextCursor);
     } catch {
