@@ -8,7 +8,12 @@ jest.mock("@/lib/api/firebase", () => ({
 }));
 
 jest.mock("@/lib/utils", () => ({
-  slugify: (str: string) => str.toLowerCase().replace(/\s+/g, "-"),
+  slugify: (str: string) =>
+    str
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, ""),
 }));
 
 jest.mock("@/lib/utils/logger", () => ({
@@ -25,10 +30,12 @@ jest.mock("firebase/firestore", () => {
   return {
     ...originalModule,
     getFirestore: jest.fn(() => ({})),
-    collection: jest.fn(),
+    collection: jest.fn(() => ({})),
     doc: jest.fn(),
     updateDoc: jest.fn(),
-    limit: jest.fn((n) => ({ type: 'limit', value: n })),
+    setDoc: jest.fn(),
+    getDoc: jest.fn(() => ({ exists: () => false })),
+    limit: jest.fn((n) => ({ type: "limit", value: n })),
     query: jest.fn(),
     where: jest.fn((field, op, val) => ({ type: "where", field, op, val })),
     orderBy: jest.fn(),
@@ -120,7 +127,7 @@ describe("CompanyRepository Security (Mass Assignment)", () => {
     const validUpdate = {
       name: "New Name",
     };
-    
+
     mockDoc.mockReturnValue("mock-doc-ref");
     mockUpdateDoc.mockResolvedValue();
 
@@ -136,5 +143,46 @@ describe("CompanyRepository Security (Mass Assignment)", () => {
     expect(updatesPassed).toHaveProperty("name", "New Name");
     // Should auto-generate normalized name
     expect(updatesPassed).toHaveProperty("normalizedName", "new name");
+  });
+
+  describe("Slug Generation Security", () => {
+    it("should fail gracefully when slug generation results in empty string", async () => {
+      // Setup
+      const invalidNameInput = {
+        name: "!!!", // Special characters only -> slug becomes empty
+        description: "Test Description",
+      };
+
+      // Act
+      const result = await repository.addCompany(invalidNameInput as any);
+
+      // Assert
+      expect(result.id).toBeNull();
+      expect(result.error).toBe(
+        "Unable to generate a valid slug from company name. Please use alphanumeric characters.",
+      );
+      // Ensure doc() was NOT called (validation happened before)
+      expect(mockDoc).not.toHaveBeenCalled();
+    });
+
+    it("should successfully create company with short valid slug", async () => {
+      // Setup
+      const validInput = {
+        name: "C++", // Should slugify to "c"
+        description: "Language",
+      };
+
+      mockDoc.mockReturnValue("mock-doc-ref");
+      const mockSetDoc = require("firebase/firestore").setDoc;
+      mockSetDoc.mockResolvedValue();
+
+      // Act
+      const result = await repository.addCompany(validInput as any);
+
+      // Assert
+      expect(result.id).toBe("c");
+      expect(result.error).toBeUndefined();
+      expect(mockDoc).toHaveBeenCalledWith(expect.anything(), "c");
+    });
   });
 });

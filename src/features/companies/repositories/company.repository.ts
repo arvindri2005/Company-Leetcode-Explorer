@@ -403,6 +403,15 @@ export class CompanyRepository implements ICompanyRepository {
       const safeData = validation.data;
 
       const companySlug = slugify(safeData.name);
+
+      if (!companySlug) {
+        return {
+          id: null,
+          error:
+            "Unable to generate a valid slug from company name. Please use alphanumeric characters.",
+        };
+      }
+
       const normalizedName = safeData.name.toLowerCase().trim();
 
       const existingCompany = await this.getCompanyBySlug(companySlug);
