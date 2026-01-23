@@ -16,9 +16,10 @@ export default function AuthLayout({
   return (
     <section className="flex min-h-[calc(100vh-4rem)] justify-center items-center py-12 overflow-hidden relative">
       {/* Dynamic Background Elements */}
+      {/* Performance: Use radial-gradient instead of expensive blur filters to improve rendering performance on all devices */}
       <div className="absolute inset-0 w-full h-full pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary/20 rounded-full blur-3xl opacity-30 animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-secondary/20 rounded-full blur-3xl opacity-30 animate-pulse delay-1000" />
+        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-[radial-gradient(closest-side,hsl(var(--primary)/0.2)_0%,transparent_100%)] opacity-30 animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-[radial-gradient(closest-side,hsl(var(--secondary)/0.2)_0%,transparent_100%)] opacity-30 animate-pulse delay-1000" />
       </div>
 
       <div
