@@ -50,7 +50,10 @@ export const signupFormSchema = z.object({
     .string()
     .trim()
     .min(2, { message: "Display name must be at least 2 characters." })
-    .max(50),
+    .max(50)
+    .refine((s) => !/[<>]/.test(s), {
+      message: "Display name cannot contain HTML characters (<, >).",
+    }),
   email: z
     .string()
     .email({ message: "Please enter a valid email address." })
@@ -142,7 +145,7 @@ export default function SignupForm() {
         router.push("/profile");
       }
     } catch (error) {
-      console.error("Signup error:", error);
+      Logger.error("Signup error", error);
       let errorMessage = "An unknown error occurred. Please try again.";
 
       if (error instanceof Error && "code" in error) {

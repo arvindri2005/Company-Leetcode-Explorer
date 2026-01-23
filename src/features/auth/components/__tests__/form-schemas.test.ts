@@ -139,6 +139,20 @@ describe("Auth Form Schemas Security Limits", () => {
         expect(result.data.displayName).toBe("Test User");
       }
     });
+
+    it("should reject display name containing HTML characters (<, >)", () => {
+      const result = signupFormSchema.safeParse({
+        displayName: "<script>alert(1)</script>",
+        email: validEmail,
+        password: validPassword,
+      });
+      // Currently this fails (returns true) because we haven't implemented the fix yet.
+      // We expect it to be false after the fix.
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues.some(i => i.message.includes("HTML characters"))).toBe(true);
+      }
+    });
   });
 
   describe("forgotPasswordSchema", () => {
