@@ -9,7 +9,7 @@
  */
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 
 import dynamic from "next/dynamic";
@@ -64,6 +64,12 @@ const StrategyListsSection = dynamic(
     loading: () => <StrategyListSkeleton />,
   },
 );
+
+// Constants for empty state icons to prevent re-creation on render
+const BOOKMARK_ICON = <Bookmark className="h-6 w-6 text-muted-foreground" aria-hidden="true" />;
+const SOLVED_ICON = <CheckCircle2 className="h-6 w-6 text-muted-foreground" aria-hidden="true" />;
+const ATTEMPTED_ICON = <Pencil className="h-6 w-6 text-muted-foreground" aria-hidden="true" />;
+const TODO_ICON = <ListTodo className="h-6 w-6 text-muted-foreground" aria-hidden="true" />;
 
 /**
  * Extends the LeetCodeProblem type to include user-specific status information.
@@ -713,21 +719,45 @@ export default function ProfilePage() {
     [user, setUser, syncUserProfileIfNeeded, toast],
   );
 
+  // Optimized stats calculation: iterate once instead of 3 times
+  const stats = useMemo(() => {
+    let solved = 0;
+    let attempted = 0;
+    let todo = 0;
+    Object.values(problemStatuses).forEach((p) => {
+      if (p?.status === "solved") {
+        solved++;
+      } else if (p?.status === "attempted") {
+        attempted++;
+      } else if (p?.status === "todo") {
+        todo++;
+      }
+    });
+    return { solved, attempted, todo };
+  }, [problemStatuses]);
+
+  // Memoize filtered lists to prevent unnecessary re-renders of ProfileProblemList
+  const solvedProblems = useMemo(
+    () => problemsWithStatusDetails.filter((p) => p.currentStatus === "solved"),
+    [problemsWithStatusDetails]
+  );
+
+  const attemptedProblems = useMemo(
+    () =>
+      problemsWithStatusDetails.filter((p) => p.currentStatus === "attempted"),
+    [problemsWithStatusDetails]
+  );
+
+  const todoProblems = useMemo(
+    () => problemsWithStatusDetails.filter((p) => p.currentStatus === "todo"),
+    [problemsWithStatusDetails]
+  );
+
   if (authLoading) {return <ProfilePageSkeleton />;}
   if (!user) {
     router.push("/login");
     return null;
   }
-
-  const stats = {
-    solved: Object.values(problemStatuses).filter((p) => p?.status === "solved")
-      .length,
-    attempted: Object.values(problemStatuses).filter(
-      (p) => p?.status === "attempted",
-    ).length,
-    todo: Object.values(problemStatuses).filter((p) => p?.status === "todo")
-      .length,
-  };
 
   return (
     <div className="container mx-auto p-4 lg:p-8">
@@ -803,12 +833,7 @@ export default function ProfilePage() {
                       onProblemStatusChange={handleProblemStatusChangeOnProfile}
                       emptyStateMessage="No bookmarks yet"
                       emptyStateDescription="Save interesting problems to your bookmarks to easily find them later."
-                      emptyStateIcon={
-                        <Bookmark
-                          className="h-6 w-6 text-muted-foreground"
-                          aria-hidden="true"
-                        />
-                      }
+                      emptyStateIcon={BOOKMARK_ICON}
                     />
                   </CardContent>
                 </Card>
@@ -828,21 +853,14 @@ export default function ProfilePage() {
                   <CardContent>
                     <ProfileProblemList
                       title="Solved Problems"
-                      problems={problemsWithStatusDetails.filter(
-                        (p) => p.currentStatus === "solved",
-                      )}
+                      problems={solvedProblems}
                       isLoading={isLoadingStatuses}
                       listType="status"
                       onBookmarkChanged={handleProblemBookmarkChangeOnProfile}
                       onProblemStatusChange={handleProblemStatusChangeOnProfile}
                       emptyStateMessage="No solved problems"
                       emptyStateDescription="You haven't solved any problems yet. Start your journey today!"
-                      emptyStateIcon={
-                        <CheckCircle2
-                          className="h-6 w-6 text-muted-foreground"
-                          aria-hidden="true"
-                        />
-                      }
+                      emptyStateIcon={SOLVED_ICON}
                     />
                   </CardContent>
                 </Card>
@@ -865,21 +883,14 @@ export default function ProfilePage() {
                   <CardContent>
                     <ProfileProblemList
                       title="Attempted Problems"
-                      problems={problemsWithStatusDetails.filter(
-                        (p) => p.currentStatus === "attempted",
-                      )}
+                      problems={attemptedProblems}
                       isLoading={isLoadingStatuses}
                       listType="status"
                       onBookmarkChanged={handleProblemBookmarkChangeOnProfile}
                       onProblemStatusChange={handleProblemStatusChangeOnProfile}
                       emptyStateMessage="No attempted problems"
                       emptyStateDescription="Problems you've started but haven't finished will appear here."
-                      emptyStateIcon={
-                        <Pencil
-                          className="h-6 w-6 text-muted-foreground"
-                          aria-hidden="true"
-                        />
-                      }
+                      emptyStateIcon={ATTEMPTED_ICON}
                     />
                   </CardContent>
                 </Card>
@@ -899,21 +910,14 @@ export default function ProfilePage() {
                   <CardContent>
                     <ProfileProblemList
                       title="To-Do Problems"
-                      problems={problemsWithStatusDetails.filter(
-                        (p) => p.currentStatus === "todo",
-                      )}
+                      problems={todoProblems}
                       isLoading={isLoadingStatuses}
                       listType="status"
                       onBookmarkChanged={handleProblemBookmarkChangeOnProfile}
                       onProblemStatusChange={handleProblemStatusChangeOnProfile}
                       emptyStateMessage="Your to-do list is empty"
                       emptyStateDescription="Plan your practice by adding problems to your to-do list."
-                      emptyStateIcon={
-                        <ListTodo
-                          className="h-6 w-6 text-muted-foreground"
-                          aria-hidden="true"
-                        />
-                      }
+                      emptyStateIcon={TODO_ICON}
                     />
                   </CardContent>
                 </Card>
