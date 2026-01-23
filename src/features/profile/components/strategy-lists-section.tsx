@@ -3,6 +3,8 @@
 import React, { memo } from "react";
 import ReactMarkdown from "react-markdown";
 
+import Link from "next/link";
+
 import { Brain, FolderKanban, ListChecks, Loader2, Target } from "lucide-react";
 import remarkGfm from "remark-gfm";
 
@@ -13,6 +15,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -224,20 +227,23 @@ const StrategyListsSection: React.FC<StrategyListsSectionProps> = ({
 
   if (strategyTodoLists.length === 0) {
     return (
-      <Card className="bg-card border border-border rounded-xl shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Brain className="mr-2 h-5 w-5 text-primary" />
-            Saved Strategy To-Do Lists
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-center py-6">
-            You haven&apos;t saved any AI-generated company strategies yet.
-            Generate one from a company&apos;s page to see it here!
-          </p>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed border-muted rounded-xl bg-muted/5">
+        <div className="bg-background p-3 rounded-full mb-4 ring-1 ring-border shadow-sm">
+          <Brain
+            className="h-6 w-6 text-muted-foreground"
+            aria-hidden="true"
+          />
+        </div>
+        <h3 className="text-lg font-medium text-foreground mb-1">
+          No strategies saved
+        </h3>
+        <p className="text-sm text-muted-foreground max-w-xs mb-4">
+          You haven&apos;t saved any AI-generated company strategies yet.
+        </p>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/companies">Browse Companies</Link>
+        </Button>
+      </div>
     );
   }
 
