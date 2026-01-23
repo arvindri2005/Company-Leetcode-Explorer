@@ -373,3 +373,82 @@ describe('UserRepository Security - Write Operations', () => {
     expect(deleteDocMock).not.toHaveBeenCalled();
   });
 });
+
+describe('UserRepository Security - XSS Prevention', () => {
+  let repository: UserRepository;
+  let addDocMock: any;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    repository = new UserRepository();
+    const firestore = require('firebase/firestore');
+    addDocMock = firestore.addDoc;
+  });
+
+  it('should block HTML characters in addUserEducation', async () => {
+    const userId = 'user-123';
+    (auth as any).currentUser = { uid: userId };
+    
+    const maliciousEducation = {
+      degree: 'BSc <script>alert("XSS")</script>',
+      major: 'Computer Science',
+      school: 'University',
+      graduationYear: '2020',
+      gpa: '4.0'
+    };
+
+    const result = await repository.addUserEducation(userId, maliciousEducation);
+
+    expect(result.id).toBeNull();
+    expect(result.error).toContain('contains invalid characters');
+    expect(addDocMock).not.toHaveBeenCalled();
+  });
+
+  it('should block HTML characters in addUserWorkExperience', async () => {
+    const userId = 'user-123';
+    (auth as any).currentUser = { uid: userId };
+    
+    const maliciousWork = {
+      jobTitle: 'Developer',
+      companyName: 'Evil Corp <img src=x onerror=alert(1)>',
+      startDate: '2020',
+      endDate: 'Present',
+      responsibilities: 'Hacking is my business and business is good'
+    };
+
+    const result = await repository.addUserWorkExperience(userId, maliciousWork);
+
+    expect(result.id).toBeNull();
+    expect(result.error).toContain('contains invalid characters');
+    expect(addDocMock).not.toHaveBeenCalled();
+  });
+
+  it('should ALLOW valid text that uses > symbol', async () => {
+    const userId = 'user-123';
+    (auth as any).currentUser = { uid: userId };
+    
+    const validEducation = {
+      degree: 'BSc',
+      major: 'Computer Science',
+      school: 'University',
+      graduationYear: '2020',
+      gpa: '3.5' 
+    };
+    
+    // We modify school name to include > to test XSS bypass without hitting Zod regex on GPA
+    // Because GPA is regex validated to be number-like
+    const validEducationWithSymbol = {
+      ...validEducation,
+      school: 'University > College'
+    };
+    
+    // We mock the return for success
+    addDocMock.mockResolvedValue({ id: 'edu-123' });
+
+    const result = await repository.addUserEducation(userId, validEducationWithSymbol);
+
+    // Should succeed because we only block '<' now
+    expect(result.id).toBe('edu-123');
+    expect(result.error).toBeUndefined();
+  });
+});

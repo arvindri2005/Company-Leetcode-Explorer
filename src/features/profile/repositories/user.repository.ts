@@ -728,6 +728,16 @@ export class UserRepository implements IUserRepository {
       return { id: null, error: errorMessage };
     }
 
+    // Security: Validate for invalid characters to prevent XSS
+    const hasInvalidChars = Object.values(educationData).some((value) => 
+      typeof value === 'string' && this.hasInvalidCharacters(value)
+    );
+
+    if (hasInvalidChars) {
+       Logger.warn("Blocked attempt to add education with invalid characters", { userId });
+       return { id: null, error: "Input contains invalid characters." };
+    }
+
     try {
       const educationColRef = collection(db, "users", userId, "educationHistory");
       const docRef = await addDoc(educationColRef, {
@@ -764,6 +774,16 @@ export class UserRepository implements IUserRepository {
         errors: errorMessage,
       });
       return { id: null, error: errorMessage };
+    }
+
+    // Security: Validate for invalid characters to prevent XSS
+    const hasInvalidChars = Object.values(workData).some((value) => 
+      typeof value === 'string' && this.hasInvalidCharacters(value)
+    );
+
+    if (hasInvalidChars) {
+       Logger.warn("Blocked attempt to add work experience with invalid characters", { userId });
+       return { id: null, error: "Input contains invalid characters." };
     }
 
     try {
@@ -954,6 +974,13 @@ export class UserRepository implements IUserRepository {
   private isAuthorized(userId: string): boolean {
     const currentUser = auth.currentUser;
     return !!currentUser && currentUser.uid === userId;
+  }
+
+  private hasInvalidCharacters(text: string | undefined | null): boolean {
+    if (!text) {return false;}
+    // Security: Block specific characters commonly used in XSS, while allowing standard punctuation
+    // We block '<' to prevent HTML tag opening, but allow '>' for things like "GPA > 3.0"
+    return /[<]/.test(text);
   }
 }
 
