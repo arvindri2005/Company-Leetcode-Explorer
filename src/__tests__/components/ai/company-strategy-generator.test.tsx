@@ -51,7 +51,7 @@ jest.mock('@/features/ai/hooks/use-ai-cooldown', () => ({
   useAICooldown: () => ({
     canUseAI: true,
     startCooldown: jest.fn(),
-    formattedRemainingTime: '0s',
+    getFormattedRemainingTime: jest.fn(() => '0s'),
     isLoadingCooldown: false,
   }),
 }));
