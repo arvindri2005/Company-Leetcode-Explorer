@@ -9,6 +9,8 @@
 
 import React, { useMemo, useState } from "react";
 
+import dynamic from "next/dynamic";
+
 import {
   Bookmark,
   CheckCircle,
@@ -27,6 +29,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
@@ -37,8 +40,22 @@ import { cn, getDeterministicRandom } from "@/lib/utils";
 
 import type { LeetCodeProblem, ProblemStatus } from "../../types";
 import CompanyBadge from "../company-badge/company-badge";
-import { ProblemAIActions } from "../problem-ai-actions";
 import TagBadge from "../tag-badge/tag-badge";
+
+// Optimization: Lazy load ProblemAIActions to reduce initial bundle size.
+// It imports heavy dependencies (AI hooks, dialogs) but is only shown when expanded.
+const ProblemAIActions = dynamic(
+  () => import("../problem-ai-actions").then((mod) => mod.ProblemAIActions),
+  {
+    loading: () => (
+      <div className="flex gap-3 flex-1">
+        <Skeleton className="h-8 flex-1 rounded-md" />
+        <Skeleton className="h-8 flex-1 rounded-md" />
+      </div>
+    ),
+    ssr: false,
+  },
+);
 
 interface ProblemCardProps {
   problem: LeetCodeProblem;
