@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo } from "react";
+import React, { memo, useCallback, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 
 import Link from "next/link";
@@ -221,6 +221,23 @@ const StrategyListsSection: React.FC<StrategyListsSectionProps> = ({
   updatingTodoItemId,
   handleToggleTodoItem,
 }) => {
+  // Optimization: Stabilize handleToggleTodoItem using the ref pattern.
+  // The parent passes a new function reference on every toggle (due to dependency on state).
+  // Without this stabilization, `StrategyListItem` and `StrategyTodoItem` would re-render for ALL items/lists
+  // whenever ANY item is toggled, defeating the purpose of React.memo used in those components.
+  const handleToggleRef = useRef(handleToggleTodoItem);
+
+  useEffect(() => {
+    handleToggleRef.current = handleToggleTodoItem;
+  }, [handleToggleTodoItem]);
+
+  const stableHandleToggle = useCallback(
+    (companyId: string, itemIndex: number, newStatus: boolean) => {
+      return handleToggleRef.current(companyId, itemIndex, newStatus);
+    },
+    [],
+  );
+
   if (isLoadingStrategyTodoLists) {
     return <StrategyListSkeleton />;
   }
@@ -276,7 +293,7 @@ const StrategyListsSection: React.FC<StrategyListsSectionProps> = ({
                 key={list.companyId}
                 list={list}
                 updatingTodoItemId={activeUpdatingId}
-                onToggle={handleToggleTodoItem}
+                onToggle={stableHandleToggle}
               />
             );
           })}
