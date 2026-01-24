@@ -30,7 +30,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { Company } from "@/features/companies/types";
 import { useToast } from "@/hooks/use-toast";
-import { slugify } from "@/lib/utils";
+import { cn, slugify } from "@/lib/utils";
 
 /**
  * Zod schema for validating the company submission form fields.
@@ -86,6 +86,11 @@ export default function CompanySubmissionForm() {
     },
   });
 
+  const nameValue = form.watch("name");
+  const descriptionValue = form.watch("description");
+  const nameLength = nameValue ? nameValue.length : 0;
+  const descriptionLength = descriptionValue ? descriptionValue.length : 0;
+
   async function onSubmit(data: CompanyFormValues) {
     setIsSubmitting(true);
     toast({
@@ -129,11 +134,26 @@ export default function CompanySubmissionForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Company Name</FormLabel>
+              <FormLabel className="flex justify-between items-center">
+                <span>
+                  Company Name <span className="text-destructive">*</span>
+                </span>
+                <span
+                  id="name-counter"
+                  className={cn(
+                    "text-xs text-muted-foreground font-normal",
+                    nameLength >= 100 && "text-destructive font-medium",
+                  )}
+                >
+                  {nameLength}/100
+                  <span className="sr-only">characters used out of 100</span>
+                </span>
+              </FormLabel>
               <FormControl>
                 <Input
                   placeholder="e.g., Awesome Tech Inc."
                   autoComplete="organization"
+                  aria-describedby="name-counter"
                   {...field}
                 />
               </FormControl>
@@ -174,11 +194,24 @@ export default function CompanySubmissionForm() {
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description (Optional)</FormLabel>
+              <FormLabel className="flex justify-between items-center">
+                Description (Optional)
+                <span
+                  id="description-counter"
+                  className={cn(
+                    "text-xs text-muted-foreground font-normal",
+                    descriptionLength >= 500 && "text-destructive font-medium",
+                  )}
+                >
+                  {descriptionLength}/500
+                  <span className="sr-only">characters used out of 500</span>
+                </span>
+              </FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="e.g., Specializes in cutting-edge AI solutions."
                   className="resize-none"
+                  aria-describedby="description-counter"
                   {...field}
                 />
               </FormControl>
