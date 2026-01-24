@@ -79,10 +79,10 @@ const problemFormSchema = z.object({
 
 type ProblemFormValues = z.infer<typeof problemFormSchema>;
 
-const DIFFICULTY_TEXT_COLORS = {
-  Easy: "text-emerald-500",
-  Medium: "text-amber-500",
-  Hard: "text-rose-500",
+const DIFFICULTY_STYLES = {
+  Easy: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
+  Medium: "text-amber-500 bg-amber-500/10 border-amber-500/20",
+  Hard: "text-rose-500 bg-rose-500/10 border-rose-500/20",
 };
 
 /**
@@ -108,6 +108,7 @@ export default function ProblemSubmissionForm({
 
   const form = useForm<ProblemFormValues>({
     resolver: zodResolver(problemFormSchema),
+    mode: "onBlur",
     defaultValues: {
       title: "",
       difficulty: undefined,
@@ -230,15 +231,34 @@ export default function ProblemSubmissionForm({
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="Easy">
-                      <span className={DIFFICULTY_TEXT_COLORS.Easy}>Easy</span>
+                      <span
+                        className={cn(
+                          "px-2 py-0.5 rounded-full border text-xs font-medium uppercase",
+                          DIFFICULTY_STYLES.Easy,
+                        )}
+                      >
+                        Easy
+                      </span>
                     </SelectItem>
                     <SelectItem value="Medium">
-                      <span className={DIFFICULTY_TEXT_COLORS.Medium}>
+                      <span
+                        className={cn(
+                          "px-2 py-0.5 rounded-full border text-xs font-medium uppercase",
+                          DIFFICULTY_STYLES.Medium,
+                        )}
+                      >
                         Medium
                       </span>
                     </SelectItem>
                     <SelectItem value="Hard">
-                      <span className={DIFFICULTY_TEXT_COLORS.Hard}>Hard</span>
+                      <span
+                        className={cn(
+                          "px-2 py-0.5 rounded-full border text-xs font-medium uppercase",
+                          DIFFICULTY_STYLES.Hard,
+                        )}
+                      >
+                        Hard
+                      </span>
                     </SelectItem>
                   </SelectContent>
                 </Select>
