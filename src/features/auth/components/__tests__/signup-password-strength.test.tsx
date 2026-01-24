@@ -9,8 +9,8 @@ describe('SignupPasswordStrength', () => {
     expect(meter).toHaveAttribute('aria-valuenow', '0');
     
     // Check for requirements list
-    expect(screen.getByText('8+ characters')).toBeInTheDocument();
-    expect(screen.getByText('Uppercase letter')).toBeInTheDocument();
+    expect(screen.getByText('8+ characters', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('Uppercase letter', { exact: false })).toBeInTheDocument();
   });
 
   it('calculates score for weak password', () => {
@@ -54,10 +54,21 @@ describe('SignupPasswordStrength', () => {
     // Since we used Check icon for met and div for unmet, we can try to query by text and check container class?
     // Or just checking presence is enough for this level of testing.
     
-    expect(screen.getByText('8+ characters')).toBeInTheDocument();
-    expect(screen.getByText('Uppercase letter')).toBeInTheDocument();
-    expect(screen.getByText('Lowercase letter')).toBeInTheDocument();
-    expect(screen.getByText('Number')).toBeInTheDocument();
-    expect(screen.getByText('Special character')).toBeInTheDocument();
+    expect(screen.getByText('8+ characters', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('Uppercase letter', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('Lowercase letter', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('Number', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('Special character', { exact: false })).toBeInTheDocument();
+  });
+
+  it('includes screen reader text for requirements', () => {
+    render(<SignupPasswordStrength password="A" />);
+    // "Uppercase letter" should be met
+    const uppercaseLabel = screen.getByText('Uppercase letter', { exact: false });
+    expect(uppercaseLabel).toHaveTextContent(' - requirement met');
+
+    // "8+ characters" should be not met
+    const lengthLabel = screen.getByText('8+ characters', { exact: false });
+    expect(lengthLabel).toHaveTextContent(' - requirement not met');
   });
 });

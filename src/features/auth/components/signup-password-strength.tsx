@@ -67,7 +67,12 @@ export const SignupPasswordStrength = memo(function SignupPasswordStrength({
             ) : (
               <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 ml-1 shrink-0" aria-hidden="true" />
             )}
-            <span>{req.label}</span>
+            <span>
+              {req.label}
+              <span className="sr-only">
+                {req.met ? " - requirement met" : " - requirement not met"}
+              </span>
+            </span>
           </li>
         ))}
       </ul>
