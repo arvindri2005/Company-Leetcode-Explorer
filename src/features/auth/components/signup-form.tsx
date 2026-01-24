@@ -35,6 +35,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useToast } from "@/hooks/use-toast";
 import { auth } from "@/lib/api/firebase";
+import { cn } from "@/lib/utils";
 import { Logger } from "@/lib/utils/logger";
 import { isValidRedirectUrl } from "@/lib/utils/url";
 import { useAuth } from "@/providers";
@@ -229,16 +230,21 @@ export default function SignupForm() {
                       {...field}
                       autoComplete="name"
                       autoCapitalize="words"
-                      className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                      className="h-11 pr-10 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
                       disabled={isSubmitting}
                     />
-                    {field.value &&
-                      signupFormSchema.shape.displayName.safeParse(field.value)
-                        .success && (
-                        <div className="absolute right-3 top-3 text-green-500 animate-in fade-in zoom-in">
-                          <Check className="h-4 w-4" />
-                        </div>
+                    <div
+                      className={cn(
+                        "absolute right-3 top-3 text-green-500 transition-all duration-200 ease-in-out pointer-events-none",
+                        field.value &&
+                          signupFormSchema.shape.displayName.safeParse(field.value)
+                            .success
+                          ? "opacity-100 scale-100"
+                          : "opacity-0 scale-75",
                       )}
+                    >
+                      <Check className="h-4 w-4" />
+                    </div>
                   </div>
                 </FormControl>
                 <FormMessage role="alert" />
@@ -264,16 +270,21 @@ export default function SignupForm() {
                       placeholder="you@example.com"
                       {...field}
                       autoComplete="email"
-                      className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                      className="h-11 pr-10 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
                       disabled={isSubmitting}
                     />
-                    {field.value &&
-                      signupFormSchema.shape.email.safeParse(field.value)
-                        .success && (
-                        <div className="absolute right-3 top-3 text-green-500 animate-in fade-in zoom-in">
-                          <Check className="h-4 w-4" />
-                        </div>
+                    <div
+                      className={cn(
+                        "absolute right-3 top-3 text-green-500 transition-all duration-200 ease-in-out pointer-events-none",
+                        field.value &&
+                          signupFormSchema.shape.email.safeParse(field.value)
+                            .success
+                          ? "opacity-100 scale-100"
+                          : "opacity-0 scale-75",
                       )}
+                    >
+                      <Check className="h-4 w-4" />
+                    </div>
                   </div>
                 </FormControl>
                 <FormMessage role="alert" />
