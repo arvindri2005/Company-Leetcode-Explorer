@@ -3,8 +3,8 @@
  * Handles work experience validation logic
  */
 
-import { WorkExperienceSchema } from "@/types";
 import { Logger } from "@/lib/utils/logger";
+import { WorkExperienceSchema } from "@/types";
 
 /**
  * Interface for work experience validators

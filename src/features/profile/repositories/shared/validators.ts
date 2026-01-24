@@ -3,8 +3,8 @@
  * Common validation patterns used across repository modules
  */
 
-import { SavedStrategyTodoListSchema } from "@/types";
 import { Logger } from "@/lib/utils/logger";
+import { SavedStrategyTodoListSchema } from "@/types";
 
 /**
  * Interface for shared validators

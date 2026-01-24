@@ -3,8 +3,8 @@
  * Handles education validation logic
  */
 
-import { EducationExperienceSchema } from "@/types";
 import { Logger } from "@/lib/utils/logger";
+import { EducationExperienceSchema } from "@/types";
 
 /**
  * Interface for education validators

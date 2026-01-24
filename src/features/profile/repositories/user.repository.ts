@@ -4,7 +4,7 @@
  * Implements IUserRepository interface for dependency injection
  */
 
-import { User as UserEntity } from "@/domain/entities/user.entity";
+import { type User as UserEntity } from "@/domain/entities/user.entity";
 import type { PaginatedResult, PaginationParams } from "@/shared/interfaces";
 import type {
   BookmarkedProblemInfo,
@@ -30,6 +30,7 @@ import { EducationOperationsImpl } from "./education/education-operations";
 import { EducationValidatorsImpl } from "./education/education-validators";
 import { StatusOperationsImpl } from "./problem-statuses/status-operations";
 import { StatusQueriesImpl } from "./problem-statuses/status-queries";
+import { SharedValidatorsImpl } from "./shared/validators";
 import { StrategyOperationsImpl } from "./strategies/strategy-operations";
 import { StrategyQueriesImpl } from "./strategies/strategy-queries";
 import { UserOperationsImpl } from "./user/user-operations";
@@ -37,7 +38,6 @@ import { UserQueriesImpl } from "./user/user-queries";
 import { UserValidatorsImpl } from "./user/user-validators";
 import { ExperienceOperationsImpl } from "./work-experience/experience-operations";
 import { ExperienceValidatorsImpl } from "./work-experience/experience-validators";
-import { SharedValidatorsImpl } from "./shared/validators";
 
 /**
  * Repository for User-related data access.
