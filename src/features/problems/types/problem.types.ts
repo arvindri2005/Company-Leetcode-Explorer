@@ -79,7 +79,14 @@ const SafeTitleSchema = z
   .min(1, "Title is required")
   .max(255)
   // \P{C} matches any character that is NOT a control character (Unicode Category "Other")
-  .regex(/^[\P{C}]*$/u, "Title cannot contain control characters");
+  .regex(/^[\P{C}]*$/u, "Title cannot contain control characters")
+  // Explicitly disallow < and > to prevent HTML injection
+  .regex(/^[^<>]*$/, "Title cannot contain HTML characters (<, >)");
+
+const SafeDescriptionSchema = z
+  .string()
+  .max(10000)
+  .optional();
 
 const SafeTagSchema = z
   .string()
@@ -138,7 +145,7 @@ export const LeetCodeProblemSchema = z.object({
  */
 export const CreateProblemSchema = z.object({
   title: SafeTitleSchema,
-  description: z.string().max(10000).optional(),
+  description: SafeDescriptionSchema,
   difficulty: DifficultySchema,
   link: z
     .string()
