@@ -16,7 +16,7 @@ import { useDebounce } from "use-debounce";
 
 import { fetchCompanySuggestionsAction } from "@/app/actions";
 import { OfflineImage } from "@/components/ui/offline-image";
-import { useTypingPlaceholder } from "@/features/tools/hooks/use-typing-placeholder";
+import { CompanySearchInput } from "@/features/companies/components/company-search-input";
 import { cn, getLogoUrl } from "@/lib/utils";
 
 /**
@@ -197,8 +197,6 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
     }
   };
 
-  const placeholder = useTypingPlaceholder(COMPANIES);
-
   return (
     <section
       className={cn("relative w-full max-w-4xl mx-auto", className)}
@@ -217,7 +215,8 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
           <label htmlFor="company-search-input" className="sr-only">
             Search for Companies
           </label>
-          <input
+          <CompanySearchInput
+            companies={COMPANIES}
             onKeyDown={handleKeyDown}
             id="company-search-input"
             name="company-search"
@@ -236,7 +235,6 @@ const CompanySearchBar: React.FC<SearchBarProps> = ({
             ref={inputRef}
             data-testid="search-input"
             className="w-full p-5 pr-24 text-lg border border-white/10 rounded-full bg-white/5 text-white backdrop-blur-lg transition-all duration-300 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/30 placeholder:text-white/50"
-            placeholder={`Search for ${placeholder}|`}
             value={searchTermInput}
             onChange={(e) => setSearchTermInput(e.target.value)}
             onFocus={() => {
