@@ -189,5 +189,57 @@ describe("Auth Form Schemas Security Limits", () => {
         expect(result.error.issues.some(i => i.message.includes("8 characters"))).toBe(true);
       }
     });
+
+    it("should reject password without uppercase letter", () => {
+      const result = resetPasswordSchema.safeParse({
+        password: "password123!",
+        confirmPassword: "password123!",
+      });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues.some(i => i.message.includes("uppercase"))).toBe(true);
+      }
+    });
+
+    it("should reject password without lowercase letter", () => {
+      const result = resetPasswordSchema.safeParse({
+        password: "PASSWORD123!",
+        confirmPassword: "PASSWORD123!",
+      });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues.some(i => i.message.includes("lowercase"))).toBe(true);
+      }
+    });
+
+    it("should reject password without number", () => {
+      const result = resetPasswordSchema.safeParse({
+        password: "Password!!!!",
+        confirmPassword: "Password!!!!",
+      });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues.some(i => i.message.includes("number"))).toBe(true);
+      }
+    });
+
+    it("should reject password without special character", () => {
+      const result = resetPasswordSchema.safeParse({
+        password: "Password1234",
+        confirmPassword: "Password1234",
+      });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues.some(i => i.message.includes("special character"))).toBe(true);
+      }
+    });
+
+    it("should accept valid password", () => {
+      const result = resetPasswordSchema.safeParse({
+        password: validPassword,
+        confirmPassword: validPassword,
+      });
+      expect(result.success).toBe(true);
+    });
   });
 });

@@ -23,13 +23,24 @@ import {
 import { PasswordInput } from "@/components/ui/password-input";
 import { useToast } from "@/hooks/use-toast";
 import { auth } from "@/lib/api/firebase";
+import { Logger } from "@/lib/utils/logger";
 
 export const resetPasswordSchema = z
   .object({
     password: z
       .string()
       .min(8, { message: "Password must be at least 8 characters." })
-      .max(128, { message: "Password must be less than 128 characters." }),
+      .max(128, { message: "Password must be less than 128 characters." })
+      .regex(/[A-Z]/, {
+        message: "Password must contain at least one uppercase letter.",
+      })
+      .regex(/[a-z]/, {
+        message: "Password must contain at least one lowercase letter.",
+      })
+      .regex(/[0-9]/, { message: "Password must contain at least one number." })
+      .regex(/[^A-Za-z0-9]/, {
+        message: "Password must contain at least one special character.",
+      }),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -66,7 +77,7 @@ export default function ResetPasswordForm({ oobCode }: ResetPasswordFormProps) {
         setIsVerifying(false);
       })
       .catch((error) => {
-        console.error("Invalid code:", error);
+        Logger.error("Invalid code:", error);
         setError("This password reset link is invalid or has expired.");
         setIsVerifying(false);
       });
@@ -98,7 +109,7 @@ export default function ResetPasswordForm({ oobCode }: ResetPasswordFormProps) {
         router.push("/login");
       }, 3000);
     } catch (error) {
-      console.error("Reset password error:", error);
+      Logger.error("Reset password error:", error);
       toast({
         title: "Reset Failed",
         description: "Failed to reset password. Please try again.",
