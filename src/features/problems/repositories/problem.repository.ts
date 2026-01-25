@@ -1177,16 +1177,20 @@ export class ProblemRepository implements IProblemRepository {
     } as LeetCodeProblem;
 
     // Validate at the edge
-    const result = LeetCodeProblemSchema.safeParse(problem);
-    if (!result.success) {
-      // We log but still return the object to avoid crashing UI for partial data issues
-      Logger.warn(
-        `Data integrity issue in Problem (ID: ${
-          problem.id
-        }): ${result.error.issues
-          .map((i) => `${i.path.join(".")}: ${i.message}`)
-          .join(", ")}`,
-      );
+    // Optimization: Skip expensive Zod schema validation (including regexes) in production for read operations.
+    // We rely on write-time validation for data integrity.
+    if (process.env.NODE_ENV === "development") {
+      const result = LeetCodeProblemSchema.safeParse(problem);
+      if (!result.success) {
+        // We log but still return the object to avoid crashing UI for partial data issues
+        Logger.warn(
+          `Data integrity issue in Problem (ID: ${
+            problem.id
+          }): ${result.error.issues
+            .map((i) => `${i.path.join(".")}: ${i.message}`)
+            .join(", ")}`,
+        );
+      }
     }
 
     return problem;
