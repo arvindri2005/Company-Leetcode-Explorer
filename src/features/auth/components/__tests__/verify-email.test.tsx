@@ -1,9 +1,17 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { applyActionCode } from "firebase/auth";
 
+import { Logger } from "@/lib/utils/logger";
+
 import VerifyEmail from "../verify-email";
 
 // Mocks
+jest.mock("@/lib/utils/logger", () => ({
+  Logger: {
+    error: jest.fn(),
+  },
+}));
+
 jest.mock("firebase/auth", () => ({
   getAuth: jest.fn(),
   applyActionCode: jest.fn(),
@@ -62,6 +70,11 @@ describe("VerifyEmail Component", () => {
       const alertRegion = screen.getByRole("alert");
       expect(alertRegion).toBeInTheDocument();
       expect(alertRegion).toHaveTextContent("Verification Failed");
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        "Email verification error:",
+        expect.any(Error)
+      );
     });
   });
 

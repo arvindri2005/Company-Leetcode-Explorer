@@ -9,6 +9,7 @@ import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/api/firebase";
+import { Logger } from "@/lib/utils/logger";
 
 interface VerifyEmailProps {
   oobCode: string | null;
@@ -33,7 +34,7 @@ export default function VerifyEmail({ oobCode }: VerifyEmailProps) {
         setStatus("success");
       })
       .catch((error) => {
-        console.error("Email verification error:", error);
+        Logger.error("Email verification error:", error);
         setStatus("error");
         if (error.code === "auth/invalid-action-code") {
             setMessage("This verification link is invalid or has expired.");

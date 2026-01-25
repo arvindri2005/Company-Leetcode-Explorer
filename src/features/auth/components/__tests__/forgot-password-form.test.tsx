@@ -3,10 +3,17 @@ import userEvent from "@testing-library/user-event";
 import { sendPasswordResetEmail } from "firebase/auth";
 
 import { useToast } from "@/hooks/use-toast";
+import { Logger } from "@/lib/utils/logger";
 
 import ForgotPasswordForm from "../forgot-password-form";
 
 // Mocks
+jest.mock("@/lib/utils/logger", () => ({
+  Logger: {
+    error: jest.fn(),
+  },
+}));
+
 jest.mock("firebase/auth", () => ({
   getAuth: jest.fn(),
   sendPasswordResetEmail: jest.fn(),
@@ -60,6 +67,12 @@ describe("ForgotPasswordForm Security", () => {
         title: "Request Failed",
       }));
 
+      // It SHOULD log the error internally for auditing
+      expect(Logger.error).toHaveBeenCalledWith(
+        "Forgot Password error:",
+        expect.any(Error)
+      );
+
       // It SHOULD show the success message
       expect(screen.getByText(/check your email/i)).toBeInTheDocument();
       expect(screen.getByText(/we have sent a password reset link/i)).toBeInTheDocument();
@@ -104,6 +117,12 @@ describe("ForgotPasswordForm Security", () => {
          // In my fix I hardcoded "An error occurred. Please try again." for default cases to not leak info.
          description: "An error occurred. Please try again.",
        }));
+
+       // Should log the error
+       expect(Logger.error).toHaveBeenCalledWith(
+         "Forgot Password error:",
+         expect.any(Error)
+       );
        
        // Should NOT show success state
        expect(screen.queryByText(/check your email/i)).not.toBeInTheDocument();

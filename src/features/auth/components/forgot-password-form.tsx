@@ -22,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { auth } from "@/lib/api/firebase";
+import { Logger } from "@/lib/utils/logger";
 
 export const forgotPasswordSchema = z.object({
   email: z
@@ -54,7 +55,7 @@ export default function ForgotPasswordForm() {
         description: "Check your inbox and spam folder for the password reset link.",
       });
     } catch (error) {
-      console.error("Forgot Password error:", error);
+      Logger.error("Forgot Password error:", error);
       let errorMessage = "An unknown error occurred. Please try again.";
 
       if (error instanceof Error && "code" in error) {
