@@ -10,6 +10,9 @@
 
 import React from "react";
 
+import { X } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/chip";
 
 import { lastAskedPeriodOptions, PROBLEM_STATUS_OPTIONS } from "../../constants";
@@ -30,6 +33,7 @@ interface ProblemListControlsProps {
   onLastAskedFilterChange: (filter: LastAskedFilter[]) => void;
   statusFilter: StatusFilter[];
   onStatusFilterChange: (filter: StatusFilter[]) => void;
+  onClearAll?: () => void;
   sortKey?: SortKey;
   onSortKeyChange?: (sortKey: SortKey) => void;
   showStatusFilter?: boolean;
@@ -53,6 +57,7 @@ const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
   onLastAskedFilterChange,
   statusFilter,
   onStatusFilterChange,
+  onClearAll,
   sortKey: _sortKey,
   onSortKeyChange: _onSortKeyChange,
   showStatusFilter = false,
@@ -89,6 +94,11 @@ const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
   };
 
   const chipClassName = "px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm";
+
+  const hasActiveFilters =
+    difficultyFilter.length > 0 ||
+    lastAskedFilter.length > 0 ||
+    (showStatusFilter && statusFilter.length > 0);
 
   return (
     <div className="mb-4 md:mb-6 p-3 md:p-4 bg-card rounded-xl shadow">
@@ -158,6 +168,25 @@ const ProblemListControlsComponent: React.FC<ProblemListControlsProps> = ({
               </Chip>
             ))}
           </div>
+        )}
+
+        {hasActiveFilters && (
+          <Button
+            variant="ghost"
+            onClick={() => {
+              if (onClearAll) {
+                onClearAll();
+              } else {
+                onDifficultyFilterChange([]);
+                onLastAskedFilterChange([]);
+                onStatusFilterChange([]);
+              }
+            }}
+            className={`${chipClassName} h-auto text-muted-foreground hover:text-foreground`}
+          >
+            <X className="mr-2 h-3 w-3 md:h-4 md:w-4" />
+            Clear filters
+          </Button>
         )}
       </div>
     </div>

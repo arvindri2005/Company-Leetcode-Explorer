@@ -252,6 +252,14 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
     [handleFilterChange]
   );
 
+  const handleClearAll = useCallback(() => {
+    handleFilterChange({
+      difficultyFilter: [],
+      lastAskedFilter: [],
+      statusFilter: [],
+    });
+  }, [handleFilterChange]);
+
   // -- Infinite Scroll Loader --
   const loadMore = useCallback(async () => {
     // If not mounted, abort early
@@ -412,15 +420,16 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
 
         <ProblemListControls
           difficultyFilter={currentFilters.difficultyFilter}
-        onDifficultyFilterChange={handleDifficultyChange}
-        sortKey={currentFilters.sortKey}
-        onSortKeyChange={handleSortKeyChange}
-        lastAskedFilter={currentFilters.lastAskedFilter}
-        onLastAskedFilterChange={handleLastAskedChange}
-        statusFilter={currentFilters.statusFilter}
-        onStatusFilterChange={handleStatusChange}
-        showStatusFilter={!!user} 
-      />
+          onDifficultyFilterChange={handleDifficultyChange}
+          sortKey={currentFilters.sortKey}
+          onSortKeyChange={handleSortKeyChange}
+          lastAskedFilter={currentFilters.lastAskedFilter}
+          onLastAskedFilterChange={handleLastAskedChange}
+          statusFilter={currentFilters.statusFilter}
+          onStatusFilterChange={handleStatusChange}
+          onClearAll={handleClearAll}
+          showStatusFilter={!!user}
+        />
 
       
       {displayedProblems.length === 0 ? (
