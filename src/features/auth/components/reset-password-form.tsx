@@ -25,6 +25,8 @@ import { useToast } from "@/hooks/use-toast";
 import { auth } from "@/lib/api/firebase";
 import { Logger } from "@/lib/utils/logger";
 
+import { SignupPasswordStrength } from "./signup-password-strength";
+
 export const resetPasswordSchema = z
   .object({
     password: z
@@ -188,7 +190,9 @@ export default function ResetPasswordForm({ oobCode }: ResetPasswordFormProps) {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>New Password</FormLabel>
+                <FormLabel>
+                  New Password <span className="text-destructive">*</span>
+                </FormLabel>
                 <FormControl>
                   <PasswordInput
                     placeholder="••••••••"
@@ -197,6 +201,7 @@ export default function ResetPasswordForm({ oobCode }: ResetPasswordFormProps) {
                     className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
                   />
                 </FormControl>
+                <SignupPasswordStrength password={field.value} />
                 <FormMessage role="alert" />
               </FormItem>
             )}
@@ -207,7 +212,9 @@ export default function ResetPasswordForm({ oobCode }: ResetPasswordFormProps) {
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Confirm Password</FormLabel>
+                <FormLabel>
+                  Confirm Password <span className="text-destructive">*</span>
+                </FormLabel>
                 <FormControl>
                   <PasswordInput
                     placeholder="••••••••"
