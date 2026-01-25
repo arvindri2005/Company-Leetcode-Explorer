@@ -123,9 +123,12 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
                     name="school"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>School/University</FormLabel>
+                        <FormLabel>
+                          School/University <span className="text-destructive">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input
+                            maxLength={100}
                             {...field}
                             placeholder="e.g. Stanford University"
                             autoFocus
@@ -142,9 +145,12 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
                     name="degree"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Degree</FormLabel>
+                        <FormLabel>
+                          Degree <span className="text-destructive">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input
+                            maxLength={100}
                             {...field}
                             placeholder="e.g. Bachelor of Science"
                             autoComplete="off"
@@ -160,9 +166,13 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
                     name="major"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Major/Field of Study</FormLabel>
+                        <FormLabel>
+                          Major/Field of Study{" "}
+                          <span className="text-destructive">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input
+                            maxLength={100}
                             {...field}
                             placeholder="e.g. Computer Science"
                             autoComplete="off"

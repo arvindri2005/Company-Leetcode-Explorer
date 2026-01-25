@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import type { WorkExperience } from "@/types";
 import { type WorkExperienceSchema as workExperienceFormSchema } from "@/types"; // Renamed for clarity
 
@@ -129,9 +130,12 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                     name="jobTitle"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Job Title</FormLabel>
+                        <FormLabel>
+                          Job Title <span className="text-destructive">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input
+                            maxLength={100}
                             {...field}
                             placeholder="e.g. Senior Software Engineer"
                             autoFocus
@@ -148,9 +152,12 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                     name="companyName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Company Name</FormLabel>
+                        <FormLabel>
+                          Company Name <span className="text-destructive">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input
+                            maxLength={100}
                             {...field}
                             placeholder="e.g. Tech Corp"
                             autoComplete="organization"
@@ -167,7 +174,10 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                       name="startDate"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Start Date (MM/YYYY)</FormLabel>
+                          <FormLabel>
+                            Start Date (MM/YYYY){" "}
+                            <span className="text-destructive">*</span>
+                          </FormLabel>
                           <FormControl>
                             <Input
                               {...field}
@@ -208,11 +218,23 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                     name="responsibilities"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Key Responsibilities (Optional)</FormLabel>
+                        <FormLabel className="flex justify-between items-center">
+                          <span>Key Responsibilities (Optional)</span>
+                          <span
+                            className={cn(
+                              "text-xs text-muted-foreground font-normal",
+                              (field.value?.length || 0) >= 1000 &&
+                                "text-destructive font-medium",
+                            )}
+                          >
+                            {field.value?.length || 0}/1000
+                          </span>
+                        </FormLabel>
                         <FormControl>
-                          <Textarea 
-                            {...field} 
-                            rows={3} 
+                          <Textarea
+                            maxLength={1000}
+                            {...field}
+                            rows={3}
                             placeholder="e.g. Led a team of 5 developers to ship a new feature..."
                           />
                         </FormControl>
