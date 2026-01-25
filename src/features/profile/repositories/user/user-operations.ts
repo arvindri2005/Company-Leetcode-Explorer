@@ -129,6 +129,13 @@ export class UserOperationsImpl implements UserOperations {
         throw new Error("User is not authenticated");
       }
 
+      if (data.displayName) {
+        // Security: Validate display name to prevent stored XSS or injection
+        if (/[<>]/.test(data.displayName)) {
+          throw new Error("Display name contains invalid characters.");
+        }
+      }
+
       const uid = currentUser.uid;
       const userDocRef = doc(db, "users", uid);
 
@@ -175,6 +182,9 @@ export class UserOperationsImpl implements UserOperations {
         updates.email = data.email;
       }
       if (data.displayName !== undefined) {
+        if (data.displayName && /[<>]/.test(data.displayName)) {
+          throw new Error("Display name contains invalid characters.");
+        }
         updates.displayName = data.displayName;
       }
       if (data.photoUrl !== undefined) {

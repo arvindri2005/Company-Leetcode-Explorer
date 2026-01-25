@@ -377,12 +377,39 @@ describe('UserRepository Security - Write Operations', () => {
 describe('UserRepository Security - XSS Prevention', () => {
   let repository: UserRepository;
   let addDocMock: any;
+  let setDocMock: any;
+  let updateDocMock: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
     repository = new UserRepository();
     const firestore = require('firebase/firestore');
     addDocMock = firestore.addDoc;
+    setDocMock = firestore.setDoc;
+    updateDocMock = firestore.updateDoc;
+  });
+
+  it('should block HTML characters in save (Create User)', async () => {
+    (auth as any).currentUser = { uid: 'user-123' };
+    const maliciousUser = {
+      email: 'test@example.com',
+      displayName: 'User <script>alert(1)</script>',
+    };
+
+    await expect(repository.save(maliciousUser)).rejects.toThrow('Display name contains invalid characters');
+    expect(setDocMock).not.toHaveBeenCalled();
+  });
+
+  it('should block HTML characters in update', async () => {
+    const userId = 'user-123';
+    (auth as any).currentUser = { uid: userId };
+
+    const maliciousUpdate = {
+      displayName: 'Updated <img src=x>',
+    };
+
+    await expect(repository.update(userId, maliciousUpdate)).rejects.toThrow('Display name contains invalid characters');
+    expect(updateDocMock).not.toHaveBeenCalled();
   });
 
   it('should block HTML characters in addUserEducation', async () => {
