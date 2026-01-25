@@ -9,11 +9,17 @@ export default async function CompaniesListContainer() {
   /* Fetch initial non-filtered data (Page 1) */
   const ITEMS_PER_PAGE = 30;
   
-  const companiesResult = await companyService.getCompanies({
-    page: 1,
-    pageSize: ITEMS_PER_PAGE,
-    searchTerm: "",
-  });
+  // ⚡ Bolt: Fetch companies and trending companies in parallel to reduce waterfall
+  const trendingSlugs = ["google", "amazon", "microsoft"];
+  
+  const [companiesResult, trendingResults] = await Promise.all([
+    companyService.getCompanies({
+      page: 1,
+      pageSize: ITEMS_PER_PAGE,
+      searchTerm: "",
+    }),
+    Promise.all(trendingSlugs.map((slug) => companyService.getCompanyBySlug(slug))),
+  ]);
 
   if (!companiesResult.isSuccess) {
     throw new Error(companiesResult.error.message);
@@ -21,13 +27,6 @@ export default async function CompaniesListContainer() {
 
   const { companies, hasMore, nextCursor } = companiesResult.value;
 
-  // Fetch trending
-  const trendingSlugs = ["google", "amazon", "microsoft"];
-  const trendingPromises = trendingSlugs.map((slug) =>
-    companyService.getCompanyBySlug(slug)
-  );
-
-  const trendingResults = await Promise.all(trendingPromises);
   const foundTrending = trendingResults
     .filter((result) => result.isSuccess)
     .map((result) => result.value);
