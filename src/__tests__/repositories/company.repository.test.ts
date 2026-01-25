@@ -8,7 +8,7 @@ import {
   limit, 
   orderBy, 
   query, 
-  setDoc, 
+  runTransaction,
   startAfter, 
   updateDoc, 
   where} from "firebase/firestore";
@@ -54,6 +54,7 @@ jest.mock("firebase/firestore", () => {
     setDoc: jest.fn(),
     updateDoc: jest.fn(),
     documentId: jest.fn(),
+    runTransaction: jest.fn(),
     Timestamp: MockTimestamp,
   };
 });
@@ -195,8 +196,14 @@ describe("CompanyRepository", () => {
   
   describe("addCompany", () => {
       it("should add a new company successfully", async () => {
-          // Mock getCompanyBySlug to return undefined (no duplicate)
-          (getDoc as jest.Mock).mockResolvedValue({ exists: () => false });
+          // Mock runTransaction to execute the callback successfully
+          const mockTransaction = {
+              get: jest.fn().mockResolvedValue({ exists: () => false }),
+              set: jest.fn(),
+          };
+          (runTransaction as jest.Mock).mockImplementation(async (_db: unknown, callback: (tx: typeof mockTransaction) => Promise<void>) => {
+              await callback(mockTransaction);
+          });
 
           const newCompanyData = {
               name: "New Corp",
@@ -207,7 +214,7 @@ describe("CompanyRepository", () => {
 
           expect(result.id).toBe("new-corp");
           expect(result.error).toBeUndefined();
-          expect(setDoc).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+          expect(mockTransaction.set).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
               name: "New Corp",
               normalizedName: "new corp",
               slug: "new-corp"
@@ -215,14 +222,20 @@ describe("CompanyRepository", () => {
       });
 
       it("should return error if company already exists", async () => {
-           // Mock getCompanyBySlug to return existing company
-           (getDoc as jest.Mock).mockResolvedValue(mockCompanyDoc);
+           // Mock runTransaction to throw ALREADY_EXISTS error when company exists
+           const mockTransaction = {
+               get: jest.fn().mockResolvedValue({ exists: () => true }),
+               set: jest.fn(),
+           };
+           (runTransaction as jest.Mock).mockImplementation(async (_db: unknown, callback: (tx: typeof mockTransaction) => Promise<void>) => {
+               await callback(mockTransaction);
+           });
            
            const result = await companyRepository.addCompany({ name: "Google" });
            
-           expect(result.id).toBe("1"); // Returns existing ID
+           expect(result.id).toBe("google"); // Returns slug of the company name
            expect(result.alreadyExists).toBe(true);
-           expect(setDoc).not.toHaveBeenCalled();
+           expect(mockTransaction.set).not.toHaveBeenCalled();
       });
 
        it("should return error if validation fails", async () => {

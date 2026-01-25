@@ -40,6 +40,15 @@ jest.mock("firebase/firestore", () => {
     where: jest.fn((field, op, val) => ({ type: "where", field, op, val })),
     orderBy: jest.fn(),
     getDocs: jest.fn(() => ({ docs: [] })),
+    runTransaction: jest.fn(async (db, callback) => {
+      const transactionMock = {
+        get: jest.fn().mockResolvedValue({ exists: () => false }),
+        set: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+      };
+      return callback(transactionMock);
+    }),
   };
 });
 

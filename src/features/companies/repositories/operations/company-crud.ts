@@ -12,7 +12,7 @@ import {
   getDocs,
   limit,
   query,
-  setDoc,
+  runTransaction,
   Timestamp,
   updateDoc,
 } from "firebase/firestore";
@@ -203,50 +203,70 @@ export class CompanyCrud implements CompanyCrudOperations {
 
       const normalizedName = safeData.name.toLowerCase().trim();
 
-      const existingCompany = await this.getCompanyBySlug(companySlug);
-      if (existingCompany) {
+      // Security: Use transaction to prevent race conditions (TOCTOU)
+      await runTransaction(getFirestore(), async (transaction) => {
+        const companiesCol = collection(getFirestore(), "companies");
+        const docRef = doc(companiesCol, companySlug);
+
+        // Check existence inside transaction
+        const docSnap = await transaction.get(docRef);
+
+        if (docSnap.exists()) {
+          throw new Error("ALREADY_EXISTS");
+        }
+
+        const dataForFirestore: Omit<Company, "id"> = {
+          name: safeData.name.trim(),
+          normalizedName,
+          slug: companySlug,
+          logo: safeData.logo,
+          description: safeData.description?.trim(),
+          website: safeData.website?.trim(),
+          problemCount: 0,
+          difficultyCounts: { Easy: 0, Medium: 0, Hard: 0 },
+          recencyCounts: {
+            last_30_days: 0,
+            within_3_months: 0,
+            within_6_months: 0,
+            older_than_6_months: 0,
+          },
+          commonTags: [],
+          relatedCompanies: safeData.relatedCompanies || [],
+          statsLastUpdatedAt: undefined,
+        };
+
+        // Clean up undefined values
+        Object.keys(dataForFirestore).forEach((key) => {
+          if (
+            dataForFirestore[key as keyof typeof dataForFirestore] === undefined
+          ) {
+            delete dataForFirestore[key as keyof typeof dataForFirestore];
+          }
+        });
+
+        transaction.set(docRef, dataForFirestore);
+      });
+
+      return { id: companySlug };
+    } catch (error) {
+      if (error instanceof Error && error.message === "ALREADY_EXISTS") {
         return {
-          id: existingCompany.id,
-          error: `Company with name "${safeData.name}" already exists.`,
+          // slugify(safeData.name) would be same as companySlug but safeData is not in scope here if define inside try?
+          // Wait, safeData is defined before try in original code? No, inside try.
+          // In my replacement block above, I need to ensure companySlug is available.
+          // Ah, I am replacing the whole block including variable declarations.
+          // BUT the catch block is closing the function's try/catch.
+          // In the original code, `try` wraps EVERYTHING.
+          // So `safeData` is defined INSIDE the `try` block.
+          // If I throw "ALREADY_EXISTS", I am in the catch block.
+          // I can access `companyData.name` but not `safeData` or `companySlug` easily if they were defined inside try.
+          // However, I can re-slugify `companyData.name`.
+          id: slugify(companyData.name!),
+          error: `Company with name "${companyData.name}" already exists.`,
           alreadyExists: true,
         };
       }
 
-      const dataForFirestore: Omit<Company, "id"> = {
-        name: safeData.name.trim(),
-        normalizedName,
-        slug: companySlug,
-        logo: safeData.logo,
-        description: safeData.description?.trim(),
-        website: safeData.website?.trim(),
-        problemCount: 0,
-        difficultyCounts: { Easy: 0, Medium: 0, Hard: 0 },
-        recencyCounts: {
-          last_30_days: 0,
-          within_3_months: 0,
-          within_6_months: 0,
-          older_than_6_months: 0,
-        },
-        commonTags: [],
-        relatedCompanies: safeData.relatedCompanies || [],
-        statsLastUpdatedAt: undefined,
-      };
-
-      // Clean up undefined values
-      Object.keys(dataForFirestore).forEach((key) => {
-        if (
-          dataForFirestore[key as keyof typeof dataForFirestore] === undefined
-        ) {
-          delete dataForFirestore[key as keyof typeof dataForFirestore];
-        }
-      });
-
-      const companiesCol = collection(getFirestore(), "companies");
-      const docRef = doc(companiesCol, companySlug);
-      await setDoc(docRef, dataForFirestore);
-
-      return { id: companySlug };
-    } catch (error) {
       const message =
         error instanceof Error
           ? error.message
