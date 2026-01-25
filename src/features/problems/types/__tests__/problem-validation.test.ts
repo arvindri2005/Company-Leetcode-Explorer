@@ -85,6 +85,23 @@ describe("Problem Validation Schemas", () => {
         });
     });
 
+    it("should not reject valid descriptions with words starting with 'on'", () => {
+        const falsePositives = [
+            "Let one = 1",
+            "The only = sign here is math.",
+            "Once = initialized, it runs.",
+            "action on click = expected behavior (text description)" // This is arguably safe text
+        ];
+
+        falsePositives.forEach((description) => {
+            const result = CreateProblemSchema.safeParse({
+                ...validBase,
+                description,
+            });
+            expect(result.success).toBe(true);
+        });
+    });
+
     it("should reject descriptions that are too long", () => {
         const longDescription = "a".repeat(10001);
         const result = CreateProblemSchema.safeParse({
@@ -92,6 +109,24 @@ describe("Problem Validation Schemas", () => {
             description: longDescription,
         });
         expect(result.success).toBe(false);
+    });
+
+    it("should reject descriptions with potential XSS vectors", () => {
+        const xssDescriptions = [
+            "<script>alert(1)</script>",
+            "Click <a href='javascript:alert(1)'>here</a>",
+            "<img src=x onerror=alert(1)>",
+            "<iframe src='http://evil.com'></iframe>",
+            "malicious <object data='data:text/html;base64,...'></object>",
+        ];
+
+        xssDescriptions.forEach((description) => {
+            const result = CreateProblemSchema.safeParse({
+                ...validBase,
+                description,
+            });
+            expect(result.success).toBe(false);
+        });
     });
   });
 });

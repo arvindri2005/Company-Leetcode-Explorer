@@ -86,7 +86,67 @@ const SafeTitleSchema = z
 const SafeDescriptionSchema = z
   .string()
   .max(10000)
-  .optional();
+  .optional()
+  .refine(
+    (val) => {
+      if (!val) {
+        return true;
+      }
+      const lower = val.toLowerCase();
+      // Block common XSS vectors
+      if (lower.includes("<script")) {
+        return false;
+      }
+      if (lower.includes("<iframe")) {
+        return false;
+      }
+      if (lower.includes("<object")) {
+        return false;
+      }
+      if (lower.includes("<embed")) {
+        return false;
+      }
+      if (lower.includes("javascript:")) {
+        return false;
+      }
+      // Block event handlers (e.g. onload=, onclick=)
+      // We check for specific common event handlers to avoid false positives like "one ="
+      const dangerousEvents = [
+        "onload",
+        "onerror",
+        "onclick",
+        "onmouseover",
+        "onmouseout",
+        "onmouseenter",
+        "onmouseleave",
+        "onfocus",
+        "onblur",
+        "onchange",
+        "onsubmit",
+        "onreset",
+        "onkeydown",
+        "onkeypress",
+        "onkeyup",
+        "oninput",
+        "onanimationstart",
+        "ondrag",
+        "ondrop",
+      ];
+      const eventRegex = new RegExp(
+        `\\b(${dangerousEvents.join("|")})\\s*=`,
+        "i",
+      );
+
+      if (eventRegex.test(lower)) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message:
+        "Description contains potential security risks (scripts, iframes, or event handlers).",
+    },
+  );
 
 const SafeTagSchema = z
   .string()
