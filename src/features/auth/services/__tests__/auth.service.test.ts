@@ -178,5 +178,41 @@ describe("AuthService", () => {
       await authService.syncUserProfile(mockUser);
       expect(userService.syncUserProfile).toHaveBeenCalledTimes(2);
     });
+
+    it("should allow forced sync to proceed even if another sync is in progress", async () => {
+      const mockUser = {
+        uid: "test-uid",
+        email: "test@example.com",
+        displayName: "Test User",
+      } as FirebaseUser;
+
+      let resolveSync: (value: any) => void;
+      const syncPromise = new Promise((resolve) => {
+        resolveSync = resolve;
+      });
+
+      // Mock first sync to hang
+      (userService.syncUserProfile as jest.Mock).mockImplementationOnce(
+        () => syncPromise
+      );
+      // Mock second sync to resolve immediately
+      (userService.syncUserProfile as jest.Mock).mockImplementationOnce(() =>
+        Promise.resolve(success())
+      );
+
+      // Start first sync (non-forced)
+      const firstCall = authService.syncUserProfile(mockUser, false);
+
+      // Start second sync (forced)
+      const secondCall = authService.syncUserProfile(mockUser, true);
+
+      // Resolve the first sync
+      resolveSync!(success());
+
+      await Promise.all([firstCall, secondCall]);
+
+      // Both should have been called
+      expect(userService.syncUserProfile).toHaveBeenCalledTimes(2);
+    });
   });
 });

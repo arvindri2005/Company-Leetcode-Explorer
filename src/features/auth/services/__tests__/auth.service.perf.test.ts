@@ -86,7 +86,7 @@ describe("AuthService Performance", () => {
       expect(userService.syncUserProfile).toHaveBeenCalledTimes(2);
     });
     
-     it("should reuse the in-progress promise even if the second call is forced", async () => {
+     it("should start a new sync when forced, even if sync is in progress", async () => {
       const mockUser = {
         uid: "test-uid-perf",
         email: "perf@example.com",
@@ -101,12 +101,12 @@ describe("AuthService Performance", () => {
 
       // Launch two concurrent requests, second one forced
       const promise1 = authService.syncUserProfile(mockUser, false); // Initiates sync
-      const promise2 = authService.syncUserProfile(mockUser, true);  // Should reuse sync
+      const promise2 = authService.syncUserProfile(mockUser, true);  // Force bypasses deduplication
 
       await Promise.all([promise1, promise2]);
 
-      // Should only call service once
-      expect(userService.syncUserProfile).toHaveBeenCalledTimes(1);
+      // Force=true bypasses deduplication, so both calls trigger API
+      expect(userService.syncUserProfile).toHaveBeenCalledTimes(2);
     });
   });
 });

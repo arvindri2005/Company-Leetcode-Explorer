@@ -120,7 +120,7 @@ export class AuthService {
     }
 
     // Performance: Deduplicate concurrent sync requests
-    if (this.syncInProgress) {
+    if (this.syncInProgress && !force) {
       return this.syncInProgress;
     }
 
