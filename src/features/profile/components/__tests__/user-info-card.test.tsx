@@ -51,6 +51,18 @@ describe("UserInfoCard", () => {
     expect(screen.getByText("Member since January 2023")).toBeInTheDocument();
   });
 
+  it("renders tooltip trigger for email address", () => {
+    render(
+      <Wrapper>
+        <UserInfoCard {...defaultProps} />
+      </Wrapper>
+    );
+
+    const emailTrigger = screen.getByRole("button", { name: `Email: ${defaultProps.user.email}` });
+    expect(emailTrigger).toBeInTheDocument();
+    expect(emailTrigger).toHaveClass("cursor-help");
+  });
+
   it("renders edit form when isEditingDisplayName is true", () => {
     render(
       <Wrapper>

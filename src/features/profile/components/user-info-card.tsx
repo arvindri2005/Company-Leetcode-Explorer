@@ -25,6 +25,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type DisplayNameFormValues = {
   displayName: string;
@@ -116,12 +122,26 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                     )}
                   </div>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1.5">
-                      <Mail className="h-3.5 w-3.5" aria-hidden="true" />
-                      <span className="truncate max-w-[200px] sm:max-w-none">
-                        {user.email}
-                      </span>
-                    </div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div
+                            className="flex items-center gap-1.5 cursor-help focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
+                            tabIndex={0}
+                            role="button"
+                            aria-label={`Email: ${user.email}`}
+                          >
+                            <Mail className="h-3.5 w-3.5" aria-hidden="true" />
+                            <span className="truncate max-w-[200px] sm:max-w-none">
+                              {user.email}
+                            </span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{user.email}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     {user.metadata.creationTime && (
                       <div className="flex items-center gap-1.5">
                         <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
