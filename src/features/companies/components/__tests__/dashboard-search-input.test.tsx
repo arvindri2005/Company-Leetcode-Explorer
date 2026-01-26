@@ -16,8 +16,9 @@ jest.mock("use-debounce", () => ({
   useDebouncedCallback: jest.fn(),
 }));
 
-jest.mock("@/features/tools/hooks/use-typing-placeholder", () => ({
-  useTypingPlaceholder: () => "Google",
+// Mock the new hook to avoid animation logic in tests
+jest.mock("@/features/companies/hooks", () => ({
+  useTypingPlaceholderRef: jest.fn(),
 }));
 
 describe("DashboardSearchInput", () => {

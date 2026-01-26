@@ -8,7 +8,7 @@ import { Search, X } from "lucide-react";
 import { useDebouncedCallback } from "use-debounce";
 
 import { Input } from "@/components/ui/input";
-import { useTypingPlaceholder } from "@/features/tools/hooks/use-typing-placeholder";
+import { useTypingPlaceholderRef } from "@/features/companies/hooks";
 
 const COMPANIES = [
   "Google",
@@ -32,7 +32,7 @@ export function DashboardSearchInput() {
     setSearchTerm(initialSearch);
   }, [initialSearch]);
 
-  const placeholder = useTypingPlaceholder(COMPANIES);
+  useTypingPlaceholderRef(COMPANIES, inputRef);
 
   const debouncedSearch = useDebouncedCallback((term: string) => {
     const params = new URLSearchParams(searchParams);
@@ -57,7 +57,7 @@ export function DashboardSearchInput() {
         <Input
           ref={inputRef}
           type="text"
-          placeholder={`Search for ${placeholder}|`}
+          placeholder="Search for |"
           className="w-full bg-transparent border-none text-white placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0 py-6 pl-6 pr-24 rounded-full text-lg"
           value={searchTerm}
           onChange={(e) => handleInputChange(e.target.value)}
