@@ -223,8 +223,8 @@ export default function SignupForm() {
             >
               <FormItem>
                 <FormLabel>Display Name</FormLabel>
-                <FormControl>
-                  <div className="relative">
+                <div className="relative">
+                  <FormControl>
                     <Input
                       placeholder="Your Name"
                       {...field}
@@ -233,20 +233,20 @@ export default function SignupForm() {
                       className="h-11 pr-10 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
                       disabled={isSubmitting}
                     />
-                    <div
-                      className={cn(
-                        "absolute right-3 top-3 text-green-500 transition-all duration-200 ease-in-out pointer-events-none",
-                        field.value &&
-                          signupFormSchema.shape.displayName.safeParse(field.value)
-                            .success
-                          ? "opacity-100 scale-100"
-                          : "opacity-0 scale-75",
-                      )}
-                    >
-                      <Check className="h-4 w-4" />
-                    </div>
+                  </FormControl>
+                  <div
+                    className={cn(
+                      "absolute right-3 top-3 text-green-500 transition-all duration-200 ease-in-out pointer-events-none",
+                      field.value &&
+                        signupFormSchema.shape.displayName.safeParse(field.value)
+                          .success
+                        ? "opacity-100 scale-100"
+                        : "opacity-0 scale-75",
+                    )}
+                  >
+                    <Check className="h-4 w-4" aria-hidden="true" />
                   </div>
-                </FormControl>
+                </div>
                 <FormMessage role="alert" />
               </FormItem>
             </div>
@@ -262,8 +262,8 @@ export default function SignupForm() {
             >
               <FormItem>
                 <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <div className="relative">
+                <div className="relative">
+                  <FormControl>
                     <Input
                       type="email"
                       inputMode="email"
@@ -273,20 +273,20 @@ export default function SignupForm() {
                       className="h-11 pr-10 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
                       disabled={isSubmitting}
                     />
-                    <div
-                      className={cn(
-                        "absolute right-3 top-3 text-green-500 transition-all duration-200 ease-in-out pointer-events-none",
-                        field.value &&
-                          signupFormSchema.shape.email.safeParse(field.value)
-                            .success
-                          ? "opacity-100 scale-100"
-                          : "opacity-0 scale-75",
-                      )}
-                    >
-                      <Check className="h-4 w-4" />
-                    </div>
+                  </FormControl>
+                  <div
+                    className={cn(
+                      "absolute right-3 top-3 text-green-500 transition-all duration-200 ease-in-out pointer-events-none",
+                      field.value &&
+                        signupFormSchema.shape.email.safeParse(field.value)
+                          .success
+                        ? "opacity-100 scale-100"
+                        : "opacity-0 scale-75",
+                    )}
+                  >
+                    <Check className="h-4 w-4" aria-hidden="true" />
                   </div>
-                </FormControl>
+                </div>
                 <FormMessage role="alert" />
               </FormItem>
             </div>
