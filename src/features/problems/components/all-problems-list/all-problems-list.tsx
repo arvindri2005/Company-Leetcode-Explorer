@@ -5,7 +5,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { usePathname,useRouter, useSearchParams } from "next/navigation";
 
+import { SearchX } from "lucide-react";
+
 import AdPlaceholder from "@/components/ads/ad-placeholder";
+import { Button } from "@/components/ui/button";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -433,9 +436,21 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
 
       
       {displayedProblems.length === 0 ? (
-          <p className="text-center text-muted-foreground py-10">
-            No problems match the current filters.
+        <div className="flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed border-muted rounded-lg bg-muted/50 text-center animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-background p-3 rounded-full shadow-sm mb-4">
+            <SearchX className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-1">
+            No problems found
+          </h3>
+          <p className="text-sm text-muted-foreground max-w-sm mb-6">
+            We couldn&apos;t find any problems matching your current filters. Try
+            adjusting your criteria.
           </p>
+          <Button variant="outline" onClick={handleClearAll}>
+            Clear all filters
+          </Button>
+        </div>
       ) : (
         <div className="space-y-4">
           {displayedProblems.map((problem, index) => {

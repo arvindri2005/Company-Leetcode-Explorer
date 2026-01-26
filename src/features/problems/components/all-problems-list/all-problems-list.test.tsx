@@ -132,7 +132,8 @@ describe("AllProblemsList", () => {
       );
       
       await waitFor(() => {
-          expect(screen.getByText(/No problems match/)).toBeInTheDocument();
+          expect(screen.getByText(/No problems found/)).toBeInTheDocument();
+          expect(screen.getByRole("button", { name: /Clear all filters/i })).toBeInTheDocument();
       });
     });
 });
