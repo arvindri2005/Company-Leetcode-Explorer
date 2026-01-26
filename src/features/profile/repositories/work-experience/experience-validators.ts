@@ -39,7 +39,9 @@ export class ExperienceValidatorsImpl implements ExperienceValidators {
     userId: string
   ): { isValid: boolean; error?: string; data?: unknown } {
     // Validate data using Zod schema
-    const validationResult = WorkExperienceSchema.omit({ id: true }).safeParse(workData);
+    // Note: We cannot use .omit() here because WorkExperienceSchema contains refinements
+    // The id field is optional in the schema anyway, so this is safe
+    const validationResult = WorkExperienceSchema.safeParse(workData);
 
     if (!validationResult.success) {
       const errorMessage = validationResult.error.issues.map((e) => e.message).join(", ");

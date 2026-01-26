@@ -17,6 +17,8 @@ import { db } from "@/lib/api/firebase";
 import { Logger } from "@/lib/utils/logger";
 import type { EducationExperience } from "@/types";
 
+import { EducationValidatorsImpl } from "./education-validators";
+
 const MAX_PAGE_SIZE = 50;
 
 /**
@@ -41,6 +43,8 @@ export interface EducationOperations {
  * Implementation of education operations
  */
 export class EducationOperationsImpl implements EducationOperations {
+  private validators = new EducationValidatorsImpl();
+
   /**
    * Get user's education history
    * @param userId - The user's unique identifier
@@ -79,6 +83,12 @@ export class EducationOperationsImpl implements EducationOperations {
   ): Promise<{ id: string | null; error?: string }> {
     if (!userId) {
       return { id: null, error: "User ID is required." };
+    }
+
+    // Security: Validate data to prevent XSS and ensure data integrity
+    const validation = this.validators.validateEducationData(educationData, userId);
+    if (!validation.isValid) {
+      return { id: null, error: validation.error };
     }
 
     try {

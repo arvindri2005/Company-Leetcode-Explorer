@@ -17,6 +17,8 @@ import { db } from "@/lib/api/firebase";
 import { Logger } from "@/lib/utils/logger";
 import type { WorkExperience } from "@/types";
 
+import { ExperienceValidatorsImpl } from "./experience-validators";
+
 const MAX_PAGE_SIZE = 50;
 
 /**
@@ -41,6 +43,8 @@ export interface ExperienceOperations {
  * Implementation of work experience operations
  */
 export class ExperienceOperationsImpl implements ExperienceOperations {
+  private validators = new ExperienceValidatorsImpl();
+
   /**
    * Get user's work experience
    * @param userId - The user's unique identifier
@@ -79,6 +83,12 @@ export class ExperienceOperationsImpl implements ExperienceOperations {
   ): Promise<{ id: string | null; error?: string }> {
     if (!userId) {
       return { id: null, error: "User ID is required." };
+    }
+
+    // Security: Validate data to prevent XSS and ensure data integrity
+    const validation = this.validators.validateWorkExperienceData(workData, userId);
+    if (!validation.isValid) {
+      return { id: null, error: validation.error };
     }
 
     try {
