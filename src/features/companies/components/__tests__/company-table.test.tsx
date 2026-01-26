@@ -68,6 +68,17 @@ describe("CompanyTable", () => {
     expect(link2).toHaveAttribute("href", "/company/startup-inc");
   });
 
+  it("renders clickable company identity links", () => {
+    render(<CompanyTable companies={mockCompanies} />);
+    
+    // The identity link name is derived from image alt text + company name text
+    // "TechCorp logo" + "TechCorp"
+    const identityLink = screen.getByRole("link", { name: /TechCorp logo/i });
+    expect(identityLink).toBeInTheDocument();
+    expect(identityLink).toHaveAttribute("href", "/company/tech-corp");
+    expect(identityLink).toHaveTextContent("TechCorp");
+  });
+
   it("handles companies with no tags", () => {
     render(<CompanyTable companies={mockCompanies} />);
     // StartupInc should show "No tags" text

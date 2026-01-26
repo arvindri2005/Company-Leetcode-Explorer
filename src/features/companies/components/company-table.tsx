@@ -57,7 +57,10 @@ const CompanyRow = React.memo(function CompanyRow({
   return (
     <tr className="group hover:bg-white/[0.02] transition-colors">
       <td className="p-4">
-        <div className="flex items-center gap-3">
+        <Link
+          href={`/company/${company.slug}`}
+          className="flex items-center gap-3 group/link focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 rounded-lg p-1 -m-1"
+        >
           <div className="relative w-10 h-10 bg-white rounded-lg p-1.5 flex items-center justify-center flex-shrink-0 overflow-hidden">
             <OfflineImage
               src={imgSrc}
@@ -68,10 +71,10 @@ const CompanyRow = React.memo(function CompanyRow({
               className="object-contain"
             />
           </div>
-          <span className="font-medium text-white group-hover:text-teal-400 transition-colors capitalize">
+          <span className="font-medium text-white group-hover/link:text-teal-400 transition-colors capitalize">
             {company.name}
           </span>
-        </div>
+        </Link>
       </td>
       <td className="p-4 text-gray-400 hidden md:table-cell">
         <div className="flex flex-wrap gap-2">
