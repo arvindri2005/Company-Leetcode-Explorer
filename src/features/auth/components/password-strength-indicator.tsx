@@ -6,43 +6,43 @@ interface PasswordStrengthIndicatorProps {
   score: number; // 0 to 4
 }
 
+const getStrengthColor = (score: number) => {
+  switch (score) {
+    case 0:
+      return "bg-muted";
+    case 1:
+      return "bg-red-500";
+    case 2:
+      return "bg-orange-500";
+    case 3:
+      return "bg-yellow-500";
+    case 4:
+      return "bg-green-500";
+    default:
+      return "bg-muted";
+  }
+};
+
+const getStrengthText = (score: number) => {
+  switch (score) {
+    case 0:
+      return "Enter password";
+    case 1:
+      return "Weak";
+    case 2:
+      return "Fair";
+    case 3:
+      return "Good";
+    case 4:
+      return "Strong";
+    default:
+      return "";
+  }
+};
+
 export const PasswordStrengthIndicator = memo(function PasswordStrengthIndicator({
   score,
 }: PasswordStrengthIndicatorProps) {
-  const getStrengthColor = (score: number) => {
-    switch (score) {
-      case 0:
-        return "bg-muted";
-      case 1:
-        return "bg-red-500";
-      case 2:
-        return "bg-orange-500";
-      case 3:
-        return "bg-yellow-500";
-      case 4:
-        return "bg-green-500";
-      default:
-        return "bg-muted";
-    }
-  };
-
-  const getStrengthText = (score: number) => {
-    switch (score) {
-      case 0:
-        return "Enter password";
-      case 1:
-        return "Weak";
-      case 2:
-        return "Fair";
-      case 3:
-        return "Good";
-      case 4:
-        return "Strong";
-      default:
-        return "";
-    }
-  };
-
   return (
     <div
       className="space-y-2"

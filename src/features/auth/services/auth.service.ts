@@ -119,65 +119,101 @@ export class AuthService {
       }
     }
 
-    // Performance: Deduplicate concurrent sync requests
-    if (this.syncInProgress && !force) {
-      return this.syncInProgress;
+    // Performance: Handle concurrent sync requests
+    // 1. If not forced, return existing promise (deduplicate)
+    // 2. If forced, chain execution to ensure it runs AFTER the current one (prevent race conditions)
+    if (this.syncInProgress) {
+      if (!force) {
+        return this.syncInProgress;
+      }
+
+      const previousSync = this.syncInProgress;
+      const chainedPromise = (async () => {
+        try {
+          await previousSync;
+        } catch {
+          // Ignore error from previous sync, proceed with forced sync
+        }
+        return this.performSync(firebaseUser, storageKey);
+      })();
+
+      this.syncInProgress = chainedPromise;
+      chainedPromise.finally(() => {
+        if (this.syncInProgress === chainedPromise) {
+          this.syncInProgress = null;
+        }
+      });
+
+      return chainedPromise;
     }
 
-    this.syncInProgress = (async () => {
-      try {
-        // Security: Sanitize display name before passing to service layer (Defense in Depth)
-        let sanitizedDisplayName = firebaseUser.displayName;
-        if (sanitizedDisplayName) {
-          sanitizedDisplayName = sanitizedDisplayName.trim();
-          // Truncate if too long (max 50 chars to match user repository limit)
-          if (sanitizedDisplayName.length > 50) {
-            sanitizedDisplayName = sanitizedDisplayName.substring(0, 50);
-          }
+    const syncPromise = this.performSync(firebaseUser, storageKey);
+    this.syncInProgress = syncPromise;
+    syncPromise.finally(() => {
+      if (this.syncInProgress === syncPromise) {
+        this.syncInProgress = null;
+      }
+    });
+
+    return syncPromise;
+  }
+
+  /**
+   * @description Internal method to perform the actual sync operation
+   * @private
+   */
+  private async performSync(
+    firebaseUser: FirebaseUser,
+    storageKey: string,
+  ): Promise<AuthServiceResponse> {
+    try {
+      // Security: Sanitize display name before passing to service layer (Defense in Depth)
+      let sanitizedDisplayName = firebaseUser.displayName;
+      if (sanitizedDisplayName) {
+        sanitizedDisplayName = sanitizedDisplayName.trim();
+        // Truncate if too long (max 50 chars to match user repository limit)
+        if (sanitizedDisplayName.length > 50) {
+          sanitizedDisplayName = sanitizedDisplayName.substring(0, 50);
         }
+      }
 
-        const result = await userService.syncUserProfile(
-          firebaseUser.email,
-          sanitizedDisplayName
-        );
+      const result = await userService.syncUserProfile(
+        firebaseUser.email,
+        sanitizedDisplayName,
+      );
 
-        if (!result.isSuccess) {
-          Logger.error("Failed to sync user profile", result.error, {
-            userId: firebaseUser.uid,
-          });
-          return {
-            success: false,
-            error: "Failed to sync user profile. Please try again.",
-          };
-        }
-
-        // Update cache on success
-        this.syncedUserId = firebaseUser.uid;
-        if (typeof window !== "undefined") {
-          try {
-            sessionStorage.setItem(storageKey, "true");
-          } catch {
-            // Ignore storage errors
-          }
-        }
-
-        return {
-          success: true,
-        };
-      } catch (error) {
-        Logger.error("Error calling syncUserProfile", error, {
+      if (!result.isSuccess) {
+        Logger.error("Failed to sync user profile", result.error, {
           userId: firebaseUser.uid,
         });
         return {
           success: false,
           error: "Failed to sync user profile. Please try again.",
         };
-      } finally {
-        this.syncInProgress = null;
       }
-    })();
 
-    return this.syncInProgress;
+      // Update cache on success
+      this.syncedUserId = firebaseUser.uid;
+      if (typeof window !== "undefined") {
+        try {
+          sessionStorage.setItem(storageKey, "true");
+        } catch {
+          // Ignore storage errors
+        }
+      }
+
+      return {
+        success: true,
+      };
+    } catch (error) {
+      Logger.error("Error calling syncUserProfile", error, {
+        userId: firebaseUser.uid,
+      });
+      return {
+        success: false,
+        error: "Failed to sync user profile. Please try again.",
+      };
+    }
   }
 
   /**
