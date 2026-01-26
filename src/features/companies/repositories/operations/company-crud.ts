@@ -21,12 +21,16 @@ import { db } from "@/lib/api/firebase";
 import { slugify } from "@/lib/utils";
 import { Logger } from "@/lib/utils/logger";
 import type { Company } from "@/types";
-import { CompanySchema } from "@/types";
 
 import type {
   CreateCompanyDTO,
   UpdateCompanyDTO,
 } from "../../interfaces/company.repository.interface";
+import {
+  sanitizeUpdateData,
+  validateCreateCompany,
+  validateUpdateCompany,
+} from "../validators/company-validators";
 
 const MAX_ALL_SLUGS_LIMIT = 10000;
 
@@ -170,22 +174,11 @@ export class CompanyCrud implements CompanyCrudOperations {
     companyData: CreateCompanyDTO
   ): Promise<{ id: string | null; error?: string; alreadyExists?: boolean }> {
     try {
-      if (!companyData.name?.trim()) {
-        return { id: null, error: "Company name is required" };
-      }
+      // Security: Use centralized validator to ensure consistency and DRY
+      const validation = validateCreateCompany(companyData);
 
-      // Pre-validate input using Zod (partial schema since some fields are auto-generated)
-      const PartialCompanySchema = CompanySchema.pick({
-        name: true,
-        logo: true,
-        description: true,
-        website: true,
-        relatedCompanies: true,
-      });
-
-      const validation = PartialCompanySchema.safeParse(companyData);
-      if (!validation.success) {
-        return { id: null, error: validation.error.issues[0].message };
+      if (!validation.success || !validation.data) {
+        return { id: null, error: validation.error || "Validation failed" };
       }
 
       // Security: Use validated data
@@ -288,38 +281,16 @@ export class CompanyCrud implements CompanyCrudOperations {
         return { success: false, error: "Company ID is required" };
       }
 
-      // Validate input using Zod (partial schema)
-      // This protects against invalid data types and malicious inputs (e.g. javascript: URLs)
-      const validation = CompanySchema.partial().safeParse(companyData);
-      if (!validation.success) {
-        return { success: false, error: validation.error.issues[0].message };
+      // Security: Use centralized validator to ensure consistency and DRY
+      const validation = validateUpdateCompany(companyData);
+      if (!validation.success || !validation.data) {
+        return { success: false, error: validation.error || "Validation failed" };
       }
 
-      // Security: Use validated data to strip unknown fields (Mass Assignment prevention)
-      const updates: Record<string, unknown> = { ...validation.data };
-
-      // Remove fields that shouldn't be updated directly
-      delete updates.id;
-      delete updates.slug;
-      delete updates.normalizedName;
-
-      if (updates.name && typeof updates.name === "string") {
-        updates.normalizedName = updates.name.toLowerCase().trim();
-      }
-
-      // Security: Prevent Mass Assignment of computed/readonly fields
-      // These fields should only be updated by the system (e.g., ProblemRepository)
-      delete updates.problemCount;
-      delete updates.difficultyCounts;
-      delete updates.recencyCounts;
-      delete updates.commonTags;
-      delete updates.statsLastUpdatedAt;
-
-      Object.keys(updates).forEach((key) => {
-        if (updates[key] === undefined) {
-          delete updates[key];
-        }
-      });
+      // Security: Sanitize update data (Mass Assignment prevention)
+      const updates = sanitizeUpdateData(
+        validation.data as unknown as Record<string, unknown>
+      );
 
       const companyDocRef = doc(getFirestore(), "companies", companyId);
       await updateDoc(companyDocRef, updates);
