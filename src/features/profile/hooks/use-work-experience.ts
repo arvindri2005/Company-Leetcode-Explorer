@@ -76,7 +76,14 @@ export function useWorkExperience(user: FirebaseUser | null): WorkExperienceData
         title: "Work Experience Added",
         description: "Your work history has been updated.",
       });
-      fetchWorkExperience(); // Re-fetch
+
+      const newWorkExperience: WorkExperience = {
+        id: result.value.id,
+        ...data,
+      };
+
+      // Optimistically update local state to avoid an extra network fetch
+      setWorkExperience((prev) => [...prev, newWorkExperience]);
       setIsWorkDialogOpen(false);
     } else {
       toast({

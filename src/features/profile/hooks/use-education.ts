@@ -76,7 +76,14 @@ export function useEducation(user: FirebaseUser | null): EducationData {
         title: "Education Added",
         description: "Your educational background has been updated.",
       });
-      fetchEducation(); // Re-fetch to get the latest list including the new ID
+
+      const newEducation: EducationExperience = {
+        id: result.value.id,
+        ...data,
+      };
+
+      // Optimistically update local state to avoid an extra network fetch
+      setEducationHistory((prev) => [...prev, newEducation]);
       setIsEducationDialogOpen(false);
     } else {
       toast({
