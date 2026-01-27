@@ -86,6 +86,12 @@ const ProblemList: React.FC<ProblemListProps> = ({
   const [bookmarkedProblemIds, setBookmarkedProblemIds] = useState<Set<string>>(new Set());
   const [areGlobalStatsLoaded, setAreGlobalStatsLoaded] = useState(false);
 
+  // Optimization: Track global stats loaded state in a ref to use in callbacks without dependency changes
+  const areGlobalStatsLoadedRef = useRef(areGlobalStatsLoaded);
+  useEffect(() => {
+    areGlobalStatsLoadedRef.current = areGlobalStatsLoaded;
+  }, [areGlobalStatsLoaded]);
+
   // -- Helper to derive current filters from URL --
   // Optimization: Use searchParams directly instead of redundant cloning
   // Optimization: Memoize the object to prevent ProblemListControls from re-rendering
@@ -310,11 +316,15 @@ const ProblemList: React.FC<ProblemListProps> = ({
 
   const handleProblemBookmarkChange = useCallback(
     (problemId: string, newIsBookmarked: boolean) => {
-      setDisplayedProblems((prev) =>
-        prev.map((p) =>
-          p.id === problemId ? { ...p, isBookmarked: newIsBookmarked } : p
-        )
-      );
+      // Optimization: If global stats are loaded, mergedProblems derives state from the Sets.
+      // We skip the redundant O(N) update of displayedProblems.
+      if (!areGlobalStatsLoadedRef.current) {
+        setDisplayedProblems((prev) =>
+          prev.map((p) =>
+            p.id === problemId ? { ...p, isBookmarked: newIsBookmarked } : p
+          )
+        );
+      }
       if (newIsBookmarked) {
           setBookmarkedProblemIds(prev => new Set(prev).add(problemId));
       } else {
@@ -330,12 +340,16 @@ const ProblemList: React.FC<ProblemListProps> = ({
 
   const handleProblemStatusChange = useCallback(
     (problemId: string, newStatus: ProblemStatus) => {
-      setDisplayedProblems((prev) =>
-        prev.map((p) =>
-          p.id === problemId ? { ...p, currentStatus: newStatus } : p
-        )
-      );
-      
+      // Optimization: If global stats are loaded, mergedProblems derives state from the Sets.
+      // We skip the redundant O(N) update of displayedProblems.
+      if (!areGlobalStatsLoadedRef.current) {
+        setDisplayedProblems((prev) =>
+          prev.map((p) =>
+            p.id === problemId ? { ...p, currentStatus: newStatus } : p
+          )
+        );
+      }
+
       // Update local Sets for optimistic UI
       if (newStatus === 'solved') {
           setSolvedProblemIds(prev => new Set(prev).add(problemId));
