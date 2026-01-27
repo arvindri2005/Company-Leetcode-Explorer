@@ -199,7 +199,38 @@ export async function getProblemByCompanySlugAndProblemSlugAction(
   }
 }
 
+/**
+ * Fetches multiple problems by their IDs (slugs).
+ *
+ * @param {string[]} problemIds - The IDs (slugs) of the problems to fetch.
+ * @returns {Promise<ApiResponse<LeetCodeProblem[]>>}
+ */
+export async function getProblemsByIdsBatchAction(
+  problemIds: string[],
+): Promise<ApiResponse<LeetCodeProblem[]>> {
+  try {
+    const result = await problemService.getProblemsByIds(problemIds);
 
+    if (result.isFailure) {
+      return errorResponse({
+        code: result.error.code,
+        message: result.error.message,
+      });
+    }
+
+    return successResponse(result.value);
+  } catch (error) {
+    const errorMessage = handleServerActionError(
+      error,
+      "getProblemsByIdsBatchAction",
+      { count: problemIds.length },
+    );
+    return errorResponse({
+      code: "INTERNAL_ERROR",
+      message: errorMessage,
+    });
+  }
+}
 
 /**
  * Server action to load more problems for infinite scrolling.

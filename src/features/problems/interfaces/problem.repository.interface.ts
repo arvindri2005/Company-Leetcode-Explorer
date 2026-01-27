@@ -125,6 +125,13 @@ export interface IProblemRepository extends IBaseRepository<Problem, CreateProbl
   >;
 
   /**
+   * Get multiple problems by their IDs (slugs)
+   * @param ids - Array of problem IDs
+   * @returns Array of problems
+   */
+  getProblemsByIds(ids: string[]): Promise<LeetCodeProblem[]>;
+
+  /**
    * Add a new problem to a company
    * @param companyId - The company's unique identifier
    * @param problemData - The problem data to add

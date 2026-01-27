@@ -7,7 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import type { User as FirebaseUser } from "firebase/auth";
 
-import { getProblemByCompanySlugAndProblemSlugAction } from "@/app/actions/problem.actions";
+import { getProblemsByIdsBatchAction } from "@/app/actions/problem.actions";
 import { userService } from "@/features/profile/services/user.service";
 import { useToast } from "@/hooks/use-toast";
 import type { LeetCodeProblem, ProblemStatus } from "@/types";
@@ -54,33 +54,45 @@ export function useBookmarks(
           setIsLoadingBookmarks(false);
           return;
         }
-        const detailedProblemsPromises = bookmarkInfosResult.value.map(
-          async (info) => {
-            if (!info.companySlug || !info.problemSlug) {
-              return null;
-            }
-            try {
-              const result = await getProblemByCompanySlugAndProblemSlugAction(
-                info.companySlug,
-                info.problemSlug,
-              );
-              if (result.success && result.data?.problem) {
-                return {
-                  ...result.data.problem,
-                  isBookmarked: true,
-                } as ProblemWithDetails;
+        const bookmarkInfos = bookmarkInfosResult.value;
+        const problemIds = bookmarkInfos
+          .map((info) => info.problemSlug)
+          .filter(Boolean);
+
+        if (problemIds.length === 0) {
+          setBookmarkedProblemDetails([]);
+          setIsLoadingBookmarks(false);
+          return;
+        }
+
+        const result = await getProblemsByIdsBatchAction(problemIds);
+
+        if (result.success && result.data) {
+          const problemsMap = new Map(result.data.map((p) => [p.slug, p]));
+
+          const problems = bookmarkInfos
+            .map((info) => {
+              const problem = problemsMap.get(info.problemSlug);
+              if (!problem) {
+                return null;
               }
-              return null;
-            } catch {
-              return null;
-            }
-          },
-        );
-        setBookmarkedProblemDetails(
-          (await Promise.all(detailedProblemsPromises)).filter(
-            Boolean,
-          ) as ProblemWithDetails[],
-        );
+              return {
+                ...problem,
+                companySlug: info.companySlug || problem.companySlug,
+                isBookmarked: true,
+              } as ProblemWithDetails;
+            })
+            .filter((p): p is ProblemWithDetails => p !== null);
+
+          setBookmarkedProblemDetails(problems);
+        } else {
+          toast({
+            title: "Error",
+            description: "Could not fetch bookmarked problems details.",
+            variant: "destructive",
+          });
+          setBookmarkedProblemDetails([]);
+        }
       } catch {
         toast({
           title: "Error",

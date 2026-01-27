@@ -1,6 +1,7 @@
 import {
   collection,
   doc,
+  documentId,
   type DocumentSnapshot,
   type Firestore,
   getCountFromServer,
@@ -471,6 +472,35 @@ export class ProblemRepository implements IProblemRepository {
         "Error fetching all problem company and problem slugs",
         error,
       );
+      return [];
+    }
+  }
+
+  async getProblemsByIds(ids: string[]): Promise<LeetCodeProblem[]> {
+    if (!ids || ids.length === 0) {
+      return [];
+    }
+
+    try {
+      const problemsCol = collection(getFirestore(), "problems");
+      const uniqueIds = Array.from(new Set(ids));
+      const chunks = [];
+      const CHUNK_SIZE = 30; // Firestore 'in' limit
+
+      for (let i = 0; i < uniqueIds.length; i += CHUNK_SIZE) {
+        chunks.push(uniqueIds.slice(i, i + CHUNK_SIZE));
+      }
+
+      const problemPromises = chunks.map(async (chunk) => {
+        const q = query(problemsCol, where(documentId(), "in", chunk));
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map((docSnap) => this.mapDocToProblem(docSnap));
+      });
+
+      const chunkResults = await Promise.all(problemPromises);
+      return chunkResults.flat();
+    } catch (error: unknown) {
+      Logger.error("Error fetching problems by IDs", error, { count: ids.length });
       return [];
     }
   }

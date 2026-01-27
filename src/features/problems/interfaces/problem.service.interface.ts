@@ -137,6 +137,13 @@ export interface IProblemService {
   >;
 
   /**
+   * Get multiple problems by their IDs (slugs)
+   * @param ids - Array of problem IDs
+   * @returns Result containing array of problems or error
+   */
+  getProblemsByIds(ids: string[]): Promise<Result<LeetCodeProblem[], ServiceError>>;
+
+  /**
    * Add a new problem to a company
    * @param companyId - The company's unique identifier
    * @param problemData - The problem data to add

@@ -275,6 +275,37 @@ export class ProblemService implements IProblemService {
     }
   }
 
+  async getProblemsByIds(ids: string[]): Promise<Result<LeetCodeProblem[], ServiceError>> {
+    try {
+      if (!ids || ids.length === 0) {
+        return success([]);
+      }
+
+      // Sort IDs to ensure consistent cache key
+      const sortedIds = [...ids].sort();
+      const cacheKey = `problems-batch-${sortedIds.join(",")}`;
+
+      // Use a shorter TTL since this is an ad-hoc batch
+      const result = await cacheManager.wrap(
+        cacheKey,
+        async () => this.repository.getProblemsByIds(ids),
+        {
+          revalidate: CacheTTL.SHORT, // 1 minute
+          tags: sortedIds.map(id => `problem-${id}`), // Tag with all problem IDs for invalidation
+        }
+      );
+
+      return success(result);
+    } catch (error) {
+      return failure({
+        code: "INTERNAL_ERROR",
+        message: "Failed to fetch problems by IDs",
+        details: { count: ids.length },
+        cause: error instanceof Error ? error : undefined,
+      });
+    }
+  }
+
   async addProblem(
     companyId: string,
     problemData: CreateProblemInput,
