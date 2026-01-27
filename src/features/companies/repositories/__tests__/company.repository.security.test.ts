@@ -194,4 +194,41 @@ describe("CompanyRepository Security (Mass Assignment)", () => {
       expect(mockDoc).toHaveBeenCalledWith(expect.anything(), "c");
     });
   });
+
+  describe("Input Sanitization (XSS Prevention)", () => {
+    it("should BLOCK addCompany when name contains invalid characters (< or >)", async () => {
+      // Setup
+      const xssInput = {
+        name: "Company <script>alert(1)</script>",
+        description: "Test Description",
+      };
+
+      // Act
+      const result = await repository.addCompany(xssInput as any);
+
+      // Assert
+      expect(result.id).toBeNull();
+      expect(result.error).toMatch(/Company name contains invalid characters/);
+      expect(mockDoc).not.toHaveBeenCalled();
+    });
+
+    it("should BLOCK updateCompany when name contains invalid characters (< or >)", async () => {
+      // Setup
+      const companyId = "test-company-id";
+      const xssUpdate = {
+        name: "Company <img src=x onerror=alert(1)>",
+      };
+
+      mockDoc.mockReturnValue("mock-doc-ref");
+      mockUpdateDoc.mockResolvedValue();
+
+      // Act
+      const result = await repository.updateCompany(companyId, xssUpdate);
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/Company name contains invalid characters/);
+      expect(mockUpdateDoc).not.toHaveBeenCalled();
+    });
+  });
 });

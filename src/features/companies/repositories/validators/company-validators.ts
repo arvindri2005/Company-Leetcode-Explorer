@@ -35,6 +35,14 @@ export function validateCreateCompany(
     };
   }
 
+  // Security: Prevent Stored XSS by rejecting special characters in name
+  if (/[<>]/.test(companyData.name)) {
+    return {
+      success: false,
+      error: "Company name contains invalid characters.",
+    };
+  }
+
   // Pre-validate input using Zod (partial schema since some fields are auto-generated)
   const PartialCompanySchema = CompanySchema.pick({
     name: true,
@@ -66,6 +74,14 @@ export function validateCreateCompany(
 export function validateUpdateCompany(
   companyData: UpdateCompanyDTO
 ): ValidationResult<UpdateCompanyDTO> {
+  // Security: Prevent Stored XSS by rejecting special characters in name
+  if (companyData.name && /[<>]/.test(companyData.name)) {
+    return {
+      success: false,
+      error: "Company name contains invalid characters.",
+    };
+  }
+
   // Validate input using Zod (partial schema)
   // This protects against invalid data types and malicious inputs (e.g. javascript: URLs)
   const validation = CompanySchema.partial().safeParse(companyData);
