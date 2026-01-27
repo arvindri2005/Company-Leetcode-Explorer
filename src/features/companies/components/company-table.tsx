@@ -2,6 +2,8 @@ import React from "react";
 
 import Link from "next/link";
 
+import { ArrowRight } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { OfflineImage } from "@/components/ui/offline-image";
 import { type Company } from "@/features/companies/types";
@@ -99,10 +101,11 @@ const CompanyRow = React.memo(function CompanyRow({
       <td className="p-4 text-right">
         <Link
           href={`/company/${company.slug}`}
-          className="inline-flex items-center justify-center px-4 py-2 text-xs font-medium text-gray-300 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:text-white transition-colors"
+          className="inline-flex items-center justify-center px-4 py-2 text-xs font-medium text-gray-300 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400"
           aria-label={`View details for ${company.name}`}
         >
           View Details
+          <ArrowRight className="ml-2 h-3 w-3" />
         </Link>
       </td>
     </tr>
