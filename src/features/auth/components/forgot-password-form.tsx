@@ -107,12 +107,21 @@ export default function ForgotPasswordForm() {
                 We have sent a password reset link to <span className="font-medium text-foreground">{form.getValues("email")}</span>. Please check your inbox and spam folder.
             </p>
         </div>
-        <Button asChild variant="outline" className="w-full">
+        <div className="space-y-2 w-full">
+          <Button asChild variant="outline" className="w-full">
             <Link href="/login">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Login
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Login
             </Link>
-        </Button>
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full text-muted-foreground hover:text-primary"
+            onClick={() => setIsEmailSent(false)}
+          >
+            Try another email
+          </Button>
+        </div>
       </div>
     );
   }

@@ -128,4 +128,30 @@ describe("ForgotPasswordForm Security", () => {
        expect(screen.queryByText(/check your email/i)).not.toBeInTheDocument();
      });
   });
+
+  it("should allow user to retry with another email from success state", async () => {
+    mockSendPasswordResetEmail.mockResolvedValue();
+
+    render(<ForgotPasswordForm />);
+
+    const emailInput = screen.getByLabelText(/email/i);
+    await userEvent.type(emailInput, "wrong@example.com");
+
+    const submitButton = screen.getByRole("button", { name: /send reset link/i });
+    await userEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/check your email/i)).toBeInTheDocument();
+    });
+
+    // Click try another email
+    const retryButton = screen.getByRole("button", { name: /try another email/i });
+    await userEvent.click(retryButton);
+
+    // Should be back at form with value preserved
+    await waitFor(() => {
+      expect(screen.getByLabelText(/email/i)).toHaveValue("wrong@example.com");
+      expect(screen.queryByText(/check your email/i)).not.toBeInTheDocument();
+    });
+  });
 });
