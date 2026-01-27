@@ -193,6 +193,8 @@ export class AuthService {
       // Security: Sanitize display name before passing to service layer (Defense in Depth)
       let sanitizedDisplayName = firebaseUser.displayName;
       if (sanitizedDisplayName) {
+        // Security: Remove < and > to prevent Stored XSS
+        sanitizedDisplayName = sanitizedDisplayName.replace(/[<>]/g, "");
         sanitizedDisplayName = sanitizedDisplayName.trim();
         // Truncate if too long (max 50 chars to match user repository limit)
         if (sanitizedDisplayName.length > 50) {

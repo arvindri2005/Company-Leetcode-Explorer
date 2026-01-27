@@ -63,6 +63,23 @@ describe("AuthService", () => {
       );
     });
 
+    it("should strip HTML characters from display name", async () => {
+      const mockUser = {
+        uid: "test-uid",
+        email: "test@example.com",
+        displayName: "<script>Dirty Name</script>",
+      } as FirebaseUser;
+
+      (userService.syncUserProfile as jest.Mock).mockResolvedValue(success());
+
+      await authService.syncUserProfile(mockUser);
+
+      expect(userService.syncUserProfile).toHaveBeenCalledWith(
+        "test@example.com",
+        "scriptDirty Name/script" // Stripped
+      );
+    });
+
     it("should truncate long display names", async () => {
       const longName = "A".repeat(100);
       const mockUser = {
