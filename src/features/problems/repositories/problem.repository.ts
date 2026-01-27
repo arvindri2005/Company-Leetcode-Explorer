@@ -1176,6 +1176,18 @@ export class ProblemRepository implements IProblemRepository {
       ...companySpecificData,
     } as LeetCodeProblem;
 
+    // Security: Defense-in-depth sanitization for sensitive fields
+    // Ensure link uses a safe protocol (http/https) to prevent javascript: XSS
+    if (
+      problem.link &&
+      typeof problem.link === "string" &&
+      !problem.link.startsWith("http://") &&
+      !problem.link.startsWith("https://")
+    ) {
+      // Neutralize malicious links by clearing them
+      problem.link = "";
+    }
+
     // Validate at the edge
     // Optimization: Skip expensive Zod schema validation (including regexes) in production for read operations.
     // We rely on write-time validation for data integrity.
