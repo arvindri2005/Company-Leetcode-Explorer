@@ -20,6 +20,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -218,9 +219,10 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                     name="responsibilities"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex justify-between items-center">
-                          <span>Key Responsibilities (Optional)</span>
+                        <div className="flex justify-between items-center">
+                          <FormLabel>Key Responsibilities (Optional)</FormLabel>
                           <span
+                            aria-hidden="true"
                             className={cn(
                               "text-xs text-muted-foreground font-normal",
                               (field.value?.length || 0) >= 1000 &&
@@ -229,7 +231,7 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                           >
                             {field.value?.length || 0}/1000
                           </span>
-                        </FormLabel>
+                        </div>
                         <FormControl>
                           <Textarea
                             maxLength={1000}
@@ -238,6 +240,9 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                             placeholder="e.g. Led a team of 5 developers to ship a new feature..."
                           />
                         </FormControl>
+                        <FormDescription className="sr-only">
+                          {field.value?.length || 0} out of 1000 characters
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
