@@ -50,7 +50,32 @@ export class SharedValidatorsImpl implements SharedValidators {
       return { isValid: false, error: errorMessage };
     }
 
-    return { isValid: true, data: validationResult.data };
+    const data = validationResult.data;
+
+    // Security: Validate nested fields for invalid characters to prevent XSS
+    // Check top-level strings
+    let hasInvalidChars =
+      this.hasInvalidCharacters(data.companyName) ||
+      this.hasInvalidCharacters(data.preparationStrategy);
+
+    // Check nested arrays
+    if (!hasInvalidChars && data.focusTopics) {
+      hasInvalidChars = data.focusTopics.some(
+        (topic) =>
+          this.hasInvalidCharacters(topic.topic) || this.hasInvalidCharacters(topic.reason)
+      );
+    }
+
+    if (!hasInvalidChars && data.items) {
+      hasInvalidChars = data.items.some((item) => this.hasInvalidCharacters(item.text));
+    }
+
+    if (hasInvalidChars) {
+      Logger.warn("Blocked attempt to save strategy with invalid characters", { userId });
+      return { isValid: false, error: "Input contains invalid characters." };
+    }
+
+    return { isValid: true, data: data };
   }
 
   /**
