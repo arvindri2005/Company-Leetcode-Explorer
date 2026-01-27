@@ -109,4 +109,80 @@ describe("AuthService Performance", () => {
       expect(userService.syncUserProfile).toHaveBeenCalledTimes(2);
     });
   });
+
+  describe("skipNextAutoSync", () => {
+    it("should skip automatic sync when requested", async () => {
+      const mockUser = {
+        uid: "test-uid-skip",
+        email: "skip@example.com",
+        displayName: "Skip User",
+      } as FirebaseUser;
+
+      (userService.syncUserProfile as jest.Mock).mockResolvedValue(success());
+
+      // Signal to skip
+      authService.skipNextAutoSync();
+
+      // Attempt sync (should be skipped)
+      const result = await authService.syncUserProfile(mockUser, false);
+
+      expect(result.success).toBe(true);
+      expect(userService.syncUserProfile).not.toHaveBeenCalled();
+    });
+
+    it("should NOT skip forced sync even when requested", async () => {
+      const mockUser = {
+        uid: "test-uid-skip-forced",
+        email: "skip-forced@example.com",
+        displayName: "Skip Forced User",
+      } as FirebaseUser;
+
+      (userService.syncUserProfile as jest.Mock).mockResolvedValue(success());
+
+      // Signal to skip
+      authService.skipNextAutoSync();
+
+      // Attempt forced sync (should NOT be skipped)
+      await authService.syncUserProfile(mockUser, true);
+
+      expect(userService.syncUserProfile).toHaveBeenCalledTimes(1);
+    });
+
+    it("should consume the skip flag after one use", async () => {
+      const mockUser = {
+        uid: "test-uid-skip-consume",
+        email: "skip-consume@example.com",
+        displayName: "Skip Consume User",
+      } as FirebaseUser;
+
+      (userService.syncUserProfile as jest.Mock).mockResolvedValue(success());
+
+      authService.skipNextAutoSync();
+
+      // First call skipped
+      await authService.syncUserProfile(mockUser, false);
+      expect(userService.syncUserProfile).not.toHaveBeenCalled();
+
+      // Second call proceeds (flag consumed)
+      await authService.syncUserProfile(mockUser, false);
+      expect(userService.syncUserProfile).toHaveBeenCalledTimes(1);
+    });
+
+    it("should allow resetting the skip flag", async () => {
+      const mockUser = {
+        uid: "test-uid-skip-reset",
+        email: "skip-reset@example.com",
+        displayName: "Skip Reset User",
+      } as FirebaseUser;
+
+      (userService.syncUserProfile as jest.Mock).mockResolvedValue(success());
+
+      authService.skipNextAutoSync();
+      authService.resetSkipAutoSync();
+
+      // Should sync immediately because flag was reset
+      await authService.syncUserProfile(mockUser, false);
+      expect(userService.syncUserProfile).toHaveBeenCalledTimes(1);
+    });
+  });
 });

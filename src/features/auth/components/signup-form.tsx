@@ -40,6 +40,8 @@ import { Logger } from "@/lib/utils/logger";
 import { isValidRedirectUrl } from "@/lib/utils/url";
 import { useAuth } from "@/providers";
 
+import { authService } from "../services/auth.service";
+
 import GoogleAuthButton from "./google-auth-button";
 import { SignupPasswordStrength } from "./signup-password-strength";
 
@@ -121,6 +123,11 @@ export default function SignupForm() {
 
     setIsSubmitting(true);
     try {
+      // Performance: Skip the automatic profile sync triggered by onAuthStateChanged
+      // to avoid a double-write (the first one would have null displayName).
+      // The explicit sync below will handle it with the correct displayName.
+      authService.skipNextAutoSync();
+
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         data.email,
@@ -146,6 +153,9 @@ export default function SignupForm() {
         router.push("/profile");
       }
     } catch (error) {
+      // If signup failed, we must reset the skip flag so that future auto-syncs (e.g. from immediate login) work correctly.
+      authService.resetSkipAutoSync();
+
       Logger.error("Signup error", error);
       let errorMessage = "An unknown error occurred. Please try again.";
 

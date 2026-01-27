@@ -19,6 +19,7 @@ export class AuthService {
   private googleProvider: GoogleAuthProvider | null = null;
   private syncedUserId: string | null = null;
   private syncInProgress: Promise<AuthServiceResponse> | null = null;
+  private skipAutoSyncUntil: number = 0;
 
   /**
    * @description Get or initialize the Google Auth Provider
@@ -29,6 +30,22 @@ export class AuthService {
       this.googleProvider = new GoogleAuthProvider();
     }
     return this.googleProvider;
+  }
+
+  /**
+   * @description Signals to skip the next automatic profile sync (5s window).
+   * Useful when a manual sync with fuller data is about to happen (e.g. signup).
+   */
+  skipNextAutoSync() {
+    this.skipAutoSyncUntil = Date.now() + 5000;
+  }
+
+  /**
+   * @description Resets the auto-sync skip flag.
+   * Call this if the operation that requested the skip failed.
+   */
+  resetSkipAutoSync() {
+    this.skipAutoSyncUntil = 0;
   }
 
   /**
@@ -103,6 +120,12 @@ export class AuthService {
 
     // Performance: Check in-memory cache
     if (this.syncedUserId === firebaseUser.uid && !force) {
+      return { success: true };
+    }
+
+    // Performance: Check if sync was explicitly skipped (e.g. during signup)
+    if (!force && Date.now() < this.skipAutoSyncUntil) {
+      this.skipAutoSyncUntil = 0; // Consume the flag
       return { success: true };
     }
 
