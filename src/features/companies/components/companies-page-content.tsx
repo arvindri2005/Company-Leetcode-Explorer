@@ -57,6 +57,11 @@ export function CompaniesPageContent({
   // Refs for infinite scroll
   const observerTarget = useRef<HTMLDivElement>(null);
 
+  // Track existing IDs to avoid O(N) set creation on every load and prevent duplicates
+  const existingIdsRef = useRef<Set<string>>(
+    new Set(initialCompanies.map((c) => c.id))
+  );
+
   // Reset state when search changes
   useEffect(() => {
     // If we are back to initial state (no search), and initialCompanies matches, we could reset.
@@ -67,6 +72,7 @@ export function CompaniesPageContent({
       if (!searchTerm && initialCompanies.length > 0) {
           // Reset to initial props if search cleared
           setCompanies(initialCompanies);
+          existingIdsRef.current = new Set(initialCompanies.map((c) => c.id));
           setHasMore(initialHasMore);
           setNextCursor(initialNextCursor);
           return;
@@ -78,6 +84,9 @@ export function CompaniesPageContent({
         const result = await fetchCompaniesAction(1, ITEMS_PER_PAGE, searchTerm);
         if (result.success && result.data) {
           setCompanies(result.data.companies);
+          existingIdsRef.current = new Set(
+            result.data.companies.map((c) => c.id)
+          );
           setHasMore(result.data.hasMore);
           setNextCursor(result.data.nextCursor);
         }
@@ -103,7 +112,20 @@ export function CompaniesPageContent({
           const result = await fetchCompaniesAction(1, ITEMS_PER_PAGE, searchTerm, nextCursor);
           
           if (result.success && result.data) {
-            setCompanies(prev => [...prev, ...result.data!.companies]);
+            const newCompanies: Company[] = [];
+            const incomingCompanies = result.data.companies;
+
+            // Filter duplicates using Ref (O(1) lookup)
+            for (const c of incomingCompanies) {
+              if (!existingIdsRef.current.has(c.id)) {
+                existingIdsRef.current.add(c.id);
+                newCompanies.push(c);
+              }
+            }
+
+            if (newCompanies.length > 0) {
+              setCompanies((prev) => [...prev, ...newCompanies]);
+            }
             setHasMore(result.data.hasMore);
             setNextCursor(result.data.nextCursor);
           }
