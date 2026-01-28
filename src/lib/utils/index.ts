@@ -137,6 +137,9 @@ export function parseArrayValid<T extends string>(
   return val.filter((v): v is T => validValues.includes(v as T));
 }
 
+// Export hydration monitoring utilities
+export { hydrationMonitor, HydrationMonitorService } from "./hydration-monitor";
+
 
 
 

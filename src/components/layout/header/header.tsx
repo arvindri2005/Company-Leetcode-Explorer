@@ -5,6 +5,8 @@
  * responsive, displaying a full horizontal menu on desktop and a collapsible
  * side sheet for mobile. It also dynamically shows authentication-related links
  * (Login/Sign Up or Profile/Logout) based on the user's auth state.
+ * 
+ * Implements hydration-safe rendering to prevent server-client mismatches.
  */
 "use client";
 import React, { useCallback, useMemo,useState } from "react";
@@ -24,6 +26,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useHydrationSafe } from "@/hooks/use-hydration-safe";
 import { useToast } from "@/hooks/use-toast";
 import { auth } from "@/lib/api/firebase";
 import { type NavigationItem,navigationRegistry } from "@/lib/config/navigation";
@@ -41,13 +44,12 @@ import { useAuth } from "@/providers";
  * @returns {JSX.Element} The rendered header component.
  */
 const Header = React.memo(function Header() {
-
-
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isHydrated = useHydrationSafe();
 
   // Render a navigation item
   const renderNavItem = useCallback((item: NavigationItem, isMobile: boolean) => {
@@ -84,11 +86,15 @@ const Header = React.memo(function Header() {
     // Extensibility Point: 
     // Handle action-based items (like Logout) via the registry's onClick handler,
     // passing the necessary context (router, toast, auth).
+    // Render as anchor-like element for consistency with Link components
     if (item.onClick) {
         return (
-            <button
+            <a
                 key={item.key}
-                onClick={async () => {
+                role="button"
+                tabIndex={0}
+                onClick={async (e) => {
+                   e.preventDefault();
                    if (auth) {
                      await item.onClick!({ router, toast, auth });
                    } else {
@@ -96,10 +102,16 @@ const Header = React.memo(function Header() {
                    }
                    if (isMobile) {setIsMobileMenuOpen(false);}
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.currentTarget.click();
+                  }
+                }}
                 className={className}
             >
                 {item.label}
-            </button>
+            </a>
         )
     }
 
@@ -121,8 +133,18 @@ const Header = React.memo(function Header() {
   const authLinks = useMemo(
     () =>
       function AuthLinks(isMobile = false) {
-        if (authLoading) {
-          return <span className="text-muted-foreground">Loading...</span>;
+        // Defer auth-specific rendering until after hydration to prevent mismatches
+        // This ensures server and initial client render show the same content
+        if (!isHydrated || authLoading) {
+          // Render consistent loading state that matches between server and client
+          return (
+            <span 
+              className="text-muted-foreground opacity-50 pointer-events-none"
+              suppressHydrationWarning
+            >
+              Loading...
+            </span>
+          );
         }
 
         const items = navigationRegistry.getItems('auth', { user, isLoading: authLoading });
@@ -133,7 +155,7 @@ const Header = React.memo(function Header() {
           </>
         );
       },
-    [authLoading, user, renderNavItem],
+    [isHydrated, authLoading, user, renderNavItem],
   );
 
   return (

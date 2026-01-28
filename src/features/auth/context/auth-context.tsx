@@ -29,13 +29,10 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
  */
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<FirebaseUser | null>(null);
-  // Initialize loading based on cookie: if cookie exists, assume loading (waiting for firebase), else not loading (definitely logged out)
-  const [loading, setLoading] = useState(() => {
-    if (typeof window !== "undefined") {
-      return document.cookie.includes("auth_status=authenticated");
-    }
-    return true; // Default to loading on server/SSR
-  });
+  // Always initialize loading to true for consistent SSR/client initial render
+  // This ensures server and client render the same initial state
+  const [loading, setLoading] = useState(true);
+  
   const syncUserProfileIfNeeded = useCallback(
     async (firebaseUser: FirebaseUser, force = false) => {
       if (!firebaseUser) {

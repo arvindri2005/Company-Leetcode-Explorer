@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/arvindri2005/Byte-to-Offer.git"
   },
-  "packageManager": "pnpm@9.15.9",
+  "packageManager": "pnpm@10.28.2",
   "engines": {
     "node": ">=20",
     "pnpm": ">=9"
@@ -112,7 +112,7 @@
     "@typescript-eslint/parser": "^8.52.0",
     "@vitest/browser-playwright": "^4.0.15",
     "@vitest/coverage-v8": "^4.0.15",
-    "baseline-browser-mapping": "^2.8.32",
+    "baseline-browser-mapping": "^2.9.19",
     "concurrently": "^9.2.1",
     "eslint": "^9.39.1",
     "eslint-config-next": "^16.0.5",
