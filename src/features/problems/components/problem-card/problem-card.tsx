@@ -251,16 +251,18 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
           <div className="flex-1 min-w-0 flex flex-col gap-1">
             <div className="flex items-center gap-2">
               {/* Optimization: Use native <a> for external links to avoid next/link overhead (listeners, context) */}
-              <a
-                href={problem.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-base md:text-lg font-medium text-foreground hover:text-primary transition-colors truncate"
-                onClick={(e) => e.stopPropagation()}
-                aria-label={`${problem.title} (opens in a new tab)`}
-              >
-                {problem.title}
-              </a>
+              <h3 className="contents">
+                <a
+                  href={problem.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-base md:text-lg font-medium text-foreground hover:text-primary transition-colors truncate"
+                  onClick={(e) => e.stopPropagation()}
+                  aria-label={`${problem.title} (opens in a new tab)`}
+                >
+                  {problem.title}
+                </a>
+              </h3>
               <span
                 className={cn(
                   "text-xs md:text-sm px-2 py-0.5 rounded-full border font-medium uppercase tracking-wider",

@@ -461,7 +461,7 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
           </Button>
         </div>
       ) : (
-        <div className="space-y-4">
+        <ul className="space-y-4">
           {displayedProblems.map((problem, index) => {
             // Derived state logic moved to render loop
             let computedStatus = problem.currentStatus || "none";
@@ -476,7 +476,7 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
             }
 
             return (
-              <div key={problem.id}>
+              <li key={problem.id}>
                 <ProblemCardWithErrorBoundary
                   problem={problem}
                   companySlug={problem.companySlug || "unknown"}
@@ -492,10 +492,10 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
                     <AdPlaceholder title="Sponsored" className="h-32 w-full" />
                   </div>
                 )}
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
       
       {/* Infinite Scroll Trigger */}
