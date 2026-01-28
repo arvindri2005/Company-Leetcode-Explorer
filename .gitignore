@@ -14,7 +14,25 @@ tsconfig.tsbuildinfo
 .cursor
 .gemini
 .gemini/skills
-
+.agents
+.github/skills
+.goose
+.junie
+.kilocode
+.kilocode
+.mcpjam
+.mux
+.opencode
+.openhands
+.pi 
+.pochi
+.qoder
+.qwen
+.roo
+.trae
+.windsurf
+.zencoder
+skills
 
 
 storybook-static

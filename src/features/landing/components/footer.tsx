@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 /**
  * @fileoverview Defines the footer component for the application.
  *
@@ -10,36 +12,36 @@ export default function Footer() {
     <footer className="bg-black/50 py-12 px-8 text-center border-t border-white/10">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-center gap-8 mb-8 flex-wrap">
-          <a
+          <Link
             href="/privacy-policy"
             className="text-gray-custom-400 no-underline transition-colors duration-300 hover:text-brand-teal"
           >
             Privacy Policy
-          </a>
-          <a
+          </Link>
+          <Link
             href="/terms-of-service"
             className="text-gray-custom-400 no-underline transition-colors duration-300 hover:text-brand-teal"
           >
             Terms of Service
-          </a>
-          <a
+          </Link>
+          <Link
             href="/contact"
             className="text-gray-custom-400 no-underline transition-colors duration-300 hover:text-brand-teal"
           >
             Contact
-          </a>
-          <a
+          </Link>
+          <Link
             href="/blog"
             className="text-gray-custom-400 no-underline transition-colors duration-300 hover:text-brand-teal"
           >
             Blog
-          </a>
-          <a
+          </Link>
+          <Link
             href="/sitemap.xml"
             className="text-gray-custom-400 no-underline transition-colors duration-300 hover:text-brand-teal"
           >
             Sitemap
-          </a>
+          </Link>
         </div>
         <p className="text-gray-custom-500 mt-8">
           © 2025 Byte to Offer. All rights reserved.

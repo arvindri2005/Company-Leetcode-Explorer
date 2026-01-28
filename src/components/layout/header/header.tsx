@@ -89,10 +89,9 @@ const Header = React.memo(function Header() {
     // Render as anchor-like element for consistency with Link components
     if (item.onClick) {
         return (
-            <a
+            <button
                 key={item.key}
-                role="button"
-                tabIndex={0}
+                type="button"
                 onClick={async (e) => {
                    e.preventDefault();
                    if (auth) {
@@ -102,16 +101,10 @@ const Header = React.memo(function Header() {
                    }
                    if (isMobile) {setIsMobileMenuOpen(false);}
                 }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    e.currentTarget.click();
-                  }
-                }}
                 className={className}
             >
                 {item.label}
-            </a>
+            </button>
         )
     }
 

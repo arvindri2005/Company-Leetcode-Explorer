@@ -6,6 +6,7 @@
  * as a placeholder. It also includes metadata for SEO purposes.
  */
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { env } from "@/env";
 import Footer from "@/features/landing/components/footer";
@@ -83,21 +84,21 @@ export default function BlogPage() {
           {blogPosts.map((post) => (
             <div key={post.slug}>
               <h2 className="text-2xl font-bold text-balance">
-                <a
-                  // href={`/blog/${post.slug}`}
+                <Link
+                  href={`/blog/${post.slug}`}
                   className="hover:underline"
                 >
                   {post.title}
-                </a>
+                </Link>
               </h2>
               <p className="mt-2 text-muted-foreground">{post.date}</p>
               <p className="mt-4">{post.excerpt}</p>
-              <a
-                // href={`/blog/${post.slug}`}
+              <Link
+                href={`/blog/${post.slug}`}
                 className="mt-4 inline-block text-primary hover:underline"
               >
                 Read more &rarr;
-              </a>
+              </Link>
             </div>
           ))}
         </div>
