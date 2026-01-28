@@ -125,4 +125,47 @@ describe("useProblemInteractions", () => {
     // Should be false (reverted)
     expect(result.current.isBookmarked).toBe(false);
   });
+
+  it("should handle status update with slugs correctly", async () => {
+    // Setup mock success
+    (userService.setProblemStatus as jest.Mock).mockResolvedValue({
+      isSuccess: true,
+      value: undefined,
+    });
+
+    const onProblemStatusChange = jest.fn();
+
+    const { result } = renderHook(() =>
+      useProblemInteractions(
+        mockProblem,
+        "company-fallback",
+        false,
+        "none",
+        "user-1",
+        undefined,
+        onProblemStatusChange,
+      ),
+    );
+
+    // Initial status
+    expect(result.current.currentStatus).toBe("none");
+
+    // Update status
+    await act(async () => {
+      await result.current.handleStatusUpdate("solved");
+    });
+
+    // Check status
+    expect(result.current.currentStatus).toBe("solved");
+
+    // Check callback arguments: (id, status, companySlug, problemSlug)
+    // mockProblem.companySlug is "company"
+    // mockProblem.slug is "two-sum"
+    expect(onProblemStatusChange).toHaveBeenCalledWith(
+      "1",
+      "solved",
+      "company",
+      "two-sum",
+    );
+  });
 });

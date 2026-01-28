@@ -22,6 +22,12 @@ export interface ProfileData {
   };
   fetchStatusMap: () => Promise<void>;
   hydrateProblemsForStatus: (status: ProblemStatus) => Promise<void>;
+  updateProblemStatusLocally: (
+    problemId: string,
+    status: ProblemStatus,
+    companySlug?: string,
+    problemSlug?: string
+  ) => void;
 }
 
 /**
@@ -108,6 +114,40 @@ export function useProfileData(
     }
   }, [user, hasFetchedStatusMap, toast]);
 
+  const updateProblemStatusLocally = useCallback(
+    (
+      problemId: string,
+      status: ProblemStatus,
+      companySlug?: string,
+      problemSlug?: string,
+    ) => {
+      setProblemStatuses((prev) => {
+        // If status is "none", remove it
+        if (status === "none") {
+          const next = { ...prev };
+          delete next[problemId];
+          return next;
+        }
+
+        const existing = prev[problemId];
+        const effectiveCompanySlug = companySlug || existing?.companySlug || "";
+        const effectiveProblemSlug = problemSlug || existing?.problemSlug || "";
+
+        return {
+          ...prev,
+          [problemId]: {
+            problemId,
+            status,
+            companySlug: effectiveCompanySlug,
+            problemSlug: effectiveProblemSlug,
+            updatedAt: new Date(),
+          },
+        };
+      });
+    },
+    [],
+  );
+
   // Initial Fetch: Status Map
   useEffect(() => {
     if (user && !authLoading) {
@@ -140,5 +180,6 @@ export function useProfileData(
     stats,
     fetchStatusMap,
     hydrateProblemsForStatus,
+    updateProblemStatusLocally,
   };
 }

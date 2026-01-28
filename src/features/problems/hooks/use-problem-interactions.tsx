@@ -17,7 +17,12 @@ export function useProblemInteractions(
   problemStatus: ProblemStatus,
   userId?: string,
   onBookmarkChanged?: (problemId: string, newStatus: boolean) => void,
-  onProblemStatusChange?: (problemId: string, newStatus: ProblemStatus) => void,
+  onProblemStatusChange?: (
+    problemId: string,
+    newStatus: ProblemStatus,
+    companySlug?: string,
+    problemSlug?: string,
+  ) => void,
 ) {
   const { toast } = useToast();
   const router = useRouter();
@@ -162,7 +167,12 @@ export function useProblemInteractions(
         problem.slug,
       );
       if (result.isSuccess) {
-        onProblemStatusChange?.(problem.id, newStatus);
+        onProblemStatusChange?.(
+          problem.id,
+          newStatus,
+          effectiveCompanySlug,
+          problem.slug,
+        );
 
         const statusLabel =
           newStatus === "none"

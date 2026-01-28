@@ -23,17 +23,23 @@ export interface ProblemStatusesData {
   attemptedProblems: ProblemWithDetails[];
   todoProblems: ProblemWithDetails[];
   hydrateProblemsForStatus: (status: ProblemStatus) => Promise<void>;
-  handleProblemStatusChange: (problemId: string, newStatus: ProblemStatus) => void;
+  handleProblemStatusChange: (
+    problemId: string,
+    newStatus: ProblemStatus,
+    companySlug?: string,
+    problemSlug?: string,
+  ) => void;
 }
 
 /**
  * Hook for managing problem statuses (solved, attempted, todo)
- * 
+ *
  * @param user - Firebase user object
  * @param authLoading - Whether authentication is loading
  * @param problemStatuses - Map of problem statuses from useProfileData
  * @param hasFetchedStatusMap - Whether status map has been fetched
  * @param fetchStatusMap - Function to refetch status map
+ * @param updateProblemStatusLocally - Function to update status locally without refetching
  * @returns ProblemStatusesData object with status data and functions
  */
 export function useProblemStatuses(
@@ -41,7 +47,13 @@ export function useProblemStatuses(
   authLoading: boolean,
   problemStatuses: Record<string, UserProblemStatusInfo>,
   hasFetchedStatusMap: boolean,
-  fetchStatusMap: () => Promise<void>
+  fetchStatusMap: () => Promise<void>,
+  updateProblemStatusLocally?: (
+    problemId: string,
+    status: ProblemStatus,
+    companySlug?: string,
+    problemSlug?: string,
+  ) => void,
 ): ProblemStatusesData {
   const { toast } = useToast();
   const [problemsWithStatusDetails, setProblemsWithStatusDetails] = useState<ProblemWithDetails[]>([]);
@@ -130,7 +142,12 @@ export function useProblemStatuses(
   }, [user, hasFetchedStatusMap, problemStatuses, problemsWithStatusDetails, toast]);
 
   const handleProblemStatusChange = useCallback(
-    (problemId: string, newStatus: ProblemStatus) => {
+    (
+      problemId: string,
+      newStatus: ProblemStatus,
+      companySlug?: string,
+      problemSlug?: string,
+    ) => {
       setProblemsWithStatusDetails((prev) => {
         if (newStatus === "none") {
           return prev.filter((p) => p.id !== problemId);
@@ -139,10 +156,20 @@ export function useProblemStatuses(
           p.id === problemId ? { ...p, currentStatus: newStatus } : p,
         );
       });
-      // Re-fetch status map to ensure counts are accurate
-      fetchStatusMap();
+
+      if (updateProblemStatusLocally) {
+        updateProblemStatusLocally(
+          problemId,
+          newStatus,
+          companySlug,
+          problemSlug,
+        );
+      } else {
+        // Fallback to Re-fetch status map to ensure counts are accurate
+        fetchStatusMap();
+      }
     },
-    [fetchStatusMap],
+    [fetchStatusMap, updateProblemStatusLocally],
   );
 
   // Memoize filtered lists to prevent unnecessary re-renders

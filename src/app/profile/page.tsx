@@ -101,7 +101,8 @@ export default function ProfilePage() {
     authLoading,
     profileData.problemStatuses,
     profileData.hasFetchedStatusMap,
-    profileData.fetchStatusMap
+    profileData.fetchStatusMap,
+    profileData.updateProblemStatusLocally
   );
   const educationData = useEducation(user);
   const workExperienceData = useWorkExperience(user);

@@ -21,7 +21,12 @@ export interface BookmarksTabProps {
   problems: ProblemWithDetails[];
   isLoading: boolean;
   onBookmarkChanged: (problemId: string, newStatus: boolean) => void;
-  onProblemStatusChange: (problemId: string, newStatus: ProblemStatus) => void;
+  onProblemStatusChange: (
+    problemId: string,
+    newStatus: ProblemStatus,
+    companySlug?: string,
+    problemSlug?: string,
+  ) => void;
 }
 
 const BOOKMARK_ICON = <Bookmark className="h-6 w-6 text-muted-foreground" aria-hidden="true" />;

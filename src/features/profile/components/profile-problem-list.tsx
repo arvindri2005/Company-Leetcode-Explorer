@@ -40,7 +40,12 @@ interface ProfileProblemListProps {
   isLoading: boolean;
   listType: "bookmarks" | "status"; // To differentiate handling slightly if needed
   onBookmarkChanged?: (problemId: string, newStatus: boolean) => void;
-  onProblemStatusChange?: (problemId: string, newStatus: ProblemStatus) => void;
+  onProblemStatusChange?: (
+    problemId: string,
+    newStatus: ProblemStatus,
+    companySlug?: string,
+    problemSlug?: string,
+  ) => void;
   companySlugForProblemCard?: string; // If all problems belong to one company, for fallback
   emptyStateMessage?: string;
   emptyStateDescription?: string;
