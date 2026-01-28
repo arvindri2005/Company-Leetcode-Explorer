@@ -23,6 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Logger } from "@/lib/utils/logger";
 
 /**
  * Renders a fallback UI when an unhandled error is caught anywhere in the application.
@@ -46,7 +47,7 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     // Log the error to an error reporting service
-    console.error("Unhandled Error:", error);
+    Logger.error("Unhandled Global Error", error);
   }, [error]);
 
   return (

@@ -1,4 +1,5 @@
 import { userService } from "@/features/profile/services/user.service";
+import { Logger } from "@/lib/utils/logger";
 import { type LeetCodeProblem } from "@/types";
 import { type PaginatedProblemsResponse, type ProblemSummaryDTO } from "@/types";
 
@@ -28,6 +29,13 @@ export class UserProblemBridgeService {
       userService.getProblemStatusesForIds(userId, problemIds),
     ]);
 
+    if (!userBookmarksResult.isSuccess) {
+      Logger.warn("Failed to fetch user bookmarks for enrichment", { userId }, userBookmarksResult.error);
+    }
+    if (!userStatusesResult.isSuccess) {
+      Logger.warn("Failed to fetch user statuses for enrichment", { userId }, userStatusesResult.error);
+    }
+
     // Handle Result types - extract values or use defaults
     const userBookmarks = userBookmarksResult.isSuccess ? userBookmarksResult.value : new Set<string>();
     const userStatuses = userStatusesResult.isSuccess ? userStatusesResult.value : {};
@@ -55,6 +63,7 @@ export class UserProblemBridgeService {
 
     // Handle Result type - extract value or return empty response
     if (!responseResult.isSuccess) {
+      Logger.error("Failed to fetch paginated problems in bridge service", responseResult.error, { params });
       return {
         problems: [],
         totalProblems: 0,
@@ -87,6 +96,13 @@ export class UserProblemBridgeService {
            userService.getBookmarksForIds(userId, problemIds),
            userService.getProblemStatusesForIds(userId, problemIds),
       ]);
+
+      if (!userBookmarksResult.isSuccess) {
+        Logger.warn("Failed to fetch user bookmarks for status check", { userId }, userBookmarksResult.error);
+      }
+      if (!userStatusesResult.isSuccess) {
+        Logger.warn("Failed to fetch user statuses for status check", { userId }, userStatusesResult.error);
+      }
 
       // Handle Result types - extract values or use defaults
       const userBookmarks = userBookmarksResult.isSuccess ? userBookmarksResult.value : new Set<string>();

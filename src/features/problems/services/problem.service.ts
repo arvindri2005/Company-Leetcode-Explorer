@@ -1,5 +1,6 @@
 import { cacheManager, CacheTTL } from "@/lib/utils/cache";
-import { failure, type Result,success } from "@/shared/types/result";
+import { Logger } from "@/lib/utils/logger";
+import { failure, type Result, success } from "@/shared/types/result";
 import type { ServiceError } from "@/shared/types/service-error";
 import {
   type Company,
@@ -85,6 +86,7 @@ export class ProblemService implements IProblemService {
         currentPage: finalCurrentPage,
       });
     } catch (error) {
+      Logger.error("Failed to fetch public problems", error, { companyId, params });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to fetch public problems",
@@ -146,6 +148,7 @@ export class ProblemService implements IProblemService {
 
       return success(result);
     } catch (error) {
+      Logger.error("Failed to fetch all problems", error, { params });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to fetch all problems",
@@ -167,6 +170,7 @@ export class ProblemService implements IProblemService {
 
       return success(result);
     } catch (error) {
+      Logger.error("Failed to fetch all problems list", error);
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to fetch all problems list",
@@ -199,6 +203,7 @@ export class ProblemService implements IProblemService {
 
       return success(result);
     } catch (error) {
+      Logger.error("Failed to fetch problem details", error, { companyId, problemId });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to fetch problem details",
@@ -243,6 +248,7 @@ export class ProblemService implements IProblemService {
         problem: result.problem,
       });
     } catch (error) {
+      Logger.error("Failed to fetch problem by slugs", error, { companySlug, problemSlug });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to fetch problem by slugs",
@@ -267,6 +273,7 @@ export class ProblemService implements IProblemService {
 
       return success(result);
     } catch (error) {
+      Logger.error("Failed to fetch problem slugs", error);
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to fetch problem slugs",
@@ -297,6 +304,7 @@ export class ProblemService implements IProblemService {
 
       return success(result);
     } catch (error) {
+      Logger.error("Failed to fetch problems by IDs", error, { count: ids.length });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to fetch problems by IDs",
@@ -326,6 +334,7 @@ export class ProblemService implements IProblemService {
         updated: result.updated,
       });
     } catch (error) {
+      Logger.error("Failed to add problem", error, { companyId, problemTitle: problemData.title });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to add problem",

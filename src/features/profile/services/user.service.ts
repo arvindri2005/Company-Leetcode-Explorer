@@ -1,6 +1,7 @@
+import { Logger } from "@/lib/utils/logger";
 import { SimpleLRUCache } from "@/lib/utils/lru-cache";
-import { type AppEventHandler,type AppEventKey, appEvents } from "@/services/event-bus";
-import { failure, type Result,success } from "@/shared/types/result";
+import { type AppEventHandler, type AppEventKey, appEvents } from "@/services/event-bus";
+import { failure, type Result, success } from "@/shared/types/result";
 import type { ServiceError } from "@/shared/types/service-error";
 import {
   type BookmarkedProblemInfo,
@@ -47,6 +48,7 @@ export class UserService implements IUserService {
       const bookmarks = await this.repository.getBookmarkedProblemsInfo(userId);
       return success(bookmarks);
     } catch (error) {
+      Logger.error("Failed to fetch bookmarked problems", error, { userId });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to fetch bookmarked problems",
@@ -81,6 +83,7 @@ export class UserService implements IUserService {
         bookmarkedProblemIds: [...data.bookmarkedProblemIds],
       });
     } catch (error) {
+      Logger.error("Failed to fetch user global problem stats", error, { userId });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to fetch user global problem stats",
@@ -96,6 +99,7 @@ export class UserService implements IUserService {
       const statuses = await this.repository.getAllUserProblemStatuses(userId);
       return success(statuses);
     } catch (error) {
+      Logger.error("Failed to fetch all user problem statuses", error, { userId });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to fetch all user problem statuses",
@@ -112,6 +116,7 @@ export class UserService implements IUserService {
       const statuses = await this.repository.getProblemStatusesForIds(userId, problemIds);
       return success(statuses);
     } catch (error) {
+      Logger.error("Failed to fetch problem statuses for IDs", error, { userId, count: problemIds.length });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to fetch problem statuses for IDs",
@@ -128,6 +133,7 @@ export class UserService implements IUserService {
       const bookmarks = await this.repository.getBookmarksForIds(userId, problemIds);
       return success(bookmarks);
     } catch (error) {
+      Logger.error("Failed to fetch bookmarks for IDs", error, { userId, count: problemIds.length });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to fetch bookmarks for IDs",
@@ -143,6 +149,7 @@ export class UserService implements IUserService {
       const education = await this.repository.getUserEducation(userId);
       return success(education);
     } catch (error) {
+      Logger.error("Failed to fetch user education", error, { userId });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to fetch user education",
@@ -158,6 +165,7 @@ export class UserService implements IUserService {
       const workExperience = await this.repository.getUserWorkExperience(userId);
       return success(workExperience);
     } catch (error) {
+      Logger.error("Failed to fetch user work experience", error, { userId });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to fetch user work experience",
@@ -173,6 +181,7 @@ export class UserService implements IUserService {
       const todoLists = await this.repository.getUserStrategyTodoLists(userId);
       return success(todoLists);
     } catch (error) {
+      Logger.error("Failed to fetch user strategy todo lists", error, { userId });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to fetch user strategy todo lists",
@@ -189,6 +198,7 @@ export class UserService implements IUserService {
       const todoList = await this.repository.getStrategyTodoListForCompany(userId, companyId);
       return success(todoList);
     } catch (error) {
+      Logger.error("Failed to fetch strategy todo list for company", error, { userId, companyId });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to fetch strategy todo list for company",
@@ -251,6 +261,7 @@ export class UserService implements IUserService {
 
       return success({ isBookmarked: result.isBookmarked });
     } catch (error) {
+      Logger.error("Failed to toggle bookmark", error, { userId, problemId });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to toggle bookmark",
@@ -321,6 +332,7 @@ export class UserService implements IUserService {
 
       return success();
     } catch (error) {
+      Logger.error("Failed to set problem status", error, { userId, problemId, status });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to set problem status",
@@ -346,6 +358,7 @@ export class UserService implements IUserService {
       
       return success();
     } catch (error) {
+      Logger.error("Failed to update display name", error, { userId });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to update display name",
@@ -370,6 +383,7 @@ export class UserService implements IUserService {
       
       return success({ id: result.id });
     } catch (error) {
+      Logger.error("Failed to add education", error, { userId });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to add education",
@@ -394,6 +408,7 @@ export class UserService implements IUserService {
       
       return success({ id: result.id });
     } catch (error) {
+      Logger.error("Failed to add work experience", error, { userId });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to add work experience",
@@ -429,6 +444,7 @@ export class UserService implements IUserService {
       
       return success();
     } catch (error) {
+      Logger.error("Failed to save strategy todo list", error, { userId, companyId });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to save strategy todo list",
@@ -462,6 +478,7 @@ export class UserService implements IUserService {
       
       return success();
     } catch (error) {
+      Logger.error("Failed to update todo item status", error, { userId, companyId, itemIndex });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to update todo item status",
@@ -487,6 +504,7 @@ export class UserService implements IUserService {
       
       return success();
     } catch (error) {
+      Logger.error("Failed to sync user profile", error, { email });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to sync user profile",

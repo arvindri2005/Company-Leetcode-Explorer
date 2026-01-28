@@ -2,7 +2,7 @@ import { type Company } from "@/features/companies/types";
 import { cacheManager, CacheTTL } from "@/lib/utils/cache";
 import { revalidateCacheTag } from "@/lib/utils/cache/server-cache";
 import { Logger } from "@/lib/utils/logger";
-import { failure, type Result,success } from "@/shared/types/result";
+import { failure, type Result, success } from "@/shared/types/result";
 import type { ServiceError } from "@/shared/types/service-error";
 
 import type {
@@ -47,6 +47,7 @@ export class CompanyService implements ICompanyService {
 
       return success(result);
     } catch (error) {
+      Logger.error("Failed to fetch companies", error, { params });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to fetch companies",
@@ -73,6 +74,7 @@ export class CompanyService implements ICompanyService {
         hasMore: result.hasMore,
       });
     } catch (error) {
+      Logger.error("Failed to load more companies", error, { currentCursor, pageSize, searchTerm });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to load more companies",
@@ -227,6 +229,7 @@ export class CompanyService implements ICompanyService {
 
       return success({ id: result.id });
     } catch (error) {
+      Logger.error("Failed to add company", error, { companyName: companyData.name });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to add company",
@@ -257,6 +260,7 @@ export class CompanyService implements ICompanyService {
 
       return success();
     } catch (error) {
+      Logger.error("Failed to update company", error, { companyId });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to update company",
@@ -298,6 +302,7 @@ export class CompanyService implements ICompanyService {
       );
       return success(suggestions);
     } catch (error) {
+      Logger.error("Failed to fetch company suggestions", error, { searchTerm });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to fetch company suggestions",

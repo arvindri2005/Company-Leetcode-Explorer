@@ -6,8 +6,9 @@
  */
 
 import type { Contact as ContactEntity } from "@/domain/entities/contact.entity";
+import { Logger } from "@/lib/utils/logger";
 import type { PaginatedResult, PaginationParams } from "@/shared/interfaces";
-import { failure, type Result,success } from "@/shared/types/result";
+import { failure, type Result, success } from "@/shared/types/result";
 import type { ServiceError } from "@/shared/types/service-error";
 
 import type {
@@ -34,6 +35,7 @@ export class ContactService implements IContactService {
       await this.repository.createContactMessage(data);
       return success();
     } catch (error) {
+      Logger.error("Failed to submit contact message", error);
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to submit contact message",
@@ -52,6 +54,7 @@ export class ContactService implements IContactService {
       const result = await this.repository.getContactMessages(params);
       return success(result);
     } catch (error) {
+      Logger.error("Failed to fetch contact messages", error, { params });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to fetch contact messages",
@@ -71,6 +74,7 @@ export class ContactService implements IContactService {
       const result = await this.repository.getContactMessagesByStatus(status, params);
       return success(result);
     } catch (error) {
+      Logger.error("Failed to fetch contact messages by status", error, { status, params });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to fetch contact messages by status",
@@ -97,6 +101,7 @@ export class ContactService implements IContactService {
       
       return success(contact);
     } catch (error) {
+      Logger.error("Failed to fetch contact", error, { id });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to fetch contact",
@@ -123,6 +128,7 @@ export class ContactService implements IContactService {
       
       return success();
     } catch (error) {
+      Logger.error("Failed to mark contact as read", error, { id });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to mark contact as read",
@@ -149,6 +155,7 @@ export class ContactService implements IContactService {
       
       return success();
     } catch (error) {
+      Logger.error("Failed to mark contact as replied", error, { id });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to mark contact as replied",
@@ -175,6 +182,7 @@ export class ContactService implements IContactService {
       
       return success();
     } catch (error) {
+      Logger.error("Failed to archive contact", error, { id });
       return failure({
         code: "INTERNAL_ERROR",
         message: "Failed to archive contact",
