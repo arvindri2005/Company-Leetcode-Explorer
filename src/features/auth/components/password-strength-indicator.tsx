@@ -40,6 +40,11 @@ const getStrengthText = (score: number) => {
   }
 };
 
+// Performance: Define constants outside component to avoid allocation on every render
+const LEVELS = [1, 2, 3, 4];
+const ACTIVE_STYLE = { opacity: 1 };
+const INACTIVE_STYLE = { opacity: 0.2 };
+
 export const PasswordStrengthIndicator = memo(function PasswordStrengthIndicator({
   score,
 }: PasswordStrengthIndicatorProps) {
@@ -61,13 +66,10 @@ export const PasswordStrengthIndicator = memo(function PasswordStrengthIndicator
         className="flex gap-1 h-1.5 overflow-hidden rounded-full bg-secondary/30"
         aria-hidden="true"
       >
-        {[1, 2, 3, 4].map((level) => (
+        {LEVELS.map((level) => (
           <div
             key={level}
-            style={{
-              backgroundColor: score >= level ? undefined : undefined,
-              opacity: score >= level ? 1 : 0.2,
-            }}
+            style={score >= level ? ACTIVE_STYLE : INACTIVE_STYLE}
             className={`flex-1 h-full rounded-full transition-all duration-300 ${
               score >= level ? getStrengthColor(score) : "bg-muted"
             }`}
