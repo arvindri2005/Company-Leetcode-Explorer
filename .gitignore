@@ -11,6 +11,9 @@ tsconfig.tsbuildinfo
 .swc
 .agent/
 .kiro
+.cursor
+.gemini
+.gemini/skills
 
 
 

@@ -43,6 +43,25 @@ export function validateCreateCompany(
     };
   }
 
+  // Security: Prevent Stored XSS by rejecting special characters in description
+  if (companyData.description && /[<>]/.test(companyData.description)) {
+    return {
+      success: false,
+      error: "Description contains invalid characters (< or >).",
+    };
+  }
+
+  // Security: Prevent Stored XSS in relatedCompanies
+  if (
+    companyData.relatedCompanies &&
+    companyData.relatedCompanies.some((name) => /[<>]/.test(name))
+  ) {
+    return {
+      success: false,
+      error: "Related company names contain invalid characters.",
+    };
+  }
+
   // Pre-validate input using Zod (partial schema since some fields are auto-generated)
   const PartialCompanySchema = CompanySchema.pick({
     name: true,
@@ -79,6 +98,25 @@ export function validateUpdateCompany(
     return {
       success: false,
       error: "Company name contains invalid characters.",
+    };
+  }
+
+  // Security: Prevent Stored XSS by rejecting special characters in description
+  if (companyData.description && /[<>]/.test(companyData.description)) {
+    return {
+      success: false,
+      error: "Description contains invalid characters (< or >).",
+    };
+  }
+
+  // Security: Prevent Stored XSS in relatedCompanies
+  if (
+    companyData.relatedCompanies &&
+    companyData.relatedCompanies.some((name) => /[<>]/.test(name))
+  ) {
+    return {
+      success: false,
+      error: "Related company names contain invalid characters.",
     };
   }
 
