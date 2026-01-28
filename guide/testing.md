@@ -18,9 +18,9 @@ We believe in the **Testing Trophy** approach:
 *   **Component Testing**: [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
 *   **Environment**: `jsdom` (simulates browser environment)
 
-## 3. Unit Testing
+### 3. Unit Testing
 
-Unit tests focus on isolated business logic, typically found in `src/utils`, `src/services`, or `src/lib`.
+Unit tests focus on isolated business logic, typically found in `src/features/*/services`, `src/shared/utils`, or `src/lib`.
 
 ### Naming Convention
 *   Place test files next to the file being tested.
@@ -92,13 +92,19 @@ describe('CustomButton', () => {
 Sometimes you need to mock external libraries or services (like data fetching).
 
 ```typescript
-import { getData } from '@/services/data-service';
+import { getProblemService } from '@/lib/di/registrations';
 
-jest.mock('@/services/data-service');
+// Example of mocking a dependency
+jest.mock('@/lib/di/registrations', () => ({
+  getProblemService: jest.fn().mockReturnValue({
+    getProblemDetails: jest.fn().mockResolvedValue({ id: '1', title: 'Test Problem' })
+  })
+}));
 
 test('fetches data successfully', async () => {
-  (getData as jest.Mock).mockResolvedValue({ id: 1, name: 'Test' });
-  // ... run code that calls getData
+  const service = getProblemService();
+  const result = await service.getProblemDetails('1');
+  expect(result).toEqual({ id: '1', title: 'Test Problem' });
 });
 ```
 

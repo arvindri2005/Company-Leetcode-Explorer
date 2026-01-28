@@ -1,13 +1,14 @@
 # Data Layer & Persistence Guide
 
-This guide documents the patterns and standards used in the Repository Layer (`src/repositories`), which is responsible for all direct interactions with Firestore.
+This guide documents the patterns and standards used in the Repository Layer (`src/features/*/repositories`), which is responsible for all direct interactions with Firestore.
 
 ## 1. Repository Pattern Overview
 
 We use the Repository Pattern to decouple business logic (Services) from data access details (Firestore).
 
+*   **Location**: Repositories are located within their respective feature modules, e.g., `src/features/companies/repositories/company.repository.ts`.
 *   **Responsibility**: CRUD operations, complex querying, and data mapping.
-*   **Interface**: Repositories should return typed domain objects (e.g., `Company`, `LeetCodeProblem`), not raw Firestore snapshots.
+*   **Interface**: Repositories must implement an interface (defined in `../interfaces/`) and return typed domain objects (e.g., `Company`, `Problem`), not raw Firestore snapshots.
 *   **Error Handling**: Repositories catch database errors, log them via `Logger`, and return safe fallback values or re-throw specific application errors.
 
 ## 2. "Validate at the Edge" Pattern
@@ -77,3 +78,4 @@ The application supports two pagination strategies, often within the same reposi
 *   **Dates**: Firestore `Timestamp` objects must be converted to native JS `Date` objects in the mapper.
 *   **Slugs**: We prefer using `slug` as the document ID where possible for readable URLs, but always store it as a field too.
 *   **Arrays**: Use `array-contains` for tag filtering.
+*   **Dependency Injection**: Repositories must be registered in `src/lib/di/registrations.ts` and injected into services via the constructor.

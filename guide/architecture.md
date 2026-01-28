@@ -86,7 +86,7 @@ Common types, utilities, and interfaces used across multiple features.
 
 ### Feature Modules (`src/features/*/`)
 
-Self-contained modules for each domain feature.
+Self-contained modules for each domain feature. This is where most application logic lives.
 
 **Standard Structure:**
 ```
@@ -94,15 +94,15 @@ features/{feature}/
 ├── components/      # Feature-specific React components
 ├── hooks/           # Feature-specific hooks
 ├── interfaces/      # Service and repository interfaces
-├── services/        # Service implementations
-├── repositories/    # Repository implementations
+├── services/        # Service implementations (Business Logic)
+├── repositories/    # Repository implementations (Data Access)
 ├── mappers/         # Domain-DTO mappers
 ├── types/           # Feature-specific types
 └── index.ts         # Barrel export (public API)
 ```
 
 **Rules:**
-- ✅ Can import from: `domain`, `shared`, `lib`, `feature`, `types`, `constants`, `components`, `hooks`, `app`, `ai`
+- ✅ Can import from: `domain`, `shared`, `lib`, `feature` (internal), `types`, `constants`, `components`, `hooks`, `app`, `ai`
 - ❌ Cannot import from: Other features' internal files (must use barrel exports)
 
 **Rationale:** Features should be self-contained but can use shared infrastructure and UI components.
@@ -114,7 +114,7 @@ Next.js App Router pages, server actions, and API routes.
 **Contents:**
 - Page components (`page.tsx`)
 - Layout components (`layout.tsx`)
-- Server actions (`actions/`)
+- Server actions (`actions/` or inside feature folders if preferred, but usually `src/app/actions`)
 - API routes (`api/`)
 
 **Rules:**
@@ -126,7 +126,7 @@ Next.js App Router pages, server actions, and API routes.
 Infrastructure utilities, configuration, and dependency injection.
 
 **Contents:**
-- `di/` - Dependency injection container and registrations
+- `di/` - Dependency injection container (`container.ts`, `registrations.ts`, `tokens.ts`)
 - `api/` - API helpers and response utilities
 - `config/` - Application configuration (feature flags, navigation)
 - `utils/` - General utilities
@@ -183,42 +183,13 @@ pnpm lint
 # The CI pipeline will fail if boundary violations are detected
 ```
 
-### Common Violations and Fixes
+## Dependency Injection (DI)
 
-**1. Domain importing from infrastructure**
-```typescript
-// ❌ Wrong: Domain importing from repository
-import { ProblemRepository } from '@/features/problems/repositories';
+We use a DI container (in `src/lib/di`) to manage dependencies between Services and Repositories.
 
-// ✅ Correct: Domain should not have infrastructure dependencies
-// Move the logic to a service layer instead
-```
-
-**2. Feature importing another feature's internals**
-```typescript
-// ❌ Wrong: Importing internal file
-import { someHelper } from '@/features/other/utils/helper';
-
-// ✅ Correct: Import from barrel export
-import { someHelper } from '@/features/other';
-```
-
-**3. Shared kernel importing from features**
-```typescript
-// ❌ Wrong: Shared importing feature-specific code
-import { ProblemType } from '@/features/problems/types';
-
-// ✅ Correct: Move shared types to shared kernel
-import { ProblemType } from '@/shared/types';
-```
-
-## Best Practices
-
-1. **Use barrel exports** - Always export public APIs through `index.ts` files
-2. **Keep domain pure** - Never add infrastructure dependencies to domain layer
-3. **Prefer interfaces** - Depend on interfaces, not concrete implementations
-4. **Use Result types** - Return `Result<T, E>` instead of throwing exceptions
-5. **Feature isolation** - Features should communicate through shared types, not direct imports
+1. **Tokens**: Define unique symbols in `src/lib/di/tokens.ts`.
+2. **Registration**: Register classes in `src/lib/di/registrations.ts`.
+3. **Usage**: Use helper functions (e.g., `getProblemService()`) in Server Actions or API routes to resolve dependencies.
 
 ## Adding New Features
 
@@ -238,12 +209,11 @@ When creating a new feature:
 
 2. Define interfaces first in `interfaces/`
 3. Implement services and repositories
-4. Export only public APIs through `index.ts`
-5. Register services in `src/lib/di/registrations.ts`
+4. Register them in `src/lib/di/registrations.ts`
+5. Export only public APIs through `index.ts`
 
 ## Related Documentation
 
-- [Coding Standards](./coding-standards.md)
 - [Feature Workflow](./feature-workflow.md)
 - [Data Layer](./data-layer.md)
 - [Testing](./testing.md)
