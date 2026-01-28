@@ -13,7 +13,10 @@ interface CompanyTableProps {
   companies: Company[];
 }
 
-export function CompanyTable({ companies }: CompanyTableProps) {
+// Memoized to prevent re-renders of the entire table when parent state changes (e.g. loadingMore)but companies data remains stable.
+export const CompanyTable = React.memo(function CompanyTable({
+  companies,
+}: CompanyTableProps) {
   return (
     <div className="w-full overflow-hidden rounded-xl border border-white/5 bg-brand-surface">
       <div className="overflow-x-auto">
@@ -35,7 +38,7 @@ export function CompanyTable({ companies }: CompanyTableProps) {
       </div>
     </div>
   );
-}
+});
 
 // Memoized to prevent re-renders of existing rows when new data is appended (infinite scroll)
 const CompanyRow = React.memo(function CompanyRow({
