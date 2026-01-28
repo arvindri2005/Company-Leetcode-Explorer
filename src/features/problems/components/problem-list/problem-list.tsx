@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -27,7 +27,7 @@ import type {
   SortKey,
   StatusFilter,
 } from "../../types";
-import ProblemCard from "../problem-card/problem-card";
+import ProblemCard, { type ProblemCardProps } from "../problem-card/problem-card";
 import ProblemCardErrorFallback from "../problem-card/problem-card-error-fallback";
 
 const ProblemListControls = dynamic(() => import("../problem-list-controls/problem-list-controls"), {
@@ -42,6 +42,18 @@ const ProblemListControls = dynamic(() => import("../problem-list-controls/probl
     </div>
   ),
 });
+
+// Optimization: Hoist fallback component to prevent unnecessary re-creation on render
+const FALLBACK = <ProblemCardErrorFallback />;
+
+// Optimization: Memoize the ErrorBoundary wrapper to prevent ErrorBoundary from re-rendering
+// when parent re-renders but props (ProblemCard props) haven't changed.
+const ProblemCardWithErrorBoundary = React.memo((props: ProblemCardProps & { userId?: string }) => (
+  <ErrorBoundary fallback={FALLBACK}>
+    <ProblemCard {...props} />
+  </ErrorBoundary>
+));
+ProblemCardWithErrorBoundary.displayName = "ProblemCardWithErrorBoundary";
 
 interface ProblemListProps {
   companyId: string;
@@ -483,17 +495,15 @@ const ProblemList: React.FC<ProblemListProps> = ({
         <div className="space-y-4">
           {mergedProblems.map((problem, index) => (
             <div key={problem.id}>
-              <ErrorBoundary fallback={<ProblemCardErrorFallback />}>
-                <ProblemCard
-                  problem={problem}
-                  companySlug={problem.companySlug || companySlug}
-                  initialIsBookmarked={problem.isBookmarked}
-                  onBookmarkChanged={handleProblemBookmarkChange}
-                  problemStatus={problem.currentStatus || "none"}
-                  onProblemStatusChange={handleProblemStatusChange}
-                  userId={user?.uid}
-                />
-              </ErrorBoundary>
+              <ProblemCardWithErrorBoundary
+                problem={problem}
+                companySlug={problem.companySlug || companySlug}
+                initialIsBookmarked={problem.isBookmarked}
+                onBookmarkChanged={handleProblemBookmarkChange}
+                problemStatus={problem.currentStatus || "none"}
+                onProblemStatusChange={handleProblemStatusChange}
+                userId={user?.uid}
+              />
               {(index + 1) % 20 === 0 && (
                 <AdPlaceholder className="my-4 h-32" title="Sponsored" />
               )}
@@ -534,9 +544,3 @@ const ProblemList: React.FC<ProblemListProps> = ({
 };
 
 export default ProblemList;
-
-
-
-
-
-

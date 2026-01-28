@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import dynamic from "next/dynamic";
-import { usePathname,useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { SearchX } from "lucide-react";
 
@@ -28,7 +28,7 @@ import {
   LastAskedPeriodSchema,
   ProblemStatusSchema,
 } from "../../types";
-import ProblemCard from "../problem-card/problem-card";
+import ProblemCard, { type ProblemCardProps } from "../problem-card/problem-card";
 import ProblemCardErrorFallback from "../problem-card/problem-card-error-fallback";
 
 const ProblemListControls = dynamic(() => import("../problem-list-controls/problem-list-controls"), {
@@ -44,6 +44,16 @@ const ProblemListControls = dynamic(() => import("../problem-list-controls/probl
   ),
 });
 
+// Optimization: Hoist fallback component to prevent unnecessary re-creation on render
+const FALLBACK = <ProblemCardErrorFallback />;
+
+// Optimization: Memoize the ErrorBoundary wrapper to prevent ErrorBoundary from re-rendering when parent re-renders but props (ProblemCard props) haven't changed.
+const ProblemCardWithErrorBoundary = React.memo((props: ProblemCardProps & { showCompanies?: boolean; userId?: string }) => (
+  <ErrorBoundary fallback={FALLBACK}>
+    <ProblemCard {...props} />
+  </ErrorBoundary>
+));
+ProblemCardWithErrorBoundary.displayName = "ProblemCardWithErrorBoundary";
 
 interface AllProblemsListProps {
   initialProblems: LeetCodeProblem[];
@@ -124,25 +134,25 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
     let ignore = false;
 
     const fetchFilteredProblems = async () => {
-        const params = new URLSearchParams(searchParams.toString());
+        // Optimization: Use searchParams directly (ReadonlyURLSearchParams) instead of parsing string
         
         const difficultyFilter = parseArrayValid(
-            params.getAll("difficultyFilter"),
+            searchParams.getAll("difficultyFilter"),
             DifficultySchema.options
         );
 
         const lastAskedFilter = parseArrayValid(
-            params.getAll("lastAskedFilter"),
+            searchParams.getAll("lastAskedFilter"),
             LastAskedPeriodSchema.options
         );
 
          const statusFilter = parseArrayValid(
-            params.getAll("statusFilter"),
+            searchParams.getAll("statusFilter"),
             ProblemStatusSchema.options
          );
 
-        const searchTerm = params.get("searchTerm") || "";
-        const sortKey = (params.get("sortKey") || "title") as SortKey;
+        const searchTerm = searchParams.get("searchTerm") || "";
+        const sortKey = (searchParams.get("sortKey") || "title") as SortKey;
 
         // Check if current filters are "default" (matching initial props)
         const isDefault = 
@@ -213,14 +223,13 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
   // Optimization: Memoize the object to prevent ProblemListControls from re-rendering
   // on every ProblemList render (e.g. infinite scroll, status toggle)
   const currentFilters = useMemo((): ProblemListFilters => {
-     const params = new URLSearchParams(searchParams.toString());
-      
+     // Optimization: Use searchParams directly to avoid redundant parsing
      return {
-        difficultyFilter: parseArrayValid(params.getAll("difficultyFilter"), DifficultySchema.options),
-        lastAskedFilter: parseArrayValid(params.getAll("lastAskedFilter"), LastAskedPeriodSchema.options),
-        statusFilter: parseArrayValid(params.getAll("statusFilter"), ProblemStatusSchema.options),
-        searchTerm: params.get("searchTerm") || "",
-        sortKey: (params.get("sortKey") || "title") as SortKey,
+        difficultyFilter: parseArrayValid(searchParams.getAll("difficultyFilter"), DifficultySchema.options),
+        lastAskedFilter: parseArrayValid(searchParams.getAll("lastAskedFilter"), LastAskedPeriodSchema.options),
+        statusFilter: parseArrayValid(searchParams.getAll("statusFilter"), ProblemStatusSchema.options),
+        searchTerm: searchParams.get("searchTerm") || "",
+        sortKey: (searchParams.get("sortKey") || "title") as SortKey,
      };
   }, [searchParams]);
 
@@ -468,18 +477,16 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
 
             return (
               <div key={problem.id}>
-                <ErrorBoundary fallback={<ProblemCardErrorFallback />}>
-                  <ProblemCard
-                    problem={problem}
-                    companySlug={problem.companySlug || "unknown"}
-                    initialIsBookmarked={computedIsBookmarked}
-                    onBookmarkChanged={handleProblemBookmarkChange}
-                    problemStatus={computedStatus}
-                    onProblemStatusChange={handleProblemStatusChange}
-                    showCompanies={true}
-                    userId={user?.uid}
-                  />
-                </ErrorBoundary>
+                <ProblemCardWithErrorBoundary
+                  problem={problem}
+                  companySlug={problem.companySlug || "unknown"}
+                  initialIsBookmarked={computedIsBookmarked}
+                  onBookmarkChanged={handleProblemBookmarkChange}
+                  problemStatus={computedStatus}
+                  onProblemStatusChange={handleProblemStatusChange}
+                  showCompanies={true}
+                  userId={user?.uid}
+                />
                 {(index + 1) % 25 === 0 && (
                   <div className="py-4">
                     <AdPlaceholder title="Sponsored" className="h-32 w-full" />
@@ -506,9 +513,3 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
 };
 
 export default AllProblemsList;
-
-
-
-
-
-

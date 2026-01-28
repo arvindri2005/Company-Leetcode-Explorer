@@ -57,13 +57,18 @@ const ProblemAIActions = dynamic(
   },
 );
 
-interface ProblemCardProps {
+export interface ProblemCardProps {
   problem: LeetCodeProblem;
   companySlug: string;
   initialIsBookmarked?: boolean;
   onBookmarkChanged?: (problemId: string, isBookmarked: boolean) => void;
   problemStatus?: ProblemStatus;
-  onProblemStatusChange?: (problemId: string, status: ProblemStatus) => void;
+  onProblemStatusChange?: (
+    problemId: string,
+    status: ProblemStatus,
+    companySlug?: string,
+    problemSlug?: string,
+  ) => void;
   showCompanies?: boolean;
   userId?: string;
 }
