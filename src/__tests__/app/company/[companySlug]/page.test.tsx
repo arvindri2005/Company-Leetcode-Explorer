@@ -25,6 +25,16 @@ jest.mock('@/features/problems/services/problem.service', () => ({
   },
 }));
 
+// Mock Next.js navigation
+const mockNotFound = jest.fn();
+jest.mock('next/navigation', () => ({
+  ...jest.requireActual('next/navigation'),
+  notFound: () => {
+    mockNotFound();
+    throw new Error('NEXT_NOT_FOUND');
+  },
+}));
+
 // Mock child components
 jest.mock('@/features/companies/components/page/company-not-found', () => ({
   __esModule: true,
@@ -142,7 +152,7 @@ describe('Company Page', () => {
       expect(getProblemsByCompanySlug).toHaveBeenCalledWith('test-company', { pageSize: 40 });
     });
 
-    it('should render CompanyNotFound when company does not exist', async () => {
+    it('should call notFound when company does not exist', async () => {
       (getCompanyBySlug as jest.Mock).mockResolvedValue(failure({ code: 'NOT_FOUND', message: 'Company not found' }));
       // Even if company is null, we might still call getProblems due to Promise.all, or handle it gracefully.
       // In the implementation, we do Promise.all, so both are called.
@@ -150,11 +160,8 @@ describe('Company Page', () => {
       
       const params = Promise.resolve({ companySlug: 'invalid-company' });
 
-      const ui = await CompanyPageWrapper({ params });
-      render(ui);
-
-      expect(screen.getByTestId('company-not-found')).toHaveTextContent('invalid-company');
-      expect(screen.queryByTestId('company-page')).not.toBeInTheDocument();
+      await expect(CompanyPageWrapper({ params })).rejects.toThrow('NEXT_NOT_FOUND');
+      expect(mockNotFound).toHaveBeenCalled();
     });
   });
 });

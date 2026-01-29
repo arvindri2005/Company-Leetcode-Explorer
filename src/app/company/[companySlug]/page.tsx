@@ -7,15 +7,15 @@
  * It also includes `generateStaticParams` to pre-render pages for known companies at build time.
  */
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 
 import StructuredData from "@/components/seo/structured-data";
 import { env } from "@/env";
-import CompanyNotFound from "@/features/companies/components/page/company-not-found";
 import CompanyPage from "@/features/companies/components/page/company-page";
-import { getAllCompanySlugs,getCompanyBySlug } from "@/features/companies/services/company.service";
+import { getAllCompanySlugs, getCompanyBySlug } from "@/features/companies/services/company.service";
 import { getProblemsByCompanySlug } from "@/features/problems/services/problem.service";
-import { capitalizeWords,getLogoUrl } from "@/lib/utils";
-import { type Company, type LeetCodeProblem,type ProblemSummaryDTO } from "@/types";
+import { capitalizeWords, getLogoUrl } from "@/lib/utils";
+import { type Company, type LeetCodeProblem, type ProblemSummaryDTO } from "@/types";
 
 export const revalidate = 2592000; // 1 month
 
@@ -26,6 +26,15 @@ const APP_URL = env.NEXT_PUBLIC_APP_URL;
  */
 interface CompanyPageProps {
   params: Promise<{ companySlug: string }>;
+}
+
+/**
+ * Preload functions for parallel data fetching optimization.
+ * These "fire and forget" the fetch so data is ready when needed.
+ */
+export function preloadCompanyPage(slug: string) {
+  void getCompanyBySlug(slug);
+  void getProblemsByCompanySlug(slug, { pageSize: 40 });
 }
 
 function getStructuredData(
@@ -236,7 +245,7 @@ export default async function CompanyPageWrapper(props: CompanyPageProps) {
   ]);
 
   if (!companyResult.isSuccess) {
-    return <CompanyNotFound companySlug={params.companySlug} />;
+    notFound();
   }
 
   const company = companyResult.value;

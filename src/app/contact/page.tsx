@@ -9,7 +9,6 @@ import type { Metadata } from "next";
 
 import { env } from "@/env";
 import { ContactForm } from "@/features/contact/components/contact-form";
-import Footer from "@/features/landing/components/footer";
 
 const APP_URL = env.NEXT_PUBLIC_APP_URL;
 
@@ -49,7 +48,6 @@ export default function ContactPage() {
 
         <ContactForm />
       </div>
-      <Footer />
     </div>
   );
 }
