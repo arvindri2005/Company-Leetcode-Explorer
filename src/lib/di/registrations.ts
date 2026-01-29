@@ -5,24 +5,19 @@
  * Import this file in your application entry point to initialize the container.
  */
 
+import { registerCompanyDependencies } from "@/features/companies/di";
 import type { ICompanyRepository } from "@/features/companies/interfaces/company.repository.interface";
 import type { ICompanyService } from "@/features/companies/interfaces/company.service.interface";
-import { CompanyRepository } from "@/features/companies/repositories/company.repository";
-import { CompanyService } from "@/features/companies/services/company.service";
+import { registerContactDependencies } from "@/features/contact/di";
 import type { IContactRepository } from "@/features/contact/interfaces/contact.repository.interface";
 import type { IContactService } from "@/features/contact/interfaces/contact.service.interface";
-import { ContactRepository } from "@/features/contact/repositories/contact.repository";
-import { ContactService } from "@/features/contact/services/contact.service";
+import { registerProblemDependencies } from "@/features/problems/di";
 import type { IProblemRepository } from "@/features/problems/interfaces/problem.repository.interface";
 // Import interfaces for type safety
 import type { IProblemService } from "@/features/problems/interfaces/problem.service.interface";
-import { ProblemRepository } from "@/features/problems/repositories/problem.repository";
-// Import service and repository implementations
-import { ProblemService } from "@/features/problems/services/problem.service";
+import { registerProfileDependencies } from "@/features/profile/di";
 import type { IUserRepository } from "@/features/profile/interfaces/user.repository.interface";
 import type { IUserService } from "@/features/profile/interfaces/user.service.interface";
-import { UserRepository } from "@/features/profile/repositories/user.repository";
-import { UserService } from "@/features/profile/services/user.service";
 
 import { container } from "./container";
 import { TOKENS } from "./tokens";
@@ -32,55 +27,10 @@ import { TOKENS } from "./tokens";
  * Call this function once at application startup
  */
 export function registerDependencies(): void {
-  // Register repositories (singletons for connection reuse)
-  container.register<IProblemRepository>(
-    TOKENS.ProblemRepository,
-    () => new ProblemRepository(),
-    { singleton: true }
-  );
-
-  container.register<ICompanyRepository>(
-    TOKENS.CompanyRepository,
-    () => new CompanyRepository(),
-    { singleton: true }
-  );
-
-  container.register<IUserRepository>(
-    TOKENS.UserRepository,
-    () => new UserRepository(),
-    { singleton: true }
-  );
-
-  container.register<IContactRepository>(
-    TOKENS.ContactRepository,
-    () => new ContactRepository() as IContactRepository,
-    { singleton: true }
-  );
-
-  // Register services (singletons for caching benefits)
-  container.register<IProblemService>(
-    TOKENS.ProblemService,
-    () => new ProblemService(container.resolve<IProblemRepository>(TOKENS.ProblemRepository)),
-    { singleton: true }
-  );
-
-  container.register<ICompanyService>(
-    TOKENS.CompanyService,
-    () => new CompanyService(container.resolve<ICompanyRepository>(TOKENS.CompanyRepository)),
-    { singleton: true }
-  );
-
-  container.register<IUserService>(
-    TOKENS.UserService,
-    () => new UserService(container.resolve<IUserRepository>(TOKENS.UserRepository)),
-    { singleton: true }
-  );
-
-  container.register<IContactService>(
-    TOKENS.ContactService,
-    () => new ContactService(container.resolve<IContactRepository>(TOKENS.ContactRepository)),
-    { singleton: true }
-  );
+  registerProblemDependencies();
+  registerCompanyDependencies();
+  registerProfileDependencies();
+  registerContactDependencies();
 }
 
 /**

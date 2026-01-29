@@ -7,7 +7,7 @@
  */
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { Rocket } from "lucide-react";
 
@@ -25,12 +25,6 @@ import { FloatingShapes } from "@/components/ui/floating-shapes";
  * @returns {JSX.Element} The rendered hero section.
  */
 export default function HeroSection() {
-  const router = useRouter();
-
-  const handleClick = () => {
-    router.push("/companies");
-  };
-
   return (
     <section
       id="home"
@@ -47,13 +41,13 @@ export default function HeroSection() {
           your dream job starts here.
         </p>
         <div className="flex gap-4 justify-center flex-wrap animate-fadeInUp animation-delay-400">
-          <button
+          <Link
+            href="/companies"
             className="px-8 py-4 border-none rounded-full text-lg font-semibold cursor-pointer transition-all duration-300 no-underline inline-flex items-center gap-2 bg-gradient-to-r from-brand-teal to-brand-purple text-white hover:transform hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,212,170,0.3)]"
-            onClick={handleClick}
           >
             <Rocket />
             Start Exploring
-          </button>
+          </Link>
           {/* <button className="px-8 py-4 bg-transparent text-gray-custom-200 border-2 border-gray-custom-700 rounded-full text-lg font-semibold cursor-pointer transition-all duration-300 no-underline inline-flex items-center gap-2 hover:border-brand-teal hover:text-brand-teal">
             <Play />
             Watch Demo

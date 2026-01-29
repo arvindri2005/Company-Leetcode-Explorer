@@ -8,6 +8,7 @@
  */
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono } from "next/font/google";
+import Script from "next/script";
 
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -147,18 +148,24 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${geistMono.variable}`}>
       <head>
-        <script
+        <Script
           async
           custom-element="amp-ad"
           src="https://cdn.ampproject.org/v0/amp-ad-0.1.js"
-        ></script>
-        <script async src="https://cdn.ampproject.org/v0.js"></script>
+          strategy="afterInteractive"
+        />
+        <Script
+          async
+          src="https://cdn.ampproject.org/v0.js"
+          strategy="afterInteractive"
+        />
         {env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID && (
-          <script
+          <Script
             async
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID}`}
             crossOrigin="anonymous"
-          ></script>
+            strategy="afterInteractive"
+          />
         )}
       </head>
       <body
