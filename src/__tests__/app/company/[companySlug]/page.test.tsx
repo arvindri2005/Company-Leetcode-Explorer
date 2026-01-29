@@ -2,12 +2,15 @@ import { render, screen } from '@testing-library/react';
 
 import { createMockCompany, createMockProblem,createMockProblemsResponse } from '@/__tests__/factories/data-factories';
 import CompanyPageWrapper, { generateMetadata, generateStaticParams } from '@/app/company/[companySlug]/page';
-import { companyService } from '@/features/companies/services/company.service';
-import { problemService } from '@/features/problems/services/problem.service';
+import { getAllCompanySlugs, getCompanyBySlug } from '@/features/companies/services/company.service';
+import { getProblemsByCompanySlug } from '@/features/problems/services/problem.service';
 import { failure,success } from '@/shared/types/result';
 
 // Mock the services
 jest.mock('@/features/companies/services/company.service', () => ({
+  __esModule: true,
+  getCompanyBySlug: jest.fn(),
+  getAllCompanySlugs: jest.fn(),
   companyService: {
     getCompanyBySlug: jest.fn(),
     getAllCompanySlugs: jest.fn(),
@@ -15,6 +18,8 @@ jest.mock('@/features/companies/services/company.service', () => ({
 }));
 
 jest.mock('@/features/problems/services/problem.service', () => ({
+  __esModule: true,
+  getProblemsByCompanySlug: jest.fn(),
   problemService: {
     getProblemsByCompanySlug: jest.fn(),
   },
@@ -67,7 +72,7 @@ describe('Company Page', () => {
 
   describe('generateMetadata', () => {
     it('should return correct metadata for a valid company', async () => {
-      (companyService.getCompanyBySlug as jest.Mock).mockResolvedValue(success(mockCompany));
+      (getCompanyBySlug as jest.Mock).mockResolvedValue(success(mockCompany));
       const params = Promise.resolve({ companySlug: 'test-company' });
       
       const metadata = await generateMetadata({ params });
@@ -80,7 +85,7 @@ describe('Company Page', () => {
     });
 
     it('should return "Not Found" metadata for an invalid company', async () => {
-      (companyService.getCompanyBySlug as jest.Mock).mockResolvedValue(failure({ code: 'NOT_FOUND', message: 'Company not found' }));
+      (getCompanyBySlug as jest.Mock).mockResolvedValue(failure({ code: 'NOT_FOUND', message: 'Company not found' }));
       const params = Promise.resolve({ companySlug: 'invalid-company' });
 
       const metadata = await generateMetadata({ params });
@@ -92,7 +97,7 @@ describe('Company Page', () => {
 
   describe('generateStaticParams', () => {
     it('should return a list of company slugs', async () => {
-      (companyService.getAllCompanySlugs as jest.Mock).mockResolvedValue(success(['company-1', 'company-2']));
+      (getAllCompanySlugs as jest.Mock).mockResolvedValue(success(['company-1', 'company-2']));
 
       const params = await generateStaticParams();
 
@@ -103,7 +108,7 @@ describe('Company Page', () => {
     });
 
     it('should return an empty array if fetching fails', async () => {
-      (companyService.getAllCompanySlugs as jest.Mock).mockRejectedValue(new Error('Fetch error'));
+      (getAllCompanySlugs as jest.Mock).mockRejectedValue(new Error('Fetch error'));
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
       const params = await generateStaticParams();
@@ -114,7 +119,7 @@ describe('Company Page', () => {
     });
     
     it('should return an empty array if no slugs are found', async () => {
-        (companyService.getAllCompanySlugs as jest.Mock).mockResolvedValue(success([]));
+        (getAllCompanySlugs as jest.Mock).mockResolvedValue(success([]));
   
         const params = await generateStaticParams();
   
@@ -124,8 +129,8 @@ describe('Company Page', () => {
 
   describe('CompanyPageWrapper', () => {
     it('should render CompanyPage when company exists', async () => {
-      (companyService.getCompanyBySlug as jest.Mock).mockResolvedValue(success(mockCompany));
-      (problemService.getProblemsByCompanySlug as jest.Mock).mockResolvedValue(success(mockProblemsResponse));
+      (getCompanyBySlug as jest.Mock).mockResolvedValue(success(mockCompany));
+      (getProblemsByCompanySlug as jest.Mock).mockResolvedValue(success(mockProblemsResponse));
       const params = Promise.resolve({ companySlug: 'test-company' });
 
       const ui = await CompanyPageWrapper({ params });
@@ -133,15 +138,15 @@ describe('Company Page', () => {
 
       expect(screen.getByTestId('company-page')).toHaveTextContent('test company');
       expect(screen.getByTestId('structured-data')).toBeInTheDocument();
-      expect(companyService.getCompanyBySlug).toHaveBeenCalledWith('test-company');
-      expect(problemService.getProblemsByCompanySlug).toHaveBeenCalledWith('test-company', { pageSize: 40 });
+      expect(getCompanyBySlug).toHaveBeenCalledWith('test-company');
+      expect(getProblemsByCompanySlug).toHaveBeenCalledWith('test-company', { pageSize: 40 });
     });
 
     it('should render CompanyNotFound when company does not exist', async () => {
-      (companyService.getCompanyBySlug as jest.Mock).mockResolvedValue(failure({ code: 'NOT_FOUND', message: 'Company not found' }));
+      (getCompanyBySlug as jest.Mock).mockResolvedValue(failure({ code: 'NOT_FOUND', message: 'Company not found' }));
       // Even if company is null, we might still call getProblems due to Promise.all, or handle it gracefully.
       // In the implementation, we do Promise.all, so both are called.
-      (problemService.getProblemsByCompanySlug as jest.Mock).mockResolvedValue(success({ problems: [], totalProblems: 0 }));
+      (getProblemsByCompanySlug as jest.Mock).mockResolvedValue(success({ problems: [], totalProblems: 0 }));
       
       const params = Promise.resolve({ companySlug: 'invalid-company' });
 

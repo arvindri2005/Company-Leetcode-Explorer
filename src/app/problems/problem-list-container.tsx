@@ -1,12 +1,12 @@
 import StructuredData from "@/components/seo/structured-data";
 import { env } from "@/env";
 import { AllProblemsList } from "@/features/problems";
-import { problemService } from "@/features/problems/services/problem.service";
+import { getAllProblemsPaginated } from "@/features/problems/services/problem.service";
 
 const APP_URL = env.NEXT_PUBLIC_APP_URL;
 
 export default async function ProblemListContainer() {
-  const problemsResult = await problemService.getAllProblemsPaginated({
+  const problemsResult = await getAllProblemsPaginated({
     page: 1,
     pageSize: 50,
     difficultyFilter: [],

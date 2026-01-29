@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 import { Logger } from "@/lib/utils/logger";
 import { SimpleLRUCache } from "@/lib/utils/lru-cache";
 import { type AppEventHandler, type AppEventKey, appEvents } from "@/services/event-bus";
@@ -515,3 +517,31 @@ export class UserService implements IUserService {
 }
 
 export const userService = new UserService();
+
+// React cache() wrappers for Server Components deduplication
+// These ensure that multiple Server Components requesting the same data
+// will only trigger one database query per request
+
+export const getUserGlobalProblemStats = cache((userId: string) => 
+  userService.getUserGlobalProblemStats(userId)
+);
+
+export const getBookmarkedProblemsInfo = cache((userId: string) => 
+  userService.getBookmarkedProblemsInfo(userId)
+);
+
+export const getAllUserProblemStatuses = cache((userId: string) => 
+  userService.getAllUserProblemStatuses(userId)
+);
+
+export const getUserEducation = cache((userId: string) => 
+  userService.getUserEducation(userId)
+);
+
+export const getUserWorkExperience = cache((userId: string) => 
+  userService.getUserWorkExperience(userId)
+);
+
+export const getUserStrategyTodoLists = cache((userId: string) => 
+  userService.getUserStrategyTodoLists(userId)
+);

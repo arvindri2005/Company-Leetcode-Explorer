@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 import { type Company } from "@/features/companies/types";
 import { cacheManager, CacheTTL } from "@/lib/utils/cache";
 import { revalidateCacheTag } from "@/lib/utils/cache/server-cache";
@@ -313,3 +315,27 @@ export class CompanyService implements ICompanyService {
 }
 
 export const companyService = new CompanyService();
+
+// React cache() wrappers for Server Components deduplication
+// These ensure that multiple Server Components requesting the same data
+// will only trigger one database query per request
+
+export const getCompanies = cache((params?: GetCompaniesParams) => 
+  companyService.getCompanies(params)
+);
+
+export const getCompanyById = cache((id: string, useCache: boolean = true) => 
+  companyService.getCompanyById(id, useCache)
+);
+
+export const getCompanyBySlug = cache((slug: string, useCache: boolean = true) => 
+  companyService.getCompanyBySlug(slug, useCache)
+);
+
+export const getAllCompanySlugs = cache((useCache: boolean = true) => 
+  companyService.getAllCompanySlugs(useCache)
+);
+
+export const fetchCompanySuggestions = cache((searchTerm: string, limitNum: number = 5) => 
+  companyService.fetchCompanySuggestions(searchTerm, limitNum)
+);

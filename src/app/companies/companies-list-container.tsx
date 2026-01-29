@@ -1,7 +1,7 @@
 import StructuredData from "@/components/seo/structured-data";
 import { env } from "@/env";
 import { CompaniesPageContent } from "@/features/companies/components/companies-page-content";
-import { companyService } from "@/features/companies/services/company.service";
+import { getCompanies, getCompanyBySlug } from "@/features/companies/services/company.service";
 
 const APP_URL = env.NEXT_PUBLIC_APP_URL;
 
@@ -13,12 +13,12 @@ export default async function CompaniesListContainer() {
   const trendingSlugs = ["google", "amazon", "microsoft"];
   
   const [companiesResult, trendingResults] = await Promise.all([
-    companyService.getCompanies({
+    getCompanies({
       page: 1,
       pageSize: ITEMS_PER_PAGE,
       searchTerm: "",
     }),
-    Promise.all(trendingSlugs.map((slug) => companyService.getCompanyBySlug(slug))),
+    Promise.all(trendingSlugs.map((slug) => getCompanyBySlug(slug))),
   ]);
 
   if (!companiesResult.isSuccess) {

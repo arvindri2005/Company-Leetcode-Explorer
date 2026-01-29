@@ -1,16 +1,38 @@
 /**
- * @fileoverview Defines the client-side component for the contact page.
+ * @fileoverview Defines the server component for the contact page.
  *
- * This file contains the main component for the `/contact` route.
- * It now delegates the form logic to the `ContactForm` component.
+ * This file contains the main server component for the `/contact` route.
+ * It provides SEO metadata and wraps the client-side ContactForm component.
  */
-"use client";
 
+import type { Metadata } from "next";
+
+import { env } from "@/env";
 import { ContactForm } from "@/features/contact/components/contact-form";
 import Footer from "@/features/landing/components/footer";
 
+const APP_URL = env.NEXT_PUBLIC_APP_URL;
+
+export const metadata: Metadata = {
+  title: "Contact Us | Byte to Offer",
+  description:
+    "Get in touch with us! Have questions about interview preparation, feedback on our platform, or suggestions? We'd love to hear from you.",
+  openGraph: {
+    title: "Contact Us | Byte to Offer",
+    description: "Get in touch with us! Have questions about interview preparation, feedback on our platform, or suggestions? We'd love to hear from you.",
+    url: `${APP_URL}/contact`,
+    siteName: "Byte to Offer",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Contact Us | Byte to Offer",
+    description: "Get in touch with us! Have questions about interview preparation, feedback on our platform, or suggestions? We'd love to hear from you.",
+  },
+};
+
 /**
- * Renders the contact page with the ContactForm component.
+ * Server Component: Renders the contact page with the ContactForm component.
  *
  * @returns {JSX.Element} The rendered contact page.
  */
@@ -31,9 +53,4 @@ export default function ContactPage() {
     </div>
   );
 }
-
-
-
-
-
 

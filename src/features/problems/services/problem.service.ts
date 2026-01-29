@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 import { cacheManager, CacheTTL } from "@/lib/utils/cache";
 import { Logger } from "@/lib/utils/logger";
 import { failure, type Result, success } from "@/shared/types/result";
@@ -346,3 +348,39 @@ export class ProblemService implements IProblemService {
 }
 
 export const problemService = new ProblemService();
+
+// React cache() wrappers for Server Components deduplication
+// These ensure that multiple Server Components requesting the same data
+// will only trigger one database query per request
+
+export const getPublicProblems = cache((companyId: string, params?: GetPublicProblemsParams) => 
+  problemService.getPublicProblems(companyId, params)
+);
+
+export const getProblemsByCompanySlug = cache((companySlug: string, params?: GetPublicProblemsParams) => 
+  problemService.getProblemsByCompanySlug(companySlug, params)
+);
+
+export const getAllProblemsPaginated = cache((params?: GetAllProblemsParams) => 
+  problemService.getAllProblemsPaginated(params)
+);
+
+export const getAllProblems = cache(() => 
+  problemService.getAllProblems()
+);
+
+export const getProblemDetails = cache((companyId: string, problemId: string) => 
+  problemService.getProblemDetails(companyId, problemId)
+);
+
+export const getProblemByCompanySlugAndProblemSlug = cache((companySlug: string, problemSlug: string) => 
+  problemService.getProblemByCompanySlugAndProblemSlug(companySlug, problemSlug)
+);
+
+export const getAllProblemCompanyAndProblemSlugs = cache(() => 
+  problemService.getAllProblemCompanyAndProblemSlugs()
+);
+
+export const getProblemsByIds = cache((ids: string[]) => 
+  problemService.getProblemsByIds(ids)
+);

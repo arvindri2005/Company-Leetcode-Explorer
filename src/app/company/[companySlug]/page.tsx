@@ -12,8 +12,8 @@ import StructuredData from "@/components/seo/structured-data";
 import { env } from "@/env";
 import CompanyNotFound from "@/features/companies/components/page/company-not-found";
 import CompanyPage from "@/features/companies/components/page/company-page";
-import { companyService } from "@/features/companies/services/company.service";
-import { problemService } from "@/features/problems/services/problem.service";
+import { getAllCompanySlugs,getCompanyBySlug } from "@/features/companies/services/company.service";
+import { getProblemsByCompanySlug } from "@/features/problems/services/problem.service";
 import { capitalizeWords,getLogoUrl } from "@/lib/utils";
 import { type Company, type LeetCodeProblem,type ProblemSummaryDTO } from "@/types";
 
@@ -134,7 +134,7 @@ export async function generateMetadata(
   props: CompanyPageProps,
 ): Promise<Metadata> {
   const params = await props.params;
-  const companyResult = await companyService.getCompanyBySlug(params.companySlug);
+  const companyResult = await getCompanyBySlug(params.companySlug);
 
   if (!companyResult.isSuccess) {
     return {
@@ -229,8 +229,8 @@ export default async function CompanyPageWrapper(props: CompanyPageProps) {
   // problemService.getProblemsByCompanySlug handles the company lookup internally if needed,
   // but we also need the company object for the page itself.
   const [companyResult, problemsResult] = await Promise.all([
-      companyService.getCompanyBySlug(params.companySlug),
-      problemService.getProblemsByCompanySlug(params.companySlug, {
+      getCompanyBySlug(params.companySlug),
+      getProblemsByCompanySlug(params.companySlug, {
           pageSize: 40, // Match INITIAL_ITEMS_PER_PAGE from CompanyPage
       })
   ]);
@@ -279,11 +279,11 @@ export default async function CompanyPageWrapper(props: CompanyPageProps) {
  */
 export async function generateStaticParams() {
   try {
-    const companySlugsResult = await companyService.getAllCompanySlugs();
+    const companySlugsResult = await getAllCompanySlugs();
     if (!companySlugsResult.isSuccess || companySlugsResult.value.length === 0) {
       return [];
     }
-    return companySlugsResult.value.map((slug) => ({
+    return companySlugsResult.value.map((slug: string) => ({
       companySlug: slug,
     }));
   } catch (error) {
