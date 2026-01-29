@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+import { 
+  type UserProblemStatus, 
+  UserProblemStatusSchema, 
+  VALID_USER_PROBLEM_STATUSES} from "@/domain/value-objects/user-problem-status.vo";
 import { SlugSchema } from "@/types/common";
 
 /**
@@ -15,7 +19,7 @@ export type LastAskedPeriod =
  * @description Represents the status of a user's progress on a problem.
  * 'none' indicates no status has been set or it has been cleared.
  */
-export type ProblemStatus = "solved" | "attempted" | "todo" | "none";
+export type ProblemStatus = UserProblemStatus;
 
 /**
  * @description Represents a LeetCode problem stored in the application.
@@ -67,9 +71,9 @@ export const LastAskedPeriodSchema = z.enum(VALID_LAST_ASKED_PERIODS);
 /**
  * @description Zod schema for problem status.
  */
-export const VALID_STATUSES = ["solved", "attempted", "todo", "none"] as const;
+export const VALID_STATUSES = VALID_USER_PROBLEM_STATUSES;
 export const VALID_STATUS_FILTERS = ["solved", "attempted", "todo"] as const;
-export const ProblemStatusSchema = z.enum(VALID_STATUSES);
+export const ProblemStatusSchema = UserProblemStatusSchema;
 
 /**
  * @description Reusable strict validation schemas for security
