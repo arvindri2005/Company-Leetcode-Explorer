@@ -5,7 +5,7 @@
 
 import { type ReactNode } from "react";
 
-import { Tabs } from "@/components/ui/tabs";
+import { Tabs } from "@/shared/components/ui/tabs";
 
 import { ProfileTabs } from "./profile-tabs";
 

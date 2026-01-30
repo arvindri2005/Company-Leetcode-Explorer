@@ -4,7 +4,7 @@ import confetti from "canvas-confetti";
 import { AlertCircle,BarChart2, CheckCircle2, Clock, Play, RotateCcw, Target, Zap } from "lucide-react";
 import { CartesianGrid,Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/ui/button";
 
 interface TypingResultsProps {
     wpm: number;

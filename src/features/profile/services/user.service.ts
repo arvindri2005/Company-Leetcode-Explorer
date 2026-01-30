@@ -1,10 +1,8 @@
 import { cache } from "react";
 
-import { Logger } from "@/lib/utils/logger";
-import { SimpleLRUCache } from "@/lib/utils/lru-cache";
-import { type AppEventHandler, type AppEventKey, appEvents } from "@/services/event-bus";
-import { failure, type Result, success } from "@/shared/types/result";
-import type { ServiceError } from "@/shared/types/service-error";
+import { Logger } from "@/shared/lib/utils/logger";
+import { SimpleLRUCache } from "@/shared/lib/utils/lru-cache";
+import { type AppEventHandler, type AppEventKey, appEvents } from "@/shared/services/event-bus";
 import {
   type BookmarkedProblemInfo,
   type EducationExperience,
@@ -13,7 +11,9 @@ import {
   type SavedStrategyTodoList,
   type UserProblemStatusInfo,
   type WorkExperience,
-} from "@/types";
+} from "@/shared/types";
+import { failure, type Result, success } from "@/shared/types/result";
+import type { ServiceError } from "@/shared/types/service-error";
 
 import type { IUserRepository, UserGlobalProblemStats } from "../interfaces/user.repository.interface";
 import type { IUserService } from "../interfaces/user.service.interface";

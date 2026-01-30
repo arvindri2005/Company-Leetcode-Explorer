@@ -2,13 +2,13 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { sendPasswordResetEmail } from "firebase/auth";
 
-import { useToast } from "@/hooks/use-toast";
-import { Logger } from "@/lib/utils/logger";
+import { useToast } from "@/shared/hooks/use-toast";
+import { Logger } from "@/shared/lib/utils/logger";
 
 import ForgotPasswordForm from "../forgot-password-form";
 
 // Mocks
-jest.mock("@/lib/utils/logger", () => ({
+jest.mock("@/shared/lib/utils/logger", () => ({
   Logger: {
     error: jest.fn(),
   },
@@ -19,11 +19,11 @@ jest.mock("firebase/auth", () => ({
   sendPasswordResetEmail: jest.fn(),
 }));
 
-jest.mock("@/lib/api/firebase", () => ({
+jest.mock("@/shared/lib/api/firebase", () => ({
   auth: {},
 }));
 
-jest.mock("@/hooks/use-toast", () => ({
+jest.mock("@/shared/hooks/use-toast", () => ({
   useToast: jest.fn(),
 }));
 

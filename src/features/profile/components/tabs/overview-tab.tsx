@@ -4,7 +4,7 @@
  */
 "use client";
 
-import { TabsContent } from "@/components/ui/tabs";
+import { TabsContent } from "@/shared/components/ui/tabs";
 
 export interface OverviewTabProps {
   // Placeholder for future implementation

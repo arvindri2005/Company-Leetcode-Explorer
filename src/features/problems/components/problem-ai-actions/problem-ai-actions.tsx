@@ -7,11 +7,11 @@ import { usePathname,useRouter } from "next/navigation";
 
 import { Lightbulb,Sparkles } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { ToastAction } from "@/components/ui/toast";
 import { useAIFeatures } from "@/features/ai";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/providers";
+import { Button } from "@/shared/components/ui/button";
+import { ToastAction } from "@/shared/components/ui/toast";
+import { useToast } from "@/shared/hooks/use-toast";
 
 import type { LeetCodeProblem } from "../../types";
 

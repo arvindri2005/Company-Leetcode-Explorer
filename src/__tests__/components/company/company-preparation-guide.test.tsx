@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import CompanyPreparationGuide from '@/features/companies/components/company-preparation-guide';
 
 // Mock Accordion to avoid Radix UI complexity in tests
-jest.mock('@/components/ui/accordion', () => ({
+jest.mock('@/shared/components/ui/accordion', () => ({
   Accordion: ({ children }: any) => <div data-testid="accordion">{children}</div>,
   AccordionItem: ({ children }: any) => <div data-testid="accordion-item">{children}</div>,
   AccordionTrigger: ({ children }: any) => <button>{children}</button>,

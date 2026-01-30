@@ -22,8 +22,10 @@ import {
   Tag,
 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { DifficultyBadge } from "@/features/problems";
+import { TagBadge } from "@/features/problems";
+import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
 import {
   Card,
   CardContent,
@@ -31,7 +33,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/shared/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -39,7 +41,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/shared/components/ui/dialog";
 import {
   Drawer,
   DrawerClose,
@@ -48,11 +50,9 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-} from "@/components/ui/drawer";
-import { DifficultyBadge } from "@/features/problems";
-import { TagBadge } from "@/features/problems";
-import { useMediaQuery } from "@/hooks/use-media-query";
-import type { SimilarProblemDetail } from "@/types";
+} from "@/shared/components/ui/drawer";
+import { useMediaQuery } from "@/shared/hooks/use-media-query";
+import type { SimilarProblemDetail } from "@/shared/types";
 
 /**
  * Props for the SimilarProblemsDialog component.

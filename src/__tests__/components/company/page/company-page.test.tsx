@@ -34,7 +34,7 @@ jest.mock('@/features/companies/components/company-preparation-guide', () => ({
   default: () => <div data-testid="company-preparation-guide">Preparation Guide</div>,
 }));
 
-jest.mock('@/components/ads/ad-placeholder', () => ({
+jest.mock('@/shared/components/ads/ad-placeholder', () => ({
   __esModule: true,
   default: () => <div data-testid="ad-placeholder">Ad Placeholder</div>,
 }));

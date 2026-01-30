@@ -23,7 +23,7 @@ jest.mock("firebase/firestore", () => ({
   documentId: jest.fn(),
 }));
 
-jest.mock("@/lib/api/firebase", () => ({
+jest.mock("@/shared/lib/api/firebase", () => ({
   db: {},
 }));
 

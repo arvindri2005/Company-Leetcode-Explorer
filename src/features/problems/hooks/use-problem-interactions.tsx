@@ -4,11 +4,11 @@ import { useCallback, useRef, useState } from "react";
 
 import { usePathname, useRouter } from "next/navigation";
 
-import { ToastAction } from "@/components/ui/toast";
 import { PROBLEM_STATUS_OPTIONS } from "@/features/problems/constants";
 import { userService } from "@/features/profile/services/user.service";
-import { useToast } from "@/hooks/use-toast";
-import type { LeetCodeProblem, ProblemStatus } from "@/types";
+import { ToastAction } from "@/shared/components/ui/toast";
+import { useToast } from "@/shared/hooks/use-toast";
+import type { LeetCodeProblem, ProblemStatus } from "@/shared/types";
 
 export function useProblemInteractions(
   problem: LeetCodeProblem,

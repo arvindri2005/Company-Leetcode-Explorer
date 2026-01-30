@@ -11,7 +11,7 @@ import { confirmPasswordReset, verifyPasswordResetCode } from "firebase/auth";
 import { CheckCircle2, Loader2, LockKeyhole } from "lucide-react";
 import { z } from "zod";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/ui/button";
 import {
   Form,
   FormControl,
@@ -19,11 +19,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { PasswordInput } from "@/components/ui/password-input";
-import { useToast } from "@/hooks/use-toast";
-import { auth } from "@/lib/api/firebase";
-import { Logger } from "@/lib/utils/logger";
+} from "@/shared/components/ui/form";
+import { PasswordInput } from "@/shared/components/ui/password-input";
+import { useToast } from "@/shared/hooks/use-toast";
+import { auth } from "@/shared/lib/api/firebase";
+import { Logger } from "@/shared/lib/utils/logger";
 
 import { SignupPasswordStrength } from "./signup-password-strength";
 

@@ -3,7 +3,7 @@
  * Handles user query construction
  */
 
-import { type User as UserEntity } from "@/domain/entities/user.entity";
+import { type User as UserEntity } from "@/core/domain/entities/user.entity";
 import type { PaginatedResult, PaginationParams } from "@/shared/interfaces";
 
 /**

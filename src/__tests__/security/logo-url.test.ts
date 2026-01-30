@@ -18,7 +18,7 @@ describe('getLogoUrl Security Check', () => {
     }));
 
     // Re-import to get the mocked env
-    const { getLogoUrl } = await import('@/lib/utils');
+    const { getLogoUrl } = await import('@/shared/lib/utils');
     const untrustedUrl = 'https://malicious.com/image.png';
     const result = getLogoUrl(untrustedUrl);
     
@@ -32,7 +32,7 @@ describe('getLogoUrl Security Check', () => {
      },
    }));
 
-   const { getLogoUrl } = await import('@/lib/utils');
+   const { getLogoUrl } = await import('@/shared/lib/utils');
    
    const trustedUrl1 = 'https://img.logo.dev/google.com';
    const result1 = getLogoUrl(trustedUrl1);
@@ -50,7 +50,7 @@ describe('getLogoUrl Security Check', () => {
         },
     }));
 
-    const { getLogoUrl } = await import('@/lib/utils');
+    const { getLogoUrl } = await import('@/shared/lib/utils');
     const relativeUrl = '/images/logo.png';
     const result = getLogoUrl(relativeUrl);
     expect(result).toBe('/images/logo.png');

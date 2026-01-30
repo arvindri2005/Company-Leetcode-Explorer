@@ -21,7 +21,6 @@ import {
 } from "firebase/auth";
 import { z } from "zod";
 
-import { ProfilePageSkeleton } from "@/components/skeletons/profile-skeletons";
 import { ProfileContent } from "@/features/profile/components/profile-page/profile-content";
 import { ProfileHeader } from "@/features/profile/components/profile-page/profile-header";
 import { BookmarksTab } from "@/features/profile/components/tabs/bookmarks-tab";
@@ -34,10 +33,11 @@ import { useProblemStatuses } from "@/features/profile/hooks/use-problem-statuse
 import { useProfileData } from "@/features/profile/hooks/use-profile-data";
 import { useStrategies } from "@/features/profile/hooks/use-strategies";
 import { useWorkExperience } from "@/features/profile/hooks/use-work-experience";
-import { useToast } from "@/hooks/use-toast";
-import { auth } from "@/lib/api/firebase";
 import { useAuth } from "@/providers";
-import { EducationExperienceSchema, WorkExperienceSchema } from "@/types"; // Schemas for forms
+import { ProfilePageSkeleton } from "@/shared/components/skeletons/profile-skeletons";
+import { useToast } from "@/shared/hooks/use-toast";
+import { auth } from "@/shared/lib/api/firebase";
+import { EducationExperienceSchema, WorkExperienceSchema } from "@/shared/types"; // Schemas for forms
 
 /**
  * Zod schema for validating the display name update form.

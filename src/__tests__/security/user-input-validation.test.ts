@@ -1,8 +1,8 @@
 import { updateDoc } from "firebase/firestore";
 
 import { userRepository } from "@/features/profile/repositories/user.repository";
-import { auth } from "@/lib/api/firebase";
-import { EducationExperienceSchema, WorkExperienceSchema } from "@/types";
+import { auth } from "@/shared/lib/api/firebase";
+import { EducationExperienceSchema, WorkExperienceSchema } from "@/shared/types";
 
 // Mock Firebase
 jest.mock("firebase/firestore", () => ({
@@ -20,12 +20,12 @@ jest.mock("firebase/firestore", () => ({
   serverTimestamp: jest.fn(),
 }));
 
-jest.mock("@/lib/api/firebase", () => ({
+jest.mock("@/shared/lib/api/firebase", () => ({
   db: {},
   auth: {},
 }));
 
-jest.mock("@/lib/utils/logger", () => ({
+jest.mock("@/shared/lib/utils/logger", () => ({
   Logger: {
     error: jest.fn(),
     warn: jest.fn(),

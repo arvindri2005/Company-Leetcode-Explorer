@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { SlugSchema } from "@/types/common";
+import { SlugSchema } from "@/shared/types/common";
 
 /**
  * @description Represents a company entity in the application.

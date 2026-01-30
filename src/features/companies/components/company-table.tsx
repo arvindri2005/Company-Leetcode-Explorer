@@ -4,10 +4,10 @@ import Link from "next/link";
 
 import { ArrowRight } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { OfflineImage } from "@/components/ui/offline-image";
 import { type Company } from "@/features/companies/types";
-import { getLogoUrl } from "@/lib/utils";
+import { Badge } from "@/shared/components/ui/badge";
+import { OfflineImage } from "@/shared/components/ui/offline-image";
+import { getLogoUrl } from "@/shared/lib/utils";
 
 interface CompanyTableProps {
   companies: Company[];

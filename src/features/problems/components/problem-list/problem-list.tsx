@@ -8,15 +8,15 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FilterX, Loader2 } from "lucide-react";
 
 import { loadMoreProblemsAction } from "@/app/actions/problem.actions";
-import AdPlaceholder from "@/components/ads/ad-placeholder";
-import { Button } from "@/components/ui/button";
-import ErrorBoundary from "@/components/ui/error-boundary";
-import { Skeleton } from "@/components/ui/skeleton";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { userService } from "@/features/profile/services/user.service";
-import { useToast } from "@/hooks/use-toast";
-import { parseArrayValid } from "@/lib/utils";
 import { useAuth } from "@/providers";
+import AdPlaceholder from "@/shared/components/ads/ad-placeholder";
+import { Button } from "@/shared/components/ui/button";
+import ErrorBoundary from "@/shared/components/ui/error-boundary";
+import { Skeleton } from "@/shared/components/ui/skeleton";
+import { TooltipProvider } from "@/shared/components/ui/tooltip";
+import { useToast } from "@/shared/hooks/use-toast";
+import { parseArrayValid } from "@/shared/lib/utils";
 
 import type {
   DifficultyFilter,

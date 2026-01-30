@@ -7,7 +7,7 @@ jest.mock('@/features/problems', () => ({
   ProblemList: () => <div data-testid="problem-list">Problem List</div>,
 }));
 
-jest.mock('@/components/ui/tabs', () => ({
+jest.mock('@/shared/components/ui/tabs', () => ({
   Tabs: ({ children }: any) => <div>{children}</div>,
   TabsList: ({ children }: any) => <div>{children}</div>,
   TabsTrigger: ({ children, onClick }: any) => <button onClick={onClick}>{children}</button>,

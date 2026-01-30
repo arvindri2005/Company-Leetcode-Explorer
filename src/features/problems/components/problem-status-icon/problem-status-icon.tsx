@@ -9,8 +9,8 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+} from "@/shared/components/ui/tooltip";
+import { cn } from "@/shared/lib/utils";
 
 import { PROBLEM_STATUS_DISPLAY } from "../../constants";
 import { type ProblemStatus } from "../../types";

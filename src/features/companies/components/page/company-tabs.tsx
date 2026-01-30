@@ -12,14 +12,14 @@ import dynamic from "next/dynamic";
 
 import { BookOpen, Brain, Target, Users } from "lucide-react";
 
+import { ProblemList } from "@/features/problems";
 import {
   CompanyAIFeatureSkeleton,
   CompanyStatsSkeleton,
   CompanyStrategySkeleton,
-} from "@/components/skeletons/company-ai-skeletons";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProblemList } from "@/features/problems";
-import type { Company, LeetCodeProblem, ProblemListFilters } from "@/types";
+} from "@/shared/components/skeletons/company-ai-skeletons";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
+import type { Company, LeetCodeProblem, ProblemListFilters } from "@/shared/types";
 
 const AIGroupingSection = dynamic(
   () => import("@/features/ai/components/ai-grouping-section"),

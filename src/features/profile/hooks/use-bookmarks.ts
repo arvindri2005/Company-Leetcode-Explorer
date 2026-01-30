@@ -9,8 +9,8 @@ import type { User as FirebaseUser } from "firebase/auth";
 
 import { getProblemsByIdsBatchAction } from "@/app/actions/problem.actions";
 import { userService } from "@/features/profile/services/user.service";
-import { useToast } from "@/hooks/use-toast";
-import type { LeetCodeProblem, ProblemStatus } from "@/types";
+import { useToast } from "@/shared/hooks/use-toast";
+import type { LeetCodeProblem, ProblemStatus } from "@/shared/types";
 
 interface ProblemWithDetails extends LeetCodeProblem {
   currentStatus?: ProblemStatus;

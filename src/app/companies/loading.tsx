@@ -10,8 +10,8 @@ import {
   CompanyTableSkeleton,
   DashboardHeaderSkeleton,
   TechCompanyCardSkeleton,
-} from "@/components/skeletons/companies-skeletons";
-import { Skeleton } from "@/components/ui/skeleton";
+} from "@/shared/components/skeletons/companies-skeletons";
+import { Skeleton } from "@/shared/components/ui/skeleton";
 
 /**
  * Renders the loading state for the companies page.

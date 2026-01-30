@@ -4,7 +4,7 @@
  * This module contains Next.js server actions for managing user-specific data,
  * such as profile information, problem bookmarks, problem statuses, saved AI-generated
  * strategies, and educational/work history. These actions interface with the
- * database layer (`@/lib/data`) and handle tasks like creating or updating user
+ * database layer (`@/shared/lib/data`) and handle tasks like creating or updating user
  * profiles, toggling bookmarks, setting problem progress, and managing saved
  * content. They also ensure proper cache revalidation for user-specific data.
  *
@@ -26,18 +26,18 @@ import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import { userService } from "@/features/profile/services/user.service";
-import { auth } from "@/lib/api/firebase";
+import { auth } from "@/shared/lib/api/firebase";
 import {
   type ApiResponse,
   errorResponse,
   successResponse,
-} from "@/lib/api/response";
-import { handleServerActionError } from "@/lib/utils/error-handler";
-import { Logger } from "@/lib/utils/logger";
+} from "@/shared/lib/api/response";
+import { handleServerActionError } from "@/shared/lib/utils/error-handler";
+import { Logger } from "@/shared/lib/utils/logger";
 import type {
   ProblemStatus,
-} from "@/types";
-import { ProblemStatusSchema } from "@/types";
+} from "@/shared/types";
+import { ProblemStatusSchema } from "@/shared/types";
 
 const ActionInputSchema = z.object({
   userId: z.string().min(1, "User ID is required"),

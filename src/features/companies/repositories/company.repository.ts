@@ -1,6 +1,6 @@
-import type { Company as CompanyEntity } from "@/domain/entities/company.entity";
+import type { Company as CompanyEntity } from "@/core/domain/entities/company.entity";
 import type { PaginatedResult } from "@/shared/interfaces";
-import type { Company } from "@/types";
+import type { Company } from "@/shared/types";
 
 import type {
   CreateCompanyDTO,

@@ -1,10 +1,10 @@
 import { contactService } from "@/features/contact/services/contact.service";
-import { Logger } from "@/lib/utils/logger";
+import { Logger } from "@/shared/lib/utils/logger";
 
 import { sendContactMessage } from "../contact.actions";
 
 jest.mock("@/features/contact/services/contact.service");
-jest.mock("@/lib/utils/logger");
+jest.mock("@/shared/lib/utils/logger");
 
 describe("Contact Actions Error Handling", () => {
   beforeEach(() => {

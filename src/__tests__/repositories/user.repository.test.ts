@@ -14,14 +14,14 @@ jest.mock("firebase/firestore", () => ({
   orderBy: jest.fn(),
 }));
 
-jest.mock("@/lib/api/firebase", () => ({
+jest.mock("@/shared/lib/api/firebase", () => ({
   db: {},
   auth: {
     currentUser: { uid: "user1" },
   },
 }));
 
-jest.mock("@/lib/utils/logger", () => ({
+jest.mock("@/shared/lib/utils/logger", () => ({
   Logger: {
     error: jest.fn(),
   },

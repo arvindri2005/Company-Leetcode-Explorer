@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 
 import { Keyboard as KeyboardIcon, MousePointerClick,RotateCcw } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter,CardHeader, CardTitle } from "@/components/ui/card";
 import { type Snippet } from "@/features/tools";
+import { Button } from "@/shared/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter,CardHeader, CardTitle } from "@/shared/components/ui/card";
 
 interface TypingAreaProps {
   currentSnippet: Snippet | null;

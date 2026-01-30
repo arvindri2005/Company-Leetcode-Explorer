@@ -4,7 +4,7 @@ import { CompanyTable } from "@/features/companies/components/company-table";
 import type { Company } from "@/features/companies/types";
 
 // Mock Badge component
-jest.mock("@/components/ui/badge", () => ({
+jest.mock("@/shared/components/ui/badge", () => ({
   Badge: ({ children, className }: { children: React.ReactNode; className?: string }) => (
     <span data-testid="badge" className={className}>
       {children}
@@ -13,7 +13,7 @@ jest.mock("@/components/ui/badge", () => ({
 }));
 
 // Mock OfflineImage
-jest.mock("@/components/ui/offline-image", () => ({
+jest.mock("@/shared/components/ui/offline-image", () => ({
   OfflineImage: ({ alt }: { alt: string }) => <img alt={alt} />,
 }));
 

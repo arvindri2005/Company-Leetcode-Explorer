@@ -34,7 +34,7 @@ jest.mock("@/providers", () => ({
 }));
 
 // Mock toast
-jest.mock("@/hooks/use-toast", () => ({
+jest.mock("@/shared/hooks/use-toast", () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 

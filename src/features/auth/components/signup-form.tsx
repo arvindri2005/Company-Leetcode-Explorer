@@ -21,7 +21,8 @@ import { Loader2, UserPlusIcon } from "lucide-react";
 import { Check } from "lucide-react";
 import { z } from "zod";
 
-import { Button } from "@/components/ui/button";
+import { useAuth } from "@/providers";
+import { Button } from "@/shared/components/ui/button";
 import {
   Form,
   FormControl,
@@ -29,16 +30,15 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
-import { useOnlineStatus } from "@/hooks/use-online-status";
-import { useToast } from "@/hooks/use-toast";
-import { auth } from "@/lib/api/firebase";
-import { cn } from "@/lib/utils";
-import { Logger } from "@/lib/utils/logger";
-import { isValidRedirectUrl } from "@/lib/utils/url";
-import { useAuth } from "@/providers";
+} from "@/shared/components/ui/form";
+import { Input } from "@/shared/components/ui/input";
+import { PasswordInput } from "@/shared/components/ui/password-input";
+import { useOnlineStatus } from "@/shared/hooks/use-online-status";
+import { useToast } from "@/shared/hooks/use-toast";
+import { auth } from "@/shared/lib/api/firebase";
+import { cn } from "@/shared/lib/utils";
+import { Logger } from "@/shared/lib/utils/logger";
+import { isValidRedirectUrl } from "@/shared/lib/utils/url";
 
 import { authService } from "../services/auth.service";
 

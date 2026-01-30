@@ -16,7 +16,8 @@ import { Link as LinkIcon,Loader2, PlusCircle } from "lucide-react";
 import { z } from "zod";
 
 import { addCompany as addCompanyAction } from "@/app/actions";
-import { Button } from "@/components/ui/button";
+import type { Company } from "@/features/companies/types";
+import { Button } from "@/shared/components/ui/button";
 import {
   Form,
   FormControl,
@@ -25,12 +26,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import type { Company } from "@/features/companies/types";
-import { useToast } from "@/hooks/use-toast";
-import { cn, slugify } from "@/lib/utils";
+} from "@/shared/components/ui/form";
+import { Input } from "@/shared/components/ui/input";
+import { Textarea } from "@/shared/components/ui/textarea";
+import { useToast } from "@/shared/hooks/use-toast";
+import { cn, slugify } from "@/shared/lib/utils";
 
 /**
  * Zod schema for validating the company submission form fields.

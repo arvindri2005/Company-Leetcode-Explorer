@@ -1,9 +1,9 @@
 import { cache } from "react";
 
 import { type Company } from "@/features/companies/types";
-import { cacheManager, CacheTTL } from "@/lib/utils/cache";
-import { revalidateCacheTag } from "@/lib/utils/cache/server-cache";
-import { Logger } from "@/lib/utils/logger";
+import { cacheManager, CacheTTL } from "@/shared/lib/utils/cache";
+import { revalidateCacheTag } from "@/shared/lib/utils/cache/server-cache";
+import { Logger } from "@/shared/lib/utils/logger";
 import { failure, type Result, success } from "@/shared/types/result";
 import type { ServiceError } from "@/shared/types/service-error";
 

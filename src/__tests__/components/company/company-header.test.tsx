@@ -12,8 +12,8 @@ jest.mock('next/image', () => ({
 
 // Mock utils
 // Mock utils
-jest.mock('@/lib/utils', () => {
-  const actual = jest.requireActual('@/lib/utils');
+jest.mock('@/shared/lib/utils', () => {
+  const actual = jest.requireActual('@/shared/lib/utils');
   return {
     ...actual,
     getLogoUrl: jest.fn((logo) => logo ? `/images/${logo}` : null),
@@ -21,7 +21,7 @@ jest.mock('@/lib/utils', () => {
 });
 
 // Mock Breadcrumb components
-jest.mock('@/components/ui/breadcrumb', () => ({
+jest.mock('@/shared/components/ui/breadcrumb', () => ({
   Breadcrumb: ({ children }: { children: React.ReactNode }) => <nav>{children}</nav>,
   BreadcrumbList: ({ children }: { children: React.ReactNode }) => <ol>{children}</ol>,
   BreadcrumbItem: ({ children }: { children: React.ReactNode }) => <li>{children}</li>,

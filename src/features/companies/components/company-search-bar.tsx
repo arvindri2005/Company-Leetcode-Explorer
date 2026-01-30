@@ -15,9 +15,9 @@ import { Building2, Loader2, Search } from "lucide-react";
 import { useDebounce } from "use-debounce";
 
 import { fetchCompanySuggestionsAction } from "@/app/actions";
-import { OfflineImage } from "@/components/ui/offline-image";
 import { CompanySearchInput } from "@/features/companies/components/company-search-input";
-import { cn, getLogoUrl } from "@/lib/utils";
+import { OfflineImage } from "@/shared/components/ui/offline-image";
+import { cn, getLogoUrl } from "@/shared/lib/utils";
 
 /**
  * Represents the structure of a single search suggestion item.

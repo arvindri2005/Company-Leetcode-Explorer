@@ -17,10 +17,10 @@ import {
   errorResponse,
   type PaginationMeta,
   successResponse,
-} from "@/lib/api/response";
-import { slugify } from "@/lib/utils";
-import { handleServerActionError } from "@/lib/utils/error-handler";
-import type { Company } from "@/types";
+} from "@/shared/lib/api/response";
+import { slugify } from "@/shared/lib/utils";
+import { handleServerActionError } from "@/shared/lib/utils/error-handler";
+import type { Company } from "@/shared/types";
 
 /**
  * Adds a new company to the database after validating and cleaning the input data.

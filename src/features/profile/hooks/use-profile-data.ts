@@ -8,8 +8,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { User as FirebaseUser } from "firebase/auth";
 
 import { userService } from "@/features/profile/services/user.service";
-import { useToast } from "@/hooks/use-toast";
-import type { ProblemStatus,UserProblemStatusInfo } from "@/types";
+import { useToast } from "@/shared/hooks/use-toast";
+import type { ProblemStatus,UserProblemStatusInfo } from "@/shared/types";
 
 export interface ProfileData {
   problemStatuses: Record<string, UserProblemStatusInfo>;

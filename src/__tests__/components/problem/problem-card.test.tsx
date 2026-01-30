@@ -47,7 +47,7 @@ jest.mock('@/providers', () => ({
   useAuth: () => ({ user: { uid: '123' } }),
 }));
 
-jest.mock('@/hooks/use-toast', () => ({
+jest.mock('@/shared/hooks/use-toast', () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 

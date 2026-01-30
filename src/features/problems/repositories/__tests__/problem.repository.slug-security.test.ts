@@ -1,4 +1,4 @@
-import { slugify } from "@/lib/utils";
+import { slugify } from "@/shared/lib/utils";
 
 import { type CreateProblemDTO } from "../../interfaces/problem.repository.interface";
 import { problemRepository } from "../problem.repository";
@@ -22,11 +22,11 @@ jest.mock("firebase/firestore", () => {
   };
 });
 
-jest.mock("@/lib/api/firebase", () => ({
+jest.mock("@/shared/lib/api/firebase", () => ({
   db: {},
 }));
 
-jest.mock("@/lib/utils/logger", () => ({
+jest.mock("@/shared/lib/utils/logger", () => ({
   Logger: {
     error: jest.fn(),
     warn: jest.fn(),

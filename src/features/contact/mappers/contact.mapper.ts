@@ -7,7 +7,7 @@
  * - Firestore documents
  */
 
-import { Contact as ContactEntity } from "@/domain/entities/contact.entity";
+import { Contact as ContactEntity } from "@/core/domain/entities/contact.entity";
 
 /**
  * Contact status type

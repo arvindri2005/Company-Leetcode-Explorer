@@ -3,7 +3,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { useOnlineStatus } from "@/hooks/use-online-status";
+import { useOnlineStatus } from "@/shared/hooks/use-online-status";
 
 import { authService } from "../../services/auth.service";
 import GoogleAuthButton from "../google-auth-button";
@@ -20,7 +20,7 @@ jest.mock("../../services/auth.service", () => ({
   },
 }));
 
-jest.mock("@/hooks/use-online-status", () => ({
+jest.mock("@/shared/hooks/use-online-status", () => ({
   useOnlineStatus: jest.fn(),
 }));
 
@@ -28,7 +28,7 @@ jest.mock("@/hooks/use-toast", () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 
-jest.mock("@/lib/utils/logger", () => ({
+jest.mock("@/shared/lib/utils/logger", () => ({
   Logger: {
     error: jest.fn(),
   },

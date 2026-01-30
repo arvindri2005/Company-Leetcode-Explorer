@@ -2,11 +2,11 @@ import { Suspense } from "react";
 
 import type { Metadata } from "next";
 
-import StructuredData from "@/components/seo/structured-data";
-import { CompaniesPageSkeleton } from "@/components/skeletons/companies-page-skeleton";
-import ErrorBoundary from "@/components/ui/error-boundary";
 import { env } from "@/env";
 import CompanyListErrorFallback from "@/features/companies/components/company-list-error-fallback";
+import StructuredData from "@/shared/components/seo/structured-data";
+import { CompaniesPageSkeleton } from "@/shared/components/skeletons/companies-page-skeleton";
+import ErrorBoundary from "@/shared/components/ui/error-boundary";
 
 import CompaniesListContainer from "./companies-list-container";
 

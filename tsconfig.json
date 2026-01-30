@@ -25,15 +25,16 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@/components/*": ["./src/components/*"],
+      "@/components/*": ["./src/shared/components/*"],
       "@/features/*": ["./src/features/*"],
-      "@/lib/*": ["./src/lib/*"],
-      "@/hooks/*": ["./src/hooks/*"],
-      "@/types/*": ["./src/types/*"],
+      "@/lib/*": ["./src/shared/lib/*"],
+      "@/hooks/*": ["./src/shared/hooks/*"],
+      "@/types/*": ["./src/shared/types/*"],
       "@/providers/*": ["./src/providers/*"],
-      "@/services/*": ["./src/services/*"],
+      "@/services/*": ["./src/shared/services/*"],
       "@/shared/*": ["./src/shared/*"],
-      "@/domain/*": ["./src/domain/*"]
+      "@/domain/*": ["./src/core/domain/*"],
+      "@/core/*": ["./src/core/*"]
     }
   },
   "include": [

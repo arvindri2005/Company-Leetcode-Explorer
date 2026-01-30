@@ -2,8 +2,8 @@ import React from "react";
 
 import { AlertCircle, RotateCcw } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/shared/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 
 interface ProfileTabErrorFallbackProps {
   error?: Error;

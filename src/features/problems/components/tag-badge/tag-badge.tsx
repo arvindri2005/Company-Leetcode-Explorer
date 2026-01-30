@@ -6,8 +6,8 @@
  */
 import React from "react";
 
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { Badge } from "@/shared/components/ui/badge";
+import { cn } from "@/shared/lib/utils";
 
 /**
  * Props for the TagBadge component.

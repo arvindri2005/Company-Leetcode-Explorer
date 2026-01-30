@@ -1,6 +1,6 @@
 import type { User as FirebaseUser } from "firebase/auth";
 
-import type { Company, LeetCodeProblem, PaginatedProblemsResponse, UserProfile } from "@/types";
+import type { Company, LeetCodeProblem, PaginatedProblemsResponse, UserProfile } from "@/shared/types";
 
 // Seedable PRNG (Mulberry32)
 class RandomGenerator {

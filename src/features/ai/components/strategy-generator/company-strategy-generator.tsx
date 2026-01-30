@@ -15,20 +15,20 @@ import { usePathname } from "next/navigation";
 
 import { Brain, Info, LogIn } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { targetRoleLevelOptions } from "@/features/ai";
+import { useAICooldown } from "@/features/ai";
+import { useAuth } from "@/providers";
+import { Button } from "@/shared/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { targetRoleLevelOptions } from "@/features/ai";
-import { useAICooldown } from "@/features/ai";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/providers";
-import type { TargetRoleLevel } from "@/types";
+} from "@/shared/components/ui/card";
+import { Separator } from "@/shared/components/ui/separator";
+import { useToast } from "@/shared/hooks/use-toast";
+import type { TargetRoleLevel } from "@/shared/types";
 
 import { useStrategyGeneration } from "../../hooks/use-strategy-generation";
 import { useStrategyPersistence } from "../../hooks/use-strategy-persistence";

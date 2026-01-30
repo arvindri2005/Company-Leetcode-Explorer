@@ -20,10 +20,10 @@ import {
   YAxis,
 } from "recharts";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { COLORS } from "@/constants/colors";
 import { TagBadge } from "@/features/problems";
-import type { Company, LastAskedPeriod, LeetCodeProblem } from "@/types";
+import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
+import type { Company, LastAskedPeriod, LeetCodeProblem } from "@/shared/types";
 
 /**
  * Props for the CompanyProblemStats component.

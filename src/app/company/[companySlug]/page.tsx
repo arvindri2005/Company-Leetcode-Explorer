@@ -9,13 +9,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import StructuredData from "@/components/seo/structured-data";
 import { env } from "@/env";
 import CompanyPage from "@/features/companies/components/page/company-page";
 import { getAllCompanySlugs, getCompanyBySlug } from "@/features/companies/services/company.service";
 import { getProblemsByCompanySlug } from "@/features/problems/services/problem.service";
-import { capitalizeWords, getLogoUrl } from "@/lib/utils";
-import { type Company, type LeetCodeProblem, type ProblemSummaryDTO } from "@/types";
+import StructuredData from "@/shared/components/seo/structured-data";
+import { capitalizeWords, getLogoUrl } from "@/shared/lib/utils";
+import { type Company, type LeetCodeProblem, type ProblemSummaryDTO } from "@/shared/types";
 
 export const revalidate = 2592000; // 1 month
 

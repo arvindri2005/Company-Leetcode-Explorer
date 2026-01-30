@@ -13,10 +13,10 @@ import {
   where,
 } from "firebase/firestore";
 
-import { db } from "@/lib/api/firebase";
-import { slugify } from "@/lib/utils";
-import { Logger } from "@/lib/utils/logger";
-import type { Company } from "@/types";
+import { db } from "@/shared/lib/api/firebase";
+import { slugify } from "@/shared/lib/utils";
+import { Logger } from "@/shared/lib/utils/logger";
+import type { Company } from "@/shared/types";
 
 const MAX_SUGGESTION_LIMIT = 20;
 const MAX_SEARCH_TERM_LENGTH = 100;

@@ -2,17 +2,17 @@
 
 import { AlertCircle, Lightbulb, Loader2, RefreshCw, UserCheck } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { targetRoleLevelOptions } from "@/features/ai";
+import { Button } from "@/shared/components/ui/button";
+import { Label } from "@/shared/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { targetRoleLevelOptions } from "@/features/ai";
-import type { TargetRoleLevel } from "@/types";
+} from "@/shared/components/ui/select";
+import type { TargetRoleLevel } from "@/shared/types";
 
 /**
  * Props for the StrategyForm component.

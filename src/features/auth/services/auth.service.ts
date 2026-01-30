@@ -6,8 +6,8 @@ import {
 } from "firebase/auth";
 
 import { userService } from "@/features/profile/services/user.service";
-import { auth } from "@/lib/api/firebase";
-import { Logger } from "@/lib/utils/logger";
+import { auth } from "@/shared/lib/api/firebase";
+import { Logger } from "@/shared/lib/utils/logger";
 
 import type { AuthServiceResponse } from "../types";
 

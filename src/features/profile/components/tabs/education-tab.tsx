@@ -5,12 +5,12 @@
 
 import { FormProvider, type UseFormReturn } from "react-hook-form";
 
-import ErrorBoundary from "@/components/ui/error-boundary";
-import { TabsContent } from "@/components/ui/tabs";
 import EducationExperienceSection from "@/features/profile/components/education-experience-section";
 import ProfileTabErrorFallback from "@/features/profile/components/profile-tab-error-fallback";
 import WorkExperienceSection from "@/features/profile/components/work-experience-section";
-import type { EducationExperience, WorkExperience } from "@/types";
+import ErrorBoundary from "@/shared/components/ui/error-boundary";
+import { TabsContent } from "@/shared/components/ui/tabs";
+import type { EducationExperience, WorkExperience } from "@/shared/types";
 
 type EducationFormValues = Omit<EducationExperience, "id">;
 type WorkExperienceFormValues = Omit<WorkExperience, "id">;

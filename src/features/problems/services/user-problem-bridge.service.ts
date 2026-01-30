@@ -1,7 +1,7 @@
 import { userService } from "@/features/profile/services/user.service";
-import { Logger } from "@/lib/utils/logger";
-import { type LeetCodeProblem } from "@/types";
-import { type PaginatedProblemsResponse, type ProblemSummaryDTO } from "@/types";
+import { Logger } from "@/shared/lib/utils/logger";
+import { type LeetCodeProblem } from "@/shared/types";
+import { type PaginatedProblemsResponse, type ProblemSummaryDTO } from "@/shared/types";
 
 import { problemService } from "./problem.service";
 

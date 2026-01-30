@@ -21,8 +21,8 @@ import {
 } from "lucide-react";
 import remarkGfm from "remark-gfm";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/shared/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -30,7 +30,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/shared/components/ui/dialog";
 import {
   Drawer,
   DrawerClose,
@@ -39,9 +39,9 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-} from "@/components/ui/drawer";
-import { useMediaQuery } from "@/hooks/use-media-query";
-import type { GenerateProblemInsightsOutput } from "@/types";
+} from "@/shared/components/ui/drawer";
+import { useMediaQuery } from "@/shared/hooks/use-media-query";
+import type { GenerateProblemInsightsOutput } from "@/shared/types";
 
 /**
  * Props for the ProblemInsightsDialog component.

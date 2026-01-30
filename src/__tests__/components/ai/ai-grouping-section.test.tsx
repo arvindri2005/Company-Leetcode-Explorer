@@ -1,10 +1,10 @@
 import { render, screen, waitFor } from '@testing-library/react';
 
 import AIGroupingSection from '@/features/ai/components/ai-grouping-section';
-import { type LeetCodeProblem } from '@/types';
+import { type LeetCodeProblem } from '@/shared/types';
 
 // Mock child components
-jest.mock('@/components/ui/card', () => ({
+jest.mock('@/shared/components/ui/card', () => ({
   Card: ({ children }: any) => <div>{children}</div>,
   CardHeader: ({ children }: any) => <div>{children}</div>,
   CardTitle: ({ children }: any) => <div>{children}</div>,
@@ -12,7 +12,7 @@ jest.mock('@/components/ui/card', () => ({
   CardContent: ({ children }: any) => <div>{children}</div>,
 }));
 
-jest.mock('@/components/ui/accordion', () => ({
+jest.mock('@/shared/components/ui/accordion', () => ({
   Accordion: ({ children }: any) => <div>{children}</div>,
   AccordionItem: ({ children }: any) => <div>{children}</div>,
   AccordionTrigger: ({ children }: any) => <div>{children}</div>,
@@ -68,7 +68,7 @@ jest.mock('@/features/ai/hooks/use-ai-cooldown', () => ({
   }),
 }));
 
-jest.mock('@/hooks/use-toast', () => ({
+jest.mock('@/shared/hooks/use-toast', () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 

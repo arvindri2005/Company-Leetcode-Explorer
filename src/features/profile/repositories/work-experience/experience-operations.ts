@@ -13,9 +13,9 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 
-import { db } from "@/lib/api/firebase";
-import { Logger } from "@/lib/utils/logger";
-import type { WorkExperience } from "@/types";
+import { db } from "@/shared/lib/api/firebase";
+import { Logger } from "@/shared/lib/utils/logger";
+import type { WorkExperience } from "@/shared/types";
 
 import { ExperienceValidatorsImpl } from "./experience-validators";
 

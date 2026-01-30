@@ -3,9 +3,7 @@
  * Defines business operations for User entities
  */
 
-import type { AppEventHandler,AppEventKey } from "@/services/event-bus";
-import type { Result } from "@/shared/types/result";
-import type { ServiceError } from "@/shared/types/service-error";
+import type { AppEventHandler,AppEventKey } from "@/shared/services/event-bus";
 import type {
   BookmarkedProblemInfo,
   EducationExperience,
@@ -14,7 +12,9 @@ import type {
   SavedStrategyTodoList,
   UserProblemStatusInfo,
   WorkExperience,
-} from "@/types";
+} from "@/shared/types";
+import type { Result } from "@/shared/types/result";
+import type { ServiceError } from "@/shared/types/service-error";
 
 import type { UserGlobalProblemStats } from "./user.repository.interface";
 

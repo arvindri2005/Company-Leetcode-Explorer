@@ -12,9 +12,9 @@ import {
   updateDoc,
 } from "firebase/firestore";
 
-import { User as UserEntity } from "@/domain/entities/user.entity";
-import { auth, db } from "@/lib/api/firebase";
-import { Logger } from "@/lib/utils/logger";
+import { User as UserEntity } from "@/core/domain/entities/user.entity";
+import { auth, db } from "@/shared/lib/api/firebase";
+import { Logger } from "@/shared/lib/utils/logger";
 
 import type {
   CreateUserDTO,

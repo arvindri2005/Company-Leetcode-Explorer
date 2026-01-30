@@ -6,11 +6,11 @@ import Link from "next/link";
 
 import { ClipboardList } from "lucide-react";
 
-import { ProblemCardSkeleton } from "@/components/skeletons/problem-skeletons";
-import { Button } from "@/components/ui/button";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { ProblemCard } from "@/features/problems";
-import type { LeetCodeProblem, ProblemStatus } from "@/types";
+import { ProblemCardSkeleton } from "@/shared/components/skeletons/problem-skeletons";
+import { Button } from "@/shared/components/ui/button";
+import { TooltipProvider } from "@/shared/components/ui/tooltip";
+import type { LeetCodeProblem, ProblemStatus } from "@/shared/types";
 
 /**
  * @interface ProblemWithStatusAndBookmark

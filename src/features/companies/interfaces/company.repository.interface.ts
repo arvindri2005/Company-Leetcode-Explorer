@@ -3,7 +3,7 @@
  * Defines data access operations for Company entities
  */
 
-import type { Company as CompanyEntity } from "@/domain/entities/company.entity";
+import type { Company as CompanyEntity } from "@/core/domain/entities/company.entity";
 import type { IBaseRepository, PaginationParams } from "@/shared/interfaces";
 
 import type { Company } from "../types";

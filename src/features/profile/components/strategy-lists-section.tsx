@@ -8,24 +8,24 @@ import Link from "next/link";
 import { Brain, FolderKanban, ListChecks, Loader2, Target } from "lucide-react";
 import remarkGfm from "remark-gfm";
 
-import { StrategyListSkeleton } from "@/components/skeletons/strategy-skeleton";
+import { StrategyListSkeleton } from "@/shared/components/skeletons/strategy-skeleton";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
+} from "@/shared/components/ui/accordion";
+import { Button } from "@/shared/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { cn } from "@/lib/utils";
-import type { SavedStrategyTodoList, StrategyTodoItem as StrategyTodoItemType } from "@/types";
+} from "@/shared/components/ui/card";
+import { Checkbox } from "@/shared/components/ui/checkbox";
+import { cn } from "@/shared/lib/utils";
+import type { SavedStrategyTodoList, StrategyTodoItem as StrategyTodoItemType } from "@/shared/types";
 
 /**
  * @interface StrategyListsSectionProps

@@ -1,7 +1,7 @@
-import StructuredData from "@/components/seo/structured-data";
 import { env } from "@/env";
 import { AllProblemsList } from "@/features/problems";
 import { getAllProblemsPaginated } from "@/features/problems/services/problem.service";
+import StructuredData from "@/shared/components/seo/structured-data";
 
 const APP_URL = env.NEXT_PUBLIC_APP_URL;
 

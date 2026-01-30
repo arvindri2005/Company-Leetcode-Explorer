@@ -3,7 +3,7 @@ import { revalidateTag } from "next/cache";
 
 import { simpleFaker } from "@/__tests__/factories/data-factories";
 import { userService } from "@/features/profile/services/user.service";
-import { handleServerActionError } from "@/lib/utils/error-handler";
+import { handleServerActionError } from "@/shared/lib/utils/error-handler";
 import { failure,success } from "@/shared/types/result";
 
 import { getUserProblemStatusesForIdsAction,setProblemStatusAction, toggleBookmarkProblemAction } from "../user.actions";
@@ -11,10 +11,10 @@ import { getUserProblemStatusesForIdsAction,setProblemStatusAction, toggleBookma
 // Mock dependencies
 jest.mock("@/features/profile/services/user.service");
 jest.mock("next/cache");
-jest.mock("@/lib/utils/error-handler");
+jest.mock("@/shared/lib/utils/error-handler");
 
 // Mock Firebase to avoid initialization errors
-jest.mock("@/lib/api/firebase", () => ({
+jest.mock("@/shared/lib/api/firebase", () => ({
   db: {},
   auth: {
     currentUser: {

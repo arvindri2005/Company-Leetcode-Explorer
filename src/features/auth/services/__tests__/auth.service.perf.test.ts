@@ -16,7 +16,7 @@ jest.mock("firebase/auth", () => ({
   browserLocalPersistence: {},
 }));
 
-jest.mock("@/lib/api/firebase", () => ({
+jest.mock("@/shared/lib/api/firebase", () => ({
   auth: {
     currentUser: null,
   },
@@ -28,7 +28,7 @@ jest.mock("@/features/profile/services/user.service", () => ({
   },
 }));
 
-jest.mock("@/lib/utils/logger", () => ({
+jest.mock("@/shared/lib/utils/logger", () => ({
   Logger: {
     error: jest.fn(),
     warn: jest.fn(),

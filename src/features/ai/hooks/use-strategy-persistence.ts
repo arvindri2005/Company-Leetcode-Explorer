@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 
 import { userService } from "@/features/profile/services/user.service";
-import type { GenerateCompanyStrategyOutput } from "@/types";
+import type { GenerateCompanyStrategyOutput } from "@/shared/types";
 
 /**
  * Interface for the strategy persistence hook.

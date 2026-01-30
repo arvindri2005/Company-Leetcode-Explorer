@@ -1,4 +1,4 @@
-import { SimpleLRUCache } from "@/lib/utils/lru-cache";
+import { SimpleLRUCache } from "@/shared/lib/utils/lru-cache";
 
 // Export the class from here as well for backward compatibility if needed, 
 // though direct import from lib is preferred.

@@ -11,7 +11,7 @@ import Link from "next/link";
 
 import { Rocket } from "lucide-react";
 
-import { FloatingShapes } from "@/components/ui/floating-shapes";
+import { FloatingShapes } from "@/shared/components/ui/floating-shapes";
 
 /**
  * Renders the hero section of the landing page.

@@ -2,10 +2,10 @@
 import { 
   type FocusTopic, 
   type StrategyTodoItem 
-} from "@/domain";
-import type { EducationExperience, WorkExperience } from "@/types";
-// LastAskedPeriod is imported from @/types
-import type { LastAskedPeriod } from "@/types";
+} from "@/core/domain";
+import type { EducationExperience, WorkExperience } from "@/shared/types/user";
+// LastAskedPeriod is imported from problems feature types
+import type { LastAskedPeriod } from "@/features/problems/types";
 
 // --- Types for AI General Inputs ---
 /**
@@ -169,7 +169,7 @@ export interface GenerateCompanyStrategyInput {
   workHistory?: WorkExperience[];
 }
 
-// FocusTopic and StrategyTodoItem are now imported from @/domain
+// FocusTopic and StrategyTodoItem are now imported from @/core/domain
 
 /**
  * @description Output structure for the "Generate Company Strategy" AI flow.

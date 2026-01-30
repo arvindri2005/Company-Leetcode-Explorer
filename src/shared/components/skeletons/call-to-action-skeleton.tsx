@@ -1,0 +1,27 @@
+import { Skeleton } from "@/shared/components/ui/skeleton";
+
+/**
+ * @function CallToActionSkeleton
+ * @description A skeleton loader component that mimics the appearance of the call-to-action section, used to indicate a loading state.
+ * @returns {JSX.Element} The rendered skeleton component.
+ */
+export const CallToActionSkeleton = () => {
+  return (
+    <section className="text-center py-12 mt-10">
+      <div className="container mx-auto px-4">
+        <Skeleton className="h-8 w-3/4 mx-auto mb-6 rounded-md" />{" "}
+        {/* Title Skeleton */}
+        <Skeleton className="h-6 w-1/2 mx-auto mb-8 rounded-md" />{" "}
+        {/* Subtitle Skeleton */}
+        <Skeleton className="h-12 w-48 mx-auto rounded-md" />{" "}
+        {/* Button Skeleton */}
+      </div>
+    </section>
+  );
+};
+
+
+
+
+
+

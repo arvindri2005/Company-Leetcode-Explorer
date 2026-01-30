@@ -12,8 +12,8 @@ import React, {
 import type { User as FirebaseUser } from "firebase/auth";
 import { onAuthStateChanged } from "firebase/auth";
 
-import { auth } from "@/lib/api/firebase";
-import { Logger } from "@/lib/utils/logger";
+import { auth } from "@/shared/lib/api/firebase";
+import { Logger } from "@/shared/lib/utils/logger";
 
 import { authService } from "../services/auth.service";
 import type { AuthContextType } from "../types";

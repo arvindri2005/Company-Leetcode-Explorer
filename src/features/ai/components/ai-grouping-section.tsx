@@ -17,28 +17,28 @@ import { AlertCircle,Info, Loader2, LogIn, Sparkles } from "lucide-react";
 
 import type { GroupQuestionsOutput } from "@/ai/flows/group-questions";
 import { performQuestionGrouping } from "@/app/actions/ai.actions";
+import { useAICooldown } from "@/features/ai";
+import { ProblemCard } from "@/features/problems";
+import { useAuth } from "@/providers";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
+} from "@/shared/components/ui/accordion";
+import { Button } from "@/shared/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { useAICooldown } from "@/features/ai";
-import { ProblemCard } from "@/features/problems";
-import { useToast } from "@/hooks/use-toast";
-import { slugify } from "@/lib/utils";
-import { useAuth } from "@/providers";
-import type { AIProblemInput, LeetCodeProblem, ProblemSummaryDTO } from "@/types";
+} from "@/shared/components/ui/card";
+import { Separator } from "@/shared/components/ui/separator";
+import { TooltipProvider } from "@/shared/components/ui/tooltip";
+import { useToast } from "@/shared/hooks/use-toast";
+import { slugify } from "@/shared/lib/utils";
+import type { AIProblemInput, LeetCodeProblem, ProblemSummaryDTO } from "@/shared/types";
 
 /**
  * Props for the AIGroupingSection component.

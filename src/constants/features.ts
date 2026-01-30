@@ -7,7 +7,7 @@ import {
   Users,
 } from "lucide-react";
 
-import { type Feature, type Stat } from "@/types";
+import { type Feature, type Stat } from "@/shared/types";
 
 /**
  * @const FEATURES

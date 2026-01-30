@@ -13,18 +13,18 @@ import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-import Header from "@/components/layout/header";
-import { HeaderErrorFallback } from "@/components/layout/header";
-import StructuredData from "@/components/seo/structured-data";
-import ErrorBoundary from "@/components/ui/error-boundary";
-import { OfflineIndicator } from "@/components/ui/offline-indicator";
-import { Toaster } from "@/components/ui/toaster";
 import { COLORS } from "@/constants/colors";
 import { env } from "@/env";
 import { CooldownStateProvider } from "@/features/ai";
 import { Footer } from "@/features/landing";
 import { AuthProvider } from "@/providers";
 import { ThemeProvider } from "@/providers";
+import { HeaderErrorFallback } from "@/shared/components/layout/header";
+import Header from "@/shared/components/layout/header";
+import StructuredData from "@/shared/components/seo/structured-data";
+import ErrorBoundary from "@/shared/components/ui/error-boundary";
+import { OfflineIndicator } from "@/shared/components/ui/offline-indicator";
+import { Toaster } from "@/shared/components/ui/toaster";
 
 import "./globals.css";
 

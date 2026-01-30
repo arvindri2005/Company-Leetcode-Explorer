@@ -2,7 +2,7 @@
 
 import { Loader2, Save } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/ui/button";
 
 /**
  * Props for the StrategyActions component.

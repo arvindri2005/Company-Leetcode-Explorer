@@ -1,12 +1,12 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { applyActionCode } from "firebase/auth";
 
-import { Logger } from "@/lib/utils/logger";
+import { Logger } from "@/shared/lib/utils/logger";
 
 import VerifyEmail from "../verify-email";
 
 // Mocks
-jest.mock("@/lib/utils/logger", () => ({
+jest.mock("@/shared/lib/utils/logger", () => ({
   Logger: {
     error: jest.fn(),
   },
@@ -17,7 +17,7 @@ jest.mock("firebase/auth", () => ({
   applyActionCode: jest.fn(),
 }));
 
-jest.mock("@/lib/api/firebase", () => ({
+jest.mock("@/shared/lib/api/firebase", () => ({
   auth: {},
 }));
 

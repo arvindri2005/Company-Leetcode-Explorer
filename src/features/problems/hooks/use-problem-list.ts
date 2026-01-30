@@ -5,9 +5,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { userService } from "@/features/profile/services/user.service";
-import { useToast } from "@/hooks/use-toast";
-import { parseArrayValid } from "@/lib/utils";
 import { useAuth } from "@/providers";
+import { useToast } from "@/shared/hooks/use-toast";
+import { parseArrayValid } from "@/shared/lib/utils";
 
 import { 
   DifficultySchema, 

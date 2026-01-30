@@ -1,4 +1,4 @@
-import { Logger } from "@/lib/utils/logger";
+import { Logger } from "@/shared/lib/utils/logger";
 
 /**
  * Represents a generic AI flow function.

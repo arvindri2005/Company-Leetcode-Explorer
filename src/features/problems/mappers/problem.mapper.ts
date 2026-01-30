@@ -7,7 +7,7 @@
  * - Firestore documents
  */
 
-import { Problem } from "@/domain/entities/problem.entity";
+import { Problem } from "@/core/domain/entities/problem.entity";
 import { Difficulty } from "@/domain/value-objects/difficulty.vo";
 import { ProblemStatus } from "@/domain/value-objects/problem-status.vo";
 

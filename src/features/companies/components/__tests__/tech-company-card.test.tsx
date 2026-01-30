@@ -4,7 +4,7 @@ import { TechCompanyCard } from "@/features/companies/components/tech-company-ca
 import type { Company } from "@/features/companies/types";
 
 // Mock OfflineImage
-jest.mock("@/components/ui/offline-image", () => ({
+jest.mock("@/shared/components/ui/offline-image", () => ({
   OfflineImage: ({ alt }: { alt: string }) => <img alt={alt} />,
 }));
 

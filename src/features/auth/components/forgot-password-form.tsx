@@ -10,7 +10,7 @@ import { sendPasswordResetEmail } from "firebase/auth";
 import { ArrowLeft, Check, Loader2, MailIcon } from "lucide-react";
 import { z } from "zod";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/ui/button";
 import {
   Form,
   FormControl,
@@ -18,12 +18,12 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { auth } from "@/lib/api/firebase";
-import { cn } from "@/lib/utils";
-import { Logger } from "@/lib/utils/logger";
+} from "@/shared/components/ui/form";
+import { Input } from "@/shared/components/ui/input";
+import { useToast } from "@/shared/hooks/use-toast";
+import { auth } from "@/shared/lib/api/firebase";
+import { cn } from "@/shared/lib/utils";
+import { Logger } from "@/shared/lib/utils/logger";
 
 export const forgotPasswordSchema = z.object({
   email: z

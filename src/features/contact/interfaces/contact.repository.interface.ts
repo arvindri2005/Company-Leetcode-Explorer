@@ -3,7 +3,7 @@
  * Defines data access operations for Contact entities
  */
 
-import type { Contact as ContactEntity } from "@/domain/entities/contact.entity";
+import type { Contact as ContactEntity } from "@/core/domain/entities/contact.entity";
 import type { IBaseRepository, PaginatedResult, PaginationParams } from "@/shared/interfaces";
 
 /**

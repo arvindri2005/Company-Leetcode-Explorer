@@ -14,7 +14,7 @@ jest.mock('remark-gfm', () => ({
 }));
 
 // Mock child components
-jest.mock('@/components/ui/card', () => ({
+jest.mock('@/shared/components/ui/card', () => ({
   Card: ({ children }: any) => <div>{children}</div>,
   CardHeader: ({ children }: any) => <div>{children}</div>,
   CardTitle: ({ children }: any) => <div>{children}</div>,
@@ -22,7 +22,7 @@ jest.mock('@/components/ui/card', () => ({
   CardContent: ({ children }: any) => <div>{children}</div>,
 }));
 
-jest.mock('@/components/ui/button', () => ({
+jest.mock('@/shared/components/ui/button', () => ({
   Button: ({ children, onClick }: any) => <button onClick={onClick}>{children}</button>,
 }));
 
@@ -56,7 +56,7 @@ jest.mock('@/features/ai/hooks/use-ai-cooldown', () => ({
   }),
 }));
 
-jest.mock('@/hooks/use-toast', () => ({
+jest.mock('@/shared/hooks/use-toast', () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 

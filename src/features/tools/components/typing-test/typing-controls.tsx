@@ -1,7 +1,7 @@
 import React from "react";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { type Language } from "@/features/tools";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
 
 interface TypingControlsProps {
     selectedLanguage: Language;

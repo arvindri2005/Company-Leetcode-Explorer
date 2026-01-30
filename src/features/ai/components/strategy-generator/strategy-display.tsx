@@ -10,15 +10,15 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
+} from "@/shared/components/ui/accordion";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-} from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import type { GenerateCompanyStrategyOutput } from "@/types";
+} from "@/shared/components/ui/card";
+import { cn } from "@/shared/lib/utils";
+import type { GenerateCompanyStrategyOutput } from "@/shared/types";
 
 /**
  * Props for the StrategyDisplay component.

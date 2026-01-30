@@ -3,7 +3,7 @@
 import { z } from "zod";
 
 import { contactService } from "@/features/contact/services/contact.service";
-import { handleServerActionError } from "@/lib/utils/error-handler";
+import { handleServerActionError } from "@/shared/lib/utils/error-handler";
 
 /**
  * Zod schema for validating the contact form data.

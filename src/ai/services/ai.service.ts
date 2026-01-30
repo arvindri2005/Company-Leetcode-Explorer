@@ -33,9 +33,9 @@ import { type AIProblemInput } from "@/features/ai";
 import { companyService } from "@/features/companies/services/company.service";
 import { problemService } from "@/features/problems/services/problem.service";
 import { userService } from "@/features/profile/services/user.service";
-import { cacheManager, CacheTTL } from "@/lib/utils/cache";
-import { Logger } from "@/lib/utils/logger";
-import { type LeetCodeProblem } from "@/types";
+import { cacheManager, CacheTTL } from "@/shared/lib/utils/cache";
+import { Logger } from "@/shared/lib/utils/logger";
+import { type LeetCodeProblem } from "@/shared/types";
 
 // Register default flows
 aiFlowRegistry.register("groupQuestions", groupQuestionsFlow);

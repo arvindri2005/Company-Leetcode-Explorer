@@ -1,11 +1,11 @@
 import { fireEvent,render, screen } from '@testing-library/react';
 
 import ProblemLoadError from '@/features/companies/components/page/problem-load-error';
-import { reloadPage } from '@/lib/utils';
+import { reloadPage } from '@/shared/lib/utils';
 
 // Mock utils
-jest.mock('@/lib/utils', () => ({
-  ...jest.requireActual('@/lib/utils'),
+jest.mock('@/shared/lib/utils', () => ({
+  ...jest.requireActual('@/shared/lib/utils'),
   reloadPage: jest.fn(),
 }));
 

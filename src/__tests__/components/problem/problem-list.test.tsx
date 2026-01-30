@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 
 import { userService } from '@/features/profile/services/user.service';
-import { type LeetCodeProblem } from '@/types';
+import { type LeetCodeProblem } from '@/shared/types';
 
 // Mock the feature module with all needed components
 jest.mock('@/features/problems', () => ({
@@ -36,7 +36,7 @@ jest.mock('@/app/actions/problem.actions', () => ({
   loadMoreProblemsAction: jest.fn(),
 }));
 
-jest.mock('@/components/ads/ad-placeholder', () => ({
+jest.mock('@/shared/components/ads/ad-placeholder', () => ({
   __esModule: true,
   default: () => <div data-testid="ad-placeholder">Ad</div>,
 }));
@@ -46,7 +46,7 @@ jest.mock('@/providers', () => ({
   useAuth: () => ({ user: { uid: '123' } }),
 }));
 
-jest.mock('@/hooks/use-toast', () => ({
+jest.mock('@/shared/hooks/use-toast', () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 

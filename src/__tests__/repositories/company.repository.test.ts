@@ -62,7 +62,7 @@ jest.mock("firebase/firestore", () => {
 // Import the mocked Timestamp to use in test data
 const { Timestamp } = require("firebase/firestore");
 
-jest.mock("@/lib/api/firebase", () => ({
+jest.mock("@/shared/lib/api/firebase", () => ({
   db: {},
 }));
 

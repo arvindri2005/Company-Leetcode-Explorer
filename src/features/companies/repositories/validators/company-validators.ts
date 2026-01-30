@@ -3,7 +3,7 @@
  * Handles input validation for company operations
  */
 
-import { CompanySchema } from "@/types";
+import { CompanySchema } from "@/shared/types";
 
 import type {
   CreateCompanyDTO,

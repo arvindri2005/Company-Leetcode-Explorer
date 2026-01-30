@@ -1,6 +1,6 @@
 import { type QueryConstraint,where } from "firebase/firestore";
 
-import { type DifficultyFilter, DifficultySchema, type LastAskedFilter, LastAskedPeriodSchema,type ProblemSummaryDTO } from "@/types";
+import { type DifficultyFilter, DifficultySchema, type LastAskedFilter, LastAskedPeriodSchema,type ProblemSummaryDTO } from "@/shared/types";
 
 import { type ProblemFilter } from "./types";
 

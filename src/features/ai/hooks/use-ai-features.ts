@@ -7,13 +7,13 @@ import {
   performSimilarQuestionSearch,
 } from "@/app/actions/ai.actions";
 import { useAICooldown } from "@/features/ai";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/providers";
+import { useToast } from "@/shared/hooks/use-toast";
 import type {
   GenerateProblemInsightsOutput,
   LeetCodeProblem,
   SimilarProblemDetail,
-} from "@/types";
+} from "@/shared/types";
 
 export function useAIFeatures(problem: LeetCodeProblem, companySlug: string) {
   const { toast } = useToast();

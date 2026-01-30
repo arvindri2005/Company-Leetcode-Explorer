@@ -5,9 +5,9 @@
  * to contribute new coding problems to the platform. It fetches a list of all
  * companies to populate a dropdown in the form and includes metadata for SEO.
  */
-import { Separator } from "@/components/ui/separator";
 import { companyService } from "@/features/companies/services/company.service";
 import { ProblemSubmissionForm } from "@/features/problems";
+import { Separator } from "@/shared/components/ui/separator";
 
 /**
  * Metadata for the "Submit Problem" page.

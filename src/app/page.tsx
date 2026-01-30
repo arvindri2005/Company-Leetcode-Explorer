@@ -8,11 +8,11 @@
  */
 import type { Metadata } from "next";
 
-import StructuredData from "@/components/seo/structured-data";
-import ErrorBoundary from "@/components/ui/error-boundary";
 import { env } from "@/env";
 import { FeaturesSection, HeroSection, SearchSection,StatsSection } from "@/features/landing";
 import SearchSectionErrorFallback from "@/features/landing/components/search-section-error-fallback";
+import StructuredData from "@/shared/components/seo/structured-data";
+import ErrorBoundary from "@/shared/components/ui/error-boundary";
 
 const APP_URL = env.NEXT_PUBLIC_APP_URL;
 

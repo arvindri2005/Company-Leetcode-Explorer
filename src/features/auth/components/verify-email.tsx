@@ -7,9 +7,9 @@ import Link from "next/link";
 import { applyActionCode } from "firebase/auth";
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { auth } from "@/lib/api/firebase";
-import { Logger } from "@/lib/utils/logger";
+import { Button } from "@/shared/components/ui/button";
+import { auth } from "@/shared/lib/api/firebase";
+import { Logger } from "@/shared/lib/utils/logger";
 
 interface VerifyEmailProps {
   oobCode: string | null;

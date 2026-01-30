@@ -1,4 +1,4 @@
-import { Logger } from "@/lib/utils/logger";
+import { Logger } from "@/shared/lib/utils/logger";
 
 /**
  * Retries an asynchronous operation with exponential backoff.

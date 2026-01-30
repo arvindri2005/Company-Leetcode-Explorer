@@ -2,7 +2,7 @@ import React from "react";
 
 import { render, screen } from "@testing-library/react";
 
-import { type ProblemStatus } from "@/types";
+import { type ProblemStatus } from "@/shared/types";
 
 import ProfileProblemList from "../profile-problem-list";
 
@@ -14,7 +14,7 @@ jest.mock("@/features/problems", () => ({
 }));
 
 // Mock skeletons
-jest.mock("@/components/skeletons/problem-skeletons", () => ({
+jest.mock("@/shared/components/skeletons/problem-skeletons", () => ({
   ProblemCardSkeleton: () => <div data-testid="problem-skeleton" />,
 }));
 

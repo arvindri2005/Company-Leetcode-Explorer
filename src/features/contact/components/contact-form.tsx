@@ -4,11 +4,11 @@ import { useEffect } from "react";
 import { useFormState,useFormStatus } from "react-dom";
 
 import { sendContactMessage } from "@/app/actions/contact.actions";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useOnlineStatus } from "@/hooks/use-online-status";
-import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
+import { Textarea } from "@/shared/components/ui/textarea";
+import { useOnlineStatus } from "@/shared/hooks/use-online-status";
+import { useToast } from "@/shared/hooks/use-toast";
 
 /**
  * A client component that renders a form submission button with a pending state.

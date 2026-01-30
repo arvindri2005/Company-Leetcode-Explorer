@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { type Company } from "@/types";
+import { type Company } from "@/shared/types";
 
 import ProblemSubmissionForm from "./problem-submission-form";
 

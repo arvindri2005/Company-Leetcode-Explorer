@@ -12,9 +12,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import ErrorBoundary from "@/components/ui/error-boundary";
 import type { Company } from "@/features/companies/types";
-import { useCursorPagination } from "@/hooks/use-cursor-pagination";
+import ErrorBoundary from "@/shared/components/ui/error-boundary";
+import { useCursorPagination } from "@/shared/hooks/use-cursor-pagination";
 
 import CompanyCard from "./company-card";
 import CompanyCardErrorFallback from "./company-card-error-fallback";

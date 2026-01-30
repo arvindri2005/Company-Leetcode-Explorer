@@ -6,8 +6,8 @@ import { FormProvider, useFormContext } from "react-hook-form";
 import { GraduationCap, Loader2, PlusCircle } from "lucide-react";
 import { type z } from "zod";
 
-import { ExperienceListSkeleton } from "@/components/skeletons/experience-skeleton";
-import { Button } from "@/components/ui/button";
+import { ExperienceListSkeleton } from "@/shared/components/skeletons/experience-skeleton";
+import { Button } from "@/shared/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@/shared/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -24,10 +24,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import type { EducationExperience } from "@/types";
-import { type EducationExperienceSchema as educationFormSchema } from "@/types"; // Renamed for clarity
+} from "@/shared/components/ui/form";
+import { Input } from "@/shared/components/ui/input";
+import type { EducationExperience } from "@/shared/types";
+import { type EducationExperienceSchema as educationFormSchema } from "@/shared/types"; // Renamed for clarity
 
 type EducationFormValues = z.infer<typeof educationFormSchema>;
 

@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 
 import { userService } from "@/features/profile/services/user.service";
-import { type LeetCodeProblem } from "@/types";
+import { type LeetCodeProblem } from "@/shared/types";
 
 import { useProblemInteractions } from "./use-problem-interactions";
 
@@ -13,7 +13,7 @@ jest.mock("next/navigation", () => ({
   usePathname: () => "/problems",
 }));
 
-jest.mock("@/hooks/use-toast", () => ({
+jest.mock("@/shared/hooks/use-toast", () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 

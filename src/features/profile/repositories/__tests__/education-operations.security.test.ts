@@ -2,7 +2,7 @@ import { EducationOperationsImpl } from '../education/education-operations';
 import { ExperienceOperationsImpl } from '../work-experience/experience-operations';
 
 // Mock Firebase
-jest.mock('@/lib/api/firebase', () => ({
+jest.mock('@/shared/lib/api/firebase', () => ({
   db: {},
 }));
 

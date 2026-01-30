@@ -4,7 +4,7 @@
  * Implements IUserRepository interface for dependency injection
  */
 
-import { type User as UserEntity } from "@/domain/entities/user.entity";
+import { type User as UserEntity } from "@/core/domain/entities/user.entity";
 import type { PaginatedResult, PaginationParams } from "@/shared/interfaces";
 import type {
   BookmarkedProblemInfo,
@@ -14,7 +14,7 @@ import type {
   SavedStrategyTodoList,
   UserProblemStatusInfo,
   WorkExperience,
-} from "@/types";
+} from "@/shared/types";
 
 import type {
   CreateUserDTO,

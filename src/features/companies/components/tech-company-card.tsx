@@ -2,9 +2,9 @@ import React from "react";
 
 import Link from "next/link";
 
-import { OfflineImage } from "@/components/ui/offline-image";
 import { type Company } from "@/features/companies/types";
-import { getLogoUrl } from "@/lib/utils";
+import { OfflineImage } from "@/shared/components/ui/offline-image";
+import { getLogoUrl } from "@/shared/lib/utils";
 
 interface TechCompanyCardProps {
   company: Company;

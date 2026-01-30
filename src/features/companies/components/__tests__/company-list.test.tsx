@@ -1,6 +1,6 @@
 import { act,render, screen, waitFor } from "@testing-library/react";
 
-import { useCursorPagination } from "@/hooks/use-cursor-pagination";
+import { useCursorPagination } from "@/shared/hooks/use-cursor-pagination";
 
 import CompanyList from "../company-list";
 
@@ -14,7 +14,7 @@ jest.mock("next/navigation", () => ({
   }),
 }));
 
-jest.mock("@/hooks/use-cursor-pagination", () => ({
+jest.mock("@/shared/hooks/use-cursor-pagination", () => ({
   useCursorPagination: jest.fn(),
 }));
 

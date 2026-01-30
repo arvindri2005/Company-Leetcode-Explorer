@@ -3,7 +3,7 @@
  * Defines data access operations for Problem entities
  */
 
-import type { Problem } from "@/domain/entities/problem.entity";
+import type { Problem } from "@/core/domain/entities/problem.entity";
 import type { Company } from "@/features/companies/types";
 import type { IBaseRepository, PaginationParams } from "@/shared/interfaces";
 

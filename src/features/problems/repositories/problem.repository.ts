@@ -18,7 +18,7 @@ import {
   where,
 } from "firebase/firestore";
 
-import type { Problem } from "@/domain/entities/problem.entity";
+import type { Problem } from "@/core/domain/entities/problem.entity";
 import { companyRepository } from "@/features/companies/repositories/company.repository";
 import {
   MAX_COMPANIES_PER_PROBLEM,
@@ -30,10 +30,10 @@ import {
 } from "@/features/problems/utils/problem-filters/implementations";
 import { problemFilterRegistry } from "@/features/problems/utils/problem-filters/registry";
 import { userRepository } from "@/features/profile/repositories/user.repository";
-import { db } from "@/lib/api/firebase";
-import { slugify } from "@/lib/utils";
-import { Logger } from "@/lib/utils/logger";
 import type { PaginatedResult } from "@/shared/interfaces";
+import { db } from "@/shared/lib/api/firebase";
+import { slugify } from "@/shared/lib/utils";
+import { Logger } from "@/shared/lib/utils/logger";
 import {
   type Company,
   CreateProblemSchema,
@@ -46,7 +46,7 @@ import {
   type ProblemSummaryDTO,
   type SortKey,
   UpdateProblemSchema,
-} from "@/types";
+} from "@/shared/types";
 
 import type {
   CreateProblemDTO,

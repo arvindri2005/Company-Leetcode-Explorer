@@ -27,17 +27,17 @@ import {
   XCircle,
 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { useProblemInteractions } from "@/features/problems/hooks/use-problem-interactions";
+import { useAuth } from "@/providers";
+import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useProblemInteractions } from "@/features/problems/hooks/use-problem-interactions";
-import { cn } from "@/lib/utils";
-import { useAuth } from "@/providers";
+} from "@/shared/components/ui/dropdown-menu";
+import { cn } from "@/shared/lib/utils";
 
 import type { LeetCodeProblem, ProblemStatus } from "../../types";
 import TagBadge from "../tag-badge/tag-badge";

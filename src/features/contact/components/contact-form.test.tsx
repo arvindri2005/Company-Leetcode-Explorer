@@ -13,12 +13,12 @@ jest.mock('@/app/actions/contact.actions', () => ({
   sendContactMessage: jest.fn(),
 }));
 
-jest.mock('@/hooks/use-toast', () => ({
+jest.mock('@/shared/hooks/use-toast', () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 
 // Mock useOnlineStatus
-jest.mock('@/hooks/use-online-status', () => ({
+jest.mock('@/shared/hooks/use-online-status', () => ({
   useOnlineStatus: jest.fn(),
 }));
 

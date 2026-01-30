@@ -3,7 +3,7 @@
  * Common error handling utilities used across repository modules
  */
 
-import { Logger } from "@/lib/utils/logger";
+import { Logger } from "@/shared/lib/utils/logger";
 
 /**
  * Interface for error handlers

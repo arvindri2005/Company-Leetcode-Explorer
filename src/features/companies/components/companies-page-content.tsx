@@ -7,16 +7,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { HelpCircle, RotateCcw, SearchX } from "lucide-react";
 
 import { fetchCompaniesAction } from "@/app/actions/company.actions";
-import AdPlaceholder from "@/components/ads/ad-placeholder";
-import { CompanyTableSkeleton } from "@/components/skeletons/companies-skeletons";
+import { type Company } from "@/features/companies/types";
+import AdPlaceholder from "@/shared/components/ads/ad-placeholder";
+import { CompanyTableSkeleton } from "@/shared/components/skeletons/companies-skeletons";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Separator } from "@/components/ui/separator";
-import { type Company } from "@/features/companies/types";
+} from "@/shared/components/ui/accordion";
+import { Separator } from "@/shared/components/ui/separator";
 
 import { CompanyTable } from "./company-table";
 import { DashboardHeader } from "./dashboard-header";

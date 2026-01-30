@@ -1,7 +1,7 @@
-import StructuredData from "@/components/seo/structured-data";
 import { env } from "@/env";
 import { CompaniesPageContent } from "@/features/companies/components/companies-page-content";
 import { getCompanies, getCompanyBySlug } from "@/features/companies/services/company.service";
+import StructuredData from "@/shared/components/seo/structured-data";
 
 const APP_URL = env.NEXT_PUBLIC_APP_URL;
 

@@ -5,7 +5,7 @@
  * It fetches the company's data based on the slug, generates dynamic metadata for SEO,
  * retrieves the initial list of associated problems, and renders the main page layout.
  */
-import AdPlaceholder from "@/components/ads/ad-placeholder";
+import AdPlaceholder from "@/shared/components/ads/ad-placeholder";
 import type {
   Company,
   DifficultyFilter,
@@ -14,7 +14,7 @@ import type {
   ProblemListFilters,
   SortKey,
   StatusFilter,
-} from "@/types";
+} from "@/shared/types";
 
 import CompanyHeader from "../company-header";
 import CompanyPreparationGuide from "../company-preparation-guide";

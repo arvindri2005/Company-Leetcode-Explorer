@@ -7,8 +7,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Search, X } from "lucide-react";
 import { useDebouncedCallback } from "use-debounce";
 
-import { Input } from "@/components/ui/input";
 import { useTypingPlaceholderRef } from "@/features/companies/hooks";
+import { Input } from "@/shared/components/ui/input";
 
 const COMPANIES = [
   "Google",

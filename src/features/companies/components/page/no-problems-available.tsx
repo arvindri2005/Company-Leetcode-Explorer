@@ -9,8 +9,8 @@ import Link from "next/link";
 
 import { BookOpen, ChevronLeft, PlusSquare } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/shared/components/ui/button";
+import { Card, CardContent } from "@/shared/components/ui/card";
 
 /**
  * Props for the NoProblemsAvailable component.

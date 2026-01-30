@@ -46,13 +46,13 @@ jest.mock('@/features/companies/components/page/company-page', () => ({
   default: ({ company }: { company: any }) => <div data-testid="company-page">{company.name}</div>,
 }));
 
-jest.mock('@/components/seo/structured-data', () => ({
+jest.mock('@/shared/components/seo/structured-data', () => ({
   __esModule: true,
   default: ({ data }: { data: any }) => <script type="application/ld+json" data-testid="structured-data" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />,
 }));
 
 // Mock utils
-jest.mock('@/lib/utils', () => ({
+jest.mock('@/shared/lib/utils', () => ({
   getLogoUrl: jest.fn((logo) => logo ? `/images/${logo}` : null),
   capitalizeWords: jest.fn((str) => str.charAt(0).toUpperCase() + str.slice(1)),
 }));

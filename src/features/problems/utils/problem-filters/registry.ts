@@ -1,6 +1,6 @@
 import { type QueryConstraint } from "firebase/firestore";
 
-import { type ProblemSummaryDTO } from "@/types";
+import { type ProblemSummaryDTO } from "@/shared/types";
 
 import { type ProblemFilter } from "./types";
 

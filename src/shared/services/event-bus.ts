@@ -1,0 +1,40 @@
+import { TypedEventEmitter } from "@/shared/lib/utils/event-emitter";
+import { type ProblemStatus } from "@/shared/types";
+
+export interface AppEventMap extends Record<string, unknown> {
+  "user:problem_status_changed": {
+    userId: string;
+    problemId: string;
+    status: ProblemStatus;
+    companySlug: string;
+    problemSlug: string;
+    timestamp: Date;
+  };
+  "user:bookmark_toggled": {
+    userId: string;
+    problemId: string;
+    isBookmarked: boolean;
+    companySlug: string;
+    problemSlug: string;
+    timestamp: Date;
+  };
+}
+
+export type AppEventKey = keyof AppEventMap;
+
+export type AppEventHandler<K extends AppEventKey> = (
+  payload: AppEventMap[K],
+) => void | Promise<void>;
+
+/**
+ * Global Event Bus instance.
+ * Use this to emit and subscribe to application-wide events.
+ * See `guide/advanced-patterns.md` for usage examples.
+ */
+export const appEvents = new TypedEventEmitter<AppEventMap>();
+
+
+
+
+
+

@@ -11,12 +11,12 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { problemService } from "@/features/problems/services/problem.service";
-import { Logger } from "@/lib/utils/logger";
+import { Logger } from "@/shared/lib/utils/logger";
 import type {
   DifficultyFilter,
   LastAskedFilter,
   SortKey,
-} from "@/types";
+} from "@/shared/types";
 
 /**
  * Zod schema for validating the incoming request body for fetching problems.

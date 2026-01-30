@@ -22,21 +22,21 @@ import {
   XCircle,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { useProblemInteractions } from "@/features/problems/hooks/use-problem-interactions";
+import { Button } from "@/shared/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
+} from "@/shared/components/ui/dropdown-menu";
+import { Skeleton } from "@/shared/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useProblemInteractions } from "@/features/problems/hooks/use-problem-interactions";
-import { cn, getDeterministicRandom } from "@/lib/utils";
+} from "@/shared/components/ui/tooltip";
+import { cn, getDeterministicRandom } from "@/shared/lib/utils";
 
 import type { LeetCodeProblem, ProblemStatus } from "../../types";
 import CompanyBadge from "../company-badge/company-badge";

@@ -2,15 +2,15 @@ import React from "react";
 
 import { BookOpen, CheckCircle2,HelpCircle, Lightbulb } from "lucide-react";
 
+import { type Company } from "@/features/companies/types";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Card, CardContent } from "@/components/ui/card";
-import { type Company } from "@/features/companies/types";
-import { capitalizeWords } from "@/lib/utils";
+} from "@/shared/components/ui/accordion";
+import { Card, CardContent } from "@/shared/components/ui/card";
+import { capitalizeWords } from "@/shared/lib/utils";
 
 interface CompanyPreparationGuideProps {
   company: Company;

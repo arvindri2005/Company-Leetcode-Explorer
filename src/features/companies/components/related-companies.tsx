@@ -2,8 +2,8 @@ import Link from "next/link";
 
 import { ArrowRight, Building2 } from "lucide-react";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { slugify } from "@/lib/utils";
+import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
+import { slugify } from "@/shared/lib/utils";
 
 interface RelatedCompaniesProps {
   companies: string[];

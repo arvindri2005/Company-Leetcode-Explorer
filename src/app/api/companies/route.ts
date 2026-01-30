@@ -11,7 +11,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 
 import { companyService } from "@/features/companies/services/company.service";
-import { Logger } from "@/lib/utils/logger";
+import { Logger } from "@/shared/lib/utils/logger";
 
 /**
  * Handles POST requests to fetch the next page of companies.

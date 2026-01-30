@@ -6,11 +6,11 @@ import dynamic from "next/dynamic";
 
 import { SearchX } from "lucide-react";
 
-import AdPlaceholder from "@/components/ads/ad-placeholder";
-import { Button } from "@/components/ui/button";
-import ErrorBoundary from "@/components/ui/error-boundary";
-import { Skeleton } from "@/components/ui/skeleton";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import AdPlaceholder from "@/shared/components/ads/ad-placeholder";
+import { Button } from "@/shared/components/ui/button";
+import ErrorBoundary from "@/shared/components/ui/error-boundary";
+import { Skeleton } from "@/shared/components/ui/skeleton";
+import { TooltipProvider } from "@/shared/components/ui/tooltip";
 
 import type { LeetCodeProblem, ProblemListFilters, ProblemStatus, SortKey } from "../../types";
 import { type DifficultySchema, type LastAskedPeriodSchema, type ProblemStatusSchema } from "../../types";

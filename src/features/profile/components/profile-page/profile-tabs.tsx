@@ -5,7 +5,7 @@
 
 import { Bookmark, Briefcase, CheckCircle2, FolderKanban, ListTodo, Pencil } from "lucide-react";
 
-import { TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 
 export interface ProfileTabsProps {
   bookmarksCount: number;

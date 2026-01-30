@@ -6,11 +6,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { Loader2 } from "lucide-react";
 
-import { GoogleIcon } from "@/components/icons/google-icon";
-import { Button } from "@/components/ui/button";
-import { useOnlineStatus } from "@/hooks/use-online-status";
-import { useToast } from "@/hooks/use-toast";
-import { isValidRedirectUrl } from "@/lib/utils/url";
+import { GoogleIcon } from "@/shared/components/icons/google-icon";
+import { Button } from "@/shared/components/ui/button";
+import { useOnlineStatus } from "@/shared/hooks/use-online-status";
+import { useToast } from "@/shared/hooks/use-toast";
+import { isValidRedirectUrl } from "@/shared/lib/utils/url";
 
 import { authService } from "../services/auth.service";
 

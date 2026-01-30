@@ -4,8 +4,8 @@ import React from "react";
 
 import dynamic from "next/dynamic";
 
-import { Skeleton } from "@/components/ui/skeleton";
 import { useTypingGame } from "@/features/tools/hooks/use-typing-game";
+import { Skeleton } from "@/shared/components/ui/skeleton";
 
 import TypingArea from "./typing-area";
 import TypingControls from "./typing-controls";

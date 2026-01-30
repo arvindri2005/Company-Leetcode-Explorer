@@ -3,8 +3,8 @@ import Link from "next/link";
 
 import { Activity, ArrowRight, Bot, Code2, FileText, Keyboard,Monitor } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/shared/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/shared/components/ui/card";
 
 export const metadata: Metadata = {
   title: "Developer Tools | Byte to Offer",

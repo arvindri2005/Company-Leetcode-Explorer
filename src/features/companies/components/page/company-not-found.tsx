@@ -9,7 +9,7 @@ import Link from "next/link";
 
 import { Building2, ChevronLeft } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/ui/button";
 
 /**
  * Props for the CompanyNotFound component.

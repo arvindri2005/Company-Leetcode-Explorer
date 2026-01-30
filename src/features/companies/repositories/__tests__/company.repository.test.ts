@@ -3,15 +3,15 @@ import { doc, getDocs, limit, updateDoc, where } from "firebase/firestore";
 import { CompanyRepository } from "../company.repository";
 
 // Mock Firebase dependencies
-jest.mock("@/lib/api/firebase", () => ({
+jest.mock("@/shared/lib/api/firebase", () => ({
   db: {}, // Mock db object
 }));
 
-jest.mock("@/lib/utils", () => ({
+jest.mock("@/shared/lib/utils", () => ({
   slugify: (str: string) => str.toLowerCase().replace(/\s+/g, "-"),
 }));
 
-jest.mock("@/lib/utils/logger", () => ({
+jest.mock("@/shared/lib/utils/logger", () => ({
   Logger: {
     info: jest.fn(),
     warn: jest.fn(),

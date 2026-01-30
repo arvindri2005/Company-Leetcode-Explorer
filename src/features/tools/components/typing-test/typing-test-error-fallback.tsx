@@ -2,8 +2,8 @@
 
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { env } from "@/env";
+import { Button } from "@/shared/components/ui/button";
 
 interface TypingTestErrorFallbackProps {
   error: Error;

@@ -4,8 +4,8 @@ import React from "react";
 
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/shared/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/shared/components/ui/card";
 
 export default function CompanyListErrorFallback() {
   return (

@@ -12,8 +12,8 @@ import React from "react";
 
 import { X } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Chip } from "@/components/ui/chip";
+import { Button } from "@/shared/components/ui/button";
+import { Chip } from "@/shared/components/ui/chip";
 
 import { lastAskedPeriodOptions, PROBLEM_STATUS_OPTIONS } from "../../constants";
 import type {

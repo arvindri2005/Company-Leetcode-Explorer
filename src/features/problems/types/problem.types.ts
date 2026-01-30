@@ -3,8 +3,8 @@ import { z } from "zod";
 import { 
   type UserProblemStatus, 
   UserProblemStatusSchema, 
-  VALID_USER_PROBLEM_STATUSES} from "@/domain/value-objects/user-problem-status.vo";
-import { SlugSchema } from "@/types/common";
+  VALID_USER_PROBLEM_STATUSES} from "@/core/domain/value-objects/user-problem-status.vo";
+import { SlugSchema } from "@/shared/types/common";
 
 /**
  * @description Represents the periods when a LeetCode problem was reportedly last asked.

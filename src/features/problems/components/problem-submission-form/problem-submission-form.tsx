@@ -15,7 +15,7 @@ import { CalendarClock,Loader2, PlusCircle } from "lucide-react";
 import { z } from "zod";
 
 import { addProblem } from "@/app/actions";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/ui/button";
 import {
   Form,
   FormControl,
@@ -24,19 +24,19 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from "@/shared/components/ui/form";
+import { Input } from "@/shared/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { cn, slugify } from "@/lib/utils";
-import type { Company } from "@/types";
+} from "@/shared/components/ui/select";
+import { Textarea } from "@/shared/components/ui/textarea";
+import { useToast } from "@/shared/hooks/use-toast";
+import { cn, slugify } from "@/shared/lib/utils";
+import type { Company } from "@/shared/types";
 
 import { lastAskedPeriodOptions } from "../../constants";
 import type { LeetCodeProblem } from "../../types";

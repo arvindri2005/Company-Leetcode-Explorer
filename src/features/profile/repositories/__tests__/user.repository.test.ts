@@ -1,9 +1,9 @@
-import { auth} from '@/lib/api/firebase';
+import { auth} from '@/shared/lib/api/firebase';
 
 import { UserRepository } from '../user.repository';
 
 // Mock Firebase Auth
-jest.mock('@/lib/api/firebase', () => ({
+jest.mock('@/shared/lib/api/firebase', () => ({
   auth: {
     currentUser: null,
   },

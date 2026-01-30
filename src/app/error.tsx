@@ -14,7 +14,7 @@ import Link from "next/link";
 
 import { AlertTriangle, Home, RefreshCw } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/ui/button";
 import {
   Card,
   CardContent,
@@ -22,8 +22,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Logger } from "@/lib/utils/logger";
+} from "@/shared/components/ui/card";
+import { Logger } from "@/shared/lib/utils/logger";
 
 /**
  * Renders a fallback UI when an unhandled error is caught anywhere in the application.

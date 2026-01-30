@@ -5,12 +5,12 @@
 
 import { Bookmark } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import ErrorBoundary from "@/components/ui/error-boundary";
-import { TabsContent } from "@/components/ui/tabs";
 import ProfileProblemList from "@/features/profile/components/profile-problem-list";
 import ProfileTabErrorFallback from "@/features/profile/components/profile-tab-error-fallback";
-import type { LeetCodeProblem, ProblemStatus } from "@/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import ErrorBoundary from "@/shared/components/ui/error-boundary";
+import { TabsContent } from "@/shared/components/ui/tabs";
+import type { LeetCodeProblem, ProblemStatus } from "@/shared/types";
 
 interface ProblemWithDetails extends LeetCodeProblem {
   currentStatus?: ProblemStatus;

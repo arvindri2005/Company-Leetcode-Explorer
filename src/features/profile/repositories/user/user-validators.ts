@@ -3,7 +3,7 @@
  * Handles user security validations
  */
 
-import { auth } from "@/lib/api/firebase";
+import { auth } from "@/shared/lib/api/firebase";
 
 /**
  * Interface for user security validations

@@ -1,10 +1,10 @@
 import { companyService } from "@/features/companies/services/company.service";
-import { Logger } from "@/lib/utils/logger";
+import { Logger } from "@/shared/lib/utils/logger";
 
 import { addCompany, fetchCompaniesAction } from "../company.actions";
 
 jest.mock("@/features/companies/services/company.service");
-jest.mock("@/lib/utils/logger");
+jest.mock("@/shared/lib/utils/logger");
 jest.mock("next/cache", () => ({
   revalidateTag: jest.fn(),
   revalidatePath: jest.fn(),

@@ -8,8 +8,8 @@ import { useCallback, useState } from "react";
 import type { User as FirebaseUser } from "firebase/auth";
 
 import { userService } from "@/features/profile/services/user.service";
-import { useToast } from "@/hooks/use-toast";
-import type { EducationExperience } from "@/types";
+import { useToast } from "@/shared/hooks/use-toast";
+import type { EducationExperience } from "@/shared/types";
 
 type EducationFormValues = Omit<EducationExperience, "id">;
 

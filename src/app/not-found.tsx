@@ -13,8 +13,8 @@ import { useRouter } from "next/navigation";
 
 import { AlertTriangle, Home } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import CompanySearchBar from "@/features/companies/components/company-search-bar";
+import { Button } from "@/shared/components/ui/button";
 
 /**
  * Renders the 404 "Page Not Found" error page.

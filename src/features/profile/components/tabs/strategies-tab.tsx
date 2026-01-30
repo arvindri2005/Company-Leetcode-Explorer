@@ -5,11 +5,11 @@
 
 import dynamic from "next/dynamic";
 
-import { StrategyListSkeleton } from "@/components/skeletons/strategy-skeleton";
-import ErrorBoundary from "@/components/ui/error-boundary";
-import { TabsContent } from "@/components/ui/tabs";
 import ProfileTabErrorFallback from "@/features/profile/components/profile-tab-error-fallback";
-import type { SavedStrategyTodoList } from "@/types";
+import { StrategyListSkeleton } from "@/shared/components/skeletons/strategy-skeleton";
+import ErrorBoundary from "@/shared/components/ui/error-boundary";
+import { TabsContent } from "@/shared/components/ui/tabs";
+import type { SavedStrategyTodoList } from "@/shared/types";
 
 const StrategyListsSection = dynamic(
   () => import("@/features/profile/components/strategy-lists-section"),

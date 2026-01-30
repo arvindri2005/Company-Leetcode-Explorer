@@ -17,9 +17,9 @@ import {
   writeBatch,
 } from "firebase/firestore";
 
-import { db } from "@/lib/api/firebase";
-import { Logger } from "@/lib/utils/logger";
-import type { BookmarkedProblemInfo } from "@/types";
+import { db } from "@/shared/lib/api/firebase";
+import { Logger } from "@/shared/lib/utils/logger";
+import type { BookmarkedProblemInfo } from "@/shared/types";
 
 const MAX_PAGE_SIZE = 50;
 

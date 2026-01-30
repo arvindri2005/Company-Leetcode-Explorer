@@ -7,8 +7,8 @@
  * - Firestore documents
  */
 
-import { User as UserEntity } from "@/domain/entities/user.entity";
-import type { UserProfile } from "@/types";
+import { User as UserEntity } from "@/core/domain/entities/user.entity";
+import type { UserProfile } from "@/shared/types";
 
 /**
  * Firestore document structure for users

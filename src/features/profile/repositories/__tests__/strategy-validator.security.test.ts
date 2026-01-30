@@ -1,6 +1,6 @@
 import { SharedValidatorsImpl } from '../shared/validators';
 // Mock Logger
-jest.mock('@/lib/utils/logger', () => ({
+jest.mock('@/shared/lib/utils/logger', () => ({
   Logger: {
     warn: jest.fn(),
     error: jest.fn(),

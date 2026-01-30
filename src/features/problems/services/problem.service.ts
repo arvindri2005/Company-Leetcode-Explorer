@@ -1,14 +1,14 @@
 import { cache } from "react";
 
-import { cacheManager, CacheTTL } from "@/lib/utils/cache";
-import { Logger } from "@/lib/utils/logger";
-import { failure, type Result, success } from "@/shared/types/result";
-import type { ServiceError } from "@/shared/types/service-error";
+import { cacheManager, CacheTTL } from "@/shared/lib/utils/cache";
+import { Logger } from "@/shared/lib/utils/logger";
 import {
   type Company,
   type LeetCodeProblem,
   type PaginatedProblemsResponse,
-} from "@/types";
+} from "@/shared/types";
+import { failure, type Result, success } from "@/shared/types/result";
+import type { ServiceError } from "@/shared/types/service-error";
 
 import type { IProblemRepository } from "../interfaces/problem.repository.interface";
 import type {

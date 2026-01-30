@@ -36,7 +36,7 @@ jest.mock("../problem-list-controls/problem-list-controls", () => ({
   default: () => <div data-testid="problem-list-controls">Controls</div>,
 }));
 
-jest.mock("@/components/ads/ad-placeholder", () => ({
+jest.mock("@/shared/components/ads/ad-placeholder", () => ({
   __esModule: true,
   default: () => <div data-testid="ad-placeholder">Ad</div>,
 }));
@@ -47,7 +47,7 @@ jest.mock("@/providers", () => ({
 }));
 
 // Mock toast
-jest.mock("@/hooks/use-toast", () => ({
+jest.mock("@/shared/hooks/use-toast", () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 

@@ -5,9 +5,9 @@
  * related to contact form submissions.
  */
 
-import type { Contact as ContactEntity } from "@/domain/entities/contact.entity";
-import { Logger } from "@/lib/utils/logger";
+import type { Contact as ContactEntity } from "@/core/domain/entities/contact.entity";
 import type { PaginatedResult, PaginationParams } from "@/shared/interfaces";
+import { Logger } from "@/shared/lib/utils/logger";
 import { failure, type Result, success } from "@/shared/types/result";
 import type { ServiceError } from "@/shared/types/service-error";
 

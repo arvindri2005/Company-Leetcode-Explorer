@@ -9,6 +9,7 @@ import Link from "next/link";
 
 import { Building2, ExternalLink } from "lucide-react";
 
+import type { Company } from "@/features/companies/types";
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -16,10 +17,9 @@ import {
     BreadcrumbList,
     BreadcrumbPage,
     BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { OfflineImage } from "@/components/ui/offline-image";
-import type { Company } from "@/features/companies/types";
-import { getLogoUrl } from "@/lib/utils";
+} from "@/shared/components/ui/breadcrumb";
+import { OfflineImage } from "@/shared/components/ui/offline-image";
+import { getLogoUrl } from "@/shared/lib/utils";
 
 /**
  * Props for the CompanyHeader component.

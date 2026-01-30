@@ -11,13 +11,13 @@ import {
   query,
 } from "firebase/firestore";
 
-import { db } from "@/lib/api/firebase";
-import { Logger } from "@/lib/utils/logger";
+import { db } from "@/shared/lib/api/firebase";
+import { Logger } from "@/shared/lib/utils/logger";
 import type {
   FocusTopic,
   SavedStrategyTodoList,
   StrategyTodoItem,
-} from "@/types";
+} from "@/shared/types";
 
 const MAX_PAGE_SIZE = 50;
 

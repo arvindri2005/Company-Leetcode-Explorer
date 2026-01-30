@@ -3,7 +3,7 @@
  * Handles cursor encoding and decoding for pagination
  */
 
-import { Logger } from "@/lib/utils/logger";
+import { Logger } from "@/shared/lib/utils/logger";
 
 /**
  * Cursor data structure

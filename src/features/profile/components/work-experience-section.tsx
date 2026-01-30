@@ -6,8 +6,8 @@ import { FormProvider,useFormContext } from "react-hook-form";
 import { Briefcase, Loader2,PlusCircle } from "lucide-react";
 import { type z } from "zod";
 
-import { ExperienceListSkeleton } from "@/components/skeletons/experience-skeleton";
-import { Button } from "@/components/ui/button";
+import { ExperienceListSkeleton } from "@/shared/components/skeletons/experience-skeleton";
+import { Button } from "@/shared/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@/shared/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -25,12 +25,12 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
-import type { WorkExperience } from "@/types";
-import { type WorkExperienceSchema as workExperienceFormSchema } from "@/types"; // Renamed for clarity
+} from "@/shared/components/ui/form";
+import { Input } from "@/shared/components/ui/input";
+import { Textarea } from "@/shared/components/ui/textarea";
+import { cn } from "@/shared/lib/utils";
+import type { WorkExperience } from "@/shared/types";
+import { type WorkExperienceSchema as workExperienceFormSchema } from "@/shared/types"; // Renamed for clarity
 
 type WorkExperienceFormValues = z.infer<typeof workExperienceFormSchema>;
 
