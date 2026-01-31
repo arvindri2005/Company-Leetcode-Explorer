@@ -24,21 +24,31 @@ describe("ProfileProblemList", () => {
       id: "1",
       title: "Two Sum",
       titleSlug: "two-sum",
-      difficulty: "Easy",
+      difficulty: "Easy" as "Easy",
       companySlug: "google",
       currentStatus: "solved" as ProblemStatus,
       isBookmarked: true,
       tags: [],
+      // Missing fields added
+      companyId: "google-1",
+      slug: "two-sum",
+      normalizedTitle: "two sum",
+      link: "https://leetcode.com/problems/two-sum",
     },
     {
       id: "2",
       title: "Add Two Numbers",
       titleSlug: "add-two-numbers",
-      difficulty: "Medium",
+      difficulty: "Medium" as "Medium",
       companySlug: "facebook",
       currentStatus: "attempted" as ProblemStatus,
       isBookmarked: false,
       tags: [],
+       // Missing fields added
+      companyId: "facebook-1",
+      slug: "add-two-numbers",
+      normalizedTitle: "add two numbers",
+      link: "https://leetcode.com/problems/add-two-numbers",
     },
   ];
 

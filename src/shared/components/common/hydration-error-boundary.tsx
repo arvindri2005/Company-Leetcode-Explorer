@@ -17,13 +17,15 @@ import { hydrationMonitor } from "@/shared/lib/utils/hydration-monitor";
  */
 export interface HydrationErrorBoundaryProps {
   /** Optional custom fallback component to render when an error occurs */
-  fallback?: React.ComponentType<{ error: Error; retry: () => void }>;
+  fallback?: React.ComponentType<{ error: Error; retry: () => void; showDetails?: boolean }>;
   /** Optional error handler callback */
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
   /** Child components to wrap with error boundary */
   children: ReactNode;
   /** Optional component name for error context */
   componentName?: string;
+  /** Force showing error details, defaults to process.env.NODE_ENV === "development" */
+  showDetails?: boolean;
 }
 
 /**
@@ -60,9 +62,10 @@ export interface HydrationErrorContext {
 /**
  * Default fallback component rendered when hydration errors occur
  */
-const DefaultFallback: React.FC<{ error: Error; retry: () => void }> = ({
+const DefaultFallback: React.FC<{ error: Error; retry: () => void; showDetails?: boolean }> = ({
   error,
   retry,
+  showDetails = process.env.NODE_ENV === "development",
 }) => (
   <div className="flex flex-col items-center justify-center p-6 bg-muted/50 rounded-lg border border-border">
     <div className="text-center space-y-4">
@@ -88,7 +91,7 @@ const DefaultFallback: React.FC<{ error: Error; retry: () => void }> = ({
           Refresh Page
         </Button>
       </div>
-      {process.env.NODE_ENV === "development" && (
+      {showDetails && (
         <details className="mt-4 text-left">
           <summary className="cursor-pointer text-xs text-muted-foreground">
             Error Details (Development)
@@ -193,7 +196,7 @@ export class HydrationErrorBoundary extends React.Component<
 
     if (hasError && error) {
       const FallbackComponent = CustomFallback || DefaultFallback;
-      return <FallbackComponent error={error} retry={this.handleRetry} />;
+      return <FallbackComponent error={error} retry={this.handleRetry} showDetails={this.props.showDetails} />;
     }
 
     return children;

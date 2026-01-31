@@ -35,6 +35,7 @@ const mockProblem: LeetCodeProblem = {
   companySlug: "company",
   slug: "two-sum",
   normalizedTitle: "two sum",
+  companyId: "company-id-1",
 };
 
 describe("useProblemInteractions", () => {

@@ -47,7 +47,8 @@ The codebase follows a layered architecture with clear separation of concerns:
 │                    Presentation Layer                           │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐ │
 │  │   Pages     │  │ Components  │  │    Server Actions       │ │
-│  │ (src/app)   │  │(src/comp.)  │  │  (src/app/actions)      │ │
+│  │ (src/app)   │  │(src/shared/ │  │  (src/app/actions)      │ │
+│  │             │  │ components) │  │                         │ │
 │  └──────┬──────┘  └──────┬──────┘  └───────────┬─────────────┘ │
 └─────────┼────────────────┼─────────────────────┼───────────────┘
           │                │                     │
@@ -64,9 +65,10 @@ The codebase follows a layered architecture with clear separation of concerns:
 ┌─────────────────────────────────────────────────────────────────┐
 │                      Domain Layer                               │
 │  ┌───────────────┐  ┌───────────────┐  ┌─────────────────────┐ │
-│  │   Entities    │  │ Value Objects │  │  Domain Services    │ │
-│  │(src/domain/   │  │(src/domain/   │  │  (src/domain/       │ │
-│  │  entities)    │  │ value-objects)│  │   services)         │ │
+│  │   Entities    │  │ Value Objects │  │  Domain Errors      │ │
+│  │(src/core/     │  │(src/core/     │  │  (src/core/domain/  │ │
+│  │domain/        │  │domain/        │  │   errors)           │ │
+│  │entities)      │  │value-objects) │  │                     │ │
 │  └───────────────┘  └───────────────┘  └─────────────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
                               │
@@ -84,12 +86,12 @@ The codebase follows a layered architecture with clear separation of concerns:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### `src/domain/` - Domain Layer (NEW)
+### `src/core/domain/` - Domain Layer
 
-Contains business entities, value objects, and domain services that encapsulate core business rules independent of infrastructure.
+Contains business entities, value objects, and domain errors that encapsulate core business rules independent of infrastructure.
 
 ```
-domain/
+core/domain/
 ├── entities/            # Domain entities
 │   ├── base.entity.ts   # Abstract base entity class
 │   ├── company.entity.ts
@@ -99,6 +101,10 @@ domain/
 │   └── index.ts
 ├── errors/              # Domain-specific errors
 │   ├── validation.error.ts
+│   └── index.ts
+├── events/              # Domain events
+│   └── index.ts
+├── repositories/        # Repository interfaces
 │   └── index.ts
 ├── services/            # Domain services
 │   └── index.ts
@@ -116,22 +122,48 @@ domain/
 - Value objects are immutable and self-validating
 - Throws `ValidationError` for invalid inputs
 
-### `src/shared/` - Shared Kernel (NEW)
+### `src/shared/` - Shared Kernel
 
-Common types, utilities, and interfaces used across multiple features.
+Contains shared UI components, hooks, utilities, types, and services used across multiple features.
 
 ```
 shared/
+├── components/          # Shared UI components
+│   ├── ads/             # Ad placement components
+│   ├── common/          # Common components
+│   ├── icons/           # Custom icon components
+│   ├── layout/          # Layout components (header, footer)
+│   ├── sections/        # Reusable page sections
+│   ├── seo/             # SEO components (structured data)
+│   ├── skeletons/       # Loading skeleton components
+│   └── ui/              # shadcn/ui primitives
 ├── constants/           # Shared constants
 │   └── index.ts
+├── hooks/               # Shared React hooks
+│   ├── use-cursor-pagination.ts
+│   ├── use-feature-flag.ts
+│   ├── use-media-query.ts
+│   ├── use-mounted.ts
+│   ├── use-navbar-scroll.ts
+│   ├── use-online-status.ts
+│   ├── use-speech.ts
+│   ├── use-toast.ts
+│   └── ...
 ├── interfaces/          # Shared interfaces
 │   ├── repository.interface.ts  # Base repository interface
 │   └── index.ts
+├── lib/                 # Utilities and configuration
+│   ├── api/             # Firebase client, API response helpers
+│   ├── config/          # Feature flags, navigation config
+│   ├── di/              # Dependency injection container
+│   └── utils/           # cn(), LRU cache, error handler, etc.
+├── services/            # Shared services
+│   └── event-bus.ts     # Event bus for cross-feature communication
 ├── types/               # Shared types
 │   ├── result.ts        # Result<T, E> type for error handling
 │   ├── service-error.ts # ServiceError type
 │   └── index.ts
-├── utils/               # Shared utilities
+├── utils/               # Additional utilities
 │   └── index.ts
 └── index.ts             # Barrel export
 ```
@@ -152,17 +184,19 @@ async function getById(id: string): Promise<Result<Problem, ServiceError>> {
 }
 ```
 
-### `src/lib/` - Utilities and Configuration
+### `src/shared/lib/` - Utilities and Configuration
+
+> **Note:** This is part of the shared kernel at `src/shared/lib/`.
 
 ```
-lib/
+shared/lib/
 ├── api/
 │   ├── firebase.ts      # Firebase client initialization
-│   └── response.ts      # Standardized API response helpers (NEW)
+│   └── response.ts      # Standardized API response helpers
 ├── config/
-│   ├── feature-flags.ts # Feature flag system (NEW)
+│   ├── feature-flags.ts # Feature flag system
 │   └── navigation.ts    # Navigation configuration
-├── di/                  # Dependency Injection (NEW)
+├── di/                  # Dependency Injection
 │   ├── container.ts     # DI container implementation
 │   ├── registrations.ts # Service registrations
 │   ├── tokens.ts        # DI tokens
@@ -348,22 +382,24 @@ features/
     └── index.ts
 ```
 
-### `src/components/` - Shared Components
+### `src/shared/components/` - Shared Components
+
+> **Note:** Components are now in the shared kernel at `src/shared/components/`.
 
 ```
-components/
+shared/components/
 ├── ads/                 # Ad placement components
+├── common/              # Common shared components
 ├── icons/               # Custom icon components
 ├── layout/              # Layout components
 │   └── header/          # Navigation header
 ├── sections/            # Reusable page sections
 ├── seo/                 # SEO components (structured data)
-├── shared/              # Shared utilities (theme)
 ├── skeletons/           # Loading skeleton components
 └── ui/                  # shadcn/ui primitives
 ```
 
-### `src/components/ui/` - UI Primitives
+### `src/shared/components/ui/` - UI Primitives
 
 Each component follows the standard structure:
 
@@ -407,23 +443,27 @@ ai/
 └── utils.ts             # AI utilities
 ```
 
-### `src/services/` - Shared Business Logic
+### `src/shared/services/` - Shared Business Logic
+
+> **Note:** Services are now in the shared kernel at `src/shared/services/`.
 
 ```
-services/
+shared/services/
 ├── __tests__/
 └── event-bus.ts         # Event bus for cross-feature communication
 ```
 
 **Note:** Most services are located in their respective feature directories. This folder is only for truly global services.
 
-### `src/hooks/` - Global Custom Hooks
+### `src/shared/hooks/` - Global Custom Hooks
+
+> **Note:** Hooks are now in the shared kernel at `src/shared/hooks/`.
 
 ```
-hooks/
-├── __tests__/
+shared/hooks/
 ├── use-cursor-pagination.ts   # Cursor-based pagination
-├── use-feature-flag.ts        # Feature flag hook (NEW)
+├── use-feature-flag.ts        # Feature flag hook
+├── use-hydration-safe.ts      # Hydration-safe rendering
 ├── use-media-query.ts         # Responsive breakpoints
 ├── use-mounted.ts             # Component mount state
 ├── use-navbar-scroll.ts       # Navbar scroll behavior
@@ -442,14 +482,18 @@ providers/
 └── README.md            # Provider documentation
 ```
 
-### `src/types/` - Shared TypeScript Types
+### `src/shared/types/` - Shared TypeScript Types
+
+> **Note:** Types are now in the shared kernel at `src/shared/types/`.
 
 ```
-types/
+shared/types/
 ├── __tests__/
 ├── amp.d.ts             # AMP type declarations
 ├── common.ts            # Common utility types
 ├── index.ts             # Barrel exports
+├── result.ts            # Result<T, E> type
+├── service-error.ts     # ServiceError type
 ├── ui.ts                # UI component types
 └── user.ts              # User types
 ```

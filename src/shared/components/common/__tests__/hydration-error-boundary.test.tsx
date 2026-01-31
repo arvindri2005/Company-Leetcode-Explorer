@@ -87,19 +87,14 @@ describe("HydrationErrorBoundary", () => {
     expect(screen.getByText("Custom error message")).toBeInTheDocument();
   });
 
-  it("shows error details in development mode", () => {
-    const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = "development";
-
+  it("shows error details when enabled", () => {
     render(
-      <HydrationErrorBoundary>
+      <HydrationErrorBoundary showDetails={true}>
         <ThrowError />
       </HydrationErrorBoundary>
     );
 
     expect(screen.getByText("Error Details (Development)")).toBeInTheDocument();
-
-    process.env.NODE_ENV = originalEnv;
   });
 
   it("handles retry functionality", () => {
