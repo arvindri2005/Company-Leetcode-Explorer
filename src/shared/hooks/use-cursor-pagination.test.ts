@@ -1,6 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 
-import { createMockCompany } from "@/__tests__/factories/data-factories";
+import { createMockCompany } from "@/tests/unit/factories/data-factories";
 
 import { useCursorPagination } from "./use-cursor-pagination";
 

@@ -27,7 +27,7 @@
       "@/*": ["./src/*"],
       "@/components/*": ["./src/shared/components/*"],
       "@/features/*": ["./src/features/*"],
-      "@/lib/*": ["./src/shared/lib/*"],
+      "@/lib/*": ["./src/lib/*", "./src/shared/lib/*"],
       "@/hooks/*": ["./src/shared/hooks/*"],
       "@/types/*": ["./src/shared/types/*"],
       "@/providers/*": ["./src/providers/*"],

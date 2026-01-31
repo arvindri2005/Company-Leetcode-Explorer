@@ -149,7 +149,7 @@ Shared UI components used across features.
 - ✅ Can import from: `shared`, `lib`, `components`, `hooks`, `types`, `constants`
 - ❌ Cannot import from: `features`, `app`, `domain`
 
-### AI Module (`src/ai/`)
+### AI Module (`src/lib/ai/`)
 
 Genkit AI flows and services.
 

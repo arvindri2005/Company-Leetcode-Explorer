@@ -1,4 +1,4 @@
-import { createMockUserProfile } from "@/__tests__/factories/data-factories";
+import { createMockUserProfile } from "@/tests/unit/factories/data-factories";
 
 import { UserProfileSchema } from "../user";
 

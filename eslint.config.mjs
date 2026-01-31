@@ -183,8 +183,7 @@ export default defineConfig([
         },
         {
           type: "ai",
-          pattern: "src/ai/**/*",
-        },
+                      pattern: "src/lib/ai/**/*",        },
         {
           type: "constants",
           pattern: "src/constants/**/*",

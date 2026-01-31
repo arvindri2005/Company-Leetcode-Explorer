@@ -16,9 +16,8 @@ byte-to-offer/
 ├── guide/               # Project guides and documentation
 ├── public/              # Static assets (images, fonts, icons)
 ├── scripts/             # Build and utility scripts
-├── src/                 # Application source code
-├── storybook-static/    # Storybook build output
-└── tests/               # E2E and integration tests
+├── src/                 # Application source code (App, Features, Lib, Core, Shared)
+└── storybook-static/    # Storybook build output
 ```
 
 ## Configuration Files
@@ -422,10 +421,10 @@ Available components:
 - `skeleton`, `stat-item`, `switch`, `table`, `tabs`
 - `textarea`, `toast`, `toaster`, `tooltip`
 
-### `src/ai/` - Genkit AI Flows
+### `src/lib/ai/` - Genkit AI Flows
 
 ```
-ai/
+lib/ai/
 ├── flows/               # AI flow definitions
 │   ├── __tests__/
 │   ├── find-similar-questions-flow.ts
@@ -507,16 +506,32 @@ constants/
 └── typing-test-snippets.ts # Typing test code snippets
 ```
 
-### `src/__tests__/` - Test Files
+### `src/tests/` - Test Suites
+
+
 
 ```
-__tests__/
-├── app/                 # App route tests
-├── components/          # Component tests
-├── factories/           # Test data factories
-├── lib/                 # Utility tests
-├── repositories/        # Repository tests
-└── security/            # Security tests
+
+tests/
+
+├── unit/                # Unit tests (logic, components, etc.)
+
+│   ├── app/             # App route tests
+
+│   ├── components/      # Component tests
+
+│   ├── factories/       # Test data factories
+
+│   ├── lib/             # Utility tests
+
+│   ├── repositories/    # Repository tests
+
+│   └── security/        # Security tests
+
+├── e2e/                 # End-to-end tests
+
+└── fixtures/            # Shared test fixtures
+
 ```
 
 ## Data Flow
@@ -546,7 +561,7 @@ graph TD
         Entity["Entities & Value Objects"]
     end
 
-    subgraph AI_Layer ["AI Layer (src/ai)"]
+    subgraph AI_Layer ["AI Layer (src/lib/ai)"]
         GenkitFlow["Genkit Flow"]
     end
 
@@ -607,15 +622,16 @@ Defined in `tsconfig.json`:
 | Alias | Path |
 |-------|------|
 | `@/*` | `./src/*` |
-| `@/components/*` | `./src/components/*` |
+| `@/components/*` | `./src/shared/components/*` |
 | `@/features/*` | `./src/features/*` |
-| `@/lib/*` | `./src/lib/*` |
-| `@/hooks/*` | `./src/hooks/*` |
-| `@/types/*` | `./src/types/*` |
+| `@/lib/*` | `./src/lib/*`, `./src/shared/lib/*` |
+| `@/hooks/*` | `./src/shared/hooks/*` |
+| `@/types/*` | `./src/shared/types/*` |
 | `@/providers/*` | `./src/providers/*` |
-| `@/services/*` | `./src/services/*` |
-| `@/domain/*` | `./src/domain/*` |
+| `@/services/*` | `./src/shared/services/*` |
+| `@/domain/*` | `./src/core/domain/*` |
 | `@/shared/*` | `./src/shared/*` |
+| `@/core/*` | `./src/core/*` |
 
 ## Module Boundary Rules
 

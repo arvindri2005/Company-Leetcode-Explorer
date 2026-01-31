@@ -72,7 +72,7 @@ npm install
 ## 6. Configure Environment Variables (Required)
 
 1. In the root of your project, create a file named `.env.local` (if you haven't already via the setup script).
-2. Add your Firebase configuration and Google AI API key to this file. The `src/ai/genkit.ts` file expects `GOOGLE_API_KEY`.
+2. Add your Firebase configuration and Google AI API key to this file. The `src/lib/ai/genkit.ts` file expects `GOOGLE_API_KEY`.
 
     ```env
     # Firebase Configuration

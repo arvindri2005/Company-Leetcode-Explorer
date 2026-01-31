@@ -18,6 +18,7 @@ const config: Config = {
     // More specific paths first, then general fallback
     '^@/components/(.*)$': '<rootDir>/src/shared/components/$1',
     '^@/features/(.*)$': '<rootDir>/src/features/$1',
+    '^@/lib/ai/(.*)$': '<rootDir>/src/lib/ai/$1',
     '^@/lib/(.*)$': '<rootDir>/src/shared/lib/$1',
     '^@/hooks/(.*)$': '<rootDir>/src/shared/hooks/$1',
     '^@/types/(.*)$': '<rootDir>/src/shared/types/$1',
@@ -31,7 +32,7 @@ const config: Config = {
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',
     '<rootDir>/.next/',
-    '<rootDir>/src/__tests__/factories/',
+    '<rootDir>/src/tests/unit/factories/',
   ],
 }
 

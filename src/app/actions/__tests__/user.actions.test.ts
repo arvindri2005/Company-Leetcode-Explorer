@@ -1,10 +1,10 @@
 
 import { revalidateTag } from "next/cache";
 
-import { simpleFaker } from "@/__tests__/factories/data-factories";
 import { userService } from "@/features/profile/services/user.service";
 import { handleServerActionError } from "@/shared/lib/utils/error-handler";
 import { failure,success } from "@/shared/types/result";
+import { simpleFaker } from "@/tests/unit/factories/data-factories";
 
 import { getUserProblemStatusesForIdsAction,setProblemStatusAction, toggleBookmarkProblemAction } from "../user.actions";
 
