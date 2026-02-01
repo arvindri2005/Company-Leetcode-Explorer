@@ -1,5 +1,5 @@
-import { container } from "@/shared/lib/di/container";
-import { TOKENS } from "@/shared/lib/di/tokens";
+import { container } from "@/lib/di/container";
+import { TOKENS } from "@/lib/di/tokens";
 
 import type { IProblemRepository } from "./interfaces/problem.repository.interface";
 import type { IProblemService } from "./interfaces/problem.service.interface";

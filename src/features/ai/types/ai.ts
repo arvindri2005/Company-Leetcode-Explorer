@@ -3,9 +3,9 @@ import {
   type FocusTopic, 
   type StrategyTodoItem 
 } from "@/core/domain";
-import type { EducationExperience, WorkExperience } from "@/shared/types/user";
 // LastAskedPeriod is imported from problems feature types
 import type { LastAskedPeriod } from "@/features/problems/types";
+import type { EducationExperience, WorkExperience } from "@/shared/types/user";
 
 // --- Types for AI General Inputs ---
 /**
