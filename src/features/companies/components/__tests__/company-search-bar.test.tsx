@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { fetchCompanySuggestionsAction } from "@/app/actions";
+import { fetchCompanySuggestionsAction } from "@/features/companies/actions/company.actions";
 import CompanySearchBar from "@/features/companies/components/company-search-bar";
 
 // Mock dependencies
@@ -11,7 +11,7 @@ jest.mock("next/navigation", () => ({
   useRouter: jest.fn(),
 }));
 
-jest.mock("@/app/actions", () => ({
+jest.mock("@/features/companies/actions/company.actions", () => ({
   fetchCompanySuggestionsAction: jest.fn(),
 }));
 

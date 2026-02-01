@@ -10,7 +10,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { env } from "@/env";
-import CompanyPage from "@/features/companies/components/page/company-page";
+import { CompanyPage } from "@/features/companies";
 import { getAllCompanySlugs, getCompanyBySlug } from "@/features/companies/services/company.service";
 import { getProblemsByCompanySlug } from "@/features/problems/services/problem.service";
 import StructuredData from "@/shared/components/seo/structured-data";

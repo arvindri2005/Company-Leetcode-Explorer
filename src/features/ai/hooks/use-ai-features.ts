@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 
+import { useAICooldown } from "@/features/ai";
 import {
   generateProblemInsightsAction,
   performSimilarQuestionSearch,
-} from "@/app/actions/ai.actions";
-import { useAICooldown } from "@/features/ai";
+} from "@/features/ai/actions/ai.actions";
 import { useAuth } from "@/providers";
 import { useToast } from "@/shared/hooks/use-toast";
 import type {

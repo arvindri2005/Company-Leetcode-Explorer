@@ -1,10 +1,10 @@
 
-import * as genkitMock from '@/lib/ai/genkit';
+import * as genkitMock from '@/features/ai/lib/genkit';
 
 import { generateProblemInsights, type GenerateProblemInsightsInput } from '../generate-problem-insights-flow';
 
 // Mock the genkit module to intercept the prompt execution.
-jest.mock('@/lib/ai/genkit', () => {
+jest.mock('@/features/ai/lib/genkit', () => {
   const promptMock = jest.fn();
   return {
     ai: {

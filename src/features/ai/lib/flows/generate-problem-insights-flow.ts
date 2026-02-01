@@ -13,10 +13,10 @@
 
 import { z } from "genkit";
 
-import { problemInsightsCache } from "@/lib/ai/cache";
-import { ai } from "@/lib/ai/genkit";
-import { getModelForIntent } from "@/lib/ai/model-registry";
-import { retryWithBackoff, sanitizeInput,truncateText } from "@/lib/ai/utils";
+import { problemInsightsCache } from "@/features/ai/lib/cache";
+import { ai } from "@/features/ai/lib/genkit";
+import { getModelForIntent } from "@/features/ai/lib/model-registry";
+import { retryWithBackoff, sanitizeInput,truncateText } from "@/features/ai/lib/utils";
 
 const GenerateProblemInsightsInputSchema = z.object({
   title: z.string().describe("The title of the coding problem."),

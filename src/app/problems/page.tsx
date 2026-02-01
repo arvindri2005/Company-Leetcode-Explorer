@@ -3,13 +3,11 @@ import { Suspense } from "react";
 import { type Metadata } from "next";
 
 import { env } from "@/env";
-import { ProblemListErrorFallback } from "@/features/problems";
+import { ProblemListContainer, ProblemListErrorFallback } from "@/features/problems";
 import AdPlaceholder from "@/shared/components/ads/ad-placeholder";
 import StructuredData from "@/shared/components/seo/structured-data";
 import { ProblemsPageSkeleton } from "@/shared/components/skeletons/problem-skeletons";
 import ErrorBoundary from "@/shared/components/ui/error-boundary";
-
-import ProblemListContainer from "./problem-list-container";
 
 const APP_URL = env.NEXT_PUBLIC_APP_URL;
 

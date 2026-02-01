@@ -27,7 +27,7 @@ jest.mock('@/shared/components/ui/button', () => ({
 }));
 
 // Mock AI actions
-jest.mock('@/app/actions/ai.actions', () => ({
+jest.mock('@/features/ai/actions/ai.actions', () => ({
   generateCompanyStrategyAction: jest.fn().mockResolvedValue({
     preparationStrategy: 'Strategy',
     focusTopics: [],

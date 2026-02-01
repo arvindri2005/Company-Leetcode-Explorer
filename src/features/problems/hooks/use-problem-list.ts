@@ -121,7 +121,7 @@ export function useProblemList({
         setIsLoadingMore(true); 
         
         try {
-            const { fetchProblemsAction } = await import("@/app/actions/problem.actions");
+            const { fetchProblemsAction } = await import("@/features/problems/actions/problem.actions");
             if (ignore) {return;}
 
             const result = await fetchProblemsAction({
@@ -169,7 +169,7 @@ export function useProblemList({
 
     setIsLoadingMore(true);
     try {
-      const { loadMoreAllProblemsAction } = await import("@/app/actions/problem.actions");
+      const { loadMoreAllProblemsAction } = await import("@/features/problems/actions/problem.actions");
       
       const result = await loadMoreAllProblemsAction(
           cursor, 

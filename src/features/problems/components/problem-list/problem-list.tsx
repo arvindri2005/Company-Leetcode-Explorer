@@ -7,7 +7,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { FilterX, Loader2 } from "lucide-react";
 
-import { loadMoreProblemsAction } from "@/app/actions/problem.actions";
+import { loadMoreProblemsAction } from "@/features/problems/actions/problem.actions";
 import { userService } from "@/features/profile/services/user.service";
 import { useAuth } from "@/providers";
 import AdPlaceholder from "@/shared/components/ads/ad-placeholder";

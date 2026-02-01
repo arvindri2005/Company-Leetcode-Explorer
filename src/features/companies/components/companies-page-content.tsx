@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { HelpCircle, RotateCcw, SearchX } from "lucide-react";
 
-import { fetchCompaniesAction } from "@/app/actions/company.actions";
+import { fetchCompaniesAction } from "@/features/companies/actions/company.actions";
 import { type Company } from "@/features/companies/types";
 import AdPlaceholder from "@/shared/components/ads/ad-placeholder";
 import { CompanyTableSkeleton } from "@/shared/components/skeletons/companies-skeletons";

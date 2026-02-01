@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { generateCompanyStrategyAction } from "@/app/actions/ai.actions";
+import { generateCompanyStrategyAction } from "@/features/ai/actions/ai.actions";
 import type { GenerateCompanyStrategyOutput, TargetRoleLevel } from "@/shared/types";
 
 /**

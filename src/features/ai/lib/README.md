@@ -36,7 +36,7 @@ All AI features follow a consistent pattern. To add a new AI feature, you typica
 ### Example Template
 
 ```typescript
-import { ai } from "@/lib/ai/genkit";
+import { ai } from "@/features/ai/lib/genkit";
 import { z } from "genkit";
 
 // 1. Define Input
@@ -97,7 +97,7 @@ If you add a new flow file, **you must import it in `src/lib/ai/dev.ts`** for it
 
 ```typescript
 // src/lib/ai/dev.ts
-import "@/lib/ai/flows/my-new-flow.ts"; // Add this line
+import "@/features/ai/lib/flows/my-new-flow.ts"; // Add this line
 ```
 
 ## 📦 Integration
@@ -106,7 +106,7 @@ To use a flow in the application (e.g., in a Server Action), simply import the f
 
 ```typescript
 // src/app/actions/some-action.ts
-import { myFeatureFlow } from "@/lib/ai/flows/my-new-flow";
+import { myFeatureFlow } from "@/features/ai/lib/flows/my-new-flow";
 
 export async function generateSummary(topic: string) {
   const result = await myFeatureFlow({ topic });

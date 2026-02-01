@@ -34,7 +34,7 @@ jest.mock('@/features/problems', () => ({
 }));
 
 // Mock AI actions
-jest.mock('@/app/actions/ai.actions', () => ({
+jest.mock('@/features/ai/actions/ai.actions', () => ({
   performQuestionGrouping: jest.fn().mockResolvedValue({
     groups: [
       {

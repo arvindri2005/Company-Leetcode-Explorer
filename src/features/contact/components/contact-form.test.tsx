@@ -9,7 +9,7 @@ jest.mock('react-dom', () => ({
   useFormState: () => [null, jest.fn()],
 }));
 
-jest.mock('@/app/actions/contact.actions', () => ({
+jest.mock('@/features/contact/actions/contact.actions', () => ({
   sendContactMessage: jest.fn(),
 }));
 

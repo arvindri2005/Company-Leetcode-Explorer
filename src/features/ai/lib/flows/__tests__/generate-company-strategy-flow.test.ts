@@ -1,12 +1,12 @@
 
-import * as genkitMock from '@/lib/ai/genkit';
+import * as genkitMock from '@/features/ai/lib/genkit';
 
 import { generateCompanyStrategy, type GenerateCompanyStrategyInput } from '../generate-company-strategy-flow';
 
 // Mock the genkit module to intercept the prompt execution.
 // We expose a hidden property `__mockPrompt` from the mock factory
 // so we can access the spy in our test body, circumventing Jest hoisting issues.
-jest.mock('@/lib/ai/genkit', () => {
+jest.mock('@/features/ai/lib/genkit', () => {
   const promptMock = jest.fn();
   return {
     ai: {

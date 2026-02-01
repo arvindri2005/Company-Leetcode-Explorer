@@ -20,9 +20,9 @@ import {
   YAxis,
 } from "recharts";
 
-import { COLORS } from "@/constants/colors";
 import { TagBadge } from "@/features/problems";
 import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
+import { COLORS } from "@/shared/constants/colors";
 import type { Company, LastAskedPeriod, LeetCodeProblem } from "@/shared/types";
 
 /**

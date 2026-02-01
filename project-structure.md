@@ -212,7 +212,7 @@ shared/lib/
 
 **Dependency Injection:**
 ```typescript
-import { container, TOKENS } from "@/lib/di";
+import { container, TOKENS } from "@/shared/lib/di";
 
 // Register services
 container.register(TOKENS.ProblemService, () => new ProblemService(repository), { singleton: true });
@@ -223,7 +223,7 @@ const problemService = container.resolve<IProblemService>(TOKENS.ProblemService)
 
 **Feature Flags:**
 ```typescript
-import { isFeatureEnabled } from "@/lib/config/feature-flags";
+import { isFeatureEnabled } from "@/shared/lib/config/feature-flags";
 import { useFeatureFlag } from "@/hooks/use-feature-flag";
 
 // Server-side
@@ -235,7 +235,7 @@ const isEnabled = useFeatureFlag("AI_INSIGHTS");
 
 **API Response Standardization:**
 ```typescript
-import { successResponse, errorResponse, ApiResponse } from "@/lib/api/response";
+import { successResponse, errorResponse, ApiResponse } from "@/shared/lib/api/response";
 
 // All API responses follow this structure:
 interface ApiResponse<T> {
@@ -606,10 +606,10 @@ import { problemService } from "@/features/problems";
 import { useFeatureFlag } from "@/hooks/use-feature-flag";
 
 // Lib utilities
-import { cn } from "@/lib/utils";
-import { container, TOKENS } from "@/lib/di";
-import { successResponse, errorResponse } from "@/lib/api/response";
-import { isFeatureEnabled } from "@/lib/config/feature-flags";
+import { cn } from "@/shared/lib/utils";
+import { container, TOKENS } from "@/shared/lib/di";
+import { successResponse, errorResponse } from "@/shared/lib/api/response";
+import { isFeatureEnabled } from "@/shared/lib/config/feature-flags";
 
 // Types
 import type { User, Problem } from "@/types";
@@ -624,7 +624,7 @@ Defined in `tsconfig.json`:
 | `@/*` | `./src/*` |
 | `@/components/*` | `./src/shared/components/*` |
 | `@/features/*` | `./src/features/*` |
-| `@/lib/*` | `./src/lib/*`, `./src/shared/lib/*` |
+| `@/shared/lib/*` | `./src/shared/lib/*` |
 | `@/hooks/*` | `./src/shared/hooks/*` |
 | `@/types/*` | `./src/shared/types/*` |
 | `@/providers/*` | `./src/providers/*` |

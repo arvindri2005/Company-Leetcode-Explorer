@@ -17,9 +17,9 @@ import {
   type CompanyStrategyProblemInput as ImportedCompanyStrategyProblemInput,
   type TargetRoleLevel as ImportedTargetRoleLevel,
 } from "@/features/ai";
-import { companyStrategyCache } from "@/lib/ai/cache";
-import { ai } from "@/lib/ai/genkit";
-import { retryWithBackoff, sanitizeInput,truncateText } from "@/lib/ai/utils";
+import { companyStrategyCache } from "@/features/ai/lib/cache";
+import { ai } from "@/features/ai/lib/genkit";
+import { retryWithBackoff, sanitizeInput,truncateText } from "@/features/ai/lib/utils";
 
 export type CompanyStrategyProblemInput = ImportedCompanyStrategyProblemInput;
 export type TargetRoleLevel = ImportedTargetRoleLevel;

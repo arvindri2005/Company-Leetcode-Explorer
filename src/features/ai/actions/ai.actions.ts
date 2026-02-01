@@ -23,16 +23,16 @@
 
 import { revalidateTag } from "next/cache";
 
-import { companyService } from "@/features/companies/services/company.service"; // needed for revalidate lookup
-import type { FindSimilarQuestionsOutput } from "@/lib/ai/flows/find-similar-questions-flow";
+import type { FindSimilarQuestionsOutput } from "@/features/ai/lib/flows/find-similar-questions-flow";
 import type {
   GenerateCompanyStrategyOutput,
   TargetRoleLevel,
-} from "@/lib/ai/flows/generate-company-strategy-flow"; 
-import type { GenerateFlashcardsOutput } from "@/lib/ai/flows/generate-flashcards-flow";
-import type { GenerateProblemInsightsOutput } from "@/lib/ai/flows/generate-problem-insights-flow";
-import type { GroupQuestionsOutput } from "@/lib/ai/flows/group-questions";
-import { aiService } from "@/lib/ai/services/ai.service";
+} from "@/features/ai/lib/flows/generate-company-strategy-flow"; 
+import type { GenerateFlashcardsOutput } from "@/features/ai/lib/flows/generate-flashcards-flow";
+import type { GenerateProblemInsightsOutput } from "@/features/ai/lib/flows/generate-problem-insights-flow";
+import type { GroupQuestionsOutput } from "@/features/ai/lib/flows/group-questions";
+import { aiService } from "@/features/ai/lib/services/ai.service";
+import { companyService } from "@/features/companies/services/company.service"; // needed for revalidate lookup
 import { auth } from "@/shared/lib/api/firebase"; // For current user ID
 import {
   type ApiResponse,

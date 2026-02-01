@@ -15,7 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Link as LinkIcon,Loader2, PlusCircle } from "lucide-react";
 import { z } from "zod";
 
-import { addCompany as addCompanyAction } from "@/app/actions";
+import { addCompany as addCompanyAction } from "@/features/companies/actions/company.actions";
 import type { Company } from "@/features/companies/types";
 import { Button } from "@/shared/components/ui/button";
 import {

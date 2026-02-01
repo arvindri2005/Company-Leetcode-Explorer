@@ -15,7 +15,7 @@
 
 import { z } from "genkit";
 
-import { ai } from "@/lib/ai/genkit";
+import { ai } from "@/features/ai/lib/genkit";
 
 const CurrentProblemInputSchema = z.object({
   title: z.string().describe("The title of the current coding problem."),

@@ -13,7 +13,6 @@ import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-import { COLORS } from "@/constants/colors";
 import { env } from "@/env";
 import { CooldownStateProvider } from "@/features/ai";
 import { Footer } from "@/features/landing";
@@ -25,6 +24,7 @@ import StructuredData from "@/shared/components/seo/structured-data";
 import ErrorBoundary from "@/shared/components/ui/error-boundary";
 import { OfflineIndicator } from "@/shared/components/ui/offline-indicator";
 import { Toaster } from "@/shared/components/ui/toaster";
+import { COLORS } from "@/shared/constants/colors";
 
 import "./globals.css";
 

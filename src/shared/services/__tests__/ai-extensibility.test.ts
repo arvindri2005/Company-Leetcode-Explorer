@@ -1,5 +1,5 @@
-import { aiFlowRegistry } from "@/lib/ai/flow-registry";
-import { aiService } from "@/lib/ai/services/ai.service";
+import { aiFlowRegistry } from "@/features/ai/lib/flow-registry";
+import { aiService } from "@/features/ai/lib/services/ai.service";
 import { type AIProblemInput } from "@/shared/types";
 
 describe("AI Flow Registry and Service Extensibility", () => {

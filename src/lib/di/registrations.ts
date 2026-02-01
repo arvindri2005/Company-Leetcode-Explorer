@@ -18,9 +18,8 @@ import type { IProblemService } from "@/features/problems/interfaces/problem.ser
 import { registerProfileDependencies } from "@/features/profile/di";
 import type { IUserRepository } from "@/features/profile/interfaces/user.repository.interface";
 import type { IUserService } from "@/features/profile/interfaces/user.service.interface";
-
-import { container } from "./container";
-import { TOKENS } from "./tokens";
+import { container } from "@/shared/lib/di/container";
+import { TOKENS } from "@/shared/lib/di/tokens";
 
 /**
  * Register all services and repositories with the DI container

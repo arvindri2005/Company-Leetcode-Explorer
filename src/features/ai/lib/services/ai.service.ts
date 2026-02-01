@@ -1,15 +1,12 @@
 import { unstable_cache } from "next/cache";
 
 import { type AIProblemInput } from "@/features/ai";
-import { companyService } from "@/features/companies/services/company.service";
-import { problemService } from "@/features/problems/services/problem.service";
-import { userService } from "@/features/profile/services/user.service";
-import { aiFlowRegistry } from "@/lib/ai/flow-registry";
+import { aiFlowRegistry } from "@/features/ai/lib/flow-registry";
 import {
   findSimilarQuestions as findSimilarQuestionsFlow,
   type FindSimilarQuestionsInput,
   type FindSimilarQuestionsOutput,
-} from "@/lib/ai/flows/find-similar-questions-flow";
+} from "@/features/ai/lib/flows/find-similar-questions-flow";
 import {
   type CompanyStrategyProblemInput,
   type EducationExperience,
@@ -17,22 +14,25 @@ import {
   type GenerateCompanyStrategyOutput,
   type TargetRoleLevel,
   type WorkExperience,
-} from "@/lib/ai/flows/generate-company-strategy-flow";
+} from "@/features/ai/lib/flows/generate-company-strategy-flow";
 import {
   type FlashcardProblemInput,
   generateFlashcardsForCompany as generateFlashcardsFlow,
   type GenerateFlashcardsOutput,
-} from "@/lib/ai/flows/generate-flashcards-flow";
+} from "@/features/ai/lib/flows/generate-flashcards-flow";
 import {
   generateProblemInsights as generateProblemInsightsFlow,
   type GenerateProblemInsightsInput,
   type GenerateProblemInsightsOutput,
-} from "@/lib/ai/flows/generate-problem-insights-flow";
+} from "@/features/ai/lib/flows/generate-problem-insights-flow";
 import {
   groupQuestions as groupQuestionsFlow,
   type GroupQuestionsInput,
   type GroupQuestionsOutput,
-} from "@/lib/ai/flows/group-questions";
+} from "@/features/ai/lib/flows/group-questions";
+import { companyService } from "@/features/companies/services/company.service";
+import { problemService } from "@/features/problems/services/problem.service";
+import { userService } from "@/features/profile/services/user.service";
 import { cacheManager, CacheTTL } from "@/shared/lib/utils/cache";
 import { Logger } from "@/shared/lib/utils/logger";
 import { type LeetCodeProblem } from "@/shared/types";

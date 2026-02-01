@@ -16,7 +16,7 @@ import { unstable_cache } from "next/cache";
 
 import { z } from "genkit";
 
-import { ai } from "@/lib/ai/genkit";
+import { ai } from "@/features/ai/lib/genkit";
 
 const GroupQuestionsInputSchema = z.object({
   questions: z

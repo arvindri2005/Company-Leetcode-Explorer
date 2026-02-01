@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import ProblemSubmissionForm from "./problem-submission-form";
 
 // Mock server actions
-jest.mock("@/app/actions", () => ({
+jest.mock("@/features/problems/actions/problem.actions", () => ({
   addProblem: jest.fn().mockResolvedValue({ success: true, data: { title: "New Problem" } }),
 }));
 

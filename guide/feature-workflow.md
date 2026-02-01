@@ -60,7 +60,7 @@ Implement the repository in `src/features/new-feature/repositories/`.
 
 ```typescript
 // src/features/new-feature/repositories/new-feature.repository.ts
-import { db } from "@/lib/firebase";
+import { db } from "@/shared/lib/api/firebase";
 import { INewFeatureRepository } from "../interfaces/new-feature.repository.interface";
 import { NewFeature } from "../types";
 
@@ -141,7 +141,7 @@ export function getNewFeatureService(): INewFeatureService {
 Create server actions in `src/app/actions` to expose functionality to the UI. Use the DI helper to get the service.
 
 ```typescript
-// src/app/actions/new-feature.actions.ts
+// src/features/new-feature/actions/new-feature.actions.ts
 "use server";
 
 import { getNewFeatureService } from "@/lib/di/registrations";
@@ -162,6 +162,6 @@ Build your UI in `src/features/new-feature/components/` and the page in `src/app
 
 ```tsx
 // src/app/new-feature/page.tsx
-import { getFeature } from "@/app/actions/new-feature.actions";
+import { getFeature } from "@/features/new-feature/actions/new-feature.actions";
 // ...
 ```

@@ -1,15 +1,9 @@
 /**
- * Dependency Injection Module
- *
- * Exports the DI container and service tokens for use throughout the application.
+ * DI Registrations and Resolvers
+ * 
+ * This module provides functions to register and resolve dependencies
+ * from the DI container. It is located in src/lib to allow importing
+ * from features while still having access to the shared DI container.
  */
 
-export type { Factory, RegisterOptions } from "./container";
-export { Container,container } from "./container";
-export {
-  getProblemRepository,
-  getProblemService,
-  registerDependencies,
-} from "./registrations";
-export type { TokenKey } from "./tokens";
-export { TOKENS } from "./tokens";
+export * from "./registrations";

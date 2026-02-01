@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useFormState,useFormStatus } from "react-dom";
 
-import { sendContactMessage } from "@/app/actions/contact.actions";
+import { sendContactMessage } from "@/features/contact/actions/contact.actions";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Textarea } from "@/shared/components/ui/textarea";

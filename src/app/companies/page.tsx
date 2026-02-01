@@ -3,12 +3,11 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 
 import { env } from "@/env";
+import { CompaniesListContainer } from "@/features/companies";
 import CompanyListErrorFallback from "@/features/companies/components/company-list-error-fallback";
 import StructuredData from "@/shared/components/seo/structured-data";
 import { CompaniesPageSkeleton } from "@/shared/components/skeletons/companies-page-skeleton";
 import ErrorBoundary from "@/shared/components/ui/error-boundary";
-
-import CompaniesListContainer from "./companies-list-container";
 
 export const revalidate = 2592000; // 1 month
 

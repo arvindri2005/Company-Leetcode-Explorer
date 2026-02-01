@@ -1,11 +1,12 @@
 import { env } from "@/env";
-import { CompaniesPageContent } from "@/features/companies/components/companies-page-content";
 import { getCompanies, getCompanyBySlug } from "@/features/companies/services/company.service";
 import StructuredData from "@/shared/components/seo/structured-data";
 
+import { CompaniesPageContent } from "./companies-page-content";
+
 const APP_URL = env.NEXT_PUBLIC_APP_URL;
 
-export default async function CompaniesListContainer() {
+export async function CompaniesListContainer() {
   /* Fetch initial non-filtered data (Page 1) */
   const ITEMS_PER_PAGE = 30;
   

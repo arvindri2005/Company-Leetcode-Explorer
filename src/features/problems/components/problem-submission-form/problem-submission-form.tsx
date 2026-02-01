@@ -14,7 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarClock,Loader2, PlusCircle } from "lucide-react";
 import { z } from "zod";
 
-import { addProblem } from "@/app/actions";
+import { addProblem } from "@/features/problems/actions/problem.actions";
 import { Button } from "@/shared/components/ui/button";
 import {
   Form,

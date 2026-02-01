@@ -39,7 +39,7 @@ if (typeof global.Headers === 'undefined') {
 }
 
 // Global mock for Firebase to prevent initialization errors in tests
-jest.mock('@/lib/api/firebase', () => ({
+jest.mock('@/shared/lib/api/firebase', () => ({
   app: {}, // Mock app object
   auth: {}, // Mock auth object
   db: {},  // Mock db object so "if (!db)" checks pass

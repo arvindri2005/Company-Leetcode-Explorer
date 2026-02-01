@@ -1,7 +1,7 @@
 import { useCallback,useEffect, useMemo, useRef, useState } from "react";
 
-import { snippets } from "@/constants/typing-test-snippets";
 import { type Language,type Snippet } from "@/features/tools";
+import { snippets } from "@/features/tools/constants/typing-test-snippets";
 import {
   calculateAccuracy,
   calculateWPM,

@@ -26,7 +26,7 @@ jest.mock("@/features/profile/services/user.service", () => ({
 }));
 
 // Mock dynamic imports or actions used inside
-jest.mock("@/app/actions/problem.actions", () => ({
+jest.mock("@/features/problems/actions/problem.actions", () => ({
   fetchProblemsAction: jest.fn(),
   loadMoreAllProblemsAction: jest.fn(),
 }));

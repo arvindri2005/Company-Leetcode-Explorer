@@ -17,8 +17,8 @@ import { usePathname } from "next/navigation";
 import { AlertCircle,BrainCircuit, Info, Loader2, LogIn } from "lucide-react";
 import remarkGfm from "remark-gfm";
 
-import { generateFlashcardsAction } from "@/app/actions";
 import { useAICooldown } from "@/features/ai";
+import { generateFlashcardsAction } from "@/features/ai/actions/ai.actions";
 import { useAuth } from "@/providers";
 import {
   Accordion,

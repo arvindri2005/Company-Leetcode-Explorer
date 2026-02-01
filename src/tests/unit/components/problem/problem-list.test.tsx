@@ -32,7 +32,7 @@ jest.mock('@/features/profile/services/user.service', () => ({
 }));
 
 // Mock server actions
-jest.mock('@/app/actions/problem.actions', () => ({
+jest.mock('@/features/problems/actions/problem.actions', () => ({
   loadMoreProblemsAction: jest.fn(),
 }));
 

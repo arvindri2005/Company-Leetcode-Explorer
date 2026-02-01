@@ -7,7 +7,7 @@ jest.mock("next/cache", () => ({
 }));
 
 // Mock genkit
-jest.mock('@/lib/ai/genkit', () => {
+jest.mock('@/features/ai/lib/genkit', () => {
   const mockPromptFn = jest.fn();
   return {
     ai: {
@@ -22,7 +22,7 @@ describe('groupQuestions', () => {
   let mockPrompt: jest.Mock;
 
   beforeEach(() => {
-    const { __mockPrompt } = require('@/lib/ai/genkit');
+    const { __mockPrompt } = require('@/features/ai/lib/genkit');
     mockPrompt = __mockPrompt;
     mockPrompt.mockReset();
     mockPrompt.mockResolvedValue({

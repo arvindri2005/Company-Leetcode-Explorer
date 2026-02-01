@@ -7,7 +7,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 
 import type { User as FirebaseUser } from "firebase/auth";
 
-import { getProblemByCompanySlugAndProblemSlugAction } from "@/app/actions/problem.actions";
+import { getProblemByCompanySlugAndProblemSlugAction } from "@/features/problems/actions/problem.actions";
 import { useToast } from "@/shared/hooks/use-toast";
 import type { LeetCodeProblem, ProblemStatus, UserProblemStatusInfo } from "@/shared/types";
 

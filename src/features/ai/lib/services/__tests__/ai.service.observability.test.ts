@@ -1,11 +1,11 @@
-import { groupQuestions } from "@/lib/ai/flows/group-questions";
+import { groupQuestions } from "@/features/ai/lib/flows/group-questions";
 import { Logger } from "@/shared/lib/utils/logger";
 
 import { aiService } from "../ai.service";
 
 // Mock dependencies
 jest.mock("@/shared/lib/utils/logger");
-jest.mock("@/lib/ai/flows/group-questions");
+jest.mock("@/features/ai/lib/flows/group-questions");
 jest.mock("@/features/problems/services/problem.service");
 jest.mock("@/features/companies/services/company.service");
 jest.mock("@/features/profile/services/user.service");

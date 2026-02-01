@@ -5,8 +5,8 @@
  * main features of Byte to Offer. It dynamically creates a grid of `FeatureCard`
  * components based on a constant array of feature data.
  */
-import { FEATURES } from "@/constants/features";
 import { FeatureCard } from "@/shared/components/ui/feature-card";
+import { FEATURES } from "@/shared/constants/features";
 
 /**
  * Renders the "Features" section of the landing page.

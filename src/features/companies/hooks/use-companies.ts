@@ -67,7 +67,7 @@ export function useCompanies(options: UseCompaniesOptions = {}): UseCompaniesRet
       console.warn("useCompanies.loadMore: Not implemented - integrate with fetchCompaniesAction");
       
       // Example implementation:
-      // const { fetchCompaniesAction } = await import("@/app/actions/company.actions");
+      // const { fetchCompaniesAction } = await import("@/features/companies/actions/company.actions");
       // const result = await fetchCompaniesAction(1, 30, "", nextCursor);
       // setCompanies((prev) => [...prev, ...result.companies]);
       // setHasMore(result.hasMore);
@@ -88,7 +88,7 @@ export function useCompanies(options: UseCompaniesOptions = {}): UseCompaniesRet
       console.warn("useCompanies.refresh: Not implemented - integrate with fetchCompaniesAction");
       
       // Example implementation:
-      // const { fetchCompaniesAction } = await import("@/app/actions/company.actions");
+      // const { fetchCompaniesAction } = await import("@/features/companies/actions/company.actions");
       // const result = await fetchCompaniesAction(1, 30, "");
       // setCompanies(result.companies);
       // setHasMore(result.hasMore);

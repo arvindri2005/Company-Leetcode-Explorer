@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation";
 import { Building2, Loader2, Search } from "lucide-react";
 import { useDebounce } from "use-debounce";
 
-import { fetchCompanySuggestionsAction } from "@/app/actions";
+import { fetchCompanySuggestionsAction } from "@/features/companies/actions/company.actions";
 import { CompanySearchInput } from "@/features/companies/components/company-search-input";
 import { OfflineImage } from "@/shared/components/ui/offline-image";
 import { cn, getLogoUrl } from "@/shared/lib/utils";

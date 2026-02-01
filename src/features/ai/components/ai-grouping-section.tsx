@@ -15,10 +15,10 @@ import { usePathname } from "next/navigation";
 
 import { AlertCircle,Info, Loader2, LogIn, Sparkles } from "lucide-react";
 
-import { performQuestionGrouping } from "@/app/actions/ai.actions";
 import { useAICooldown } from "@/features/ai";
+import { performQuestionGrouping } from "@/features/ai/actions/ai.actions";
+import type { GroupQuestionsOutput } from "@/features/ai/lib/flows/group-questions";
 import { ProblemCard } from "@/features/problems";
-import type { GroupQuestionsOutput } from "@/lib/ai/flows/group-questions";
 import { useAuth } from "@/providers";
 import {
   Accordion,
