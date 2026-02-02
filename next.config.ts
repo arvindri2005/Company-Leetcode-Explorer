@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
+import withBundleAnalyzer from "@next/bundle-analyzer";
 import withSerwistInit from "@serwist/next";
+
+const withAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
 
 const withSerwist = withSerwistInit({
   swSrc: "src/app/sw.ts",
@@ -51,4 +56,4 @@ const nextConfig: NextConfig = {
     turbopack: {}
 };
 
-export default withSerwist(nextConfig);
+export default withAnalyzer(withSerwist(nextConfig));
