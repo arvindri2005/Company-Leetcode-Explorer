@@ -37,7 +37,6 @@ import { useAuth } from "@/providers";
 import { ProfilePageSkeleton } from "@/shared/components/skeletons/profile-skeletons";
 import { useToast } from "@/shared/hooks/use-toast";
 import { auth } from "@/shared/lib/api/firebase";
-import { EducationExperienceSchema, WorkExperienceSchema } from "@/shared/types"; // Schemas for forms
 
 /**
  * Zod schema for validating the display name update form.
@@ -54,13 +53,47 @@ type DisplayNameFormValues = z.infer<typeof displayNameFormSchema>;
 /**
  * Zod schema for validating the education form (client-side).
  */
-const educationClientSchema = EducationExperienceSchema.omit({ id: true });
+const educationClientSchema = z.object({
+  degree: z.string().min(2, "Degree is required.").max(100, "Degree must be less than 100 characters."),
+  major: z.string().min(2, "Major is required.").max(100, "Major must be less than 100 characters."),
+  school: z.string().min(2, "School name is required.").max(100, "School name must be less than 100 characters."),
+  graduationYear: z
+    .string()
+    .regex(/^\d{4}$/, "Invalid year format (YYYY).")
+    .optional()
+    .or(z.literal("")),
+  gpa: z.string()
+    .regex(/^\d+(\.\d{1,2})?$/, "GPA must be a number (e.g. 3.5, 4.0)")
+    .optional()
+    .or(z.literal("")),
+});
 type EducationFormValues = z.infer<typeof educationClientSchema>;
 
 /**
  * Zod schema for validating the work experience form (client-side).
  */
-const workExperienceClientSchema = WorkExperienceSchema.omit({ id: true });
+const workExperienceClientSchema = z.object({
+  jobTitle: z.string().min(2, "Job title is required.").max(100, "Job title must be less than 100 characters."),
+  companyName: z.string().min(2, "Company name is required.").max(100, "Company name must be less than 100 characters."),
+  startDate: z
+    .string()
+    .min(4, "Start date is required.")
+    .regex(
+      /^(\d{4}|(0[1-9]|1[0-2])\/\d{4})$/,
+      "Start date must be in YYYY or MM/YYYY format."
+    ),
+  endDate: z.union([
+    z.literal(""),
+    z.literal("Present"),
+    z.string().regex(/^(\d{4}|(0[1-9]|1[0-2])\/\d{4})$/, "End date must be 'Present', YYYY, or MM/YYYY.")
+  ]).optional(),
+  responsibilities: z
+    .string()
+    .min(10, "Please describe some responsibilities.")
+    .max(1000, "Responsibilities must be less than 1000 characters.")
+    .optional()
+    .or(z.literal("")),
+});
 type WorkExperienceFormValues = z.infer<typeof workExperienceClientSchema>;
 
 /**
@@ -279,8 +312,8 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="container mx-auto p-4 lg:p-8">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div className="container mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10 max-w-7xl">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
         {/* Left Column - Profile Header */}
         <ProfileHeader
           user={user}

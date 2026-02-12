@@ -48,8 +48,8 @@ export function ProfileHeader({
   stats,
 }: ProfileHeaderProps) {
   return (
-    <div className="lg:col-span-4 xl:col-span-3 space-y-8">
-      <div className="sticky top-24 space-y-8">
+    <div className="lg:col-span-4 xl:col-span-3 space-y-6 sm:space-y-8">
+      <div className="lg:sticky lg:top-24 space-y-6 sm:space-y-8">
         <FormProvider {...displayNameForm}>
           <UserInfoCard
             user={user}

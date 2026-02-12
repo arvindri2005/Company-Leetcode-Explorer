@@ -93,59 +93,61 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
   };
 
   return (
-    <Card className="bg-card border border-border rounded-xl mb-8 shadow-sm overflow-hidden relative">
-      <div className="h-28 w-full bg-gradient-to-r from-brand-teal/10 via-brand-purple/10 to-background" />
-      <CardContent className="p-6 pt-0 relative z-10">
-        <div className="flex flex-col sm:flex-row items-start gap-6 -mt-12">
-          <Avatar className="h-24 w-24 ring-4 ring-background shadow-lg shrink-0 transition-transform hover:scale-105 duration-300">
+    <Card className="bg-card/80 backdrop-blur-xl border border-border/50 rounded-2xl mb-8 shadow-xl shadow-black/10 overflow-hidden relative group hover:shadow-2xl hover:shadow-brand-teal/5 transition-all duration-500">
+      <div className="h-32 sm:h-36 w-full bg-gradient-to-br from-brand-teal/20 via-brand-purple/20 to-accent/10 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse" />
+      </div>
+      <CardContent className="p-4 sm:p-6 pt-0 relative z-10">
+        <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 -mt-16 sm:-mt-14">
+          <Avatar className="h-28 w-28 sm:h-32 sm:w-32 ring-4 ring-background/80 shadow-2xl shadow-brand-teal/10 shrink-0 transition-all hover:scale-105 hover:ring-brand-teal/30 duration-500 group-hover:shadow-brand-teal/20">
             <AvatarImage
               src={user.photoURL || undefined}
               alt={user.displayName || "User avatar"}
               data-ai-hint="profile avatar"
               className="object-cover"
             />
-            <AvatarFallback className="text-3xl bg-gradient-to-br from-primary/10 to-secondary/10 text-primary font-bold">
+            <AvatarFallback className="text-3xl sm:text-4xl bg-gradient-to-br from-brand-teal/20 via-brand-purple/20 to-accent/20 text-primary font-bold backdrop-blur-sm">
               {getInitials(user.displayName)}
             </AvatarFallback>
           </Avatar>
 
-          <div className="flex-grow space-y-3 w-full pt-12 sm:pt-14">
+          <div className="flex-grow space-y-3 w-full pt-14 sm:pt-16">
             <div className="flex justify-between items-start gap-4 w-full">
               {!isEditingDisplayName ? (
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-foreground bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
                       {user.displayName || "Anonymous User"}
                     </h2>
                     {user.emailVerified && (
-                      <BadgeCheck className="h-5 w-5 text-brand-teal" aria-label="Verified User" role="img" />
+                      <BadgeCheck className="h-5 w-5 sm:h-6 sm:w-6 text-brand-teal drop-shadow-lg" aria-label="Verified User" role="img" />
                     )}
                   </div>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs sm:text-sm text-muted-foreground">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div
-                            className="flex items-center gap-1.5 cursor-help focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
+                            className="flex items-center gap-1.5 cursor-help focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md px-2 py-1 -ml-2 hover:bg-muted/30 transition-colors"
                             tabIndex={0}
                             role="button"
                             aria-label={`Email: ${user.email}`}
                           >
-                            <Mail className="h-3.5 w-3.5" aria-hidden="true" />
-                            <span className="truncate max-w-[200px] sm:max-w-none">
+                            <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-brand-teal/70" aria-hidden="true" />
+                            <span className="truncate max-w-[150px] sm:max-w-[250px] md:max-w-none">
                               {user.email}
                             </span>
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent>
+                        <TooltipContent className="bg-card/95 backdrop-blur-sm border-border/50">
                           <p>{user.email}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                     {user.metadata.creationTime && (
-                      <div className="flex items-center gap-1.5">
-                        <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
-                        <span>Member since {formatDate(user.metadata.creationTime)}</span>
+                      <div className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-muted/30 transition-colors">
+                        <CalendarDays className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-brand-purple/70" aria-hidden="true" />
+                        <span className="whitespace-nowrap">Member since {formatDate(user.metadata.creationTime)}</span>
                       </div>
                     )}
                   </div>
@@ -158,7 +160,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                         onSubmit={displayNameForm.handleSubmit(
                           onSubmitDisplayName,
                         )}
-                        className="space-y-3"
+                        className="space-y-4"
                       >
                         <FormField
                           control={displayNameForm.control}
@@ -172,7 +174,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                                     placeholder="Enter display name"
                                     aria-label="Display Name"
                                     aria-describedby="display-name-counter"
-                                    className="text-lg font-medium h-10 pr-12"
+                                    className="text-lg font-medium h-11 sm:h-12 pr-14 bg-background/50 backdrop-blur-sm border-border/50 focus:border-brand-teal/50 transition-all"
                                     autoFocus
                                     autoComplete="name"
                                     autoCapitalize="words"
@@ -181,7 +183,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                                   />
                                   <span
                                     id="display-name-counter"
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground/60 pointer-events-none font-mono"
                                   >
                                     <span className="sr-only">
                                       Character count:{" "}
@@ -197,11 +199,12 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                             </FormItem>
                           )}
                         />
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 sm:gap-3">
                           <Button
                             type="submit"
                             size="sm"
                             isLoading={isSubmittingDisplayName}
+                            className="flex-1 sm:flex-none bg-brand-teal hover:bg-brand-teal/90 text-white shadow-lg shadow-brand-teal/20 hover:shadow-xl hover:shadow-brand-teal/30 transition-all"
                           >
                             {!isSubmittingDisplayName && (
                               <Save className="h-3.5 w-3.5 mr-2" aria-hidden="true" />
@@ -214,6 +217,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                             size="sm"
                             onClick={() => setIsEditingDisplayName(false)}
                             disabled={isSubmittingDisplayName}
+                            className="flex-1 sm:flex-none hover:bg-destructive/10 hover:text-destructive"
                           >
                             <X className="h-3.5 w-3.5 mr-2" aria-hidden="true" /> Cancel
                           </Button>
@@ -237,7 +241,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                         user.displayName || "",
                       );
                     }}
-                    className="h-9 hover:bg-secondary/50 transition-colors"
+                    className="h-9 hover:bg-brand-teal/10 hover:text-brand-teal hover:border-brand-teal/30 transition-all backdrop-blur-sm"
                   >
                     <Edit className="h-3.5 w-3.5 mr-2" aria-hidden="true" />
                     Edit Profile
@@ -248,7 +252,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                   variant="ghost"
                   size="sm"
                   isLoading={isLoggingOut}
-                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
                 >
                   {!isLoggingOut && <LogOut className="h-4 w-4 mr-2" aria-hidden="true" />}
                   Log Out
@@ -257,7 +261,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
             </div>
 
             {/* Mobile Actions (Visible only on small screens) */}
-            <div className="sm:hidden pt-4 border-t border-border mt-4 w-full grid grid-cols-2 gap-3">
+            <div className="sm:hidden pt-4 border-t border-border/50 mt-4 w-full grid grid-cols-2 gap-3">
               {!isEditingDisplayName && (
                 <Button
                   variant="outline"
@@ -268,17 +272,17 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                       user.displayName || "",
                     );
                   }}
-                  className="w-full"
+                  className="w-full hover:bg-brand-teal/10 hover:text-brand-teal hover:border-brand-teal/30 transition-all"
                 >
                   <Edit className="h-4 w-4 mr-2" aria-hidden="true" />
-                  Edit Profile
+                  Edit
                 </Button>
               )}
               <Button
                 onClick={handleLogoutClick}
                 variant="ghost"
                 isLoading={isLoggingOut}
-                className="w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 border border-dashed border-border"
+                className="w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 border border-dashed border-border/50 transition-all"
               >
                 {!isLoggingOut && <LogOut className="h-4 w-4 mr-2" aria-hidden="true" />}
                 Log Out

@@ -29,30 +29,30 @@ export function ProfileTabs({
   strategiesCount,
 }: ProfileTabsProps) {
   return (
-    <TabsList className="grid h-auto w-full grid-cols-2 gap-2 mb-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-      <TabsTrigger value="bookmarks">
-        <Bookmark className="mr-2 h-4 w-4" aria-hidden="true" />
-        Bookmarks ({bookmarksCount})
+    <TabsList className="grid h-auto w-full grid-cols-2 gap-1.5 sm:gap-2 mb-6 sm:grid-cols-3 lg:grid-cols-6">
+      <TabsTrigger value="bookmarks" className="flex-col sm:flex-row gap-1 sm:gap-2">
+        <Bookmark className="h-4 w-4 sm:h-4 sm:w-4 shrink-0" aria-hidden="true" />
+        <span className="truncate text-xs sm:text-sm">Bookmarks<span className="hidden sm:inline"> ({bookmarksCount})</span></span>
       </TabsTrigger>
-      <TabsTrigger value="solved">
-        <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" aria-hidden="true" />
-        Solved ({solvedCount})
+      <TabsTrigger value="solved" className="flex-col sm:flex-row gap-1 sm:gap-2">
+        <CheckCircle2 className="h-4 w-4 sm:h-4 sm:w-4 text-green-500 shrink-0" aria-hidden="true" />
+        <span className="truncate text-xs sm:text-sm">Solved<span className="hidden sm:inline"> ({solvedCount})</span></span>
       </TabsTrigger>
-      <TabsTrigger value="attempted">
-        <Pencil className="mr-2 h-4 w-4 text-yellow-500" aria-hidden="true" />
-        Attempted ({attemptedCount})
+      <TabsTrigger value="attempted" className="flex-col sm:flex-row gap-1 sm:gap-2">
+        <Pencil className="h-4 w-4 sm:h-4 sm:w-4 text-yellow-500 shrink-0" aria-hidden="true" />
+        <span className="truncate text-xs sm:text-sm">Attempted<span className="hidden sm:inline"> ({attemptedCount})</span></span>
       </TabsTrigger>
-      <TabsTrigger value="todo">
-        <ListTodo className="mr-2 h-4 w-4 text-blue-500" aria-hidden="true" />
-        To-Do ({todoCount})
+      <TabsTrigger value="todo" className="flex-col sm:flex-row gap-1 sm:gap-2">
+        <ListTodo className="h-4 w-4 sm:h-4 sm:w-4 text-blue-500 shrink-0" aria-hidden="true" />
+        <span className="truncate text-xs sm:text-sm">To-Do<span className="hidden sm:inline"> ({todoCount})</span></span>
       </TabsTrigger>
-      <TabsTrigger value="strategyLists">
-        <FolderKanban className="mr-2 h-4 w-4" aria-hidden="true" />
-        Strategies ({strategiesCount})
+      <TabsTrigger value="strategyLists" className="flex-col sm:flex-row gap-1 sm:gap-2">
+        <FolderKanban className="h-4 w-4 sm:h-4 sm:w-4 shrink-0" aria-hidden="true" />
+        <span className="truncate text-xs sm:text-sm">Strategies<span className="hidden sm:inline"> ({strategiesCount})</span></span>
       </TabsTrigger>
-      <TabsTrigger value="background">
-        <Briefcase className="mr-2 h-4 w-4" aria-hidden="true" />
-        Background
+      <TabsTrigger value="background" className="flex-col sm:flex-row gap-1 sm:gap-2">
+        <Briefcase className="h-4 w-4 sm:h-4 sm:w-4 shrink-0" aria-hidden="true" />
+        <span className="truncate text-xs sm:text-sm">Background</span>
       </TabsTrigger>
     </TabsList>
   );
