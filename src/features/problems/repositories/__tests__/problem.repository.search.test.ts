@@ -1,15 +1,56 @@
-import {
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
+/**
+ * Problem Repository Search Tests (Supabase)
+ *
+ * Verifies that search queries use efficient ilike() prefix matching
+ * instead of unbounded fetches.
+ */
 
-import { ProblemRepository } from "../problem.repository";
+import { problemRepository } from "../problem.repository";
 
-// Mock Firebase dependencies
-jest.mock("@/shared/lib/api/firebase", () => ({
-  db: {}, // Mock db object
-}));
+// ============================================
+// Supabase Mock
+// ============================================
+
+const chainableMock: Record<string, jest.Mock> = {};
+const trackingCalls: Array<{ method: string; args: unknown[] }> = [];
+
+function createTrackedChainable(): Record<string, jest.Mock> {
+  const methods = [
+    "select", "insert", "update", "delete",
+    "eq", "in", "single",
+    "order", "limit", "ilike", "or", "range",
+  ];
+
+  const mock: Record<string, jest.Mock> = {};
+  for (const method of methods) {
+    mock[method] = jest.fn((...args: unknown[]) => {
+      trackingCalls.push({ method, args });
+      // select returns data when awaited
+      if (method === "single") {
+        return Promise.resolve({ data: null, error: { code: "PGRST116" } });
+      }
+      return mock;
+    });
+  }
+
+  // Make the mock thenable for await
+  (mock as Record<string, unknown>).then = (resolve: (value: unknown) => void) => {
+    resolve({ data: [], error: null });
+    return mock;
+  };
+
+  return mock;
+}
+
+jest.mock("@/shared/lib/api/supabase", () => {
+  const tracked = createTrackedChainable();
+  Object.assign(chainableMock, tracked);
+  return {
+    supabase: {
+      from: jest.fn(() => tracked),
+    },
+  };
+});
 
 jest.mock("@/shared/lib/utils", () => ({
   slugify: (str: string) => str.toLowerCase().replace(/\s+/g, "-"),
@@ -23,97 +64,54 @@ jest.mock("@/shared/lib/utils/logger", () => ({
   },
 }));
 
-// Mock Firestore functions
-jest.mock("firebase/firestore", () => {
-  const originalModule = jest.requireActual("firebase/firestore");
-  return {
-    ...originalModule,
-    getFirestore: jest.fn(() => ({})),
-    collection: jest.fn(),
-    query: jest.fn(),
-    where: jest.fn(),
-    limit: jest.fn(),
-    orderBy: jest.fn(),
-    startAfter: jest.fn(),
-    getDocs: jest.fn(),
-    doc: jest.fn(),
-    getDoc: jest.fn(),
-    getCountFromServer: jest.fn(),
-  };
-});
+jest.mock("@/features/companies/repositories/company.repository", () => ({
+  companyRepository: {
+    getCompanyById: jest.fn(),
+    getCompanyBySlug: jest.fn(),
+  },
+}));
 
-describe("ProblemRepository Search Optimization", () => {
-  let repository: ProblemRepository;
-  const mockGetDocs = getDocs as jest.Mock;
-  const mockQuery = query as jest.Mock;
-  const mockWhere = where as jest.Mock;
-
+describe("ProblemRepository Search Optimization (Supabase)", () => {
   beforeEach(() => {
-    repository = new ProblemRepository();
     jest.clearAllMocks();
-
-    // Default mock implementation for getDocs
-    mockGetDocs.mockResolvedValue({
-      docs: [],
-      size: 0,
-    });
+    trackingCalls.length = 0;
   });
 
-  describe("fetchAllProblemsCore", () => {
-    it("should use range queries when searchTerm is provided", async () => {
-      // Act
-      await repository.getAllProblemsPaginated({
+  describe("getAllProblemsPaginated", () => {
+    it("should use ilike prefix query when searchTerm is provided", async () => {
+      await problemRepository.getAllProblemsPaginated({
         searchTerm: "Two Sum",
         pageSize: 10,
       });
 
-      // Assert
-      // 1. Verify that 'where' was called with >= and <= for normalizedTitle
-      const whereCalls = mockWhere.mock.calls;
-      const normalizedTitleCalls = whereCalls.filter(
-        (call) => call[0] === "normalizedTitle"
-      );
-
-      // We expect 2 calls: one for >= and one for <=
-      // And we expect them to be passed to query()
-      
-      // Find the query call that includes these constraints
-      // Since fetchAllProblemsCore might have multiple paths, we need to trace the execution.
-      // If our logic works, it should hit the Semi-Optimized path but with constraints added.
-      // Currently, it fetches ALL and filters in memory.
-      // We want to verify the NEW behavior (once implemented). 
-      // FOR NOW (Pre-implementation), this test should FAIL or show NO range queries if I assert on them.
-      
-      // Let's assert what we WANT to see:
-      expect(normalizedTitleCalls.length).toBeGreaterThanOrEqual(2);
-      expect(normalizedTitleCalls).toEqual(
-        expect.arrayContaining([
-          ["normalizedTitle", ">=", "two sum"],
-          ["normalizedTitle", "<=", "two sum\uf8ff"],
-        ])
-      );
+      // Verify ilike was called with the normalized search term as a prefix
+      const ilikeCalls = trackingCalls.filter((c) => c.method === "ilike");
+      expect(ilikeCalls.length).toBeGreaterThanOrEqual(1);
+      expect(ilikeCalls[0].args).toEqual(["normalized_title", "two sum%"]);
     });
 
-    it("should NOT fetch unbounded results when searching", async () => {
-       await repository.getAllProblemsPaginated({
+    it("should apply limit to prevent unbounded results", async () => {
+      await problemRepository.getAllProblemsPaginated({
         searchTerm: "Test",
+        pageSize: 10,
       });
 
-      // In the Semi-Optimized path, it calls query(col, ...constraints).
-      // If optimization is missing, constraints are empty (except for basic filters).
-      // If optimization is present, constraints include range filters.
-      
-      // We can inspect the calls to `query`.
-      // The last call to `query` (before `getDocs`) should contain the range filters.
-      const queryCalls = mockQuery.mock.calls;
-      const _lastQueryCall = queryCalls[queryCalls.length - 1];
-      
-      // We need to check if the arguments passed to query include the result of our where() calls.
-      // Since 'where' returns a constraint object, we can't easily match object identity without capturing the return values.
-      // However, we can check if 'where' was called correctly as a proxy.
-      
-      expect(mockWhere).toHaveBeenCalledWith("normalizedTitle", ">=", "test");
-      expect(mockWhere).toHaveBeenCalledWith("normalizedTitle", "<=", "test\uf8ff");
+      // Verify limit was applied
+      const limitCalls = trackingCalls.filter((c) => c.method === "limit");
+      expect(limitCalls.length).toBeGreaterThanOrEqual(1);
+      // pageSize + 1 for hasMore detection
+      expect(limitCalls[0].args[0]).toBe(11);
+    });
+
+    it("should apply difficulty filter using in() method", async () => {
+      await problemRepository.getAllProblemsPaginated({
+        difficultyFilter: ["Easy", "Medium"],
+        pageSize: 10,
+      });
+
+      const inCalls = trackingCalls.filter((c) => c.method === "in");
+      expect(inCalls.length).toBeGreaterThanOrEqual(1);
+      expect(inCalls[0].args).toEqual(["difficulty", ["Easy", "Medium"]]);
     });
   });
 });

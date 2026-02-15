@@ -1,22 +1,10 @@
-import {
-  collection,
-  doc,
-  documentId,
-  type DocumentSnapshot,
-  type Firestore,
-  getCountFromServer,
-  getDoc,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-  type QueryConstraint,
-  runTransaction,
-  setDoc,
-  startAfter,
-  updateDoc,
-  where,
-} from "firebase/firestore";
+/**
+ * Problem Repository (Supabase)
+ *
+ * Handles all data access for problems using Supabase PostgreSQL.
+ * Uses the `problems` table with a `company_problems` junction table
+ * for the many-to-many company-problem relationship.
+ */
 
 import type { Problem } from "@/core/domain/entities/problem.entity";
 import { companyRepository } from "@/features/companies/repositories/company.repository";
@@ -24,14 +12,8 @@ import {
   MAX_COMPANIES_PER_PROBLEM,
   MAX_SEARCH_TERM_LENGTH,
 } from "@/features/problems/constants/problem-constants";
-import {
-  DifficultyFilterImplementation,
-  LastAskedFilterImplementation,
-} from "@/features/problems/utils/problem-filters/implementations";
-import { problemFilterRegistry } from "@/features/problems/utils/problem-filters/registry";
-import { userRepository } from "@/features/profile/repositories/user.repository";
 import type { PaginatedResult } from "@/shared/interfaces";
-import { db } from "@/shared/lib/api/firebase";
+import { supabase } from "@/shared/lib/api/supabase";
 import { slugify } from "@/shared/lib/utils";
 import { Logger } from "@/shared/lib/utils/logger";
 import {
@@ -45,7 +27,6 @@ import {
   type PaginatedProblemsResponse,
   type ProblemSummaryDTO,
   type SortKey,
-  UpdateProblemSchema,
 } from "@/shared/types";
 
 import type {
@@ -56,81 +37,174 @@ import type {
 } from "../interfaces/problem.repository.interface";
 import { ProblemMapper } from "../mappers/problem.mapper";
 
-// Register Core Filters
-problemFilterRegistry.register(new DifficultyFilterImplementation());
-problemFilterRegistry.register(new LastAskedFilterImplementation());
-
 const MAX_PAGE_SIZE = 50;
 const MAX_OFFSET_LIMIT = 2000;
 
-function getFirestore(): Firestore {
-  if (!db) {
-    throw new Error(
-      "Firestore is not initialized. Check your Firebase configuration.",
-    );
-  }
-  return db;
+// ============================================
+// Supabase Row Types
+// ============================================
+
+interface SupabaseProblemRow {
+  id: string;
+  title: string;
+  normalized_title: string | null;
+  slug: string | null;
+  url: string | null;
+  difficulty: "Easy" | "Medium" | "Hard" | null;
+  tags: string[] | null;
+  created_at: number | null;
+  updated_at: number | null;
 }
 
-function isFirestoreIndexError(error: unknown): boolean {
-  if (typeof error !== "object" || error === null) {return false;}
-  const err = error as Record<string, unknown>;
-  return (
-    err.code === "failed-precondition" ||
-    (typeof err.message === "string" && err.message.includes("index"))
-  );
+interface SupabaseCompanyProblemRow {
+  company_id: string;
+  problem_id: string;
+  last_asked_period: string | null;
+  created_at: string | null;
 }
 
-type FetchProblemsParams = {
-  cursor?: string;
-  page?: number;
-  pageSize?: number;
-  difficultyFilter?: DifficultyFilter[];
-  lastAskedFilter?: LastAskedFilter[];
-  searchTerm?: string;
-  sortKey?: SortKey;
-  companySlug?: string;
-  totalProblemCount?: number;
-  difficultyCounts?: { Easy: number; Medium: number; Hard: number };
-  recencyCounts?: {
-    last_30_days: number;
-    within_3_months: number;
-    within_6_months: number;
-    older_than_6_months: number;
+// Combined row when joining problems with company_problems
+interface SupabaseProblemWithCompanyRow extends SupabaseProblemRow {
+  company_problems: SupabaseCompanyProblemRow[] | SupabaseCompanyProblemRow | null;
+}
+
+// ============================================
+// Mapper Functions
+// ============================================
+
+/**
+ * Map a Supabase problem row to LeetCodeProblem type
+ */
+function mapRowToLeetCodeProblem(
+  row: SupabaseProblemRow,
+  companyId: string = "unknown",
+  companySlug: string = "unknown",
+  lastAskedPeriod?: LastAskedPeriod,
+): LeetCodeProblem {
+  const problem: LeetCodeProblem = {
+    id: row.id,
+    title: row.title,
+    difficulty: (row.difficulty || "Medium") as "Easy" | "Medium" | "Hard",
+    link: row.url || "",
+    tags: row.tags || [],
+    companyId,
+    companySlug,
+    slug: row.slug || row.id,
+    normalizedTitle: row.normalized_title || row.title.toLowerCase(),
+    lastAskedPeriod: lastAskedPeriod as LastAskedPeriod | undefined,
+    isBookmarked: false,
+    currentStatus: undefined,
   };
-};
+
+  // Security: Defense-in-depth sanitization for links
+  if (
+    problem.link &&
+    typeof problem.link === "string" &&
+    !problem.link.startsWith("http://") &&
+    !problem.link.startsWith("https://")
+  ) {
+    problem.link = "";
+  }
+
+  // Validate at the edge in dev
+  if (process.env.NODE_ENV === "development") {
+    const result = LeetCodeProblemSchema.safeParse(problem);
+    if (!result.success) {
+      Logger.warn(
+        `Data integrity issue in Problem (ID: ${problem.id}): ${result.error.issues
+          .map((i) => `${i.path.join(".")}: ${i.message}`)
+          .join(", ")}`,
+      );
+    }
+  }
+
+  return problem;
+}
+
+/**
+ * Map a Supabase problem row to ProblemSummaryDTO
+ */
+function mapRowToSummaryDTO(
+  row: SupabaseProblemRow,
+  companyId: string,
+  companySlug: string,
+  lastAskedPeriod?: LastAskedPeriod,
+): ProblemSummaryDTO {
+  return {
+    id: row.id,
+    title: row.title,
+    slug: row.slug || row.id,
+    difficulty: (row.difficulty || "Medium") as "Easy" | "Medium" | "Hard",
+    companyId,
+    companySlug,
+    lastAskedPeriod: lastAskedPeriod as LastAskedPeriod | undefined,
+    tags: row.tags || [],
+    link: row.url || "",
+    normalizedTitle: row.normalized_title || row.title.toLowerCase(),
+    acceptanceRate: undefined,
+    isBookmarked: false,
+    currentStatus: undefined,
+  };
+}
+
+// ============================================
+// Sort field mapping
+// ============================================
+
+function getSortColumn(sortKey: SortKey): string {
+  switch (sortKey) {
+    case "difficulty": return "difficulty";
+    case "lastAsked": return "normalized_title"; // lastAsked requires post-processing
+    case "title":
+    default: return "normalized_title";
+  }
+}
+
+// ============================================
+// Repository Implementation
+// ============================================
 
 export class ProblemRepository implements IProblemRepository {
-  /**
-   * Find a problem by its unique identifier
-   * Implements IBaseRepository.findById
-   */
+  // --- IBaseRepository implementation ---
+
   async findById(id: string): Promise<Problem | null> {
     try {
-      const problemDocRef = doc(getFirestore(), "problems", id);
-      const problemSnap = await getDoc(problemDocRef);
+      const { data, error } = await supabase
+        .from("problems")
+        .select("*")
+        .eq("id", id)
+        .single();
 
-      if (!problemSnap.exists()) {
+      if (error || !data) {
+        if (error?.code !== "PGRST116") {
+          Logger.error("Error finding problem by ID", error, { id });
+        }
         return null;
       }
 
-      const data = problemSnap.data();
+      const row = data as SupabaseProblemRow;
+
+      // Fetch company associations
+      const { data: companyProblems } = await supabase
+        .from("company_problems")
+        .select("company_id, last_asked_period")
+        .eq("problem_id", id)
+        .limit(1);
+
+      const cp = companyProblems?.[0];
+
       return ProblemMapper.toDomain({
-        id: problemSnap.id,
-        title: data.title,
-        description: data.description,
-        difficulty: data.difficulty,
-        link: data.link,
-        tags: data.tags || [],
-        normalizedTitle: data.normalizedTitle,
-        acceptanceRate: data.acceptanceRate,
-        lastAskedPeriod: data.lastAskedPeriod,
-        companyId: data.companyIds?.[0] || "unknown",
-        companySlug: data.companySlug || "unknown",
-        companyIds: data.companyIds,
-        companies: data.companies,
-        problemCompanyName: data.problemCompanyName,
-        slug: problemSnap.id,
+        id: row.id,
+        title: row.title,
+        description: "",
+        difficulty: (row.difficulty || "Medium") as "Easy" | "Medium" | "Hard",
+        link: row.url || "",
+        tags: row.tags || [],
+        normalizedTitle: row.normalized_title || row.title.toLowerCase(),
+        companyId: cp?.company_id || "unknown",
+        companySlug: "unknown",
+        slug: row.slug || row.id,
+        lastAskedPeriod: cp?.last_asked_period as LastAskedPeriod | undefined,
       });
     } catch (error: unknown) {
       Logger.error("Error finding problem by ID", error, { id });
@@ -138,14 +212,10 @@ export class ProblemRepository implements IProblemRepository {
     }
   }
 
-  /**
-   * Find all problems with pagination
-   * Implements IBaseRepository.findAll
-   */
   async findAll(params?: ProblemFilterParams): Promise<PaginatedResult<Problem>> {
     const result = await this.getAllProblemsPaginated(params);
     const problems = result.problems.map((p) => ProblemMapper.fromDTO(p as LeetCodeProblem));
-    
+
     return {
       items: problems,
       totalItems: result.totalProblems,
@@ -156,39 +226,31 @@ export class ProblemRepository implements IProblemRepository {
     };
   }
 
-  /**
-   * Save a new problem
-   * Implements IBaseRepository.save
-   */
   async save(data: CreateProblemDTO): Promise<Problem> {
-    // Validate input using Zod schema
     const validatedData = CreateProblemSchema.parse(data);
-
-    // Security: Generate normalizedTitle server-side to prevent search poisoning
-    // We strictly ignore the client-provided normalizedTitle
     const safeNormalizedTitle = validatedData.title
       .toLowerCase()
       .replace(/[^a-z0-9\s\-\.\+\#]/g, "")
       .trim();
 
     const problemSlug = slugify(validatedData.title);
-    
-    // Security: Ensure generated slug is valid to prevent database errors
     if (!problemSlug) {
       throw new Error("Title results in an empty slug. Please include alphanumeric characters.");
     }
 
-    const problemDocRef = doc(getFirestore(), "problems", problemSlug);
-
-    const dataToSave = {
-      ...validatedData,
-      normalizedTitle: safeNormalizedTitle,
+    const { error } = await supabase.from("problems").insert({
+      id: problemSlug,
+      title: validatedData.title,
+      normalized_title: safeNormalizedTitle,
       slug: problemSlug,
-      companyIds: [],
-      companies: {},
-    };
+      url: validatedData.link,
+      difficulty: validatedData.difficulty,
+      tags: validatedData.tags,
+    });
 
-    await setDoc(problemDocRef, dataToSave);
+    if (error) {
+      throw error;
+    }
 
     return ProblemMapper.toDomain({
       id: problemSlug,
@@ -198,89 +260,72 @@ export class ProblemRepository implements IProblemRepository {
       link: validatedData.link,
       tags: validatedData.tags,
       normalizedTitle: safeNormalizedTitle,
-      acceptanceRate: validatedData.acceptanceRate,
-      lastAskedPeriod: validatedData.lastAskedPeriod,
       companyId: "",
       companySlug: "",
       slug: problemSlug,
     });
   }
 
-  /**
-   * Update an existing problem
-   * Implements IBaseRepository.update
-   */
   async update(id: string, data: UpdateProblemDTO): Promise<Problem> {
-    // Validate input using Zod schema
-    const validatedData = UpdateProblemSchema.parse(data);
+    const validatedData = { ...data };
 
-    // Security: Handle normalizedTitle securely
     if (validatedData.title) {
-      // If title changes, strictly enforce server-generated normalizedTitle
       validatedData.normalizedTitle = validatedData.title
         .toLowerCase()
         .replace(/[^a-z0-9\s\-\.\+\#]/g, "")
         .trim();
     } else {
-      // If title is not changing, we disallow updating normalizedTitle independently
-      // to prevent poisoning the index for the existing title
       delete validatedData.normalizedTitle;
     }
 
-    const problemDocRef = doc(getFirestore(), "problems", id);
-    const problemSnap = await getDoc(problemDocRef);
+    // Map to Supabase snake_case
+    const updates: Record<string, unknown> = {};
+    if (validatedData.title !== undefined) updates.title = validatedData.title;
+    if (validatedData.normalizedTitle !== undefined) updates.normalized_title = validatedData.normalizedTitle;
+    if (validatedData.difficulty !== undefined) updates.difficulty = validatedData.difficulty;
+    if (validatedData.link !== undefined) updates.url = validatedData.link;
+    if (validatedData.tags !== undefined) updates.tags = validatedData.tags;
+    if (validatedData.description !== undefined) { /* description not in problems table */ }
 
-    if (!problemSnap.exists()) {
-      throw new Error(`Problem not found: ${id}`);
+    const { error } = await supabase
+      .from("problems")
+      .update(updates)
+      .eq("id", id);
+
+    if (error) {
+      throw error;
     }
 
-    await updateDoc(problemDocRef, validatedData as { [x: string]: unknown });
+    const found = await this.findById(id);
+    if (!found) {
+      throw new Error(`Problem not found after update: ${id}`);
+    }
 
-    const updatedSnap = await getDoc(problemDocRef);
-    const updatedData = updatedSnap.data()!;
-
-    return ProblemMapper.toDomain({
-      id: updatedSnap.id,
-      title: updatedData.title,
-      description: updatedData.description,
-      difficulty: updatedData.difficulty,
-      link: updatedData.link,
-      tags: updatedData.tags || [],
-      normalizedTitle: updatedData.normalizedTitle,
-      acceptanceRate: updatedData.acceptanceRate,
-      lastAskedPeriod: updatedData.lastAskedPeriod,
-      companyId: updatedData.companyIds?.[0] || "unknown",
-      companySlug: updatedData.companySlug || "unknown",
-      companyIds: updatedData.companyIds,
-      companies: updatedData.companies,
-      problemCompanyName: updatedData.problemCompanyName,
-      slug: updatedSnap.id,
-    });
+    return found;
   }
 
-  /**
-   * Delete a problem by ID
-   * Implements IBaseRepository.delete
-   */
   async delete(id: string): Promise<void> {
-    const problemDocRef = doc(getFirestore(), "problems", id);
-    const { deleteDoc } = await import("firebase/firestore");
-    await deleteDoc(problemDocRef);
+    const { error } = await supabase.from("problems").delete().eq("id", id);
+    if (error) {
+      throw error;
+    }
   }
 
-  /**
-   * Check if a problem exists
-   * Implements IBaseRepository.exists
-   */
   async exists(id: string): Promise<boolean> {
-    const problemDocRef = doc(getFirestore(), "problems", id);
-    const problemSnap = await getDoc(problemDocRef);
-    return problemSnap.exists();
+    const { data, error } = await supabase
+      .from("problems")
+      .select("id")
+      .eq("id", id)
+      .single();
+
+    return !error && !!data;
   }
+
+  // --- IProblemRepository specific methods ---
 
   async getProblemsByCompany(
     companyId: string,
-    params: FetchProblemsParams = {},
+    params: ProblemFilterParams = {},
   ): Promise<PaginatedProblemsResponse> {
     const {
       cursor,
@@ -298,19 +343,152 @@ export class ProblemRepository implements IProblemRepository {
 
     this.validatePaginationParams(page, pageSize);
 
-    return await this.fetchProblemsByCompanyCore(companyId, {
-      cursor,
-      page,
-      pageSize,
-      difficultyFilter,
-      lastAskedFilter,
-      searchTerm,
-      sortKey,
-      companySlug,
-      totalProblemCount,
-      difficultyCounts,
-      recencyCounts,
-    });
+    try {
+      const safePageSize = Math.min(pageSize, MAX_PAGE_SIZE);
+      const normalizedSearchTerm = searchTerm
+        ?.trim()
+        .slice(0, MAX_SEARCH_TERM_LENGTH)
+        .toLowerCase();
+
+      // Step 1: Fetch problem IDs for this company from junction table
+      let junctionQuery = supabase
+        .from("company_problems")
+        .select("problem_id, last_asked_period")
+        .eq("company_id", companyId);
+
+      // Apply lastAsked filter at junction level
+      if (lastAskedFilter.length > 0) {
+        junctionQuery = junctionQuery.in("last_asked_period", lastAskedFilter);
+      }
+
+      const { data: junctionRows, error: junctionError } = await junctionQuery;
+
+      if (junctionError) {
+        Logger.error("Error fetching company_problems", junctionError, { companyId });
+        throw junctionError;
+      }
+
+      if (!junctionRows || junctionRows.length === 0) {
+        return {
+          problems: [],
+          totalProblems: 0,
+          hasMore: false,
+          totalPages: 0,
+          currentPage: page || 1,
+        };
+      }
+
+      // Build a map of problemId → lastAskedPeriod for this company
+      const lastAskedMap = new Map<string, LastAskedPeriod | undefined>();
+      const problemIds = junctionRows.map((jr) => {
+        lastAskedMap.set(jr.problem_id, jr.last_asked_period as LastAskedPeriod | undefined);
+        return jr.problem_id;
+      });
+
+      // Step 2: Fetch full problem data
+      let problemQuery = supabase
+        .from("problems")
+        .select("*")
+        .in("id", problemIds);
+
+      // Apply difficulty filter
+      if (difficultyFilter.length > 0) {
+        problemQuery = problemQuery.in("difficulty", difficultyFilter);
+      }
+
+      // Apply search filter
+      if (normalizedSearchTerm && normalizedSearchTerm.trim() !== "") {
+        problemQuery = problemQuery.ilike("normalized_title", `${normalizedSearchTerm}%`);
+      }
+
+      // Apply sort
+      const sortColumn = getSortColumn(sortKey);
+      problemQuery = problemQuery
+        .order(sortColumn, { ascending: true })
+        .order("id", { ascending: true });
+
+      const { data: problemRows, error: problemsError } = await problemQuery;
+
+      if (problemsError) {
+        Logger.error("Error fetching problems for company", problemsError, { companyId });
+        throw problemsError;
+      }
+
+      // Resolve company slug
+      let finalCompanySlug = companySlug;
+      if (!finalCompanySlug) {
+        const company = await companyRepository.getCompanyById(companyId);
+        finalCompanySlug = company?.slug || slugify(company?.name || "unknown");
+      }
+
+      // Map to DTOs
+      let processedProblems: ProblemSummaryDTO[] = (problemRows || []).map((row) => {
+        const r = row as SupabaseProblemRow;
+        return mapRowToSummaryDTO(
+          r,
+          companyId,
+          finalCompanySlug!,
+          lastAskedMap.get(r.id),
+        );
+      });
+
+      // Sort by lastAsked if needed (requires post-processing since it's from junction)
+      if (sortKey === "lastAsked") {
+        const lastAskedOrder: Record<LastAskedPeriod, number> = {
+          last_30_days: 1,
+          within_3_months: 2,
+          within_6_months: 3,
+          older_than_6_months: 4,
+        };
+        processedProblems.sort((a, b) => {
+          const aPeriod = a.lastAskedPeriod
+            ? lastAskedOrder[a.lastAskedPeriod]
+            : Number.MAX_SAFE_INTEGER;
+          const bPeriod = b.lastAskedPeriod
+            ? lastAskedOrder[b.lastAskedPeriod]
+            : Number.MAX_SAFE_INTEGER;
+          return aPeriod - bPeriod;
+        });
+      }
+
+      // Calculate totals
+      const totalProblems = processedProblems.length;
+
+      // Paginate
+      let startIndex = 0;
+      if (page) {
+        startIndex = (page - 1) * safePageSize;
+      } else if (cursor) {
+        const cursorIndex = processedProblems.findIndex((p) => p.id === cursor);
+        if (cursorIndex !== -1) {
+          startIndex = cursorIndex + 1;
+        }
+      }
+
+      const paginatedProblems = processedProblems.slice(
+        startIndex,
+        startIndex + safePageSize,
+      );
+
+      const hasMore = startIndex + safePageSize < totalProblems;
+      const nextCursor = hasMore
+        ? paginatedProblems[paginatedProblems.length - 1]?.id
+        : undefined;
+      const totalPages = Math.ceil(totalProblems / safePageSize);
+      const currentPage = page || 1;
+
+      return {
+        problems: paginatedProblems,
+        totalProblems,
+        hasMore,
+        nextCursor,
+        totalPages,
+        currentPage,
+      };
+    } catch (error: unknown) {
+      Logger.error("Error in getProblemsByCompany", error, { companyId });
+      throw error;
+    }
   }
 
   async getAllProblemsPaginated(
@@ -333,73 +511,160 @@ export class ProblemRepository implements IProblemRepository {
       lastAskedFilter = [],
       searchTerm = "",
       sortKey = "title",
-      userId,
     } = params;
 
     this.validatePaginationParams(page, pageSize);
 
-    const {
-      problems,
-      totalProblems,
-      hasMore,
-      nextCursor,
-      totalPages,
-      currentPage,
-    } = await this.fetchAllProblemsCore({
-      cursor,
-      page,
-      pageSize,
-      difficultyFilter,
-      lastAskedFilter,
-      searchTerm,
-      sortKey,
-    });
+    try {
+      const safePageSize = Math.min(pageSize, MAX_PAGE_SIZE);
+      const normalizedSearchTerm = searchTerm
+        ?.trim()
+        .slice(0, MAX_SEARCH_TERM_LENGTH)
+        .toLowerCase();
 
-    // Fetch User Data if needed
-    if (userId) {
-      const problemIds = problems.map((p) => p.id);
-      const [userBookmarks, userStatuses] = await Promise.all([
-        userRepository.getBookmarksForIds(userId, problemIds),
-        userRepository.getProblemStatusesForIds(userId, problemIds),
-      ]);
+      // If we have lastAskedFilter, we need to filter via junction table
+      let filteredProblemIds: string[] | null = null;
+      if (lastAskedFilter.length > 0) {
+        const { data: junctionRows } = await supabase
+          .from("company_problems")
+          .select("problem_id")
+          .in("last_asked_period", lastAskedFilter);
 
-      const finalProblems = problems.map((problem) => {
-        const statusInfo = userStatuses[problem.id];
-        return {
-          ...problem,
-          isBookmarked: userBookmarks.has(problem.id),
-          currentStatus: statusInfo ? statusInfo.status : undefined,
-        };
-      });
+        if (!junctionRows || junctionRows.length === 0) {
+          return {
+            problems: [],
+            totalProblems: 0,
+            hasMore: false,
+            totalPages: 0,
+            currentPage: page || 1,
+          };
+        }
+
+        filteredProblemIds = [...new Set(junctionRows.map((jr) => jr.problem_id))];
+      }
+
+      let query = supabase.from("problems").select("*");
+
+      // Filter by problem IDs if lastAsked was applied
+      if (filteredProblemIds !== null) {
+        query = query.in("id", filteredProblemIds);
+      }
+
+      // Apply difficulty filter
+      if (difficultyFilter.length > 0) {
+        query = query.in("difficulty", difficultyFilter);
+      }
+
+      // Apply search filter
+      if (normalizedSearchTerm && normalizedSearchTerm.trim() !== "") {
+        query = query.ilike("normalized_title", `${normalizedSearchTerm}%`);
+      }
+
+      // Apply sort
+      const sortColumn = getSortColumn(sortKey);
+      query = query
+        .order(sortColumn, { ascending: true })
+        .order("id", { ascending: true });
+
+      // For page-based pagination, use offset
+      if (page) {
+        const startIndex = (page - 1) * safePageSize;
+        query = query.range(startIndex, startIndex + safePageSize); // Fetch one extra
+      } else {
+        // Cursor-based: fetch all and slice (for small datasets)
+        // Or use keyset pagination for larger ones
+        query = query.limit(safePageSize + 1);
+
+        if (cursor) {
+          // Get cursor document to know the sort position
+          const { data: cursorDoc } = await supabase
+            .from("problems")
+            .select("normalized_title, id")
+            .eq("id", cursor)
+            .single();
+
+          if (cursorDoc) {
+            query = supabase
+              .from("problems")
+              .select("*");
+
+            if (filteredProblemIds !== null) {
+              query = query.in("id", filteredProblemIds);
+            }
+            if (difficultyFilter.length > 0) {
+              query = query.in("difficulty", difficultyFilter);
+            }
+            if (normalizedSearchTerm && normalizedSearchTerm.trim() !== "") {
+              query = query.ilike("normalized_title", `${normalizedSearchTerm}%`);
+            }
+
+            query = query
+              .or(
+                `normalized_title.gt.${cursorDoc.normalized_title},and(normalized_title.eq.${cursorDoc.normalized_title},id.gt.${cursorDoc.id})`,
+              )
+              .order(sortColumn, { ascending: true })
+              .order("id", { ascending: true })
+              .limit(safePageSize + 1);
+          }
+        }
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        Logger.error("Error in getAllProblemsPaginated", error);
+        throw error;
+      }
+
+      const rows = (data || []) as SupabaseProblemRow[];
+
+      let hasMore: boolean;
+      let resultRows: SupabaseProblemRow[];
+
+      if (page) {
+        hasMore = rows.length > safePageSize;
+        resultRows = rows.slice(0, safePageSize);
+      } else {
+        hasMore = rows.length > safePageSize;
+        resultRows = hasMore ? rows.slice(0, safePageSize) : rows;
+      }
+
+      const problems = resultRows.map((row) =>
+        mapRowToLeetCodeProblem(row, "unknown", "unknown"),
+      );
+
+      const nextCursor = hasMore ? problems[problems.length - 1]?.id : undefined;
+      const totalPages = -1; // Unknown to save count queries
+      const currentPage = page || 1;
 
       return {
-        problems: finalProblems,
-        totalProblems,
+        problems,
+        totalProblems: -1,
         hasMore,
         nextCursor,
         totalPages,
         currentPage,
       };
+    } catch (error: unknown) {
+      Logger.error("Error in getAllProblemsPaginated", error);
+      throw error;
     }
-
-    return {
-      problems,
-      totalProblems,
-      hasMore,
-      nextCursor,
-      totalPages,
-      currentPage,
-    };
   }
 
   async getAllProblems(): Promise<LeetCodeProblem[]> {
     try {
-      const problemsCol = collection(getFirestore(), "problems");
-      const q = query(problemsCol, orderBy("normalizedTitle"));
-      const problemSnapshot = await getDocs(q);
+      const { data, error } = await supabase
+        .from("problems")
+        .select("*")
+        .order("normalized_title", { ascending: true });
 
-      return problemSnapshot.docs.map((docSnap) =>
-        this.mapDocToProblem(docSnap),
+      if (error) {
+        Logger.error("Error fetching all problems", error);
+        return [];
+      }
+
+      return (data || []).map((row) =>
+        mapRowToLeetCodeProblem(row as SupabaseProblemRow),
       );
     } catch (error: unknown) {
       Logger.error("Error fetching all problems", error);
@@ -412,17 +677,45 @@ export class ProblemRepository implements IProblemRepository {
     problemId: string,
   ): Promise<LeetCodeProblem | undefined> {
     try {
-      if (!companyId || !problemId) {return undefined;}
-      const problemDocRef = doc(getFirestore(), "problems", problemId); // problemId is the slug
-      const problemSnap = await getDoc(problemDocRef);
+      if (!companyId || !problemId) return undefined;
 
-      if (problemSnap.exists()) {
-        const company = await companyRepository.getCompanyById(companyId);
-        return this.mapDocToProblem(problemSnap, company);
+      // Fetch problem
+      const { data: problemData, error: problemError } = await supabase
+        .from("problems")
+        .select("*")
+        .eq("id", problemId)
+        .single();
+
+      if (problemError || !problemData) {
+        if (problemError?.code !== "PGRST116") {
+          Logger.error("Error fetching problem details", problemError, {
+            companyId,
+            problemId,
+          });
+        }
+        return undefined;
       }
-      return undefined;
+
+      // Fetch company for slug info
+      const company = await companyRepository.getCompanyById(companyId);
+
+      // Fetch company-specific data from junction
+      const { data: cpData } = await supabase
+        .from("company_problems")
+        .select("last_asked_period")
+        .eq("company_id", companyId)
+        .eq("problem_id", problemId)
+        .single();
+
+      const row = problemData as SupabaseProblemRow;
+      return mapRowToLeetCodeProblem(
+        row,
+        companyId,
+        company?.slug || "unknown",
+        cpData?.last_asked_period as LastAskedPeriod | undefined,
+      );
     } catch (error: unknown) {
-      Logger.error(`Error fetching problem details`, error, {
+      Logger.error("Error fetching problem details", error, {
         companyId,
         problemId,
       });
@@ -439,22 +732,40 @@ export class ProblemRepository implements IProblemRepository {
   }> {
     try {
       const company = await companyRepository.getCompanyBySlug(companySlug);
-      if (!company) {return { company: undefined, problem: undefined };}
+      if (!company) return { company: undefined, problem: undefined };
 
-      const problemDocRef = doc(getFirestore(), "problems", problemSlug);
-      const problemSnap = await getDoc(problemDocRef);
+      const { data, error } = await supabase
+        .from("problems")
+        .select("*")
+        .eq("id", problemSlug)
+        .single();
 
-      if (problemSnap.exists()) {
-        const problem = this.mapDocToProblem(problemSnap, company);
-        return { company, problem };
+      if (error || !data) {
+        return { company, problem: undefined };
       }
-      return { company, problem: undefined };
-    } catch (error: unknown) {
-      Logger.error(
-        `Error fetching problem by company slug and problem slug`,
-        error,
-        { companySlug, problemSlug },
+
+      // Get company-specific data
+      const { data: cpData } = await supabase
+        .from("company_problems")
+        .select("last_asked_period")
+        .eq("company_id", company.id)
+        .eq("problem_id", problemSlug)
+        .single();
+
+      const row = data as SupabaseProblemRow;
+      const problem = mapRowToLeetCodeProblem(
+        row,
+        company.id,
+        company.slug,
+        cpData?.last_asked_period as LastAskedPeriod | undefined,
       );
+
+      return { company, problem };
+    } catch (error: unknown) {
+      Logger.error("Error fetching problem by slugs", error, {
+        companySlug,
+        problemSlug,
+      });
       return { company: undefined, problem: undefined };
     }
   }
@@ -463,15 +774,30 @@ export class ProblemRepository implements IProblemRepository {
     Array<{ companySlug: string; problemSlug: string }>
   > {
     try {
-      const allProbs = await this.getAllProblems();
-      return allProbs
-        .map((p) => ({ companySlug: p.companySlug, problemSlug: p.slug }))
+      // Fetch all company_problems with joins to get slugs
+      const { data, error } = await supabase
+        .from("company_problems")
+        .select(`
+          problem_id,
+          companies!company_problems_company_id_fkey(slug)
+        `);
+
+      if (error) {
+        Logger.error("Error fetching problem company slugs", error);
+        return [];
+      }
+
+      return (data || [])
+        .map((row: Record<string, unknown>) => {
+          const companies = row.companies as { slug: string | null } | null;
+          return {
+            companySlug: companies?.slug || "",
+            problemSlug: (row.problem_id as string) || "",
+          };
+        })
         .filter((s) => s.companySlug && s.problemSlug);
     } catch (error: unknown) {
-      Logger.error(
-        "Error fetching all problem company and problem slugs",
-        error,
-      );
+      Logger.error("Error fetching all problem company and problem slugs", error);
       return [];
     }
   }
@@ -482,28 +808,166 @@ export class ProblemRepository implements IProblemRepository {
     }
 
     try {
-      const problemsCol = collection(getFirestore(), "problems");
       const uniqueIds = Array.from(new Set(ids));
-      const chunks = [];
-      const CHUNK_SIZE = 30; // Firestore 'in' limit
 
-      for (let i = 0; i < uniqueIds.length; i += CHUNK_SIZE) {
-        chunks.push(uniqueIds.slice(i, i + CHUNK_SIZE));
+      const { data, error } = await supabase
+        .from("problems")
+        .select("*")
+        .in("id", uniqueIds);
+
+      if (error) {
+        Logger.error("Error fetching problems by IDs", error, { count: ids.length });
+        return [];
       }
 
-      const problemPromises = chunks.map(async (chunk) => {
-        const q = query(problemsCol, where(documentId(), "in", chunk));
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map((docSnap) => this.mapDocToProblem(docSnap));
-      });
-
-      const chunkResults = await Promise.all(problemPromises);
-      return chunkResults.flat();
+      return (data || []).map((row) =>
+        mapRowToLeetCodeProblem(row as SupabaseProblemRow),
+      );
     } catch (error: unknown) {
       Logger.error("Error fetching problems by IDs", error, { count: ids.length });
       return [];
     }
   }
+
+  async addProblem(
+    companyId: string,
+    problemData: Omit<
+      LeetCodeProblem,
+      "id" | "companyId" | "companySlug" | "slug"
+    > & { normalizedTitle: string },
+  ): Promise<{ id: string | null; updated: boolean; error?: string }> {
+    try {
+      const safeNormalizedTitle = (problemData.title || "")
+        .toLowerCase()
+        .replace(/[^a-z0-9\s\-\.\+\#]/g, "")
+        .trim();
+
+      const dataToValidate = {
+        description: "",
+        ...problemData,
+        normalizedTitle: safeNormalizedTitle,
+      };
+
+      const parseResult = CreateProblemSchema.safeParse(dataToValidate);
+      if (!parseResult.success) {
+        const errorMessage = parseResult.error.issues
+          .map((i) => `${i.path.join(".")}: ${i.message}`)
+          .join(", ");
+        throw new Error(`Validation failed: ${errorMessage}`);
+      }
+
+      const validatedData = parseResult.data;
+      const problemSlug = slugify(validatedData.title);
+
+      if (!problemSlug) {
+        return {
+          id: null,
+          updated: false,
+          error: "Title results in an empty slug. Please include alphanumeric characters.",
+        };
+      }
+
+      // Check if problem already exists
+      const { data: existingProblem } = await supabase
+        .from("problems")
+        .select("id")
+        .eq("id", problemSlug)
+        .single();
+
+      if (existingProblem) {
+        // Problem exists — check if it's already linked to this company
+        const { data: existingLink } = await supabase
+          .from("company_problems")
+          .select("company_id")
+          .eq("company_id", companyId)
+          .eq("problem_id", problemSlug)
+          .single();
+
+        if (existingLink) {
+          // Already linked, update the lastAskedPeriod
+          await supabase
+            .from("company_problems")
+            .update({ last_asked_period: validatedData.lastAskedPeriod || null })
+            .eq("company_id", companyId)
+            .eq("problem_id", problemSlug);
+
+          return { id: problemSlug, updated: true };
+        }
+
+        // Check company count limit
+        const { count, error: countError } = await supabase
+          .from("company_problems")
+          .select("company_id", { count: "exact", head: true })
+          .eq("problem_id", problemSlug);
+
+        if (!countError && (count || 0) >= MAX_COMPANIES_PER_PROBLEM) {
+          return {
+            id: null,
+            updated: false,
+            error: `Maximum number of companies (${MAX_COMPANIES_PER_PROBLEM}) reached for this problem.`,
+          };
+        }
+
+        // Link existing problem to this company
+        const { error: linkError } = await supabase
+          .from("company_problems")
+          .insert({
+            company_id: companyId,
+            problem_id: problemSlug,
+            last_asked_period: validatedData.lastAskedPeriod || null,
+          });
+
+        if (linkError) {
+          throw linkError;
+        }
+
+        return { id: problemSlug, updated: true };
+      } else {
+        // Create new problem
+        const { error: insertError } = await supabase
+          .from("problems")
+          .insert({
+            id: problemSlug,
+            title: validatedData.title,
+            normalized_title: safeNormalizedTitle,
+            slug: problemSlug,
+            url: validatedData.link,
+            difficulty: validatedData.difficulty,
+            tags: validatedData.tags,
+          });
+
+        if (insertError) {
+          // Handle unique constraint violation
+          if (insertError.code === "23505") {
+            return {
+              id: problemSlug,
+              updated: false,
+              error: `Problem "${validatedData.title}" already exists.`,
+            };
+          }
+          throw insertError;
+        }
+
+        // Link to company
+        await supabase.from("company_problems").insert({
+          company_id: companyId,
+          problem_id: problemSlug,
+          last_asked_period: validatedData.lastAskedPeriod || null,
+        });
+
+        return { id: problemSlug, updated: false };
+      }
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "An unknown error occurred while saving problem.";
+      Logger.error("Error in addProblem", error, { message });
+      return { id: null, updated: false, error: message };
+    }
+  }
+
+  // --- Private helpers ---
 
   private validatePaginationParams(page: number | undefined, pageSize: number) {
     if (pageSize > MAX_PAGE_SIZE) {
@@ -518,846 +982,6 @@ export class ProblemRepository implements IProblemRepository {
       );
     }
   }
-
-  private async fetchProblemsByCompanyCore(
-    companyId: string,
-    params: FetchProblemsParams,
-  ) {
-    const {
-      searchTerm = "",
-      sortKey = "title",
-    } = params;
-
-    const baseConstraints: QueryConstraint[] = [
-      where("companyIds", "array-contains", companyId),
-    ];
-
-    const {
-      constraints,
-      residualDifficultyFilter,
-      residualLastAskedFilter,
-    } = this.buildQueryConstraints(params, baseConstraints, companyId);
-
-    const canUseOptimizedPath = this.canUseOptimizedPath(
-      residualDifficultyFilter,
-      residualLastAskedFilter,
-      searchTerm,
-      sortKey,
-    );
-
-    if (canUseOptimizedPath) {
-      try {
-        return await this.fetchProblemsByCompanyOptimized(
-          companyId,
-          params,
-          constraints,
-          residualDifficultyFilter,
-          residualLastAskedFilter,
-        );
-      } catch (error: unknown) {
-        if (isFirestoreIndexError(error)) {
-          Logger.warn(
-            "Optimized path failed, falling back to semi-optimized",
-            undefined,
-            { message: error instanceof Error ? error.message : String(error) },
-          );
-        } else {
-          throw error;
-        }
-      }
-    }
-
-    return await this.fetchProblemsByCompanySemiOptimized(
-      companyId,
-      params,
-      constraints,
-      residualDifficultyFilter,
-      residualLastAskedFilter,
-    );
-  }
-
-  private buildQueryConstraints(
-    params: FetchProblemsParams,
-    baseConstraints: QueryConstraint[] = [],
-    companyId?: string,
-  ) {
-    const {
-      difficultyFilter = [],
-      lastAskedFilter = [],
-      searchTerm = "",
-    } = params;
-
-    const constraints = [...baseConstraints];
-    let usedInOperator = false;
-    let residualDifficultyFilter: DifficultyFilter[] = [];
-    let residualLastAskedFilter: LastAskedFilter[] = [];
-
-    // Apply Difficulty Filter
-    if (difficultyFilter.length > 0) {
-      if (difficultyFilter.length === 1) {
-        constraints.push(where("difficulty", "==", difficultyFilter[0]));
-      } else if (!usedInOperator) {
-        constraints.push(where("difficulty", "in", difficultyFilter));
-        usedInOperator = true;
-      } else {
-        residualDifficultyFilter = difficultyFilter;
-      }
-    }
-
-    // Apply LastAsked Filter
-    if (lastAskedFilter.length > 0) {
-      // If companyId is provided, we filter by company-specific period
-      // Otherwise we filter by global period (for generic lists)
-      // Note: The original 'fetchAllProblemsCore' logic treated lastAsked as fully residual.
-      // We preserve that behavior if companyId is missing for now, or adapt as needed.
-      if (companyId) {
-        const fieldPath = `companies.${companyId}.lastAskedPeriod`;
-        if (lastAskedFilter.length === 1) {
-          constraints.push(where(fieldPath, "==", lastAskedFilter[0]));
-        } else if (!usedInOperator) {
-          constraints.push(where(fieldPath, "in", lastAskedFilter));
-          usedInOperator = true;
-        } else {
-          residualLastAskedFilter = lastAskedFilter;
-        }
-      } else {
-        // For global lists, we currently treat lastAsked as residual
-        // (matching original fetchAllProblemsCore implementation)
-        residualLastAskedFilter = lastAskedFilter;
-      }
-    }
-
-    // Optimization: Use Firestore range queries for search
-    if (searchTerm.trim() !== "") {
-      const lowercasedSearchTerm = searchTerm
-        .toLowerCase()
-        .trim()
-        .slice(0, MAX_SEARCH_TERM_LENGTH);
-
-      constraints.push(where("normalizedTitle", ">=", lowercasedSearchTerm));
-      constraints.push(
-        where("normalizedTitle", "<=", lowercasedSearchTerm + "\uf8ff"),
-      );
-    }
-
-    return {
-      constraints,
-      residualDifficultyFilter,
-      residualLastAskedFilter,
-    };
-  }
-
-  private canUseOptimizedPath(
-    residualDifficultyFilter: DifficultyFilter[],
-    residualLastAskedFilter: LastAskedFilter[],
-    searchTerm: string,
-    sortKey: SortKey = "title",
-  ): boolean {
-    const hasResidualFilters =
-      residualDifficultyFilter.length > 0 || residualLastAskedFilter.length > 0;
-
-    const isSortCompatibleWithSearch =
-      searchTerm.trim() !== "" ? sortKey === "title" : true;
-
-    const isSupportedSort = sortKey === "title" || sortKey === "difficulty";
-
-    return (
-      !hasResidualFilters && isSupportedSort && isSortCompatibleWithSearch
-    );
-  }
-
-  private async fetchProblemsByCompanyOptimized(
-    companyId: string,
-    params: FetchProblemsParams,
-    constraints: QueryConstraint[],
-    residualDifficultyFilter: DifficultyFilter[],
-    residualLastAskedFilter: LastAskedFilter[],
-  ) {
-    const {
-      cursor,
-      pageSize = 10,
-      difficultyFilter = [],
-      lastAskedFilter = [],
-      sortKey = "title",
-      companySlug,
-      totalProblemCount,
-      difficultyCounts,
-      recencyCounts,
-    } = params;
-
-    const problemsColRef = collection(getFirestore(), "problems");
-    let totalProblems = 0;
-
-    if (constraints.length === 1 && totalProblemCount !== undefined) {
-      totalProblems = totalProblemCount;
-    } else if (
-      difficultyCounts &&
-      lastAskedFilter.length === 0 &&
-      difficultyFilter.length > 0 &&
-      residualDifficultyFilter.length === 0
-    ) {
-      totalProblems = difficultyFilter.reduce(
-        (acc, diff) => acc + (difficultyCounts[diff] || 0),
-        0,
-      );
-    } else if (
-      recencyCounts &&
-      difficultyFilter.length === 0 &&
-      lastAskedFilter.length > 0 &&
-      residualLastAskedFilter.length === 0
-    ) {
-      totalProblems = lastAskedFilter.reduce(
-        (acc, period) => acc + (recencyCounts[period] || 0),
-        0,
-      );
-    } else {
-      const countQuery = query(problemsColRef, ...constraints);
-      const countSnapshot = await getCountFromServer(countQuery);
-      totalProblems = countSnapshot.data().count;
-    }
-
-    const sortField =
-      sortKey === "difficulty" ? "difficulty" : "normalizedTitle";
-
-    const queryConstraints = [...constraints, orderBy(sortField, "asc")];
-
-    // Ensure deterministic ordering for cursor pagination
-    if (sortKey === "difficulty") {
-      queryConstraints.push(orderBy("normalizedTitle", "asc"));
-    }
-
-    queryConstraints.push(limit(pageSize + 1));
-
-    if (cursor) {
-      const cursorDocRef = doc(getFirestore(), "problems", cursor);
-      const cursorDocSnap = await getDoc(cursorDocRef);
-      if (cursorDocSnap.exists()) {
-        queryConstraints.push(startAfter(cursorDocSnap));
-      }
-    }
-
-    const q = query(problemsColRef, ...queryConstraints);
-
-    const problemSnapshot = await getDocs(q);
-    const docs = problemSnapshot.docs;
-    const hasMore = docs.length > pageSize;
-
-    const resultDocs = hasMore ? docs.slice(0, pageSize) : docs;
-
-    let finalCompanySlug = companySlug;
-    if (!finalCompanySlug) {
-      const company = await companyRepository.getCompanyById(companyId);
-      finalCompanySlug = company?.slug || slugify(company?.name || "unknown");
-    }
-
-    const problems = resultDocs.map((docSnap) => {
-      const data = docSnap.data();
-      const companySpecificData = data.companies?.[companyId] || {};
-
-      return {
-        id: docSnap.id,
-        title: data.title,
-        slug: docSnap.id,
-        difficulty: data.difficulty,
-        companyId: companyId,
-        companySlug: finalCompanySlug!,
-        lastAskedPeriod:
-          companySpecificData.lastAskedPeriod ||
-          data.lastAskedPeriod ||
-          undefined,
-        tags: data.tags || [],
-        acceptanceRate: data.acceptanceRate,
-        isBookmarked: false, // Will be filled by UI layer
-        currentStatus: undefined, // Will be filled by UI layer
-        link: data.link,
-      } as ProblemSummaryDTO;
-    });
-
-    // Use cursor from the LAST item
-    const nextCursor = hasMore ? problems[problems.length - 1].id : undefined;
-
-    return {
-      problems,
-      totalProblems,
-      hasMore,
-      nextCursor,
-    };
-  }
-
-  private async fetchProblemsByCompanySemiOptimized(
-    companyId: string,
-    params: FetchProblemsParams,
-    constraints: QueryConstraint[],
-    residualDifficultyFilter: DifficultyFilter[],
-    residualLastAskedFilter: LastAskedFilter[],
-  ) {
-    const {
-      cursor,
-      page,
-      pageSize = 10,
-      searchTerm = "",
-      sortKey = "title",
-      companySlug,
-    } = params;
-
-    const problemsColRef = collection(getFirestore(), "problems");
-    const startTime = Date.now();
-    try {
-      const q = query(problemsColRef, ...constraints, limit(200));
-      const problemSnapshot = await getDocs(q);
-
-      let processedProblems = problemSnapshot.docs.map((docSnap) => {
-        const data = docSnap.data();
-        const companySpecificData = data.companies?.[companyId] || {};
-
-        return {
-          id: docSnap.id,
-          title: data.title,
-          slug: docSnap.id,
-          difficulty: data.difficulty,
-          companyId: companyId,
-          companySlug: companySlug || "unknown",
-          lastAskedPeriod:
-            companySpecificData.lastAskedPeriod ||
-            data.lastAskedPeriod ||
-            undefined,
-          tags: data.tags || [],
-          acceptanceRate: data.acceptanceRate,
-          isBookmarked: false,
-          currentStatus: undefined,
-          link: data.link,
-        } as ProblemSummaryDTO;
-      });
-
-      if (!companySlug) {
-        const company = await companyRepository.getCompanyById(companyId);
-        const slug = company?.slug || slugify(company?.name || "unknown");
-        processedProblems.forEach((p) => (p.companySlug = slug));
-      }
-
-      // Extensibility Point: Apply generic filters via Registry
-      // This replaces the hardcoded difficulty/lastAsked logic
-      const filtersToApply: Record<string, unknown> = {};
-      if (residualDifficultyFilter.length > 0) {
-        filtersToApply["difficulty"] = residualDifficultyFilter;
-      }
-      if (residualLastAskedFilter.length > 0) {
-        filtersToApply["lastAsked"] = residualLastAskedFilter;
-      }
-
-      // Note: We can also pass other arbitrary filters here if 'params' was extended
-      processedProblems = problemFilterRegistry.filterInMemory(
-        processedProblems,
-        filtersToApply,
-        companyId,
-      );
-
-      // Search is now handled by Firestore constraints (Starts With logic on Title).
-      // This optimization prioritizes read efficiency over full-text/tag search capabilities.
-
-      // Client-side sorting for the 200 items
-      const difficultyOrder: Record<LeetCodeProblem["difficulty"], number> = {
-        Easy: 1,
-        Medium: 2,
-        Hard: 3,
-      };
-      const lastAskedOrder: Record<LastAskedPeriod, number> = {
-        last_30_days: 1,
-        within_3_months: 2,
-        within_6_months: 3,
-        older_than_6_months: 4,
-      };
-
-      processedProblems.sort((a, b) => {
-        if (sortKey === "title") {return a.title.localeCompare(b.title);}
-        if (sortKey === "difficulty")
-          {return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];}
-        if (sortKey === "lastAsked") {
-          const aPeriod = a.lastAskedPeriod
-            ? lastAskedOrder[a.lastAskedPeriod]
-            : Number.MAX_SAFE_INTEGER;
-          const bPeriod = b.lastAskedPeriod
-            ? lastAskedOrder[b.lastAskedPeriod]
-            : Number.MAX_SAFE_INTEGER;
-          return aPeriod - bPeriod;
-        }
-        return 0;
-      });
-
-      const totalProblems = processedProblems.length;
-
-      let startIndex = 0;
-      if (page) {
-        startIndex = (page - 1) * pageSize;
-      } else if (cursor) {
-        const cursorIndex = processedProblems.findIndex((p) => p.id === cursor);
-        if (cursorIndex !== -1) {
-          startIndex = cursorIndex + 1;
-        }
-      }
-
-      const paginatedProblems = processedProblems.slice(
-        startIndex,
-        startIndex + pageSize,
-      );
-
-      const hasMore = startIndex + pageSize < totalProblems;
-      const nextCursor = hasMore
-        ? paginatedProblems[paginatedProblems.length - 1]?.id
-        : undefined;
-
-      Logger.info("Problem Fetch (Semi-Optimized)", {
-        companyId,
-        fetchedCount: problemSnapshot.size,
-        resultCount: paginatedProblems.length,
-        durationMs: Date.now() - startTime,
-        filters: {
-          difficulty: residualDifficultyFilter.length > 0,
-          lastAsked: residualLastAskedFilter.length > 0,
-          search: !!searchTerm,
-        },
-      });
-
-      return {
-        problems: paginatedProblems,
-        totalProblems,
-        hasMore,
-        nextCursor,
-      };
-    } catch (error: unknown) {
-      Logger.error("Error in Semi-Optimized Problem Fetch", error, {
-        companyId,
-      });
-      throw error;
-    }
-  }
-
-  private async fetchAllProblemsCore(params: {
-    cursor?: string;
-    page?: number;
-    pageSize?: number;
-    difficultyFilter?: DifficultyFilter[];
-    lastAskedFilter?: LastAskedFilter[];
-    searchTerm?: string;
-    sortKey?: SortKey;
-  }) {
-    const {
-      searchTerm = "",
-      sortKey = "title",
-    } = params;
-
-    const {
-      constraints,
-      residualDifficultyFilter,
-      residualLastAskedFilter,
-    } = this.buildQueryConstraints(params);
-
-    const canUseOptimizedPath = this.canUseOptimizedPath(
-      residualDifficultyFilter,
-      residualLastAskedFilter,
-      searchTerm,
-      sortKey,
-    );
-
-    if (canUseOptimizedPath) {
-      try {
-        return await this.fetchProblemsOptimized(params, constraints);
-      } catch (error: unknown) {
-        if (isFirestoreIndexError(error)) {
-          Logger.warn(
-            "Optimized path failed, falling back to full fetch",
-            undefined,
-            { message: error instanceof Error ? error.message : String(error) },
-          );
-        } else {
-          throw error;
-        }
-      }
-    }
-
-    return await this.fetchProblemsSemiOptimized(
-      params,
-      constraints,
-      residualDifficultyFilter,
-      residualLastAskedFilter,
-    );
-  }
-
-  private async fetchProblemsOptimized(
-    params: {
-      cursor?: string;
-      page?: number;
-      pageSize?: number;
-      sortKey?: SortKey;
-    },
-    constraints: QueryConstraint[],
-  ) {
-    const {
-      cursor,
-      page,
-      pageSize = 10,
-      sortKey = "title",
-    } = params;
-
-    const problemsColRef = collection(getFirestore(), "problems");
-    const totalProblems = -1; // -1 indicates unknown
-
-    // 2. Prepare Query for Data
-    const sortField =
-      sortKey === "difficulty" ? "difficulty" : "normalizedTitle";
-    const queryConstraints = [...constraints, orderBy(sortField, "asc")];
-
-    if (sortKey === "difficulty") {
-      queryConstraints.push(orderBy("normalizedTitle", "asc"));
-    }
-
-    let limitCount = pageSize;
-    let startIndex = 0;
-
-    // PAGINATION STRATEGY
-    if (page) {
-      // Fetch limit = (page * pageSize) + 1 to detect hasMore
-      limitCount = page * pageSize + 1;
-      startIndex = (page - 1) * pageSize;
-      queryConstraints.push(limit(limitCount));
-    } else {
-      // Cursor based (existing logic)
-      queryConstraints.push(limit(pageSize + 1));
-      if (cursor) {
-        const cursorDocRef = doc(getFirestore(), "problems", cursor);
-        const cursorDocSnap = await getDoc(cursorDocRef);
-        if (cursorDocSnap.exists()) {
-          queryConstraints.push(startAfter(cursorDocSnap));
-        }
-      }
-    }
-
-    const q = query(problemsColRef, ...queryConstraints);
-    const snap = await getDocs(q);
-    const docs = snap.docs;
-
-    // Process results
-    let resultDocs = docs;
-    let hasMore = false;
-
-    if (page) {
-      const targetSize = page * pageSize;
-      hasMore = docs.length > targetSize;
-
-      resultDocs = docs.length <= startIndex ? [] : docs.slice(startIndex, startIndex + pageSize);
-    } else {
-      // Cursor logic
-      hasMore = docs.length > pageSize;
-      if (hasMore) {
-        resultDocs = docs.slice(0, pageSize);
-      }
-    }
-
-    const problems = resultDocs.map((docSnap) =>
-      this.mapDocToProblem(docSnap),
-    );
-
-    // Calculate pagination metadata
-    const totalPages = -1;
-    const currentPage = page || 1;
-    const nextCursor = hasMore
-      ? problems[problems.length - 1]?.id
-      : undefined;
-
-    Logger.info(`[OPTIMIZED FETCH - NO COUNT]`, {
-      page,
-      limitCount,
-      fetched: docs.length,
-      hasMore,
-    });
-
-    return {
-      problems,
-      totalProblems,
-      hasMore,
-      nextCursor,
-      totalPages,
-      currentPage,
-    };
-  }
-
-  private async fetchProblemsSemiOptimized(
-    params: {
-      cursor?: string;
-      page?: number;
-      pageSize?: number;
-      sortKey?: SortKey;
-    },
-    constraints: QueryConstraint[],
-    residualDifficultyFilter: DifficultyFilter[],
-    residualLastAskedFilter: LastAskedFilter[],
-  ) {
-    const {
-      cursor,
-      page,
-      pageSize = 10,
-      sortKey = "title",
-    } = params;
-
-    const problemsColRef = collection(getFirestore(), "problems");
-    const q = query(problemsColRef, ...constraints);
-    const problemSnapshot = await getDocs(q);
-
-    let processedProblems = problemSnapshot.docs.map((docSnap) =>
-      this.mapDocToProblem(docSnap),
-    );
-
-    if (residualDifficultyFilter.length > 0) {
-      processedProblems = processedProblems.filter((p) =>
-        residualDifficultyFilter.includes(p.difficulty),
-      );
-    }
-    if (residualLastAskedFilter.length > 0) {
-      processedProblems = processedProblems.filter(
-        (p) =>
-          p.lastAskedPeriod &&
-          residualLastAskedFilter.includes(p.lastAskedPeriod),
-      );
-    }
-
-    const difficultyOrder: Record<LeetCodeProblem["difficulty"], number> = {
-      Easy: 1,
-      Medium: 2,
-      Hard: 3,
-    };
-
-    processedProblems.sort((a, b) => {
-      if (sortKey === "title") {return a.title.localeCompare(b.title);}
-      if (sortKey === "difficulty")
-        {return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];}
-      return 0;
-    });
-
-    const totalProblems = processedProblems.length;
-    let paginatedProblems: LeetCodeProblem[] = [];
-    let hasMore = false;
-    let nextCursor: string | undefined;
-    let totalPages: number | undefined;
-    let currentPage: number | undefined;
-
-    if (page) {
-      // Page-Based Pagination Logic
-      totalPages = Math.ceil(totalProblems / pageSize);
-      currentPage = Math.max(1, Math.min(page, totalPages || 1));
-      const startIndex = (currentPage - 1) * pageSize;
-      paginatedProblems = processedProblems.slice(
-        startIndex,
-        startIndex + pageSize,
-      );
-      hasMore = currentPage < totalPages;
-    } else {
-      // Cursor-Based or Default Logic (Fallback)
-      let startIndex = 0;
-      if (cursor) {
-        const cursorIndex = processedProblems.findIndex((p) => p.id === cursor);
-        if (cursorIndex !== -1) {
-          startIndex = cursorIndex + 1;
-        }
-      }
-
-      paginatedProblems = processedProblems.slice(
-        startIndex,
-        startIndex + pageSize,
-      );
-      hasMore = startIndex + pageSize < totalProblems;
-      nextCursor = hasMore
-        ? paginatedProblems[paginatedProblems.length - 1]?.id
-        : undefined;
-    }
-
-    return {
-      problems: paginatedProblems,
-      totalProblems,
-      hasMore,
-      nextCursor,
-      totalPages,
-      currentPage,
-    };
-  }
-
-  private mapDocToProblem(
-    docSnap: DocumentSnapshot,
-    company?: Company,
-  ): LeetCodeProblem {
-    const data = docSnap.data()!;
-    const companyId = company?.id || data.companyIds?.[0] || "unknown";
-
-    // Determine companySlug:
-    // 1. If company object is passed, use its slug.
-    // 2. Else use "unknown" or try to infer (not possible without company lookup)
-    const companySlug = company?.slug || "unknown";
-
-    // Overlay company-specific data if available
-    const companySpecificData = company
-      ? data.companies?.[company.id] || {}
-      : {};
-
-    const problem: LeetCodeProblem = {
-      id: docSnap.id,
-      companyId: companyId,
-      companySlug: companySlug,
-      slug: docSnap.id,
-      ...data,
-      ...companySpecificData,
-    } as LeetCodeProblem;
-
-    // Security: Defense-in-depth sanitization for sensitive fields
-    // Ensure link uses a safe protocol (http/https) to prevent javascript: XSS
-    if (
-      problem.link &&
-      typeof problem.link === "string" &&
-      !problem.link.startsWith("http://") &&
-      !problem.link.startsWith("https://")
-    ) {
-      // Neutralize malicious links by clearing them
-      problem.link = "";
-    }
-
-    // Validate at the edge
-    // Optimization: Skip expensive Zod schema validation (including regexes) in production for read operations.
-    // We rely on write-time validation for data integrity.
-    if (process.env.NODE_ENV === "development") {
-      const result = LeetCodeProblemSchema.safeParse(problem);
-      if (!result.success) {
-        // We log but still return the object to avoid crashing UI for partial data issues
-        Logger.warn(
-          `Data integrity issue in Problem (ID: ${
-            problem.id
-          }): ${result.error.issues
-            .map((i) => `${i.path.join(".")}: ${i.message}`)
-            .join(", ")}`,
-        );
-      }
-    }
-
-    return problem;
-  }
-
-  async addProblem(
-    companyId: string,
-    problemData: Omit<
-      LeetCodeProblem,
-      "id" | "companyId" | "companySlug" | "slug"
-    > & { normalizedTitle: string },
-  ): Promise<{ id: string | null; updated: boolean; error?: string }> {
-    try {
-      // Validate input (mostly CreateProblemSchema but some fields might vary slightly)
-      // Since addProblem input signature is slightly looser than CreateProblemDTO, we construct a partial validation or rely on runtime checks.
-      // However, for security, we should enforce the critical parts.
-      // Mapping input to something we can validate against CreateProblemSchema.
-      // Note: problemData lacks 'description', but CreateProblemSchema makes it optional.
-
-      // We explicitly cast to unknown then CreateProblemDTO for validation purpose
-      // This ensures title, link, difficulty, etc are valid.
-      // If problemData is missing required fields, parsing will fail.
-      // Sanitize the title to generate a safe normalized title
-      // We explicitly ignore the client-provided normalizedTitle to prevent search poisoning
-      const safeNormalizedTitle = (problemData.title || "")
-        .toLowerCase()
-        .replace(/[^a-z0-9\s\-\.\+\#]/g, "")
-        .trim();
-
-      const dataToValidate = {
-        description: "", // Provide default if missing
-        ...problemData,
-        normalizedTitle: safeNormalizedTitle,
-      };
-      // We use safeParse here to not break existing flexible signature if strict schema mismatch
-      // But we WANT to catch bad URLs.
-      const parseResult = CreateProblemSchema.safeParse(dataToValidate);
-
-      if (!parseResult.success) {
-        const errorMessage = parseResult.error.issues
-          .map((i) => `${i.path.join(".")}: ${i.message}`)
-          .join(", ");
-        throw new Error(`Validation failed: ${errorMessage}`);
-      }
-
-      const validatedData = parseResult.data;
-
-      const problemSlug = slugify(validatedData.title);
-
-      // Security: Ensure generated slug is valid to prevent database errors
-      if (!problemSlug) {
-        return {
-          id: null,
-          updated: false,
-          error: "Title results in an empty slug. Please include alphanumeric characters.",
-        };
-      }
-
-      const problemDocRef = doc(getFirestore(), "problems", problemSlug);
-
-      return await runTransaction(getFirestore(), async (transaction) => {
-        const problemSnap = await transaction.get(problemDocRef);
-
-        if (problemSnap.exists()) {
-          const existingData = problemSnap.data();
-          const companyIds = new Set(existingData.companyIds || []);
-
-          // Security: Prevent unbounded growth of companies array
-          if (
-            companyIds.size >= MAX_COMPANIES_PER_PROBLEM &&
-            !companyIds.has(companyId)
-          ) {
-            return {
-              id: null,
-              updated: false,
-              error: `Maximum number of companies (${MAX_COMPANIES_PER_PROBLEM}) reached for this problem.`,
-            };
-          }
-
-          companyIds.add(companyId);
-
-          const companiesMap = existingData.companies || {};
-          companiesMap[companyId] = {
-            lastAskedPeriod: validatedData.lastAskedPeriod,
-          };
-
-          transaction.update(problemDocRef, {
-            slug: problemSlug,
-            companyIds: Array.from(companyIds),
-            companies: companiesMap,
-          });
-          return { id: problemSlug, updated: true };
-        } else {
-          const companiesMap = {
-            [companyId]: {
-              lastAskedPeriod: validatedData.lastAskedPeriod,
-            },
-          };
-
-          const dataToSave = {
-            ...validatedData,
-            slug: problemSlug,
-            companyIds: [companyId],
-            companies: companiesMap,
-          };
-
-          transaction.set(problemDocRef, dataToSave);
-          return { id: problemSlug, updated: false };
-        }
-      });
-    } catch (error: unknown) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "An unknown error occurred while saving problem.";
-      Logger.error("Error in addProblem", error, { message });
-      return { id: null, updated: false, error: message };
-    }
-  }
 }
 
 export const problemRepository = new ProblemRepository();
-
-
-
-
-
-
