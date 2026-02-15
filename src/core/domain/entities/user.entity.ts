@@ -72,7 +72,7 @@ const parseDateValue = (dateStr: string, isEndDate: boolean): number => {
 /**
  * @description Zod schema for validating work experience data.
  */
-export const WorkExperienceSchema = z.object({
+export const WorkExperienceBaseSchema = z.object({
   id: z.string().optional(), // Firestore document ID
   jobTitle: z.string().min(2, "Job title is required.").max(100, "Job title must be less than 100 characters."),
   companyName: z.string().min(2, "Company name is required.").max(100, "Company name must be less than 100 characters."),
@@ -94,7 +94,9 @@ export const WorkExperienceSchema = z.object({
     .max(1000, "Responsibilities must be less than 1000 characters.")
     .optional()
     .or(z.literal("")),
-}).refine((data) => {
+});
+
+export const validateWorkExperienceDates = (data: z.infer<typeof WorkExperienceBaseSchema>) => {
   if (!data.endDate || data.endDate === "Present" || data.endDate === "") {
     return true;
   }
@@ -103,7 +105,9 @@ export const WorkExperienceSchema = z.object({
   const endVal = parseDateValue(data.endDate, true);
   
   return startVal <= endVal;
-}, {
+};
+
+export const WorkExperienceSchema = WorkExperienceBaseSchema.refine(validateWorkExperienceDates, {
   message: "End date must be after start date.",
   path: ["endDate"],
 });

@@ -14,6 +14,8 @@ export {
   UserProfileSchema,
   type WorkExperience,
   WorkExperienceSchema,
+  WorkExperienceBaseSchema,
+  validateWorkExperienceDates,
 } from "@/domain/entities/user.entity";
 export {
   type FocusTopic,

@@ -37,7 +37,12 @@ import { useAuth } from "@/providers";
 import { ProfilePageSkeleton } from "@/shared/components/skeletons/profile-skeletons";
 import { useToast } from "@/shared/hooks/use-toast";
 import { auth } from "@/shared/lib/api/firebase";
-import { EducationExperienceSchema, WorkExperienceSchema } from "@/shared/types"; // Schemas for forms
+import {
+  EducationExperienceSchema,
+  WorkExperienceSchema,
+  WorkExperienceBaseSchema,
+  validateWorkExperienceDates,
+} from "@/shared/types"; // Schemas for forms
 
 /**
  * Zod schema for validating the display name update form.
@@ -60,7 +65,12 @@ type EducationFormValues = z.infer<typeof educationClientSchema>;
 /**
  * Zod schema for validating the work experience form (client-side).
  */
-const workExperienceClientSchema = WorkExperienceSchema.omit({ id: true });
+const workExperienceClientSchema = WorkExperienceBaseSchema.omit({
+  id: true,
+}).refine(validateWorkExperienceDates, {
+  message: "End date must be after start date.",
+  path: ["endDate"],
+});
 type WorkExperienceFormValues = z.infer<typeof workExperienceClientSchema>;
 
 /**

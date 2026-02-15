@@ -9,7 +9,7 @@ export { CompanyRepository, companyRepository } from './company.repository';
 
 // CRUD operations
 export type { CompanyCrudOperations } from './operations/company-crud';
-export { CompanyCrud, mapFirestoreDocToCompany } from './operations/company-crud';
+export { CompanyCrud } from './operations/company-crud';
 
 // Search operations
 export type { CompanySearchOperations } from './search/company-search';
