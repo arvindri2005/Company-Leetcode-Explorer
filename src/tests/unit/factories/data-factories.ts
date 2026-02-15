@@ -82,22 +82,6 @@ export const simpleFaker = {
   }
 };
 
-export const createMockTimestamp = (date: Date = new Date()) => ({
-  toDate: () => date,
-  seconds: Math.floor(date.getTime() / 1000),
-  nanoseconds: 0,
-});
-
-export const createMockFirestoreDoc = <T>(
-  data: T,
-  id: string = simpleFaker.string.uuid(),
-  exists: boolean = true
-) => ({
-  id,
-  data: jest.fn(() => data),
-  exists: jest.fn(() => exists),
-});
-
 export const createMockCompany = (overrides: Partial<Company> = {}): Company => {
   const name = simpleFaker.company.name();
   const slug = simpleFaker.helpers.slugify(name);
@@ -131,8 +115,6 @@ export const createMockCompany = (overrides: Partial<Company> = {}): Company => 
     ...overrides,
   };
 };
-
-// ... (other imports)
 
 export const createMockUser = (overrides: Partial<User> = {}): User => {
   return {
@@ -210,9 +192,3 @@ export const createMockProblemsResponse = (
     ...overrides,
   };
 };
-
-
-
-
-
-

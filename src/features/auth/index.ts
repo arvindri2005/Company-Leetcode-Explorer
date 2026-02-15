@@ -1,3 +1,8 @@
+import { registerAuthNavigation } from "./navigation";
+
+// Register Auth-related navigation items (e.g., Logout) with the shared registry
+registerAuthNavigation();
+
 // Auth Context
 export { AuthContext,AuthProvider } from "./context/auth-context";
 

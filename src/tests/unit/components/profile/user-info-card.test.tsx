@@ -19,20 +19,19 @@ jest.mock('lucide-react', () => ({
 }));
 
 const mockUser = createMockUser({
-  displayName: 'Test User',
   email: 'test@example.com',
-  metadata: {
-    creationTime: '2023-01-01T00:00:00Z',
-    lastSignInTime: '2023-01-02T00:00:00Z',
+  user_metadata: {
+    display_name: 'Test User',
   },
   emailVerified: true,
-});
+} as any);
 
 // Wrapper component to provide Form Context
 const Wrapper = ({ children }: { children: React.ReactNode }) => {
   const methods = useForm({
     defaultValues: {
-      displayName: 'Test User'
+      displayName: 'Test User',
+    email: 'test@example.com',
     }
   });
   return <FormProvider {...methods}>{children}</FormProvider>;

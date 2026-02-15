@@ -8,6 +8,35 @@ import { Logger } from "@/shared/lib/utils/logger";
 import type { ProblemStatus, UserProblemStatusInfo } from "@/shared/types";
 
 /**
+ * Interface for Supabase query result from user_problem_status
+ */
+interface UserProblemStatusQueryResult {
+  problem_id: string;
+  status: string;
+  updated_at: string;
+  problems: {
+    slug: string;
+    company_problems: Array<{
+      companies: {
+        slug: string;
+      } | null;
+    }> | null;
+  } | null;
+}
+
+/**
+ * Interface for problem status updates
+ */
+interface UserProblemStatusUpdate {
+  uid: string;
+  problem_id: string;
+  status: string;
+  updated_at: string;
+  solved_at?: string;
+  last_attempted_at?: string;
+}
+
+/**
  * Interface for problem status operations
  */
 export interface StatusOperations {
@@ -79,7 +108,7 @@ export class StatusOperationsImpl implements StatusOperations {
       }
 
       if (data) {
-        data.forEach((row: any) => {
+        (data as unknown as UserProblemStatusQueryResult[]).forEach((row) => {
           const problem = row.problems;
           // Determine company slug from available relationships
           const companySlug = problem?.company_problems?.[0]?.companies?.slug;
@@ -134,9 +163,9 @@ export class StatusOperationsImpl implements StatusOperations {
           .eq("uid", userId)
       ]);
 
-      if (solvedRes.error) throw solvedRes.error;
-      if (attemptedRes.error) throw attemptedRes.error;
-      if (bookmarkRes.error) throw bookmarkRes.error;
+      if (solvedRes.error) {throw solvedRes.error;}
+      if (attemptedRes.error) {throw attemptedRes.error;}
+      if (bookmarkRes.error) {throw bookmarkRes.error;}
 
       return {
         solvedProblemIds: solvedRes.data?.map(r => r.problem_id) || [],
@@ -161,9 +190,7 @@ export class StatusOperationsImpl implements StatusOperations {
   async setProblemStatus(
     userId: string,
     problemId: string,
-    status: ProblemStatus,
-    companySlug: string,
-    problemSlug: string
+    status: ProblemStatus
   ): Promise<{ success: boolean; error?: string }> {
     if (!userId || !problemId) {
       return { success: false, error: "User ID and Problem ID are required." };
@@ -178,10 +205,10 @@ export class StatusOperationsImpl implements StatusOperations {
           .eq("uid", userId)
           .eq("problem_id", problemId);
           
-        if (error) throw error;
+        if (error) {throw error;}
       } else {
         // Upsert status
-        const updates: any = {
+        const updates: UserProblemStatusUpdate = {
            uid: userId,
            problem_id: problemId,
            status: status,
@@ -198,7 +225,7 @@ export class StatusOperationsImpl implements StatusOperations {
           .from("user_problem_status")
           .upsert(updates, { onConflict: "uid,problem_id" });
 
-        if (error) throw error;
+        if (error) {throw error;}
       }
 
       return { success: true };

@@ -38,12 +38,14 @@ if (typeof global.Headers === 'undefined') {
   } as unknown as typeof Headers;
 }
 
-// Global mock for Firebase to prevent initialization errors in tests
+// Global mock for Firebase - REMOVED
+/*
 jest.mock('@/shared/lib/api/firebase', () => ({
-  app: {}, // Mock app object
-  auth: {}, // Mock auth object
-  db: {},  // Mock db object so "if (!db)" checks pass
+  app: {},
+  auth: {},
+  db: {},
 }));
+*/
 
 // Global mock for react-markdown and remark-gfm to resolve ESM issues in Jest
 jest.mock("react-markdown", () => (props: { children: React.ReactNode }) => {

@@ -80,7 +80,7 @@ export class StrategyOperationsImpl implements StrategyOperations {
         throw error;
       }
 
-      if (!data) return null;
+      if (!data) {return null;}
 
       // Map snake_case to domain object
       return {
@@ -145,14 +145,14 @@ export class StrategyOperationsImpl implements StrategyOperations {
           .update(dbRow)
           .eq("id", existing.id);
           
-         if (error) throw error;
+         if (error) {throw error;}
       } else {
          // Insert
          const { error } = await this.supabase
           .from("user_strategies")
           .insert(dbRow);
           
-         if (error) throw error;
+         if (error) {throw error;}
       }
 
       return { success: true };
@@ -196,7 +196,7 @@ export class StrategyOperationsImpl implements StrategyOperations {
          return { success: false, error: "Todo list not found." };
       }
 
-      const items = (data.todo_items as any[]) || [];
+      const items = (data.todo_items as StrategyTodoItem[]) || [];
       
       if (itemIndex >= items.length) {
          return { success: false, error: "Item index out of bounds." };
@@ -214,7 +214,7 @@ export class StrategyOperationsImpl implements StrategyOperations {
         })
         .eq("id", data.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {throw updateError;}
       
       return { success: true };
     } catch (error) {

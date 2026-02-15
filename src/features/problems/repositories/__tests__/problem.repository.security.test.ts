@@ -55,8 +55,6 @@ function createChainableMock(overrides: Record<string, jest.Mock> = {}) {
   return mock;
 }
 
-const mockFrom = jest.fn();
-
 jest.mock("@/shared/lib/api/supabase", () => {
   const chainable = createChainableMock();
   const from = jest.fn(() => chainable);
@@ -144,7 +142,6 @@ describe("ProblemRepository Security Validation", () => {
   describe("addProblem", () => {
     it("should prevent adding more companies than the limit", async () => {
       // Mock: problem exists
-      const chainable = (global as Record<string, unknown>).__mockSupabaseChainable as ReturnType<typeof createChainableMock>;
       const from = (global as Record<string, unknown>).__mockSupabaseFrom as jest.Mock;
 
       // Reset the from mock to track calls

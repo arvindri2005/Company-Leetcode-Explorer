@@ -46,7 +46,7 @@ export class AuthService {
   /**
    * @description Update user attributes (e.g., display name, email, password)
    */
-  async updateUser(attributes: { data?: { display_name?: string; [key: string]: any } }): Promise<AuthServiceResponse> {
+  async updateUser(attributes: { data?: { display_name?: string; [key: string]: unknown } }): Promise<AuthServiceResponse> {
     try {
       const { error } = await this.supabase.auth.updateUser(attributes);
 

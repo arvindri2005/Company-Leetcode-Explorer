@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import Link from "next/link";
@@ -23,9 +23,10 @@ import { Input } from "@/shared/components/ui/input";
 import { useToast } from "@/shared/hooks/use-toast";
 
 import { authService } from "../services/auth.service";
+
 import { SignupPasswordStrength } from "./signup-password-strength";
 
-const resetPasswordSchema = z
+export const resetPasswordSchema = z
   .object({
     password: z
       .string()

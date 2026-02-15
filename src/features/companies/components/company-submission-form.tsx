@@ -9,7 +9,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link as LinkIcon,Loader2, PlusCircle } from "lucide-react";
@@ -86,8 +86,8 @@ export default function CompanySubmissionForm() {
     },
   });
 
-  const nameValue = form.watch("name");
-  const descriptionValue = form.watch("description");
+  const nameValue = useWatch({ control: form.control, name: "name" });
+  const descriptionValue = useWatch({ control: form.control, name: "description" });
   const nameLength = nameValue ? nameValue.length : 0;
   const descriptionLength = descriptionValue ? descriptionValue.length : 0;
 

@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { type User } from "firebase/auth";
+import type { User } from "@supabase/supabase-js";
 
 import { AITooltipContent } from "./ai-tooltip-content";
 
-const mockUser = { uid: "test-user" } as User;
+const mockUser = { id: "test-user" } as unknown as User;
 
 const meta = {
   title: "Problem/AITooltipContent",

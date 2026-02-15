@@ -76,6 +76,7 @@ export interface ProblemCardProps {
 const statusIcons: Record<ProblemStatus, React.ElementType> = {
   solved: CheckCircle,
   attempted: XCircle,
+  in_progress: Clock,
   todo: ListTodo,
   none: Circle,
 };

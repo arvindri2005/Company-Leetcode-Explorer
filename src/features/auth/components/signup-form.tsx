@@ -24,13 +24,14 @@ import { useOnlineStatus } from "@/shared/hooks/use-online-status";
 import { useToast } from "@/shared/hooks/use-toast";
 
 import { authService } from "../services/auth.service";
+
 import GoogleAuthButton from "./google-auth-button";
 import { SignupPasswordStrength } from "./signup-password-strength";
 
 /**
  * Zod schema for validating the signup form fields.
  */
-const signupFormSchema = z.object({
+export const signupFormSchema = z.object({
   displayName: z
     .string()
     .min(2, { message: "Display name must be at least 2 characters." })

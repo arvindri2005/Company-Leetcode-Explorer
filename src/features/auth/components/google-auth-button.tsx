@@ -2,8 +2,6 @@
 
 import { memo, useState } from "react";
 
-import { useSearchParams } from "next/navigation";
-
 import { Loader2 } from "lucide-react";
 
 import { GoogleIcon } from "@/shared/components/icons/google-icon";
@@ -27,8 +25,6 @@ interface GoogleAuthButtonProps {
  */
 const GoogleAuthButton = memo(function GoogleAuthButton({ disabled }: GoogleAuthButtonProps) {
   const { toast } = useToast();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const isOnline = useOnlineStatus();
 

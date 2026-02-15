@@ -62,14 +62,14 @@ interface WorkExperienceSectionProps {
 const WorkExperienceItem = memo(({ work }: { work: WorkExperience }) => (
   <li className="bg-card border border-border rounded-xl p-6 mb-8 shadow-sm">
     <h4 className="font-semibold">
-      {work.jobTitle} at {work.companyName}
+      {work.role} at {work.company}
     </h4>
     <p className="text-sm text-muted-foreground">
       {work.startDate} - {work.endDate || "Present"}
     </p>
-    {work.responsibilities && (
+    {work.description && (
       <p className="text-sm mt-1 whitespace-pre-line">
-        {work.responsibilities}
+        {work.description}
       </p>
     )}
   </li>
@@ -128,7 +128,7 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                 >
                   <FormField
                     control={workForm.control}
-                    name="jobTitle"
+                    name="role"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
@@ -150,7 +150,7 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                   />
                   <FormField
                     control={workForm.control}
-                    name="companyName"
+                    name="company"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
@@ -216,7 +216,7 @@ const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                   </div>
                   <FormField
                     control={workForm.control}
-                    name="responsibilities"
+                    name="description"
                     render={({ field }) => (
                       <FormItem>
                         <div className="flex justify-between items-center">

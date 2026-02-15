@@ -92,7 +92,7 @@ export function useWorkExperience(user: User | null): WorkExperienceData {
         variant: "destructive",
       });
     }
-  }, [user, fetchWorkExperience, toast]);
+  }, [user, toast]);
 
   return {
     workExperience,

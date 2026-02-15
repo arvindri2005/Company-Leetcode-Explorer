@@ -268,17 +268,13 @@ export class UserRepository implements IUserRepository {
   async toggleBookmarkProblem(
     userId: string,
     problemId: string,
-    companySlug: string,
-    problemSlug: string
   ): Promise<{ isBookmarked: boolean; error?: string }> {
     if (!this.userValidators.isAuthorized(userId)) {
       return { isBookmarked: false, error: "Unauthorized access to user profile." };
     }
     return this.bookmarkOperations.toggleBookmarkProblem(
       userId,
-      problemId,
-      companySlug,
-      problemSlug
+      problemId
     );
   }
 
@@ -294,9 +290,7 @@ export class UserRepository implements IUserRepository {
   async setProblemStatus(
     userId: string,
     problemId: string,
-    status: ProblemStatus,
-    companySlug: string,
-    problemSlug: string
+    status: ProblemStatus
   ): Promise<{ success: boolean; error?: string }> {
     if (!this.userValidators.isAuthorized(userId)) {
       return { success: false, error: "Unauthorized access to user profile." };
@@ -304,9 +298,7 @@ export class UserRepository implements IUserRepository {
     return this.statusOperations.setProblemStatus(
       userId,
       problemId,
-      status,
-      companySlug,
-      problemSlug
+      status
     );
   }
 

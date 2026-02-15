@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -11,20 +10,16 @@ import { Button } from "@/shared/components/ui/button";
 
 export default function VerifyEmail() {
   const searchParams = useSearchParams();
-  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  // Derive status from searchParams to avoid setState in useEffect
+  const mode = searchParams.get("mode");
+  const statusParam = searchParams.get("status");
 
-  useEffect(() => {
-    // The callback route (/auth/callback) redirects here with status=success if verification worked
-    const mode = searchParams.get("mode");
-    const statusParam = searchParams.get("status");
-
-    if (mode === "verifyEmail" && statusParam === "success") {
-      setStatus("success");
-    } else {
-      // If we landed here without success param, it might be an error or manual navigation
-      setStatus("error");
-    }
-  }, [searchParams]);
+  let status: "loading" | "success" | "error" = "loading";
+  if (mode === "verifyEmail" && statusParam === "success") {
+    status = "success";
+  } else if (mode === "verifyEmail" || statusParam === "error") {
+    status = "error";
+  }
 
   if (status === "loading") {
     // This state is transient as the callback redirects relatively quickly

@@ -45,6 +45,20 @@ export class BookmarkOperationsImpl implements BookmarkOperations {
       return [];
     }
     try {
+      // Define a specific interface for the query result to avoid 'any'
+      interface BookmarkRow {
+        created_at: string;
+        problem_id: string;
+        problems: {
+          slug: string;
+          company_problems: {
+            companies: {
+              slug: string;
+            } | null;
+          }[] | null;
+        } | null;
+      }
+
       // Fetch bookmarks with problem details and associated companies
       // We aim to get at least one company slug to construct a valid URL
       const { data, error } = await this.supabase
@@ -69,10 +83,10 @@ export class BookmarkOperationsImpl implements BookmarkOperations {
         throw error;
       }
 
-      if (!data) return [];
+      if (!data) {return [];}
 
-      return data
-        .map((row: any) => {
+      return (data as unknown as BookmarkRow[])
+        .map((row) => {
           const problem = row.problems;
           // Try to find a company slug from the joined data
           // company_problems is an array of { companies: { slug: string } }
@@ -107,8 +121,6 @@ export class BookmarkOperationsImpl implements BookmarkOperations {
   async toggleBookmarkProblem(
     userId: string,
     problemId: string,
-    companySlug: string,
-    problemSlug: string
   ): Promise<{ isBookmarked: boolean; error?: string }> {
     if (!userId || !problemId) {
       return {
@@ -138,7 +150,7 @@ export class BookmarkOperationsImpl implements BookmarkOperations {
           .eq("uid", userId)
           .eq("problem_id", problemId);
 
-        if (deleteError) throw deleteError;
+        if (deleteError) {throw deleteError;}
         
         return { isBookmarked: false };
       } else {
@@ -152,7 +164,7 @@ export class BookmarkOperationsImpl implements BookmarkOperations {
             notes: null // notes can be added later
           });
 
-        if (insertError) throw insertError;
+        if (insertError) {throw insertError;}
 
         return { isBookmarked: true };
       }

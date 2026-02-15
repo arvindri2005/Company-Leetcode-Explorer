@@ -92,7 +92,7 @@ export function useEducation(user: User | null): EducationData {
         variant: "destructive",
       });
     }
-  }, [user, fetchEducation, toast]);
+  }, [user, toast]);
 
   return {
     educationHistory,

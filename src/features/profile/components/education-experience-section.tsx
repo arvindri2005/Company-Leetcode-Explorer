@@ -59,12 +59,12 @@ interface EducationExperienceSectionProps {
 const EducationHistoryItem = memo(({ edu }: { edu: EducationExperience }) => (
   <li className="bg-card border border-border rounded-xl p-6 mb-8 shadow-sm">
     <h4 className="font-semibold">
-      {edu.degree} in {edu.major}
+      {edu.degree} in {edu.fieldOfStudy}
     </h4>
     <p className="text-sm text-muted-foreground">
       {edu.school}
-      {edu.graduationYear && `, Graduated ${edu.graduationYear}`}
-      {edu.gpa && `, GPA: ${edu.gpa}`}
+      {edu.endDate && `, Graduated ${edu.endDate}`}
+      {edu.grade && `, Grade: ${edu.grade}`}
     </p>
   </li>
 ));
@@ -163,7 +163,7 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
                   />
                   <FormField
                     control={educationForm.control}
-                    name="major"
+                    name="fieldOfStudy"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
@@ -185,16 +185,15 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
                   />
                   <FormField
                     control={educationForm.control}
-                    name="graduationYear"
+                    name="endDate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Graduation Year (YYYY, Optional)</FormLabel>
+                        <FormLabel>Graduation Year (YYYY) or Date</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            inputMode="numeric"
-                            maxLength={4}
-                            placeholder="YYYY"
+                            maxLength={10}
+                            placeholder="YYYY or MM/YYYY"
                             autoComplete="off"
                           />
                         </FormControl>
@@ -204,15 +203,14 @@ const EducationExperienceSection: React.FC<EducationExperienceSectionProps> = ({
                   />
                   <FormField
                     control={educationForm.control}
-                    name="gpa"
+                    name="grade"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>GPA (Optional)</FormLabel>
+                        <FormLabel>Grade/GPA (Optional)</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            inputMode="decimal"
-                            maxLength={5}
+                            maxLength={20}
                             placeholder="4.0"
                             autoComplete="off"
                           />

@@ -53,7 +53,7 @@ export class ExperienceOperationsImpl implements ExperienceOperations {
         .order("created_at", { ascending: false })
         .limit(MAX_PAGE_SIZE);
 
-      if (error) throw error;
+      if (error) {throw error;}
 
       return (data || []).map((row) => ({
         id: row.id,
@@ -96,8 +96,8 @@ export class ExperienceOperationsImpl implements ExperienceOperations {
         uid: userId,
         company: workData.company,
         role: workData.role,
-        start_date: workData.startDate instanceof Date ? workData.startDate.toISOString() : workData.startDate,
-        end_date: workData.endDate instanceof Date ? workData.endDate.toISOString() : workData.endDate,
+        start_date: workData.startDate,
+        end_date: workData.endDate,
         description: workData.description,
         technologies: workData.technologies,
       };
@@ -108,7 +108,7 @@ export class ExperienceOperationsImpl implements ExperienceOperations {
         .select("id")
         .single();
         
-      if (error) throw error;
+      if (error) {throw error;}
 
       return { id: data.id };
     } catch (error) {

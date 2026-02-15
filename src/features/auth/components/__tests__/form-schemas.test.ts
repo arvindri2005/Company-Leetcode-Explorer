@@ -18,7 +18,7 @@ describe("Auth Form Schemas Security Limits", () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues.some(i => i.message.includes("255 characters"))).toBe(true);
+        expect(result.error.issues.some((i: any) => i.message.includes("255 characters"))).toBe(true);
       }
     });
 
@@ -29,7 +29,7 @@ describe("Auth Form Schemas Security Limits", () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues.some(i => i.message.includes("128 characters"))).toBe(true);
+        expect(result.error.issues.some((i: any) => i.message.includes("128 characters"))).toBe(true);
       }
     });
 
@@ -52,7 +52,7 @@ describe("Auth Form Schemas Security Limits", () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues.some(i => i.message.includes("255 characters"))).toBe(true);
+        expect(result.error.issues.some((i: any) => i.message.includes("255 characters"))).toBe(true);
       }
     });
 
@@ -64,7 +64,7 @@ describe("Auth Form Schemas Security Limits", () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues.some(i => i.message.includes("128 characters"))).toBe(true);
+        expect(result.error.issues.some((i: any) => i.message.includes("128 characters"))).toBe(true);
       }
     });
 
@@ -76,7 +76,7 @@ describe("Auth Form Schemas Security Limits", () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues.some(i => i.message.includes("8 characters"))).toBe(true);
+        expect(result.error.issues.some((i: any) => i.message.includes("8 characters"))).toBe(true);
       }
     });
 
@@ -88,7 +88,7 @@ describe("Auth Form Schemas Security Limits", () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues.some(i => i.message.includes("uppercase"))).toBe(true);
+        expect(result.error.issues.some((i: any) => i.message.includes("uppercase"))).toBe(true);
       }
     });
 
@@ -100,7 +100,7 @@ describe("Auth Form Schemas Security Limits", () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues.some(i => i.message.includes("lowercase"))).toBe(true);
+        expect(result.error.issues.some((i: any) => i.message.includes("lowercase"))).toBe(true);
       }
     });
 
@@ -112,7 +112,7 @@ describe("Auth Form Schemas Security Limits", () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues.some(i => i.message.includes("number"))).toBe(true);
+        expect(result.error.issues.some((i: any) => i.message.includes("number"))).toBe(true);
       }
     });
 
@@ -124,7 +124,7 @@ describe("Auth Form Schemas Security Limits", () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues.some(i => i.message.includes("special character"))).toBe(true);
+        expect(result.error.issues.some((i: any) => i.message.includes("special character"))).toBe(true);
       }
     });
 
@@ -150,7 +150,7 @@ describe("Auth Form Schemas Security Limits", () => {
       // We expect it to be false after the fix.
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues.some(i => i.message.includes("HTML characters"))).toBe(true);
+        expect(result.error.issues.some((i: any) => i.message.includes("HTML characters"))).toBe(true);
       }
     });
   });
@@ -162,7 +162,7 @@ describe("Auth Form Schemas Security Limits", () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues.some(i => i.message.includes("255 characters"))).toBe(true);
+        expect(result.error.issues.some((i: any) => i.message.includes("255 characters"))).toBe(true);
       }
     });
   });
@@ -175,7 +175,7 @@ describe("Auth Form Schemas Security Limits", () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues.some(i => i.message.includes("128 characters"))).toBe(true);
+        expect(result.error.issues.some((i: any) => i.message.includes("128 characters"))).toBe(true);
       }
     });
 
@@ -186,7 +186,7 @@ describe("Auth Form Schemas Security Limits", () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues.some(i => i.message.includes("8 characters"))).toBe(true);
+        expect(result.error.issues.some((i: any) => i.message.includes("8 characters"))).toBe(true);
       }
     });
 
@@ -197,7 +197,7 @@ describe("Auth Form Schemas Security Limits", () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues.some(i => i.message.includes("uppercase"))).toBe(true);
+        expect(result.error.issues.some((i: any) => i.message.includes("uppercase"))).toBe(true);
       }
     });
 
@@ -208,7 +208,7 @@ describe("Auth Form Schemas Security Limits", () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues.some(i => i.message.includes("lowercase"))).toBe(true);
+        expect(result.error.issues.some((i: any) => i.message.includes("lowercase"))).toBe(true);
       }
     });
 
@@ -219,7 +219,7 @@ describe("Auth Form Schemas Security Limits", () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues.some(i => i.message.includes("number"))).toBe(true);
+        expect(result.error.issues.some((i: any) => i.message.includes("number"))).toBe(true);
       }
     });
 
@@ -230,7 +230,7 @@ describe("Auth Form Schemas Security Limits", () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues.some(i => i.message.includes("special character"))).toBe(true);
+        expect(result.error.issues.some((i: any) => i.message.includes("special character"))).toBe(true);
       }
     });
 

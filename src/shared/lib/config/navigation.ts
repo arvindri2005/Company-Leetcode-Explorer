@@ -4,7 +4,6 @@ import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.
 
 import { type User } from "@supabase/supabase-js";
 
-import { authService } from "@/features/auth/services/auth.service";
 import type { ToastFunction } from "@/shared/hooks/use-toast";
 
 export type NavigationPosition = "main" | "auth" | "mobile-bottom";
@@ -108,24 +107,6 @@ navigationRegistry.register({
   isVisible: ({ user, isLoading }) => !isLoading && !!user,
 });
 
-// We can now safely register Logout here, as the handler will receive dependencies at runtime
-navigationRegistry.register({
-  key: "logout",
-  label: "Logout",
-  position: "auth",
-  order: 100,
-  isVisible: ({ user, isLoading }) => !isLoading && !!user,
-  onClick: async ({ router, toast }) => {
-    try {
-      await authService.logout();
-      toast.success("Logged Out", "You have been successfully logged out.");
-      router.push("/");
-    } catch (error) {
-      console.error("Logout error:", error);
-      toast.error("Logout Failed", "Could not log you out. Please try again.");
-    }
-  },
-});
 
 
 

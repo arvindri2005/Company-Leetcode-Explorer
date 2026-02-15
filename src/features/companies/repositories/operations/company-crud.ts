@@ -377,11 +377,11 @@ export class CompanyCrud implements CompanyCrudOperations {
 
       // Map camelCase fields to snake_case for Supabase
       const supabaseUpdates: Record<string, unknown> = {};
-      if (updates.name !== undefined) supabaseUpdates.name = updates.name;
-      if (updates.normalizedName !== undefined) supabaseUpdates.normalized_name = updates.normalizedName;
-      if (updates.logo !== undefined) supabaseUpdates.logo = updates.logo;
-      if (updates.website !== undefined) supabaseUpdates.website = updates.website;
-      if (updates.description !== undefined) supabaseUpdates.description = updates.description;
+      if (updates.name !== undefined) {supabaseUpdates.name = updates.name;}
+      if (updates.normalizedName !== undefined) {supabaseUpdates.normalized_name = updates.normalizedName;}
+      if (updates.logo !== undefined) {supabaseUpdates.logo = updates.logo;}
+      if (updates.website !== undefined) {supabaseUpdates.website = updates.website;}
+      if (updates.description !== undefined) {supabaseUpdates.description = updates.description;}
 
       if (Object.keys(supabaseUpdates).length > 0) {
         const { error } = await supabase

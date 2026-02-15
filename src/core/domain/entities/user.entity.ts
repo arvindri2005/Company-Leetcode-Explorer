@@ -102,7 +102,7 @@ export const WorkExperienceBaseSchema = z.object({
     .max(2000, "Description must be less than 2000 characters.")
     .optional()
     .or(z.literal("")),
-  technologies: z.array(z.string()).optional().default([]),
+  technologies: z.array(z.string()),
 });
 
 export const validateWorkExperienceDates = (data: z.infer<typeof WorkExperienceBaseSchema>) => {
@@ -155,6 +155,7 @@ export interface UserPreferences {
   theme?: "light" | "dark" | "system";
   emailNotifications?: boolean;
   weeklyDigest?: boolean;
+  [key: string]: unknown;
 }
 
 /**

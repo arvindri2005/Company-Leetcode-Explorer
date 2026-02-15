@@ -23,16 +23,16 @@ import {
 import { Input } from "@/shared/components/ui/input";
 import { useOnlineStatus } from "@/shared/hooks/use-online-status";
 import { useToast } from "@/shared/hooks/use-toast";
-import { cn } from "@/shared/lib/utils";
 import { isValidRedirectUrl } from "@/shared/lib/utils/url";
 
 import { authService } from "../services/auth.service";
+
 import GoogleAuthButton from "./google-auth-button";
 
 /**
  * Zod schema for validating the login form fields.
  */
-const loginFormSchema = z.object({
+export const loginFormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
   password: z
     .string()

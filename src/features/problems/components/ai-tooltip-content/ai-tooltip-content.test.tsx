@@ -1,5 +1,5 @@
+import { type User } from "@supabase/supabase-js";
 import { render, screen } from "@testing-library/react";
-import { type User } from "firebase/auth";
 
 import { AITooltipContent } from "./ai-tooltip-content";
 
@@ -12,9 +12,7 @@ jest.mock("@/features/ai/hooks/use-ai-cooldown", () => ({
   }),
 }));
 
-const mockUser = {
-    uid: '123'
-} as User;
+const mockUser = { id: "test-user" } as unknown as User;
 
 describe("AITooltipContent", () => {
   it("renders default text when user is logged in and can use AI", () => {

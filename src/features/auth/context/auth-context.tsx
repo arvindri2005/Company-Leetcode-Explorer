@@ -2,18 +2,18 @@
 
 import React, {
   createContext,
+  type ReactNode,
   useEffect,
   useMemo,
   useState,
-  type ReactNode,
 } from "react";
 
 import type { User } from "@supabase/supabase-js";
 
+import { userService } from "@/features/profile/services/user.service";
 import { createSupabaseBrowserClient } from "@/shared/lib/api/supabase-browser";
 import { Logger } from "@/shared/lib/utils/logger";
 
-import { userService } from "@/features/profile/services/user.service";
 import type { AuthContextType } from "../types";
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       subscription.unsubscribe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [supabase]);
 
   const value = useMemo(

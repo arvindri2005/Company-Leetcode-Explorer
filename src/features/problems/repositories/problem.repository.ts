@@ -56,18 +56,6 @@ interface SupabaseProblemRow {
   updated_at: number | null;
 }
 
-interface SupabaseCompanyProblemRow {
-  company_id: string;
-  problem_id: string;
-  last_asked_period: string | null;
-  created_at: string | null;
-}
-
-// Combined row when joining problems with company_problems
-interface SupabaseProblemWithCompanyRow extends SupabaseProblemRow {
-  company_problems: SupabaseCompanyProblemRow[] | SupabaseCompanyProblemRow | null;
-}
-
 // ============================================
 // Mapper Functions
 // ============================================
@@ -280,11 +268,11 @@ export class ProblemRepository implements IProblemRepository {
 
     // Map to Supabase snake_case
     const updates: Record<string, unknown> = {};
-    if (validatedData.title !== undefined) updates.title = validatedData.title;
-    if (validatedData.normalizedTitle !== undefined) updates.normalized_title = validatedData.normalizedTitle;
-    if (validatedData.difficulty !== undefined) updates.difficulty = validatedData.difficulty;
-    if (validatedData.link !== undefined) updates.url = validatedData.link;
-    if (validatedData.tags !== undefined) updates.tags = validatedData.tags;
+    if (validatedData.title !== undefined) {updates.title = validatedData.title;}
+    if (validatedData.normalizedTitle !== undefined) {updates.normalized_title = validatedData.normalizedTitle;}
+    if (validatedData.difficulty !== undefined) {updates.difficulty = validatedData.difficulty;}
+    if (validatedData.link !== undefined) {updates.url = validatedData.link;}
+    if (validatedData.tags !== undefined) {updates.tags = validatedData.tags;}
     if (validatedData.description !== undefined) { /* description not in problems table */ }
 
     const { error } = await supabase
@@ -336,9 +324,6 @@ export class ProblemRepository implements IProblemRepository {
       searchTerm = "",
       sortKey = "title",
       companySlug,
-      totalProblemCount,
-      difficultyCounts,
-      recencyCounts,
     } = params;
 
     this.validatePaginationParams(page, pageSize);
@@ -422,7 +407,7 @@ export class ProblemRepository implements IProblemRepository {
       }
 
       // Map to DTOs
-      let processedProblems: ProblemSummaryDTO[] = (problemRows || []).map((row) => {
+      const processedProblems: ProblemSummaryDTO[] = (problemRows || []).map((row) => {
         const r = row as SupabaseProblemRow;
         return mapRowToSummaryDTO(
           r,
@@ -677,7 +662,7 @@ export class ProblemRepository implements IProblemRepository {
     problemId: string,
   ): Promise<LeetCodeProblem | undefined> {
     try {
-      if (!companyId || !problemId) return undefined;
+      if (!companyId || !problemId) {return undefined;}
 
       // Fetch problem
       const { data: problemData, error: problemError } = await supabase
@@ -732,7 +717,7 @@ export class ProblemRepository implements IProblemRepository {
   }> {
     try {
       const company = await companyRepository.getCompanyBySlug(companySlug);
-      if (!company) return { company: undefined, problem: undefined };
+      if (!company) {return { company: undefined, problem: undefined };}
 
       const { data, error } = await supabase
         .from("problems")

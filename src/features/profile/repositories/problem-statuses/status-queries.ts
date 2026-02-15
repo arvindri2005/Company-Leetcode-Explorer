@@ -20,6 +20,20 @@ export interface StatusQueries {
   ): Promise<Record<string, UserProblemStatusInfo>>;
 }
 
+interface SupabaseProblemStatusRow {
+  problem_id: string;
+  status: string;
+  updated_at: string;
+  problems: {
+    slug: string;
+    company_problems: {
+      companies: {
+        slug: string;
+      };
+    }[];
+  } | null;
+}
+
 /**
  * Implementation of problem status query operations
  */
@@ -65,7 +79,7 @@ export class StatusQueriesImpl implements StatusQueries {
       }
 
       if (data) {
-        data.forEach((row: any) => {
+        (data as unknown as SupabaseProblemStatusRow[]).forEach((row) => {
            const problem = row.problems;
            const companySlug = problem?.company_problems?.[0]?.companies?.slug;
            

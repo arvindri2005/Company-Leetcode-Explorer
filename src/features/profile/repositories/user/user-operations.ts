@@ -11,7 +11,7 @@ import type {
   CreateUserDTO,
   UpdateUserDTO,
 } from "../../interfaces/user.repository.interface";
-import { UserMapper } from "../../mappers/user.mapper";
+import { type SupabaseUserRow,UserMapper } from "../../mappers/user.mapper";
 
 /**
  * Interface for user operations
@@ -152,19 +152,19 @@ export class UserOperationsImpl implements UserOperations {
    */
   async update(id: string, data: UpdateUserDTO): Promise<UserEntity> {
     try {
-      const updates: any = {
+      const updates: Partial<SupabaseUserRow> = {
         updated_at: new Date().toISOString(),
       };
 
-      if (data.email !== undefined) updates.email = data.email;
+      if (data.email !== undefined) {updates.email = data.email;}
       if (data.displayName !== undefined) {
          if (data.displayName && /[<>]/.test(data.displayName)) {
            throw new Error("Display name contains invalid characters.");
          }
          updates.display_name = data.displayName;
       }
-      if (data.photoUrl !== undefined) updates.photo_url = data.photoUrl;
-      if (data.preferences !== undefined) updates.preferences = data.preferences;
+      if (data.photoUrl !== undefined) {updates.photo_url = data.photoUrl;}
+      if (data.preferences !== undefined) {updates.preferences = data.preferences;}
 
       const { error } = await this.supabase
         .from("users")
@@ -308,7 +308,7 @@ export class UserOperationsImpl implements UserOperations {
       }
       const uid = currentUser.id;
 
-      const updates: any = {
+      const updates: Partial<SupabaseUserRow> = {
         uid,
         last_synced_at: new Date().toISOString(),
       };

@@ -68,7 +68,6 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "express": "^5.2.1",
-    "firebase": "^12.8.0",
     "genkit": "^1.28.0",
     "import-in-the-middle": "^3.0.0",
     "lucide-react": "^0.563.0",

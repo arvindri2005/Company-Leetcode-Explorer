@@ -54,6 +54,11 @@ export const PROBLEM_STATUS_OPTIONS: ReadonlyArray<{
     label: "Solved",
     description: "Mark as successfully solved.",
   },
+  {
+    value: "in_progress",
+    label: "In Progress",
+    description: "Currently working on this.",
+  },
 ] as const;
 
 /**
@@ -72,6 +77,11 @@ export const PROBLEM_STATUS_DISPLAY: Record<
     label: "Attempted",
     iconName: "Pencil",
     colorClass: "text-yellow-500",
+  },
+  in_progress: {
+    label: "In Progress",
+    iconName: "Timer",
+    colorClass: "text-blue-500",
   },
   todo: { label: "To-Do", iconName: "ListTodo", colorClass: "text-blue-500" },
 };

@@ -1,5 +1,5 @@
-import { User } from "@/core/domain/entities/user.entity";
-import { UserDTO } from "@/features/profile/types/user-dto";
+import { User, type UserPreferences } from "@/core/domain/entities/user.entity";
+import { type UserDTO } from "@/features/profile/types/user-dto";
 // import type { Database } from "@/types/supabase"; // Types not found, skipping for now
 
 // Define Supabase User Row type locally if not imported
@@ -8,11 +8,13 @@ export interface SupabaseUserRow {
   email: string | null;
   display_name: string | null;
   photo_url: string | null;
-  preferences: any | null;
+  preferences: UserPreferences | null;
   created_at: string;
   updated_at: string;
   last_synced_at?: string;
 }
+
+export type UserDocument = SupabaseUserRow;
 
 export class UserMapper {
   static toDomain(row: SupabaseUserRow): User {

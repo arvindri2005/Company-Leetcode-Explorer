@@ -46,7 +46,7 @@ export class StrategyQueriesImpl implements StrategyQueries {
         .order("company_name", { ascending: true }) // Changed from companyName to company_name
         .limit(MAX_PAGE_SIZE);
 
-      if (error) throw error;
+      if (error) {throw error;}
 
       return (data || []).map((row) => ({
         companyId: row.company_id,

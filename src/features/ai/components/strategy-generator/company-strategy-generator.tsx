@@ -92,7 +92,7 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
   useEffect(() => {
     if (user && !authLoading) {
       const timer = setTimeout(async () => {
-        const loadedStrategy = await loadStrategy(user.uid, companyId);
+        const loadedStrategy = await loadStrategy(user.id, companyId);
         if (loadedStrategy) {
           setStrategy(loadedStrategy);
         }
@@ -158,7 +158,7 @@ const CompanyStrategyGenerator: React.FC<CompanyStrategyGeneratorProps> = ({
 
     toast({ title: "Saving Strategy...", description: "Please wait." });
 
-    const success = await saveStrategy(user.uid, companyId, companyName, strategy);
+    const success = await saveStrategy(user.id, companyId, companyName, strategy);
 
     if (success) {
       toast({

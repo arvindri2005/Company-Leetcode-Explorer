@@ -5,6 +5,7 @@ import type { Company } from "@/features/companies/types";
 
 // Mock OfflineImage
 jest.mock("@/shared/components/ui/offline-image", () => ({
+  // eslint-disable-next-line @next/next/no-img-element
   OfflineImage: ({ alt }: { alt: string }) => <img alt={alt} />,
 }));
 

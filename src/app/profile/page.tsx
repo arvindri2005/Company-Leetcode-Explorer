@@ -33,12 +33,10 @@ import { useWorkExperience } from "@/features/profile/hooks/use-work-experience"
 import { useAuth } from "@/providers";
 import { ProfilePageSkeleton } from "@/shared/components/skeletons/profile-skeletons";
 import { useToast } from "@/shared/hooks/use-toast";
-
 import {
   EducationExperienceSchema,
-  WorkExperienceSchema,
-  WorkExperienceBaseSchema,
   validateWorkExperienceDates,
+  WorkExperienceBaseSchema,
 } from "@/shared/types"; // Schemas for forms
 
 /**
@@ -77,8 +75,6 @@ export default function ProfilePage() {
   const {
     user,
     loading: authLoading,
-    setUser,
-    syncUserProfileIfNeeded,
   } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -111,20 +107,23 @@ export default function ProfilePage() {
     resolver: zodResolver(educationClientSchema),
     defaultValues: {
       degree: "",
-      major: "",
+      fieldOfStudy: "",
       school: "",
-      graduationYear: "",
-      gpa: "",
+      startDate: "",
+      endDate: "",
+      grade: "",
+      description: "",
     },
   });
   const workForm = useForm<WorkExperienceFormValues>({
     resolver: zodResolver(workExperienceClientSchema),
     defaultValues: {
-      jobTitle: "",
-      companyName: "",
+      role: "",
+      company: "",
       startDate: "",
       endDate: "",
-      responsibilities: "",
+      description: "",
+      technologies: [],
     },
   });
 
@@ -219,7 +218,7 @@ export default function ProfilePage() {
         });
 
         if (authError) {
-             throw new Error(authError.message);
+             throw new Error(authError);
         }
 
         // Update DB profile

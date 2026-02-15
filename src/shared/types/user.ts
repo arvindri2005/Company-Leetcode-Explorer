@@ -12,10 +12,10 @@ export {
   type UserProblemStatusInfo,
   type UserProfile,
   UserProfileSchema,
-  type WorkExperience,
-  WorkExperienceSchema,
-  WorkExperienceBaseSchema,
   validateWorkExperienceDates,
+  type WorkExperience,
+  WorkExperienceBaseSchema,
+  WorkExperienceSchema,
 } from "@/core/domain/entities/user.entity"; // Adjusted path to core
 export {
   type FocusTopic,

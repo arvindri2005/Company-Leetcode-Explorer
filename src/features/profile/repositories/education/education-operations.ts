@@ -53,7 +53,7 @@ export class EducationOperationsImpl implements EducationOperations {
         .order("created_at", { ascending: false })
         .limit(MAX_PAGE_SIZE);
 
-      if (error) throw error;
+      if (error) {throw error;}
 
       return (data || []).map((row) => ({
         id: row.id,
@@ -95,15 +95,10 @@ export class EducationOperationsImpl implements EducationOperations {
     try {
       // Helper to convert MM/YYYY or YYYY to ISO string for Supabase
       const toIsoDate = (dateStr: string | undefined): string | null => {
-         if (!dateStr || dateStr === "Present") return null;
+         if (!dateStr || dateStr === "Present") {return null;}
          // Assume MM/YYYY or YYYY. 
          const parts = dateStr.split("/");
-         let date: Date;
-         if (parts.length === 2) {
-             date = new Date(parseInt(parts[1], 10), parseInt(parts[0], 10) - 1, 1);
-         } else {
-             date = new Date(parseInt(parts[0], 10), 0, 1);
-         }
+         const date = parts.length === 2 ? new Date(parseInt(parts[1], 10), parseInt(parts[0], 10) - 1, 1) : new Date(parseInt(parts[0], 10), 0, 1);
          return date.toISOString();
       };
 
@@ -124,7 +119,7 @@ export class EducationOperationsImpl implements EducationOperations {
         .select("id")
         .single();
 
-      if (error) throw error;
+      if (error) {throw error;}
 
       return { id: data.id };
     } catch (error) {

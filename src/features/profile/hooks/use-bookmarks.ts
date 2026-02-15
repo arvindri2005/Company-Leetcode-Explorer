@@ -124,10 +124,12 @@ export function useBookmarks(
   // Initial Fetch: Bookmarks (default tab)
   useEffect(() => {
     if (user && !authLoading) {
-      fetchBookmarkedData();
+      // Use a microtask to avoid synchronous setState during render/effect initialization
+      void Promise.resolve().then(() => {
+        fetchBookmarkedData();
+      });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, authLoading]);
+  }, [user, authLoading, fetchBookmarkedData]);
 
   return {
     bookmarkedProblemDetails,

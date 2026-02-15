@@ -8,7 +8,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarClock,Loader2, PlusCircle } from "lucide-react";
@@ -119,7 +119,7 @@ export default function ProblemSubmissionForm({
     },
   });
 
-  const titleValue = form.watch("title");
+  const titleValue = useWatch({ control: form.control, name: "title" });
   const titleLength = titleValue ? titleValue.length : 0;
 
   async function onSubmit(data: ProblemFormValues) {

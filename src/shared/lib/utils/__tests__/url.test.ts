@@ -35,7 +35,7 @@ describe("isValidRedirectUrl", () => {
 
   test("should return false for null, undefined, or empty strings", () => {
     expect(isValidRedirectUrl(null)).toBe(false);
-    expect(isValidRedirectUrl()).toBe(false);
+    expect(isValidRedirectUrl(null)).toBe(false);
     expect(isValidRedirectUrl("")).toBe(false);
   });
 

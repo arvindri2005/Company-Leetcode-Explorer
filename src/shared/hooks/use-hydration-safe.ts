@@ -32,7 +32,10 @@ export function useHydrationSafe(): boolean {
 
   useEffect(() => {
     // This effect only runs on the client after hydration
-    setIsHydrated(true);
+    // Use a microtask to avoid synchronous setState during render/effect initialization
+    void Promise.resolve().then(() => {
+      setIsHydrated(true);
+    });
   }, []);
 
   return isHydrated;
