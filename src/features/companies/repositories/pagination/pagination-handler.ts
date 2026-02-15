@@ -1,22 +1,10 @@
 /**
  * Pagination Handler Module
  * Handles pagination strategies for company queries
+ * Data source: Supabase (PostgreSQL)
  */
 
-import type { Firestore } from "firebase/firestore";
-import {
-  collection,
-  documentId,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-  type QueryConstraint,
-  startAfter,
-  where,
-} from "firebase/firestore";
-
-import { db } from "@/shared/lib/api/firebase";
+import { supabase } from "@/shared/lib/api/supabase";
 import { Logger } from "@/shared/lib/utils/logger";
 import type { Company } from "@/shared/types";
 
@@ -24,13 +12,20 @@ import type {
   GetCompaniesParams,
   PaginatedCompaniesResponse,
 } from "../../interfaces/company.repository.interface";
-import { mapFirestoreDocToCompany } from "../operations/company-crud";
+import {
+  mapSupabaseRowToCompany,
+  type SupabaseCompanyRow,
+} from "../operations/company-crud";
 
 import { decodeCursor, encodeCursor } from "./cursor-manager";
 
 const MAX_PAGE_SIZE = 50;
 const MAX_OFFSET_LIMIT = 2000;
 const MAX_SEARCH_TERM_LENGTH = 100;
+
+/** Full select query with all joined tables */
+const COMPANY_SELECT_WITH_JOINS =
+  "*, company_stats(*), company_tags(*), related_companies(*)";
 
 /**
  * Interface for Company Pagination Handler
@@ -40,19 +35,7 @@ export interface CompanyPaginationHandler {
 }
 
 /**
- * Get Firestore instance with validation
- */
-function getFirestore(): Firestore {
-  if (!db) {
-    throw new Error(
-      "Firestore is not initialized. Check your Firebase configuration."
-    );
-  }
-  return db;
-}
-
-/**
- * Company Pagination Handler Implementation
+ * Company Pagination Handler Implementation (Supabase)
  */
 export class PaginationHandler implements CompanyPaginationHandler {
   /**
@@ -91,7 +74,7 @@ export class PaginationHandler implements CompanyPaginationHandler {
         );
       }
 
-      // Strategy: Standard Page-based Pagination (Optimized)
+      // Strategy: Standard Page-based Pagination
       return await this.fetchCompaniesWithPageNumber(
         page,
         safePageSize,
@@ -118,56 +101,42 @@ export class PaginationHandler implements CompanyPaginationHandler {
     pageSize: number,
     searchTerm?: string
   ): Promise<PaginatedCompaniesResponse> {
-    const companiesCol = collection(getFirestore(), "companies");
-    let queryConstraints: QueryConstraint[] = [
-      orderBy("normalizedName", "asc"),
-    ];
+    // Calculate offset range for Supabase .range()
+    const startIndex = (page - 1) * pageSize;
+    // Fetch one extra to know if there are more
+    const endIndex = startIndex + pageSize;
+
+    let query = supabase
+      .from("companies")
+      .select(COMPANY_SELECT_WITH_JOINS)
+      .order("normalized_name", { ascending: true })
+      .order("id", { ascending: true })
+      .range(startIndex, endIndex);
 
     if (searchTerm) {
-      queryConstraints = [
-        where("normalizedName", ">=", searchTerm),
-        where("normalizedName", "<=", searchTerm + "\uf8ff"),
-        orderBy("normalizedName", "asc"),
-      ];
+      query = query.ilike("normalized_name", `${searchTerm}%`);
     }
 
-    // Calculate limit to fetch enough for the current page + 1 (to check hasMore)
-    const limitCount = page * pageSize + 1;
-    queryConstraints.push(limit(limitCount));
+    const { data, error } = await query;
 
-    // Ensure consistent sorting with cursor-based query
-    queryConstraints.push(orderBy(documentId(), "asc"));
-
-    const q = query(companiesCol, ...queryConstraints);
-    const snapshot = await getDocs(q);
-    const docs = snapshot.docs;
-
-    let hasMore = false;
-    let companies: Company[] = [];
-    const startIndex = (page - 1) * pageSize;
-
-    if (docs.length > page * pageSize) {
-      hasMore = true;
+    if (error) {
+      Logger.error("Error in fetchCompaniesWithPageNumber", error);
+      throw error;
     }
+
+    const rows = (data || []) as unknown as SupabaseCompanyRow[];
+    const hasMore = rows.length > pageSize;
+    const companies: Company[] = rows
+      .slice(0, pageSize)
+      .map(mapSupabaseRowToCompany);
 
     let nextCursor: string | undefined;
-    // Slice the results for the current page
-    if (docs.length > startIndex) {
-      const sliceEnd = Math.min(docs.length, startIndex + pageSize);
-      companies = docs
-        .slice(startIndex, sliceEnd)
-        .map(mapFirestoreDocToCompany);
-
-      // Generate cursor for the last item if we have more
-      if (hasMore && companies.length > 0) {
-        const lastCompany = companies[companies.length - 1];
-        nextCursor = encodeCursor({
-          normalizedName: lastCompany.normalizedName || "",
-          id: lastCompany.id,
-        });
-      }
-    } else {
-      companies = [];
+    if (hasMore && companies.length > 0) {
+      const lastCompany = companies[companies.length - 1];
+      nextCursor = encodeCursor({
+        normalizedName: lastCompany.normalizedName || "",
+        id: lastCompany.id,
+      });
     }
 
     return {
@@ -181,7 +150,7 @@ export class PaginationHandler implements CompanyPaginationHandler {
   }
 
   /**
-   * Fetch companies using cursor-based pagination
+   * Fetch companies using cursor-based pagination (keyset pagination)
    * @private
    */
   private async fetchCompaniesWithCursor(
@@ -189,37 +158,38 @@ export class PaginationHandler implements CompanyPaginationHandler {
     searchTerm?: string,
     cursor?: string
   ): Promise<PaginatedCompaniesResponse> {
-    const companiesCol = collection(getFirestore(), "companies");
-    let queryConstraints: QueryConstraint[] = [
-      orderBy("normalizedName", "asc"),
-      orderBy(documentId(), "asc"),
-      limit(pageSize + 1),
-    ];
+    let query = supabase
+      .from("companies")
+      .select(COMPANY_SELECT_WITH_JOINS)
+      .order("normalized_name", { ascending: true })
+      .order("id", { ascending: true })
+      .limit(pageSize + 1);
 
     if (searchTerm && searchTerm.trim() !== "") {
-      const lowercasedSearchTerm = searchTerm.toLowerCase().trim();
-      queryConstraints = [
-        where("normalizedName", ">=", lowercasedSearchTerm),
-        where("normalizedName", "<=", lowercasedSearchTerm + "\uf8ff"),
-        orderBy("normalizedName", "asc"),
-        orderBy(documentId(), "asc"),
-        limit(pageSize + 1),
-      ];
+      query = query.ilike("normalized_name", `${searchTerm}%`);
     }
 
+    // Apply cursor-based keyset pagination
     if (cursor) {
       const decoded = decodeCursor(cursor);
       if (decoded) {
-        queryConstraints.push(startAfter(decoded.normalizedName, decoded.id));
+        // Keyset pagination: (normalized_name, id) > (cursor_name, cursor_id)
+        query = query.or(
+          `normalized_name.gt.${decoded.normalizedName},and(normalized_name.eq.${decoded.normalizedName},id.gt.${decoded.id})`
+        );
       }
     }
 
-    const queryBuilder = query(companiesCol, ...queryConstraints);
-    const querySnapshot = await getDocs(queryBuilder);
-    const docs = querySnapshot.docs;
-    const hasMore = docs.length > pageSize;
+    const { data, error } = await query;
 
-    const companies = docs.slice(0, pageSize).map(mapFirestoreDocToCompany);
+    if (error) {
+      Logger.error("Error in fetchCompaniesWithCursor", error);
+      throw error;
+    }
+
+    const rows = (data || []) as unknown as SupabaseCompanyRow[];
+    const hasMore = rows.length > pageSize;
+    const companies = rows.slice(0, pageSize).map(mapSupabaseRowToCompany);
 
     let nextCursor: string | undefined;
     if (hasMore && companies.length > 0) {

@@ -1,23 +1,10 @@
 /**
  * Company CRUD Operations Module
  * Handles create, read, update, delete operations for companies
+ * Data source: Supabase (PostgreSQL)
  */
 
-import type { DocumentSnapshot, Firestore } from "firebase/firestore";
-import {
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  limit,
-  query,
-  runTransaction,
-  Timestamp,
-  updateDoc,
-} from "firebase/firestore";
-
-import { db } from "@/shared/lib/api/firebase";
+import { supabase } from "@/shared/lib/api/supabase";
 import { slugify } from "@/shared/lib/utils";
 import { Logger } from "@/shared/lib/utils/logger";
 import type { Company } from "@/shared/types";
@@ -53,58 +40,113 @@ export interface CompanyCrudOperations {
 }
 
 /**
- * Get Firestore instance with validation
+ * Supabase row types for company-related tables
  */
-function getFirestore(): Firestore {
-  if (!db) {
-    throw new Error(
-      "Firestore is not initialized. Check your Firebase configuration."
-    );
-  }
-  return db;
+interface SupabaseCompanyStatsRow {
+  company_id: string;
+  last_30_days: number;
+  within_3_months: number;
+  within_6_months: number;
+  older_than_6_months: number;
+  easy_count: number;
+  medium_count: number;
+  hard_count: number;
 }
 
+interface SupabaseCompanyTagRow {
+  id: number;
+  company_id: string;
+  tag: string;
+  count: number;
+}
+
+interface SupabaseRelatedCompanyRow {
+  company_id: string;
+  related_company_id: string;
+}
+
+export interface SupabaseCompanyRow {
+  id: string;
+  name: string;
+  normalized_name: string | null;
+  website: string | null;
+  slug: string | null;
+  logo: string | null;
+  problem_count: number;
+  stats_last_updated_at: string | null;
+  created_at: string | null;
+  company_stats: SupabaseCompanyStatsRow[] | SupabaseCompanyStatsRow | null;
+  company_tags: SupabaseCompanyTagRow[] | null;
+  related_companies: SupabaseRelatedCompanyRow[] | null;
+}
+
+/** Full select query with all joined tables */
+const COMPANY_SELECT_WITH_JOINS =
+  "*, company_stats(*), company_tags(*), related_companies(*)";
+
 /**
- * Map Firestore document to Company object
+ * Map a Supabase row (with joined data) to the application Company type
  */
-export function mapFirestoreDocToCompany(docSnap: DocumentSnapshot): Company {
-  const data = docSnap.data()!;
+export function mapSupabaseRowToCompany(row: SupabaseCompanyRow): Company {
+  // company_stats comes as an array from the join; take the first element
+  const stats = Array.isArray(row.company_stats)
+    ? row.company_stats[0]
+    : row.company_stats;
+
+  const tags: Array<{ tag: string; count: number }> = Array.isArray(
+    row.company_tags
+  )
+    ? row.company_tags.map((t) => ({ tag: t.tag, count: t.count }))
+    : [];
+
+  const relatedCompanies: string[] = Array.isArray(row.related_companies)
+    ? row.related_companies.map((r) => r.related_company_id)
+    : [];
+
   const company: Company = {
-    id: docSnap.id,
-    slug: data.slug || docSnap.id || slugify(data.name || ""),
-    name: data.name || docSnap.id.charAt(0).toUpperCase() + docSnap.id.slice(1),
+    id: row.id,
+    slug: row.slug || row.id || slugify(row.name || ""),
+    name:
+      row.name || row.id.charAt(0).toUpperCase() + row.id.slice(1),
     normalizedName:
-      data.normalizedName ||
-      data.name?.toLowerCase() ||
-      docSnap.id.toLowerCase(),
-    logo: data.logo,
-    description: data.description,
-    website: data.website,
-    problemCount: data.problemCount || 0,
-    difficultyCounts: data.difficultyCounts || {
-      Easy: 0,
-      Medium: 0,
-      Hard: 0,
-    },
-    recencyCounts: data.recencyCounts || {
-      last_30_days: 0,
-      within_3_months: 0,
-      within_6_months: 0,
-      older_than_6_months: 0,
-    },
-    commonTags: data.commonTags || [],
-    relatedCompanies: data.relatedCompanies || [],
-    statsLastUpdatedAt:
-      data.statsLastUpdatedAt instanceof Timestamp
-        ? data.statsLastUpdatedAt.toDate()
-        : undefined,
+      row.normalized_name ||
+      row.name?.toLowerCase() ||
+      row.id.toLowerCase(),
+    logo: row.logo || undefined,
+    website: row.website || undefined,
+    problemCount: row.problem_count || 0,
+    difficultyCounts: stats
+      ? {
+          Easy: stats.easy_count || 0,
+          Medium: stats.medium_count || 0,
+          Hard: stats.hard_count || 0,
+        }
+      : { Easy: 0, Medium: 0, Hard: 0 },
+    recencyCounts: stats
+      ? {
+          last_30_days: stats.last_30_days || 0,
+          within_3_months: stats.within_3_months || 0,
+          within_6_months: stats.within_6_months || 0,
+          older_than_6_months: stats.older_than_6_months || 0,
+        }
+      : {
+          last_30_days: 0,
+          within_3_months: 0,
+          within_6_months: 0,
+          older_than_6_months: 0,
+        },
+    commonTags: tags,
+    relatedCompanies,
+    statsLastUpdatedAt: row.stats_last_updated_at
+      ? new Date(row.stats_last_updated_at)
+      : undefined,
   };
 
   return company;
 }
 
 /**
- * Company CRUD Operations Implementation
+ * Company CRUD Operations Implementation (Supabase)
  */
 export class CompanyCrud implements CompanyCrudOperations {
   /**
@@ -115,12 +157,24 @@ export class CompanyCrud implements CompanyCrudOperations {
       return undefined;
     }
     try {
-      const companyDocRef = doc(getFirestore(), "companies", id);
-      const companySnap = await getDoc(companyDocRef);
-      if (companySnap.exists()) {
-        return mapFirestoreDocToCompany(companySnap);
+      const { data, error } = await supabase
+        .from("companies")
+        .select(COMPANY_SELECT_WITH_JOINS)
+        .eq("id", id)
+        .single();
+
+      if (error || !data) {
+        if (error?.code === "PGRST116") {
+          // Row not found
+          return undefined;
+        }
+        if (error) {
+          Logger.error("Error fetching company by ID", error, { id });
+        }
+        return undefined;
       }
-      return undefined;
+
+      return mapSupabaseRowToCompany(data as SupabaseCompanyRow);
     } catch (error) {
       Logger.error(`Error fetching company by ID`, error, { id });
       return undefined;
@@ -135,12 +189,23 @@ export class CompanyCrud implements CompanyCrudOperations {
       return undefined;
     }
     try {
-      const companyDocRef = doc(getFirestore(), "companies", slug);
-      const companySnap = await getDoc(companyDocRef);
-      if (companySnap.exists()) {
-        return mapFirestoreDocToCompany(companySnap);
+      const { data, error } = await supabase
+        .from("companies")
+        .select(COMPANY_SELECT_WITH_JOINS)
+        .eq("slug", slug)
+        .single();
+
+      if (error || !data) {
+        if (error?.code === "PGRST116") {
+          return undefined;
+        }
+        if (error) {
+          Logger.error("Error fetching company by slug", error, { slug });
+        }
+        return undefined;
       }
-      return undefined;
+
+      return mapSupabaseRowToCompany(data as SupabaseCompanyRow);
     } catch (error) {
       Logger.error(`Error fetching company by slug`, error, { slug });
       return undefined;
@@ -152,15 +217,25 @@ export class CompanyCrud implements CompanyCrudOperations {
    */
   async getAllCompanySlugs(sorted: boolean = true): Promise<string[]> {
     try {
-      const companiesCol = collection(getFirestore(), "companies");
-      // Security: Limit to prevent DoS on bulk retrieval
-      const q = query(companiesCol, limit(MAX_ALL_SLUGS_LIMIT));
-      const companiesSnapshot = await getDocs(q);
-      const slugs = companiesSnapshot.docs.map((docSnap) => docSnap.id);
+      let query = supabase
+        .from("companies")
+        .select("slug")
+        .limit(MAX_ALL_SLUGS_LIMIT);
+
       if (sorted) {
-        slugs.sort();
+        query = query.order("slug", { ascending: true });
       }
-      return slugs;
+
+      const { data, error } = await query;
+
+      if (error) {
+        Logger.error("Error fetching all company slugs", error);
+        return [];
+      }
+
+      return (data || [])
+        .map((row: { slug: string | null }) => row.slug)
+        .filter((slug): slug is string => slug !== null);
     } catch (error) {
       Logger.error("Error fetching all company slugs", error);
       return [];
@@ -196,64 +271,72 @@ export class CompanyCrud implements CompanyCrudOperations {
 
       const normalizedName = safeData.name.toLowerCase().trim();
 
-      // Security: Use transaction to prevent race conditions (TOCTOU)
-      await runTransaction(getFirestore(), async (transaction) => {
-        const companiesCol = collection(getFirestore(), "companies");
-        const docRef = doc(companiesCol, companySlug);
+      // Check if company already exists
+      const { data: existing } = await supabase
+        .from("companies")
+        .select("id")
+        .eq("id", companySlug)
+        .single();
 
-        // Check existence inside transaction
-        const docSnap = await transaction.get(docRef);
-
-        if (docSnap.exists()) {
-          throw new Error("ALREADY_EXISTS");
-        }
-
-        const dataForFirestore: Omit<Company, "id"> = {
-          name: safeData.name.trim(),
-          normalizedName,
-          slug: companySlug,
-          logo: safeData.logo,
-          description: safeData.description?.trim(),
-          website: safeData.website?.trim(),
-          problemCount: 0,
-          difficultyCounts: { Easy: 0, Medium: 0, Hard: 0 },
-          recencyCounts: {
-            last_30_days: 0,
-            within_3_months: 0,
-            within_6_months: 0,
-            older_than_6_months: 0,
-          },
-          commonTags: [],
-          relatedCompanies: safeData.relatedCompanies || [],
-          statsLastUpdatedAt: undefined,
+      if (existing) {
+        return {
+          id: companySlug,
+          error: `Company with name "${safeData.name}" already exists.`,
+          alreadyExists: true,
         };
+      }
 
-        // Clean up undefined values
-        Object.keys(dataForFirestore).forEach((key) => {
-          if (
-            dataForFirestore[key as keyof typeof dataForFirestore] === undefined
-          ) {
-            delete dataForFirestore[key as keyof typeof dataForFirestore];
-          }
+      // Insert the company
+      const { error: insertError } = await supabase
+        .from("companies")
+        .insert({
+          id: companySlug,
+          name: safeData.name.trim(),
+          normalized_name: normalizedName,
+          slug: companySlug,
+          logo: safeData.logo || null,
+          website: safeData.website?.trim() || null,
+          problem_count: 0,
         });
 
-        transaction.set(docRef, dataForFirestore);
+      if (insertError) {
+        // Handle unique constraint violation
+        if (insertError.code === "23505") {
+          return {
+            id: companySlug,
+            error: `Company with name "${safeData.name}" already exists.`,
+            alreadyExists: true,
+          };
+        }
+        throw insertError;
+      }
+
+      // Insert related companies if provided
+      if (safeData.relatedCompanies && safeData.relatedCompanies.length > 0) {
+        const relatedRows = safeData.relatedCompanies.map((relatedId) => ({
+          company_id: companySlug,
+          related_company_id: relatedId,
+        }));
+
+        await supabase.from("related_companies").insert(relatedRows);
+      }
+
+      // Insert initial empty stats
+      await supabase.from("company_stats").insert({
+        company_id: companySlug,
+        last_30_days: 0,
+        within_3_months: 0,
+        within_6_months: 0,
+        older_than_6_months: 0,
+        easy_count: 0,
+        medium_count: 0,
+        hard_count: 0,
       });
 
       return { id: companySlug };
     } catch (error) {
       if (error instanceof Error && error.message === "ALREADY_EXISTS") {
         return {
-          // slugify(safeData.name) would be same as companySlug but safeData is not in scope here if define inside try?
-          // Wait, safeData is defined before try in original code? No, inside try.
-          // In my replacement block above, I need to ensure companySlug is available.
-          // Ah, I am replacing the whole block including variable declarations.
-          // BUT the catch block is closing the function's try/catch.
-          // In the original code, `try` wraps EVERYTHING.
-          // So `safeData` is defined INSIDE the `try` block.
-          // If I throw "ALREADY_EXISTS", I am in the catch block.
-          // I can access `companyData.name` but not `safeData` or `companySlug` easily if they were defined inside try.
-          // However, I can re-slugify `companyData.name`.
           id: slugify(companyData.name!),
           error: `Company with name "${companyData.name}" already exists.`,
           alreadyExists: true,
@@ -292,8 +375,24 @@ export class CompanyCrud implements CompanyCrudOperations {
         validation.data as unknown as Record<string, unknown>
       );
 
-      const companyDocRef = doc(getFirestore(), "companies", companyId);
-      await updateDoc(companyDocRef, updates);
+      // Map camelCase fields to snake_case for Supabase
+      const supabaseUpdates: Record<string, unknown> = {};
+      if (updates.name !== undefined) supabaseUpdates.name = updates.name;
+      if (updates.normalizedName !== undefined) supabaseUpdates.normalized_name = updates.normalizedName;
+      if (updates.logo !== undefined) supabaseUpdates.logo = updates.logo;
+      if (updates.website !== undefined) supabaseUpdates.website = updates.website;
+      if (updates.description !== undefined) supabaseUpdates.description = updates.description;
+
+      if (Object.keys(supabaseUpdates).length > 0) {
+        const { error } = await supabase
+          .from("companies")
+          .update(supabaseUpdates)
+          .eq("id", companyId);
+
+        if (error) {
+          throw error;
+        }
+      }
 
       return { success: true };
     } catch (error) {
@@ -311,8 +410,14 @@ export class CompanyCrud implements CompanyCrudOperations {
    */
   async deleteCompany(id: string): Promise<void> {
     try {
-      const companyDocRef = doc(getFirestore(), "companies", id);
-      await deleteDoc(companyDocRef);
+      const { error } = await supabase
+        .from("companies")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        throw error;
+      }
     } catch (error) {
       Logger.error(`Error deleting company`, error, { id });
       throw error;

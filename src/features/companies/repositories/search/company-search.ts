@@ -1,19 +1,10 @@
 /**
  * Company Search Module
  * Handles search and suggestion functionality for companies
+ * Data source: Supabase (PostgreSQL)
  */
 
-import type { Firestore } from "firebase/firestore";
-import {
-  collection,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-  where,
-} from "firebase/firestore";
-
-import { db } from "@/shared/lib/api/firebase";
+import { supabase } from "@/shared/lib/api/supabase";
 import { slugify } from "@/shared/lib/utils";
 import { Logger } from "@/shared/lib/utils/logger";
 import type { Company } from "@/shared/types";
@@ -32,19 +23,7 @@ export interface CompanySearchOperations {
 }
 
 /**
- * Get Firestore instance with validation
- */
-function getFirestore(): Firestore {
-  if (!db) {
-    throw new Error(
-      "Firestore is not initialized. Check your Firebase configuration."
-    );
-  }
-  return db;
-}
-
-/**
- * Company Search Operations Implementation
+ * Company Search Operations Implementation (Supabase)
  */
 export class CompanySearch implements CompanySearchOperations {
   /**
@@ -70,26 +49,26 @@ export class CompanySearch implements CompanySearchOperations {
       // Security: Clamp limit
       const safeLimit = Math.min(limitNum, MAX_SUGGESTION_LIMIT);
 
-      const companiesCol = collection(getFirestore(), "companies");
+      const { data, error } = await supabase
+        .from("companies")
+        .select("id, name, slug, logo")
+        .ilike("normalized_name", `${sanitizedTerm}%`)
+        .order("normalized_name", { ascending: true })
+        .limit(safeLimit);
 
-      const q = query(
-        companiesCol,
-        orderBy("normalizedName"),
-        where("normalizedName", ">=", sanitizedTerm),
-        where("normalizedName", "<=", sanitizedTerm + "\uf8ff"),
-        limit(safeLimit)
-      );
+      if (error) {
+        Logger.error("Error fetching company suggestions", error);
+        throw error;
+      }
 
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map((docSnap) => {
-        const data = docSnap.data();
-        return {
-          id: docSnap.id,
-          name: data.name,
-          slug: data.slug || slugify(data.name),
-          logo: data.logo,
-        } as Pick<Company, "id" | "name" | "slug" | "logo">;
-      });
+      return (data || []).map(
+        (row: { id: string; name: string; slug: string | null; logo: string | null }) => ({
+          id: row.id,
+          name: row.name,
+          slug: row.slug || slugify(row.name),
+          logo: row.logo || undefined,
+        })
+      ) as Array<Pick<Company, "id" | "name" | "slug" | "logo">>;
     } catch (error) {
       Logger.error("Error fetching company suggestions", error);
       throw error;
