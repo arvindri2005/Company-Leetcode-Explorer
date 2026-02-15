@@ -230,7 +230,7 @@ export function useProblemList({
 
     const fetchGlobalStats = async () => {
         try {
-            const result = await userService.getUserGlobalProblemStats(user.uid);
+            const result = await userService.getUserGlobalProblemStats(user.id);
             if (!isMountedRef.current) {return;}
 
             if (result.isSuccess) {
@@ -249,7 +249,7 @@ export function useProblemList({
 
   useEffect(() => {
     hydratedIdsRef.current.clear();
-  }, [user?.uid]);
+  }, [user?.id]);
 
   const handleBookmarkChange = useCallback((problemId: string, newIsBookmarked: boolean) => {
     if (newIsBookmarked) {

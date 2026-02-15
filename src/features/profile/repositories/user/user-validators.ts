@@ -3,7 +3,7 @@
  * Handles user security validations
  */
 
-import { auth } from "@/shared/lib/api/firebase";
+import { createSupabaseBrowserClient } from "@/shared/lib/api/supabase-browser";
 
 /**
  * Interface for user security validations
@@ -12,9 +12,9 @@ export interface UserValidators {
   /**
    * Check if the current user is authorized to access a user's data
    * @param userId - The user ID to check authorization for
-   * @returns True if authorized, false otherwise
+   * @returns Promise<boolean> - True if authorized, false otherwise (async because checking session)
    */
-  isAuthorized(userId: string): boolean;
+  isAuthorized(userId: string): Promise<boolean>;
 
   /**
    * Check if text contains invalid characters
@@ -28,14 +28,16 @@ export interface UserValidators {
  * Implementation of user security validators
  */
 export class UserValidatorsImpl implements UserValidators {
+    private supabase = createSupabaseBrowserClient();
+
   /**
    * Check if the current user is authorized to access a user's data
    * @param userId - The user ID to check authorization for
-   * @returns True if authorized, false otherwise
+   * @returns Promise<boolean> - True if authorized, false otherwise
    */
-  isAuthorized(userId: string): boolean {
-    const currentUser = auth.currentUser;
-    return !!currentUser && currentUser.uid === userId;
+  async isAuthorized(userId: string): Promise<boolean> {
+    const { data: { user } } = await this.supabase.auth.getUser();
+    return !!user && user.id === userId;
   }
 
   /**

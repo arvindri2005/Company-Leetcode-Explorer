@@ -2,7 +2,7 @@ import React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 
 import { fireEvent,render, screen } from "@testing-library/react";
-import { type User as FirebaseUser } from "firebase/auth";
+import { type User } from "@supabase/supabase-js";
 
 import UserInfoCard from "../user-info-card";
 
@@ -16,13 +16,18 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => {
 
 describe("UserInfoCard", () => {
   const mockUser = {
-    uid: "123",
-    displayName: "Test User",
+    id: "123",
+    aud: "authenticated",
+    created_at: "2023-01-01T00:00:00.000Z",
+    updated_at: "2023-01-01T00:00:00.000Z",
     email: "test@example.com",
-    emailVerified: true,
-    photoURL: "http://example.com/photo.jpg",
-    metadata: { creationTime: "2023-01-01" },
-  } as FirebaseUser;
+    email_confirmed_at: "2023-01-01T00:00:00.000Z",
+    user_metadata: {
+      display_name: "Test User",
+      avatar_url: "http://example.com/photo.jpg",
+    },
+    app_metadata: {},
+  } as unknown as User;
 
   const mockSetIsEditingDisplayName = jest.fn();
   const mockOnSubmitDisplayName = jest.fn();
@@ -126,7 +131,7 @@ describe("UserInfoCard", () => {
     expect(screen.getByText("Test User")).toBeInTheDocument();
 
     // Rerender with changed prop
-    const newUser = { ...mockUser, displayName: "Updated User" } as FirebaseUser;
+    const newUser = { ...mockUser, user_metadata: { ...mockUser.user_metadata, display_name: "Updated User" } } as unknown as User;
     rerender(
       <Wrapper>
         <UserInfoCard {...defaultProps} user={newUser} />

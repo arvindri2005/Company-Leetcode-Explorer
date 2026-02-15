@@ -1,76 +1,39 @@
-import { 
-  GoogleAuthProvider,
-  signInWithPopup, 
-  signOut, 
-  type User as FirebaseUser 
-} from "firebase/auth";
+import type { User } from "@supabase/supabase-js";
 
-import { userService } from "@/features/profile/services/user.service";
-import { auth } from "@/shared/lib/api/firebase";
+import { createSupabaseBrowserClient } from "@/shared/lib/api/supabase-browser";
 import { Logger } from "@/shared/lib/utils/logger";
 
 import type { AuthServiceResponse } from "../types";
 
 /**
  * @class AuthService
- * @description Handles all authentication-related operations with Firebase
+ * @description Handles all authentication-related operations with Supabase
  */
 export class AuthService {
-  private googleProvider: GoogleAuthProvider | null = null;
-  private syncedUserId: string | null = null;
-  private syncInProgress: Promise<AuthServiceResponse> | null = null;
-  private skipAutoSyncUntil: number = 0;
+  private supabase = createSupabaseBrowserClient();
 
   /**
-   * @description Get or initialize the Google Auth Provider
-   * @private
+   * @description Sign in with Google using Supabase OAuth redirect
    */
-  private getGoogleProvider(): GoogleAuthProvider {
-    if (!this.googleProvider) {
-      this.googleProvider = new GoogleAuthProvider();
-    }
-    return this.googleProvider;
-  }
-
-  /**
-   * @description Signals to skip the next automatic profile sync (5s window).
-   * Useful when a manual sync with fuller data is about to happen (e.g. signup).
-   */
-  skipNextAutoSync() {
-    this.skipAutoSyncUntil = Date.now() + 5000;
-  }
-
-  /**
-   * @description Resets the auto-sync skip flag.
-   * Call this if the operation that requested the skip failed.
-   */
-  resetSkipAutoSync() {
-    this.skipAutoSyncUntil = 0;
-  }
-
-  /**
-   * @description Sign in with Google using Firebase popup
-   */
-  async loginWithGoogle(): Promise<AuthServiceResponse<FirebaseUser>> {
+  async loginWithGoogle(): Promise<AuthServiceResponse> {
     try {
-      const result = await signInWithPopup(auth, this.getGoogleProvider());
-      const user = result.user;
+      const { error } = await this.supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
 
-      // Sync user profile after successful login
-      const syncResult = await this.syncUserProfile(user, false);
-      
-      if (!syncResult.success) {
-        // Log warning but don't fail login as the auth part succeeded
-        Logger.warn("User logged in but profile sync failed", { 
-          userId: user.uid,
-          error: syncResult.error 
-        });
+      if (error) {
+        Logger.error("Google sign-in failed", error);
+        return {
+          success: false,
+          error: "Failed to sign in with Google. Please try again.",
+        };
       }
 
-      return {
-        success: true,
-        data: user,
-      };
+      // OAuth redirects the user — we won't reach this in normal flow
+      return { success: true };
     } catch (error) {
       Logger.error("Google sign-in failed", error);
       return {
@@ -81,23 +44,121 @@ export class AuthService {
   }
 
   /**
-   * @description Sign out the current user
+   * @description Update user attributes (e.g., display name, email, password)
    */
-  async logout(): Promise<AuthServiceResponse> {
+  async updateUser(attributes: { data?: { display_name?: string; [key: string]: any } }): Promise<AuthServiceResponse> {
     try {
-      await signOut(auth);
-      
-      this.syncedUserId = null;
-      this.syncInProgress = null;
+      const { error } = await this.supabase.auth.updateUser(attributes);
 
-      // Clear auth cookie
-      if (typeof window !== "undefined") {
-        document.cookie = "auth_status=; path=/; max-age=0; SameSite=Strict; Secure";
+      if (error) {
+        Logger.error("Update user failed", error);
+        return {
+          success: false,
+          error: this.mapAuthError(error.message),
+        };
+      }
+
+      return { success: true };
+    } catch (error) {
+      Logger.error("Update user failed", error);
+      return {
+        success: false,
+        error: "Failed to update user profile.",
+      };
+    }
+  }
+
+  /**
+   * @description Sign in with email and password using Supabase
+   */
+  async loginWithEmail(
+    email: string,
+    password: string,
+  ): Promise<AuthServiceResponse<User>> {
+    try {
+      const { data, error } = await this.supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        Logger.error("Email sign-in failed", error);
+        return {
+          success: false,
+          error: this.mapAuthError(error.message),
+        };
       }
 
       return {
         success: true,
+        data: data.user,
       };
+    } catch (error) {
+      Logger.error("Email sign-in failed", error);
+      return {
+        success: false,
+        error: "Failed to sign in. Please try again.",
+      };
+    }
+  }
+
+  /**
+   * @description Sign up with email and password using Supabase
+   */
+  async signUp(
+    email: string,
+    password: string,
+    displayName?: string,
+  ): Promise<AuthServiceResponse<User>> {
+    try {
+      const { data, error } = await this.supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            display_name: displayName,
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) {
+        Logger.error("Sign-up failed", error);
+        return {
+          success: false,
+          error: this.mapAuthError(error.message),
+        };
+      }
+
+      return {
+        success: true,
+        data: data.user ?? undefined,
+      };
+    } catch (error) {
+      Logger.error("Sign-up failed", error);
+      return {
+        success: false,
+        error: "Failed to create account. Please try again.",
+      };
+    }
+  }
+
+  /**
+   * @description Sign out the current user
+   */
+  async logout(): Promise<AuthServiceResponse> {
+    try {
+      const { error } = await this.supabase.auth.signOut();
+
+      if (error) {
+        Logger.error("Sign out failed", error);
+        return {
+          success: false,
+          error: "Failed to sign out. Please try again.",
+        };
+      }
+
+      return { success: true };
     } catch (error) {
       Logger.error("Sign out failed", error);
       return {
@@ -108,135 +169,55 @@ export class AuthService {
   }
 
   /**
-   * @description Sync user profile with backend
+   * @description Send a password reset email
    */
-  async syncUserProfile(firebaseUser: FirebaseUser | null, force = false): Promise<AuthServiceResponse> {
-    if (!firebaseUser) {
-      return {
-        success: false,
-        error: "No user to sync",
-      };
-    }
-
-    // Performance: Check in-memory cache
-    if (this.syncedUserId === firebaseUser.uid && !force) {
-      return { success: true };
-    }
-
-    // Performance: Check if sync was explicitly skipped (e.g. during signup)
-    if (!force && Date.now() < this.skipAutoSyncUntil) {
-      this.skipAutoSyncUntil = 0; // Consume the flag
-      return { success: true };
-    }
-
-    // Performance: Check session storage (persists across reloads)
-    const storageKey = `auth_synced:${firebaseUser.uid}`;
-    if (!force && typeof window !== "undefined") {
-      try {
-        if (sessionStorage.getItem(storageKey) === "true") {
-          this.syncedUserId = firebaseUser.uid;
-          return { success: true };
-        }
-      } catch {
-        // Ignore storage errors
-      }
-    }
-
-    // Performance: Handle concurrent sync requests
-    // 1. If not forced, return existing promise (deduplicate)
-    // 2. If forced, chain execution to ensure it runs AFTER the current one (prevent race conditions)
-    if (this.syncInProgress) {
-      if (!force) {
-        return this.syncInProgress;
-      }
-
-      const previousSync = this.syncInProgress;
-      const chainedPromise = (async () => {
-        try {
-          await previousSync;
-        } catch {
-          // Ignore error from previous sync, proceed with forced sync
-        }
-        return this.performSync(firebaseUser, storageKey);
-      })();
-
-      this.syncInProgress = chainedPromise;
-      chainedPromise.finally(() => {
-        if (this.syncInProgress === chainedPromise) {
-          this.syncInProgress = null;
-        }
+  async resetPassword(email: string): Promise<AuthServiceResponse> {
+    try {
+      const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
       });
 
-      return chainedPromise;
-    }
-
-    const syncPromise = this.performSync(firebaseUser, storageKey);
-    this.syncInProgress = syncPromise;
-    syncPromise.finally(() => {
-      if (this.syncInProgress === syncPromise) {
-        this.syncInProgress = null;
-      }
-    });
-
-    return syncPromise;
-  }
-
-  /**
-   * @description Internal method to perform the actual sync operation
-   * @private
-   */
-  private async performSync(
-    firebaseUser: FirebaseUser,
-    storageKey: string,
-  ): Promise<AuthServiceResponse> {
-    try {
-      // Security: Sanitize display name before passing to service layer (Defense in Depth)
-      let sanitizedDisplayName = firebaseUser.displayName;
-      if (sanitizedDisplayName) {
-        // Security: Remove < and > to prevent Stored XSS
-        sanitizedDisplayName = sanitizedDisplayName.replace(/[<>]/g, "");
-        sanitizedDisplayName = sanitizedDisplayName.trim();
-        // Truncate if too long (max 50 chars to match user repository limit)
-        if (sanitizedDisplayName.length > 50) {
-          sanitizedDisplayName = sanitizedDisplayName.substring(0, 50);
-        }
-      }
-
-      const result = await userService.syncUserProfile(
-        firebaseUser.email,
-        sanitizedDisplayName,
-      );
-
-      if (!result.isSuccess) {
-        Logger.error("Failed to sync user profile", result.error, {
-          userId: firebaseUser.uid,
-        });
+      if (error) {
+        Logger.error("Password reset failed", error);
         return {
           success: false,
-          error: "Failed to sync user profile. Please try again.",
+          error: this.mapAuthError(error.message),
         };
       }
 
-      // Update cache on success
-      this.syncedUserId = firebaseUser.uid;
-      if (typeof window !== "undefined") {
-        try {
-          sessionStorage.setItem(storageKey, "true");
-        } catch {
-          // Ignore storage errors
-        }
-      }
-
-      return {
-        success: true,
-      };
+      return { success: true };
     } catch (error) {
-      Logger.error("Error calling syncUserProfile", error, {
-        userId: firebaseUser.uid,
-      });
+      Logger.error("Password reset failed", error);
       return {
         success: false,
-        error: "Failed to sync user profile. Please try again.",
+        error: "Failed to send reset email. Please try again.",
+      };
+    }
+  }
+
+  /**
+   * @description Update the user's password (used after password reset redirect)
+   */
+  async updatePassword(newPassword: string): Promise<AuthServiceResponse> {
+    try {
+      const { error } = await this.supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) {
+        Logger.error("Password update failed", error);
+        return {
+          success: false,
+          error: this.mapAuthError(error.message),
+        };
+      }
+
+      return { success: true };
+    } catch (error) {
+      Logger.error("Password update failed", error);
+      return {
+        success: false,
+        error: "Failed to update password. Please try again.",
       };
     }
   }
@@ -244,8 +225,38 @@ export class AuthService {
   /**
    * @description Get the current authenticated user
    */
-  getCurrentUser(): FirebaseUser | null {
-    return auth.currentUser;
+  async getCurrentUser(): Promise<User | null> {
+    const { data } = await this.supabase.auth.getUser();
+    return data.user;
+  }
+
+  /**
+   * @description Map Supabase auth error messages to user-friendly messages
+   * @private
+   */
+  private mapAuthError(message: string): string {
+    const lowerMsg = message.toLowerCase();
+
+    if (lowerMsg.includes("invalid login credentials")) {
+      return "Invalid email or password. Please try again.";
+    }
+    if (lowerMsg.includes("email not confirmed")) {
+      return "Please verify your email address before signing in.";
+    }
+    if (lowerMsg.includes("user already registered")) {
+      return "An account with this email already exists.";
+    }
+    if (lowerMsg.includes("password") && lowerMsg.includes("weak")) {
+      return "Password is too weak. Please use a stronger password.";
+    }
+    if (lowerMsg.includes("rate limit") || lowerMsg.includes("too many")) {
+      return "Too many attempts. Please try again later.";
+    }
+    if (lowerMsg.includes("email")) {
+      return "Invalid email address. Please check and try again.";
+    }
+
+    return "An error occurred. Please try again.";
   }
 }
 

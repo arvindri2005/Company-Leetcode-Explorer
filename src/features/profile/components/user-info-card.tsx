@@ -3,7 +3,7 @@
 import React, { memo,useState } from "react";
 import { FormProvider, useFormContext } from "react-hook-form";
 
-import type { User as FirebaseUser } from "firebase/auth";
+import type { User } from "@supabase/supabase-js";
 import {
   BadgeCheck,
   CalendarDays,
@@ -39,7 +39,7 @@ type DisplayNameFormValues = {
 /**
  * @interface UserInfoCardProps
  * @description Props for the UserInfoCard component.
- * @property {FirebaseUser} user - The Firebase user object.
+ * @property {User} user - The Supabase user object.
  * @property {boolean} isEditingDisplayName - Flag indicating if the user is currently editing their display name.
  * @property {(isEditing: boolean) => void} setIsEditingDisplayName - Function to set the editing state for the display name.
  * @property {(data: DisplayNameFormValues) => Promise<void>} onSubmitDisplayName - Async function to handle the submission of the new display name.
@@ -48,7 +48,7 @@ type DisplayNameFormValues = {
  * @property {(name: string | null | undefined) => string} getInitials - Function to generate initials from a user's display name for the avatar fallback.
  */
 interface UserInfoCardProps {
-  user: FirebaseUser;
+  user: User;
   isEditingDisplayName: boolean;
   setIsEditingDisplayName: (isEditing: boolean) => void;
   onSubmitDisplayName: (data: DisplayNameFormValues) => Promise<void>;
@@ -92,6 +92,11 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
     });
   };
 
+  const displayName = user.user_metadata?.display_name || user.user_metadata?.full_name || "Anonymous User";
+  const photoUrl = user.user_metadata?.avatar_url || user.user_metadata?.photo_url || undefined;
+  // Supabase checks email_confirmed_at for verification
+  const isEmailVerified = !!user.email_confirmed_at;
+
   return (
     <Card className="bg-card border border-border rounded-xl mb-8 shadow-sm overflow-hidden relative">
       <div className="h-28 w-full bg-gradient-to-r from-brand-teal/10 via-brand-purple/10 to-background" />
@@ -99,13 +104,13 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
         <div className="flex flex-col sm:flex-row items-start gap-6 -mt-12">
           <Avatar className="h-24 w-24 ring-4 ring-background shadow-lg shrink-0 transition-transform hover:scale-105 duration-300">
             <AvatarImage
-              src={user.photoURL || undefined}
-              alt={user.displayName || "User avatar"}
+              src={photoUrl}
+              alt={displayName}
               data-ai-hint="profile avatar"
               className="object-cover"
             />
             <AvatarFallback className="text-3xl bg-gradient-to-br from-primary/10 to-secondary/10 text-primary font-bold">
-              {getInitials(user.displayName)}
+              {getInitials(displayName)}
             </AvatarFallback>
           </Avatar>
 
@@ -115,9 +120,9 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-                      {user.displayName || "Anonymous User"}
+                      {displayName}
                     </h2>
-                    {user.emailVerified && (
+                    {isEmailVerified && (
                       <BadgeCheck className="h-5 w-5 text-brand-teal" aria-label="Verified User" role="img" />
                     )}
                   </div>
@@ -142,10 +147,10 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
-                    {user.metadata.creationTime && (
+                    {user.created_at && (
                       <div className="flex items-center gap-1.5">
                         <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
-                        <span>Member since {formatDate(user.metadata.creationTime)}</span>
+                        <span>Member since {formatDate(user.created_at)}</span>
                       </div>
                     )}
                   </div>
@@ -234,7 +239,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                       setIsEditingDisplayName(true);
                       displayNameForm.setValue(
                         "displayName",
-                        user.displayName || "",
+                        user.user_metadata?.display_name || user.user_metadata?.full_name || "",
                       );
                     }}
                     className="h-9 hover:bg-secondary/50 transition-colors"
@@ -265,7 +270,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({
                     setIsEditingDisplayName(true);
                     displayNameForm.setValue(
                       "displayName",
-                      user.displayName || "",
+                      user.user_metadata?.display_name || user.user_metadata?.full_name || "",
                     );
                   }}
                   className="w-full"
@@ -295,12 +300,12 @@ function arePropsEqual(prevProps: UserInfoCardProps, nextProps: UserInfoCardProp
   return (
     prevProps.isEditingDisplayName === nextProps.isEditingDisplayName &&
     prevProps.isSubmittingDisplayName === nextProps.isSubmittingDisplayName &&
-    prevProps.user.uid === nextProps.user.uid &&
-    prevProps.user.displayName === nextProps.user.displayName &&
-    prevProps.user.photoURL === nextProps.user.photoURL &&
+    prevProps.user.id === nextProps.user.id &&
+    prevProps.user.user_metadata?.display_name === nextProps.user.user_metadata?.display_name &&
+    prevProps.user.user_metadata?.avatar_url === nextProps.user.user_metadata?.avatar_url &&
     prevProps.user.email === nextProps.user.email &&
-    prevProps.user.emailVerified === nextProps.user.emailVerified &&
-    prevProps.user.metadata.creationTime === nextProps.user.metadata.creationTime &&
+    prevProps.user.email_confirmed_at === nextProps.user.email_confirmed_at &&
+    prevProps.user.created_at === nextProps.user.created_at &&
     prevProps.setIsEditingDisplayName === nextProps.setIsEditingDisplayName &&
     prevProps.onSubmitDisplayName === nextProps.onSubmitDisplayName &&
     prevProps.handleLogout === nextProps.handleLogout &&

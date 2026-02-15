@@ -29,7 +29,6 @@ import {
 } from "@/shared/components/ui/sheet";
 import { useHydrationSafe } from "@/shared/hooks/use-hydration-safe";
 import { useToast } from "@/shared/hooks/use-toast";
-import { auth } from "@/shared/lib/api/firebase";
 import { type NavigationItem,navigationRegistry } from "@/shared/lib/config/navigation";
 
 /**
@@ -94,11 +93,9 @@ const Header = React.memo(function Header() {
                 type="button"
                 onClick={async (e) => {
                    e.preventDefault();
-                   if (auth) {
-                     await item.onClick!({ router, toast, auth });
-                   } else {
-                     console.error("Auth context missing for navigation action");
-                   }
+                   // Removed Firebase auth check as it's no longer needed or available
+                   await item.onClick!({ router, toast });
+                   
                    if (isMobile) {setIsMobileMenuOpen(false);}
                 }}
                 className={className}

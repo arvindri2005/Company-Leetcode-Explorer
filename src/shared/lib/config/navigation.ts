@@ -2,9 +2,9 @@ import type React from "react";
 
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
-import { type User } from "firebase/auth";
-import { type Auth } from "firebase/auth";
+import { type User } from "@supabase/supabase-js";
 
+import { authService } from "@/features/auth/services/auth.service";
 import type { ToastFunction } from "@/shared/hooks/use-toast";
 
 export type NavigationPosition = "main" | "auth" | "mobile-bottom";
@@ -17,7 +17,6 @@ export interface NavigationContext {
 export interface NavigationActionContext {
   router: AppRouterInstance;
   toast: ToastFunction;
-  auth: Auth;
 }
 
 export interface NavigationRenderContext extends NavigationContext {
@@ -116,17 +115,11 @@ navigationRegistry.register({
   position: "auth",
   order: 100,
   isVisible: ({ user, isLoading }) => !isLoading && !!user,
-  onClick: async ({ auth, router, toast }) => {
-    // Dynamic import to avoid circular dependencies if any, though firebase/auth is safe
-    const { signOut } = await import("firebase/auth"); 
+  onClick: async ({ router, toast }) => {
     try {
-      if (auth) {
-        await signOut(auth);
-        toast.success("Logged Out", "You have been successfully logged out.");
-        router.push("/");
-      } else {
-        toast.error("Logout Failed", "Authentication not initialized.");
-      }
+      await authService.logout();
+      toast.success("Logged Out", "You have been successfully logged out.");
+      router.push("/");
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Logout Failed", "Could not log you out. Please try again.");

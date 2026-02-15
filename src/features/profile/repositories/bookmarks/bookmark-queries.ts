@@ -3,17 +3,7 @@
  * Handles bookmark query operations
  */
 
-import {
-  collection,
-  type CollectionReference,
-  documentId,
-  getDocs,
-  type Query,
-  query,
-  where,
-} from "firebase/firestore";
-
-import { db } from "@/shared/lib/api/firebase";
+import { createSupabaseBrowserClient } from "@/shared/lib/api/supabase-browser";
 import { Logger } from "@/shared/lib/utils/logger";
 
 /**
@@ -30,6 +20,8 @@ export interface BookmarkQueries {
  * Implementation of bookmark query operations
  */
 export class BookmarkQueriesImpl implements BookmarkQueries {
+  private supabase = createSupabaseBrowserClient();
+
   /**
    * Get bookmarks for specific problem IDs
    * @param userId - The user's unique identifier
@@ -43,15 +35,21 @@ export class BookmarkQueriesImpl implements BookmarkQueries {
     const bookmarkedIds = new Set<string>();
 
     try {
-      const bookmarksColRef = collection(db, "users", userId, "bookmarkedProblems");
+      // Supabase supports 'in' filter which maps to SQL IN
+      const { data, error } = await this.supabase
+        .from("user_bookmarks")
+        .select("problem_id")
+        .eq("uid", userId)
+        .in("problem_id", problemIds);
 
-      const querySnapshots = await this.fetchDocsByIds(bookmarksColRef, problemIds);
+      if (error) {
+        throw error;
+      }
 
-      // Flatten snapshots to reduce nesting
-      const allDocs = querySnapshots.flatMap((qs) => qs.docs);
-
-      for (const docSnap of allDocs) {
-        bookmarkedIds.add(docSnap.id);
+      if (data) {
+        data.forEach((row) => {
+          bookmarkedIds.add(row.problem_id);
+        });
       }
 
       return bookmarkedIds;
@@ -59,26 +57,5 @@ export class BookmarkQueriesImpl implements BookmarkQueries {
       Logger.error(`Error fetching bookmarks`, error, { userId });
       return new Set();
     }
-  }
-
-  /**
-   * Helper to fetch documents by IDs in chunks of 30 to satisfy Firestore "IN" query limits.
-   */
-  private async fetchDocsByIds(
-    collectionRef: CollectionReference | Query,
-    ids: string[]
-  ) {
-    const CHUNK_SIZE = 30;
-    const chunks = [];
-    for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
-      chunks.push(ids.slice(i, i + CHUNK_SIZE));
-    }
-
-    const queryPromises = chunks.map((chunk) => {
-      const q = query(collectionRef, where(documentId(), "in", chunk));
-      return getDocs(q);
-    });
-
-    return Promise.all(queryPromises);
   }
 }

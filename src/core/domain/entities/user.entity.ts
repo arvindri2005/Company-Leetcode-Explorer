@@ -28,19 +28,27 @@ export type UserProfile = z.infer<typeof UserProfileSchema>;
  * @description Zod schema for validating education experience data.
  */
 export const EducationExperienceSchema = z.object({
-  id: z.string().optional(), // Firestore document ID, optional for new entries
+  id: z.string().optional(), // Firestore document ID
   degree: z.string().min(2, "Degree is required.").max(100, "Degree must be less than 100 characters."),
-  major: z.string().min(2, "Major is required.").max(100, "Major must be less than 100 characters."),
+  fieldOfStudy: z.string().min(2, "Field of study/Major is required.").max(100, "Major must be less than 100 characters."), // was major
   school: z.string().min(2, "School name is required.").max(100, "School name must be less than 100 characters."),
-  graduationYear: z
+  startDate: z
     .string()
-    .regex(/^\d{4}$/, "Invalid year format (YYYY).")
+    .min(4, "Start date is required.")
+    .regex(
+      /^(\d{4}|(0[1-9]|1[0-2])\/\d{4})$/,
+      "Start date must be in YYYY or MM/YYYY format."
+    ),
+  endDate: z.union([
+    z.literal(""),
+    z.literal("Present"),
+    z.string().regex(/^(\d{4}|(0[1-9]|1[0-2])\/\d{4})$/, "End date must be 'Present', YYYY, or MM/YYYY.")
+  ]).optional(),
+  grade: z.string()
+    .max(20, "Grade must be short.")
     .optional()
-    .or(z.literal("")),
-  gpa: z.string()
-    .regex(/^\d+(\.\d{1,2})?$/, "GPA must be a number (e.g. 3.5, 4.0)")
-    .optional()
-    .or(z.literal("")), // Keep as string to allow various formats or N/A
+    .or(z.literal("")), // was gpa
+  description: z.string().max(2000).optional().or(z.literal("")),
 });
 /**
  * @description Represents a user's educational experience.
@@ -74,8 +82,8 @@ const parseDateValue = (dateStr: string, isEndDate: boolean): number => {
  */
 export const WorkExperienceBaseSchema = z.object({
   id: z.string().optional(), // Firestore document ID
-  jobTitle: z.string().min(2, "Job title is required.").max(100, "Job title must be less than 100 characters."),
-  companyName: z.string().min(2, "Company name is required.").max(100, "Company name must be less than 100 characters."),
+  role: z.string().min(2, "Job title/Role is required.").max(100, "Role must be less than 100 characters."),
+  company: z.string().min(2, "Company name is required.").max(100, "Company name must be less than 100 characters."),
   startDate: z
     .string()
     .min(4, "Start date is required.")
@@ -88,12 +96,13 @@ export const WorkExperienceBaseSchema = z.object({
     z.literal("Present"),
     z.string().regex(/^(\d{4}|(0[1-9]|1[0-2])\/\d{4})$/, "End date must be 'Present', YYYY, or MM/YYYY.")
   ]).optional(),
-  responsibilities: z
+  description: z
     .string()
     .min(10, "Please describe some responsibilities.")
-    .max(1000, "Responsibilities must be less than 1000 characters.")
+    .max(2000, "Description must be less than 2000 characters.")
     .optional()
     .or(z.literal("")),
+  technologies: z.array(z.string()).optional().default([]),
 });
 
 export const validateWorkExperienceDates = (data: z.infer<typeof WorkExperienceBaseSchema>) => {

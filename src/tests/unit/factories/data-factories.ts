@@ -1,4 +1,4 @@
-import type { User as FirebaseUser } from "firebase/auth";
+import type { User } from "@supabase/supabase-js";
 
 import type { Company, LeetCodeProblem, PaginatedProblemsResponse, UserProfile } from "@/shared/types";
 
@@ -132,30 +132,32 @@ export const createMockCompany = (overrides: Partial<Company> = {}): Company => 
   };
 };
 
-export const createMockUser = (overrides: Partial<FirebaseUser> = {}): FirebaseUser => {
+// ... (other imports)
+
+export const createMockUser = (overrides: Partial<User> = {}): User => {
   return {
-    uid: simpleFaker.string.uuid(),
+    id: simpleFaker.string.uuid(),
+    aud: "authenticated",
+    role: "authenticated",
     email: simpleFaker.internet.email(),
-    emailVerified: true,
-    displayName: simpleFaker.person.fullName(),
-    photoURL: simpleFaker.internet.url(),
-    isAnonymous: false,
-    metadata: {
-      creationTime: simpleFaker.date.recent().toISOString(),
-      lastSignInTime: simpleFaker.date.recent().toISOString(),
+    email_confirmed_at: simpleFaker.date.recent().toISOString(),
+    phone: "",
+    confirmed_at: simpleFaker.date.recent().toISOString(),
+    last_sign_in_at: simpleFaker.date.recent().toISOString(),
+    app_metadata: {
+      provider: "email",
+      providers: ["email"],
     },
-    providerData: [],
-    refreshToken: '',
-    tenantId: null,
-    delete: jest.fn(),
-    getIdToken: jest.fn(),
-    getIdTokenResult: jest.fn(),
-    reload: jest.fn(),
-    toJSON: jest.fn(),
-    phoneNumber: null,
-    providerId: 'firebase',
+    user_metadata: {
+      display_name: simpleFaker.person.fullName(),
+      avatar_url: simpleFaker.internet.url(),
+    },
+    identities: [],
+    created_at: simpleFaker.date.recent().toISOString(),
+    updated_at: simpleFaker.date.recent().toISOString(),
+    factors: [],
     ...overrides,
-  };
+  } as User;
 };
 
 export const createMockUserProfile = (overrides: Partial<UserProfile> = {}): UserProfile => {

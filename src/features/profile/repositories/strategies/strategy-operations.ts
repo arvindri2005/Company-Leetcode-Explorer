@@ -3,15 +3,7 @@
  * Handles strategy CRUD operations
  */
 
-import {
-  doc,
-  getDoc,
-  serverTimestamp,
-  setDoc,
-  updateDoc,
-} from "firebase/firestore";
-
-import { db } from "@/shared/lib/api/firebase";
+import { createSupabaseBrowserClient } from "@/shared/lib/api/supabase-browser";
 import { Logger } from "@/shared/lib/utils/logger";
 import type {
   FocusTopic,
@@ -60,6 +52,8 @@ export interface StrategyOperations {
  * Implementation of strategy operations
  */
 export class StrategyOperationsImpl implements StrategyOperations {
+  private supabase = createSupabaseBrowserClient();
+
   /**
    * Get strategy todo list for a specific company
    * @param userId - The user's unique identifier
@@ -73,35 +67,30 @@ export class StrategyOperationsImpl implements StrategyOperations {
     if (!userId || !companyId) {
       return null;
     }
-    const todoListDocRef = doc(db, "users", userId, "strategyTodoLists", companyId);
+    
     try {
-      const docSnap = await getDoc(todoListDocRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const items = Array.isArray(data.items)
-          ? data.items.map((item: unknown) => {
-              const typedItem = item as Partial<StrategyTodoItem>;
-              return {
-                ...typedItem,
-                text: typeof typedItem.text === "string" ? typedItem.text : "",
-                isCompleted:
-                  typeof typedItem.isCompleted === "boolean" ? typedItem.isCompleted : false,
-              };
-            })
-          : [];
-        const focusTopics = Array.isArray(data.focusTopics) ? data.focusTopics : [];
-        return {
-          companyId: data.companyId || companyId,
-          companyName: data.companyName || "Unknown Company",
-          savedAt: data.savedAt?.toDate
-            ? data.savedAt.toDate()
-            : new Date(data.savedAt || Date.now()),
-          preparationStrategy: data.preparationStrategy || "",
-          focusTopics: focusTopics as FocusTopic[],
-          items: items as StrategyTodoItem[],
-        } as SavedStrategyTodoList;
+      const { data, error } = await this.supabase
+        .from("user_strategies")
+        .select("*")
+        .eq("uid", userId)
+        .eq("company_id", companyId)
+        .single();
+
+      if (error && error.code !== "PGRST116") {
+        throw error;
       }
-      return null;
+
+      if (!data) return null;
+
+      // Map snake_case to domain object
+      return {
+        companyId: data.company_id || companyId,
+        companyName: data.company_name || "Unknown Company",
+        savedAt: data.saved_at ? new Date(data.saved_at) : new Date(data.created_at || Date.now()),
+        preparationStrategy: data.preparation_strategy || "",
+        focusTopics: (data.focus_topics as FocusTopic[]) || [],
+        items: (data.todo_items as StrategyTodoItem[]) || [],
+      } as SavedStrategyTodoList;
     } catch (error) {
       Logger.error(`Error fetching strategy`, error, { companyId, userId });
       return null;
@@ -128,24 +117,47 @@ export class StrategyOperationsImpl implements StrategyOperations {
     if (!userId || !companyId) {
       return { success: false, error: "User ID and Company ID are required." };
     }
-    const todoListDocRef = doc(db, "users", userId, "strategyTodoLists", companyId);
-
-    const rawData = {
-      companyId: companyId,
-      companyName: companyName,
-      savedAt: new Date(),
-      preparationStrategy: strategyData.preparationStrategy,
-      focusTopics: strategyData.focusTopics,
-      items: strategyData.todoItems,
-    };
-
+    
     try {
-      // Use validated data, casting to SavedStrategyTodoList is safe here as schema matches
-      await setDoc(todoListDocRef, rawData as SavedStrategyTodoList, { merge: true });
+      // Check if exists
+      const { data: existing } = await this.supabase
+        .from("user_strategies")
+        .select("id")
+        .eq("uid", userId)
+        .eq("company_id", companyId)
+        .single();
+        
+      const dbRow = {
+        uid: userId,
+        company_id: companyId,
+        company_name: companyName,
+        preparation_strategy: strategyData.preparationStrategy,
+        focus_topics: strategyData.focusTopics, // Supabase handles JSON array automatically
+        todo_items: strategyData.todoItems,
+        saved_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      if (existing) {
+         // Update
+         const { error } = await this.supabase
+          .from("user_strategies")
+          .update(dbRow)
+          .eq("id", existing.id);
+          
+         if (error) throw error;
+      } else {
+         // Insert
+         const { error } = await this.supabase
+          .from("user_strategies")
+          .insert(dbRow);
+          
+         if (error) throw error;
+      }
+
       return { success: true };
     } catch (error) {
-      // Security: Return generic error message to prevent leaking internal details
-      Logger.error("Error saving strategy to Firestore", error);
+      Logger.error("Error saving strategy to Supabase", error);
       return { success: false, error: "An unexpected error occurred while saving strategy." };
     }
   }
@@ -170,29 +182,43 @@ export class StrategyOperationsImpl implements StrategyOperations {
         error: "Invalid parameters for updating todo item.",
       };
     }
-    const todoListDocRef = doc(db, "users", userId, "strategyTodoLists", companyId);
+    
     try {
-      const docSnap = await getDoc(todoListDocRef);
-      if (!docSnap.exists()) {
-        return { success: false, error: "Todo list not found." };
-      }
-      const listData = docSnap.data() as SavedStrategyTodoList;
-      if (!listData.items || itemIndex >= listData.items.length) {
-        return { success: false, error: "Item index out of bounds." };
+      // 1. Fetch existing items
+      const { data, error: fetchError } = await this.supabase
+        .from("user_strategies")
+        .select("id, todo_items")
+        .eq("uid", userId)
+        .eq("company_id", companyId)
+        .single();
+
+      if (fetchError || !data) {
+         return { success: false, error: "Todo list not found." };
       }
 
-      const updatedItems = listData.items.map((item, index) =>
-        index === itemIndex ? { ...item, isCompleted: isCompleted } : item
-      );
+      const items = (data.todo_items as any[]) || [];
+      
+      if (itemIndex >= items.length) {
+         return { success: false, error: "Item index out of bounds." };
+      }
 
-      await updateDoc(todoListDocRef, {
-        items: updatedItems,
-        savedAt: serverTimestamp(),
-      });
+      // 2. Modify item
+      items[itemIndex].isCompleted = isCompleted;
+
+      // 3. Update
+      const { error: updateError } = await this.supabase
+        .from("user_strategies")
+        .update({
+           todo_items: items,
+           updated_at: new Date().toISOString() // saved_at might be preserved or updated? sticking to updated_at
+        })
+        .eq("id", data.id);
+
+      if (updateError) throw updateError;
+      
       return { success: true };
     } catch (error) {
-      // Security: Return generic error message to prevent leaking internal details
-      Logger.error("Error updating todo item status in Firestore", error);
+      Logger.error("Error updating todo item status in Supabase", error);
       return {
         success: false,
         error: "An unexpected error occurred while updating todo item.",

@@ -5,7 +5,7 @@
 
 import { useCallback, useState } from "react";
 
-import type { User as FirebaseUser } from "firebase/auth";
+import type { User } from "@supabase/supabase-js";
 
 import { userService } from "@/features/profile/services/user.service";
 import { useToast } from "@/shared/hooks/use-toast";
@@ -23,10 +23,10 @@ export interface StrategiesData {
 /**
  * Hook for managing strategy todo lists
  * 
- * @param user - Firebase user object
+ * @param user - Supabase user object
  * @returns StrategiesData object with strategy data and functions
  */
-export function useStrategies(user: FirebaseUser | null): StrategiesData {
+export function useStrategies(user: User | null): StrategiesData {
   const { toast } = useToast();
   const [strategyTodoLists, setStrategyTodoLists] = useState<SavedStrategyTodoList[]>([]);
   const [isLoadingStrategyTodoLists, setIsLoadingStrategyTodoLists] = useState(false);
@@ -34,10 +34,10 @@ export function useStrategies(user: FirebaseUser | null): StrategiesData {
   const [updatingTodoItemId, setUpdatingTodoItemId] = useState<string | null>(null);
 
   const fetchStrategyTodoLists = useCallback(async () => {
-    if (user?.uid) {
+    if (user?.id) {
       setIsLoadingStrategyTodoLists(true);
       try {
-        const result = await userService.getUserStrategyTodoLists(user.uid);
+        const result = await userService.getUserStrategyTodoLists(user.id);
         if (result.isSuccess) {
           setStrategyTodoLists(result.value);
         } else {
@@ -87,7 +87,7 @@ export function useStrategies(user: FirebaseUser | null): StrategiesData {
       );
 
       const result = await userService.updateStrategyTodoItemStatus(
-        user.uid,
+        user.id,
         companyId,
         itemIndex,
         newStatus,

@@ -3,17 +3,7 @@
  * Handles problem status query operations
  */
 
-import {
-  collection,
-  type CollectionReference,
-  documentId,
-  getDocs,
-  type Query,
-  query,
-  where,
-} from "firebase/firestore";
-
-import { db } from "@/shared/lib/api/firebase";
+import { createSupabaseBrowserClient } from "@/shared/lib/api/supabase-browser";
 import { Logger } from "@/shared/lib/utils/logger";
 import type { ProblemStatus, UserProblemStatusInfo } from "@/shared/types";
 
@@ -34,6 +24,8 @@ export interface StatusQueries {
  * Implementation of problem status query operations
  */
 export class StatusQueriesImpl implements StatusQueries {
+  private supabase = createSupabaseBrowserClient();
+
   /**
    * Get problem statuses for specific problem IDs
    * @param userId - The user's unique identifier
@@ -50,25 +42,43 @@ export class StatusQueriesImpl implements StatusQueries {
     const statuses: Record<string, UserProblemStatusInfo> = {};
 
     try {
-      const progressColRef = collection(db, "users", userId, "problemProgress");
-      const querySnapshots = await this.fetchDocsByIds(progressColRef, problemIds);
+      const { data, error } = await this.supabase
+        .from("user_problem_status")
+        .select(`
+          problem_id,
+          status,
+          updated_at,
+          problems (
+            slug,
+            company_problems (
+              companies (
+                slug
+              )
+            )
+          )
+        `)
+        .eq("uid", userId)
+        .in("problem_id", problemIds);
 
-      // Flatten snapshots to reduce nesting and simplify iteration
-      const allDocs = querySnapshots.flatMap((qs) => qs.docs);
+      if (error) {
+        throw error;
+      }
 
-      for (const docSnap of allDocs) {
-        const data = docSnap.data();
-        if (!data.status) {
-          continue;
-        }
-
-        statuses[docSnap.id] = {
-          problemId: docSnap.id,
-          status: data.status as ProblemStatus,
-          companySlug: data.companySlug,
-          problemSlug: data.problemSlug,
-          updatedAt: data.updatedAt?.toDate(),
-        };
+      if (data) {
+        data.forEach((row: any) => {
+           const problem = row.problems;
+           const companySlug = problem?.company_problems?.[0]?.companies?.slug;
+           
+           if (row.problem_id && row.status && problem?.slug && companySlug) {
+            statuses[row.problem_id] = {
+              problemId: row.problem_id,
+              status: row.status as ProblemStatus,
+              companySlug: companySlug,
+              problemSlug: problem.slug,
+              updatedAt: new Date(row.updated_at),
+            };
+           }
+        });
       }
 
       return statuses;
@@ -76,26 +86,5 @@ export class StatusQueriesImpl implements StatusQueries {
       Logger.error(`Error fetching problem statuses`, error, { userId });
       return {};
     }
-  }
-
-  /**
-   * Helper to fetch documents by IDs in chunks of 30 to satisfy Firestore "IN" query limits.
-   */
-  private async fetchDocsByIds(
-    collectionRef: CollectionReference | Query,
-    ids: string[]
-  ) {
-    const CHUNK_SIZE = 30;
-    const chunks = [];
-    for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
-      chunks.push(ids.slice(i, i + CHUNK_SIZE));
-    }
-
-    const queryPromises = chunks.map((chunk) => {
-      const q = query(collectionRef, where(documentId(), "in", chunk));
-      return getDocs(q);
-    });
-
-    return Promise.all(queryPromises);
   }
 }

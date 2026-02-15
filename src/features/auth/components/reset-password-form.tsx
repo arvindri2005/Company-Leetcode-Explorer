@@ -7,8 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { confirmPasswordReset, verifyPasswordResetCode } from "firebase/auth";
-import { CheckCircle2, Loader2, LockKeyhole } from "lucide-react";
+import { CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
 import { z } from "zod";
 
 import { Button } from "@/shared/components/ui/button";
@@ -20,29 +19,20 @@ import {
   FormLabel,
   FormMessage,
 } from "@/shared/components/ui/form";
-import { PasswordInput } from "@/shared/components/ui/password-input";
+import { Input } from "@/shared/components/ui/input";
 import { useToast } from "@/shared/hooks/use-toast";
-import { auth } from "@/shared/lib/api/firebase";
-import { Logger } from "@/shared/lib/utils/logger";
 
+import { authService } from "../services/auth.service";
 import { SignupPasswordStrength } from "./signup-password-strength";
 
-export const resetPasswordSchema = z
+const resetPasswordSchema = z
   .object({
     password: z
       .string()
       .min(8, { message: "Password must be at least 8 characters." })
-      .max(128, { message: "Password must be less than 128 characters." })
-      .regex(/[A-Z]/, {
-        message: "Password must contain at least one uppercase letter.",
-      })
-      .regex(/[a-z]/, {
-        message: "Password must contain at least one lowercase letter.",
-      })
-      .regex(/[0-9]/, { message: "Password must contain at least one number." })
-      .regex(/[^A-Za-z0-9]/, {
-        message: "Password must contain at least one special character.",
-      }),
+      .regex(/[A-Z]/, { message: "One uppercase letter required." })
+      .regex(/[a-z]/, { message: "One lowercase letter required." })
+      .regex(/[0-9]/, { message: "One number required." }),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -52,38 +42,14 @@ export const resetPasswordSchema = z
 
 type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
 
-interface ResetPasswordFormProps {
-  oobCode: string | null;
-}
-
-export default function ResetPasswordForm({ oobCode }: ResetPasswordFormProps) {
+export default function ResetPasswordForm() {
   const { toast } = useToast();
   const router = useRouter();
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [email, setEmail] = useState<string | null>(null);
-  const [isVerifying, setIsVerifying] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!oobCode) {
-      setError("Invalid password reset link. The code is missing.");
-      setIsVerifying(false);
-      return;
-    }
-
-    // Verify the code
-    verifyPasswordResetCode(auth, oobCode)
-      .then((email) => {
-        setEmail(email);
-        setIsVerifying(false);
-      })
-      .catch((error) => {
-        Logger.error("Invalid code:", error);
-        setError("This password reset link is invalid or has expired.");
-        setIsVerifying(false);
-      });
-  }, [oobCode]);
 
   const form = useForm<ResetPasswordValues>({
     resolver: zodResolver(resetPasswordSchema),
@@ -94,27 +60,32 @@ export default function ResetPasswordForm({ oobCode }: ResetPasswordFormProps) {
   });
 
   async function onSubmit(data: ResetPasswordValues) {
-    if (!oobCode) {
-      return;
-    }
-
     setIsSubmitting(true);
     try {
-      await confirmPasswordReset(auth, oobCode, data.password);
-      setIsSuccess(true);
+      const result = await authService.updatePassword(data.password);
+
+      if (result.success) {
+        setIsSuccess(true);
+        toast({
+          title: "Password Updated! 🎉",
+          description: "You have successfully reset your password.",
+        });
+        
+        // Redirect after delay
+        setTimeout(() => {
+          router.push("/profile");
+        }, 2000);
+      } else {
+        toast({
+          title: "Reset Failed",
+          description: result.error || "Failed to update password.",
+          variant: "destructive",
+        });
+      }
+    } catch {
       toast({
-        title: "Password Reset Successful! 🎉",
-        description: "You can now login with your new password.",
-      });
-      // Redirect after a short delay
-      setTimeout(() => {
-        router.push("/login");
-      }, 3000);
-    } catch (error) {
-      Logger.error("Reset password error:", error);
-      toast({
-        title: "Reset Failed",
-        description: "Failed to reset password. Please try again.",
+        title: "Error",
+        description: "An unexpected error occurred.",
         variant: "destructive",
       });
     } finally {
@@ -122,131 +93,110 @@ export default function ResetPasswordForm({ oobCode }: ResetPasswordFormProps) {
     }
   }
 
-  if (isVerifying) {
-    return (
-      <div
-        className="flex flex-col items-center justify-center space-y-4 py-8"
-        role="status"
-        aria-live="polite"
-      >
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-muted-foreground">Verifying secure link...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center space-y-6" role="alert" aria-live="assertive">
-        <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
-          <LockKeyhole className="w-8 h-8 text-destructive" />
-        </div>
-        <div className="space-y-2">
-          <h3 className="text-xl font-semibold text-destructive">
-            Link Expired or Invalid
-          </h3>
-          <p className="text-muted-foreground">{error}</p>
-        </div>
-        <Button asChild className="w-full">
-          <Link href="/forgot-password">Request New Link</Link>
-        </Button>
-      </div>
-    );
-  }
-
   if (isSuccess) {
     return (
-      <div className="text-center space-y-6" role="status" aria-live="polite">
-        <div className="mx-auto w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center">
-          <CheckCircle2 className="w-8 h-8 text-green-600" />
+      <div className="text-center space-y-6">
+        <div className="mx-auto w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
+            <CheckCircle2 className="w-8 h-8" />
         </div>
         <div className="space-y-2">
-          <h3 className="text-xl font-semibold text-green-600">
-            Password Reset Complete
-          </h3>
-          <p className="text-muted-foreground">
-            Your password has been successfully updated. Redirecting you to
-            login...
-          </p>
+            <h3 className="text-xl font-semibold">Password Reset Successful</h3>
+            <p className="text-muted-foreground">
+                Your password has been securely updated. You are now logged in.
+            </p>
         </div>
-        <Button asChild className="w-full bg-green-600 hover:bg-green-700">
-          <Link href="/login">Login Now</Link>
+        <Button asChild className="w-full">
+            <Link href="/profile">Go to Profile</Link>
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="text-center mb-6">
-        <p className="text-sm text-muted-foreground">Reset password for</p>
-        <p className="font-medium text-foreground">{email}</p>
-      </div>
-
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  New Password <span className="text-destructive">*</span>
-                </FormLabel>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>New Password</FormLabel>
+              <div className="relative">
                 <FormControl>
-                  <PasswordInput
-                    placeholder="••••••••"
-                    {...field}
+                  <Input
+                    placeholder="******"
+                    type={showPassword ? "text" : "password"}
                     autoComplete="new-password"
-                    className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                    disabled={isSubmitting}
+                    {...field}
                   />
                 </FormControl>
-                <SignupPasswordStrength password={field.value} />
-                <FormMessage role="alert" />
-              </FormItem>
-            )}
-          />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </Button>
+              </div>
+              <SignupPasswordStrength password={field.value} />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <FormField
-            control={form.control}
-            name="confirmPassword"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Confirm Password <span className="text-destructive">*</span>
-                </FormLabel>
+        <FormField
+          control={form.control}
+          name="confirmPassword"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Confirm Password</FormLabel>
+              <div className="relative">
                 <FormControl>
-                  <PasswordInput
-                    placeholder="••••••••"
-                    {...field}
+                  <Input
+                    placeholder="******"
+                    type={showConfirmPassword ? "text" : "password"}
                     autoComplete="new-password"
-                    className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                    disabled={isSubmitting}
+                    {...field}
                   />
                 </FormControl>
-                <FormMessage role="alert" />
-              </FormItem>
-            )}
-          />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </Button>
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full h-11 text-base transition-all duration-200 hover:scale-102 shadow-lg hover:shadow-primary/25 mt-2"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Updating Password...
-              </>
-            ) : (
-              <>
-                <LockKeyhole className="mr-2 h-4 w-4" />
-                Update Password
-              </>
-            )}
-          </Button>
-        </form>
-      </Form>
-    </div>
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Updating Password...
+            </>
+          ) : (
+            "Reset Password"
+          )}
+        </Button>
+      </form>
+    </Form>
   );
 }

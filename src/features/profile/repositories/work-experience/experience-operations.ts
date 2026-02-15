@@ -3,17 +3,7 @@
  * Handles work experience CRUD operations
  */
 
-import {
-  addDoc,
-  collection,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-  serverTimestamp,
-} from "firebase/firestore";
-
-import { db } from "@/shared/lib/api/firebase";
+import { createSupabaseBrowserClient } from "@/shared/lib/api/supabase-browser";
 import { Logger } from "@/shared/lib/utils/logger";
 import type { WorkExperience } from "@/shared/types";
 
@@ -44,6 +34,7 @@ export interface ExperienceOperations {
  */
 export class ExperienceOperationsImpl implements ExperienceOperations {
   private validators = new ExperienceValidatorsImpl();
+  private supabase = createSupabaseBrowserClient();
 
   /**
    * Get user's work experience
@@ -55,16 +46,25 @@ export class ExperienceOperationsImpl implements ExperienceOperations {
       return [];
     }
     try {
-      const workColRef = collection(db, "users", userId, "workExperience");
-      const q = query(workColRef, orderBy("createdAt", "desc"), limit(MAX_PAGE_SIZE));
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(
-        (docSnap) =>
-          ({
-            id: docSnap.id,
-            ...docSnap.data(),
-          }) as WorkExperience
-      );
+      const { data, error } = await this.supabase
+        .from("user_work_experience")
+        .select("*")
+        .eq("uid", userId)
+        .order("created_at", { ascending: false })
+        .limit(MAX_PAGE_SIZE);
+
+      if (error) throw error;
+
+      return (data || []).map((row) => ({
+        id: row.id,
+        company: row.company,
+        role: row.role,
+        startDate: row.start_date ? new Date(row.start_date) : null,
+        endDate: row.end_date ? new Date(row.end_date) : null,
+        description: row.description,
+        technologies: row.technologies || [],
+        createdAt: row.created_at ? new Date(row.created_at) : undefined,
+      } as unknown as WorkExperience));
     } catch (error) {
       Logger.error(`Error fetching work experience`, error, { userId });
       return [];
@@ -92,15 +92,28 @@ export class ExperienceOperationsImpl implements ExperienceOperations {
     }
 
     try {
-      const workColRef = collection(db, "users", userId, "workExperience");
-      const docRef = await addDoc(workColRef, {
-        ...workData,
-        createdAt: serverTimestamp(),
-      });
-      return { id: docRef.id };
+      const dbRow = {
+        uid: userId,
+        company: workData.company,
+        role: workData.role,
+        start_date: workData.startDate instanceof Date ? workData.startDate.toISOString() : workData.startDate,
+        end_date: workData.endDate instanceof Date ? workData.endDate.toISOString() : workData.endDate,
+        description: workData.description,
+        technologies: workData.technologies,
+      };
+
+      const { data, error } = await this.supabase
+        .from("user_work_experience")
+        .insert(dbRow)
+        .select("id")
+        .single();
+        
+      if (error) throw error;
+
+      return { id: data.id };
     } catch (error) {
       // Security: Return generic error message to prevent leaking internal details
-      Logger.error("Error adding work experience to Firestore", error);
+      Logger.error("Error adding work experience to Supabase", error);
       return {
         id: null,
         error: "An unexpected error occurred while adding work experience.",

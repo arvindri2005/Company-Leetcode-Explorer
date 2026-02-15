@@ -1,115 +1,68 @@
-/**
- * User Mapper
- *
- * Handles conversions between:
- * - Domain entities (User)
- * - DTOs (UserProfile type from types)
- * - Firestore documents
- */
+import { User } from "@/core/domain/entities/user.entity";
+import { UserDTO } from "@/features/profile/types/user-dto";
+// import type { Database } from "@/types/supabase"; // Types not found, skipping for now
 
-import { User as UserEntity } from "@/core/domain/entities/user.entity";
-import type { UserProfile } from "@/shared/types";
-
-/**
- * Firestore document structure for users
- */
-export interface UserDocument {
+// Define Supabase User Row type locally if not imported
+export interface SupabaseUserRow {
   uid: string;
   email: string | null;
-  displayName: string | null;
-  photoUrl?: string;
-  preferences?: {
-    theme?: "light" | "dark" | "system";
-    emailNotifications?: boolean;
-    weeklyDigest?: boolean;
-  };
-  lastSyncedAt?: Date;
-  createdAt?: Date;
+  display_name: string | null;
+  photo_url: string | null;
+  preferences: any | null;
+  created_at: string;
+  updated_at: string;
+  last_synced_at?: string;
 }
 
-/**
- * Maps between User domain entity and various data representations
- */
 export class UserMapper {
-  /**
-   * Convert a Firestore document to a domain User entity
-   * @param doc - The Firestore document data
-   * @returns User domain entity
-   */
-  static toDomain(doc: UserDocument): UserEntity {
-    return UserEntity.create(
+  static toDomain(row: SupabaseUserRow): User {
+    return new User(
       {
-        email: doc.email,
-        displayName: doc.displayName,
-        photoUrl: doc.photoUrl,
-        preferences: doc.preferences ?? {},
-        lastSyncedAt: doc.lastSyncedAt,
+        email: row.email ?? "",
+        displayName: row.display_name ?? "",
+        photoUrl: row.photo_url ?? undefined,
+        preferences: row.preferences ?? {},
+        createdAt: new Date(row.created_at),
+        updatedAt: new Date(row.updated_at),
       },
-      doc.uid
+      row.uid
     );
   }
 
-  /**
-   * Convert a domain User entity to a UserProfile DTO
-   * @param entity - The User domain entity
-   * @returns UserProfile DTO
-   */
-  static toDTO(entity: UserEntity): UserProfile {
+  static toDTO(user: User): UserDTO {
     return {
-      uid: entity.id,
-      email: entity.email,
-      displayName: entity.displayName,
-      createdAt: entity.createdAt,
-      lastSyncedAt: entity.lastSyncedAt,
+      uid: user.id,
+      email: user.email ?? "",
+      displayName: user.displayName ?? "",
+      photoUrl: user.photoUrl,
+      preferences: user.preferences,
+      createdAt: user.createdAt.toISOString(),
+      updatedAt: user.updatedAt.toISOString(),
     };
   }
 
-  /**
-   * Convert a domain User entity to a Firestore document
-   * @param entity - The User domain entity
-   * @returns Firestore document data (without uid as it's the doc ID)
-   */
-  static toDocument(entity: UserEntity): Omit<UserDocument, "uid"> {
+  static toRow(user: User): SupabaseUserRow {
     return {
-      email: entity.email,
-      displayName: entity.displayName,
-      photoUrl: entity.photoUrl,
-      preferences: entity.preferences,
-      lastSyncedAt: entity.lastSyncedAt,
-      createdAt: entity.createdAt,
+      uid: user.id,
+      email: user.email,
+      display_name: user.displayName,
+      photo_url: user.photoUrl ?? null,
+      preferences: user.preferences,
+      created_at: user.createdAt.toISOString(),
+      updated_at: user.updatedAt.toISOString(),
+      last_synced_at: user.lastSyncedAt?.toISOString(),
     };
   }
 
-  /**
-   * Convert a UserProfile DTO to a domain User entity
-   * Useful when receiving data from external sources
-   * @param dto - The UserProfile DTO
-   * @returns User domain entity
-   */
-  static fromDTO(dto: UserProfile): UserEntity {
-    return UserEntity.create(
-      {
-        email: dto.email,
-        displayName: dto.displayName,
-        lastSyncedAt: dto.lastSyncedAt,
-      },
-      dto.uid
-    );
-  }
-
-  /**
-   * Convert a Firestore document to a UserProfile DTO
-   * Direct conversion without going through domain entity
-   * @param doc - The Firestore document data
-   * @returns UserProfile DTO
-   */
-  static documentToDTO(doc: UserDocument): UserProfile {
+  static rowToDTO(row: SupabaseUserRow): UserDTO {
     return {
-      uid: doc.uid,
-      email: doc.email,
-      displayName: doc.displayName,
-      createdAt: doc.createdAt ?? new Date(),
-      lastSyncedAt: doc.lastSyncedAt,
+      uid: row.uid,
+      email: row.email ?? "",
+      displayName: row.display_name ?? "",
+      photoUrl: row.photo_url ?? undefined,
+      preferences: row.preferences ?? {},
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
     };
   }
 }

@@ -15,12 +15,9 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  signOut,
-  updateProfile as updateFirebaseAuthProfile,
-} from "firebase/auth";
 import { z } from "zod";
 
+import { authService } from "@/features/auth/services/auth.service"; // Use Supabase auth service
 import { ProfileContent } from "@/features/profile/components/profile-page/profile-content";
 import { ProfileHeader } from "@/features/profile/components/profile-page/profile-header";
 import { BookmarksTab } from "@/features/profile/components/tabs/bookmarks-tab";
@@ -36,7 +33,7 @@ import { useWorkExperience } from "@/features/profile/hooks/use-work-experience"
 import { useAuth } from "@/providers";
 import { ProfilePageSkeleton } from "@/shared/components/skeletons/profile-skeletons";
 import { useToast } from "@/shared/hooks/use-toast";
-import { auth } from "@/shared/lib/api/firebase";
+
 import {
   EducationExperienceSchema,
   WorkExperienceSchema,
@@ -75,19 +72,6 @@ type WorkExperienceFormValues = z.infer<typeof workExperienceClientSchema>;
 
 /**
  * Renders the user profile page, a comprehensive dashboard for user-specific information.
- *
- * This component acts as a central hub for all user interactions and data. It manages:
- * - Authentication state, redirecting to login if the user is not authenticated.
- * - Fetching and displaying user info, education, and work history.
- * - Fetching and displaying lists of problems (bookmarked, solved, attempted, to-do).
- * - Displaying and managing saved AI-generated study strategies and their to-do lists.
- * - Handling updates to user data, such as changing a display name, adding background info,
- *   or toggling to-do items, through various server actions.
- * - State management for loading, editing, and form submissions across multiple sections.
- *
- * It is composed of several smaller, focused components to keep the UI organized.
- *
- * @returns {JSX.Element | null} The rendered profile page, a loading skeleton, or `null` if redirecting.
  */
 export default function ProfilePage() {
   const {
@@ -121,7 +105,7 @@ export default function ProfilePage() {
   // Forms
   const displayNameForm = useForm<DisplayNameFormValues>({
     resolver: zodResolver(displayNameFormSchema),
-    defaultValues: { displayName: user?.displayName || "" },
+    defaultValues: { displayName: user?.user_metadata?.display_name || user?.user_metadata?.full_name || "" },
   });
   const educationForm = useForm<EducationFormValues>({
     resolver: zodResolver(educationClientSchema),
@@ -145,10 +129,13 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    if (user?.displayName) {
-      displayNameForm.reset({ displayName: user.displayName });
+    if (user) {
+      const displayName = user.user_metadata?.display_name || user.user_metadata?.full_name || "";
+      if (displayName) {
+          displayNameForm.reset({ displayName });
+      }
     }
-  }, [user?.displayName, displayNameForm]);
+  }, [user, displayNameForm]);
 
   // Lazy Load Effect
   useEffect(() => {
@@ -194,7 +181,7 @@ export default function ProfilePage() {
 
   const handleLogout = useCallback(async () => {
     try {
-      await signOut(auth);
+      await authService.logout();
       toast({
         title: "Logged Out",
         description: "You have been successfully logged out.",
@@ -226,39 +213,45 @@ export default function ProfilePage() {
       }
       setIsSubmittingDisplayName(true);
       try {
-        // Update Firebase Auth profile
-        await updateFirebaseAuthProfile(user, {
-          displayName: data.displayName,
+        // Update Supabase Auth profile
+        const { error: authError } = await authService.updateUser({ 
+            data: { display_name: data.displayName }
         });
-        // Update Firestore profile
+
+        if (authError) {
+             throw new Error(authError.message);
+        }
+
+        // Update DB profile
         const { userService } = await import("@/features/profile/services/user.service");
-        const firestoreResult = await userService.updateUserDisplayName(
-          user.uid,
+        const dbResult = await userService.updateUserDisplayName(
+          user.id,
           data.displayName.trim(),
         );
 
-        if (firestoreResult.isSuccess) {
-          // Manually update user object in AuthContext for immediate UI reflection
-          // Create a new user object to trigger re-renders
-          const updatedUser = {
-            ...user,
-            displayName: data.displayName,
-          } as typeof user;
-          if (setUser) {
-            setUser(updatedUser); // Update context
-          }
-          await syncUserProfileIfNeeded(updatedUser); // Re-sync with potentially new displayName from Auth
-
+        if (dbResult.isSuccess) {
+          // Manually update user object in AuthContext for immediate UI reflection if possible,
+          // OR rely on onAuthStateChange if it triggers update. 
+          // Note: onAuthStateChange might not trigger on updateUser call immediately with new metadata.
+          // But we can manually refresh session?
+          // For now, let's allow the UI to optimize optimistic update or force reload?
+          // Or strictly:
+          
           toast({
             title: "Success",
             description: "Display name updated successfully!",
           });
           setIsEditingDisplayName(false);
+          
+          // Re-sync? auth-context listens to change.
+          // Maybe reload? router.refresh()?
+          router.refresh(); 
+
         } else {
           toast({
             title: "Error",
             description:
-              firestoreResult.error.message ||
+              dbResult.error?.message ||
               "Failed to update display name in database.",
             variant: "destructive",
           });
@@ -277,7 +270,7 @@ export default function ProfilePage() {
         setIsSubmittingDisplayName(false);
       }
     },
-    [user, setUser, syncUserProfileIfNeeded, toast],
+    [user, toast, router],
   );
 
   if (authLoading) {
@@ -353,7 +346,7 @@ export default function ProfilePage() {
           />
 
           <EducationTab
-            userId={user.uid}
+            userId={user.id}
             educationHistory={educationData.educationHistory}
             isLoadingEducation={educationData.isLoadingEducation}
             handleAddEducation={educationData.handleAddEducation}

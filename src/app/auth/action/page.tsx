@@ -1,10 +1,9 @@
 /**
  * @fileoverview Defines the universal auth action handler page.
  *
- * This page handles Firebase Authentication email actions such as:
+ * This page handles Auth actions such as:
  * - resetPassword
  * - verifyEmail
- * - recoverEmail
  *
  * It uses the `mode` query parameter to determine which component to render.
  */
@@ -23,7 +22,6 @@ import VerifyEmail from "@/features/auth/components/verify-email";
 function AuthActionContent() {
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode");
-  const oobCode = searchParams.get("oobCode");
 
   // Determine title and description based on mode
   let title = "Authentication";
@@ -35,17 +33,15 @@ function AuthActionContent() {
   } else if (mode === "verifyEmail") {
     title = "Verify Email";
     description = "Confirming your email address.";
-  } else if (mode === "recoverEmail") {
-      title = "Recover Email";
-      description = "Restoring access to your email.";
   }
 
   return (
     <AuthLayout title={title} description={description}>
-      {mode === "resetPassword" && <ResetPasswordForm oobCode={oobCode} />}
-      {mode === "verifyEmail" && <VerifyEmail oobCode={oobCode} />}
-      {/* Add other modes here as needed */}
-      {!["resetPassword", "verifyEmail", "recoverEmail"].includes(mode || "") && (
+      {/* Supabase auth flows don't require the oobCode prop anymore, handling is internal/session-based */}
+      {mode === "resetPassword" && <ResetPasswordForm />}
+      {mode === "verifyEmail" && <VerifyEmail />}
+      
+      {!["resetPassword", "verifyEmail"].includes(mode || "") && (
         <div className="text-center text-muted-foreground">
           Invalid or unknown action mode.
         </div>
@@ -67,9 +63,3 @@ export default function AuthActionPage() {
     </Suspense>
   );
 }
-
-
-
-
-
-

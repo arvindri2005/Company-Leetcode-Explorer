@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS user_bookmarks (
 CREATE TABLE IF NOT EXISTS user_problem_status (
   uid TEXT REFERENCES users(uid) ON DELETE CASCADE,
   problem_id TEXT REFERENCES problems(id) ON DELETE CASCADE,
-  status TEXT CHECK (status IN ('todo', 'in_progress', 'solved', 'reviewed')) NOT NULL,
+  status TEXT CHECK (status IN ('todo', 'in_progress', 'solved', 'reviewed', 'attempted')) NOT NULL,
   attempts INTEGER DEFAULT 0,
   last_attempted_at TIMESTAMPTZ,
   solved_at TIMESTAMPTZ,
@@ -143,3 +143,77 @@ CREATE TRIGGER update_user_problem_status_updated_at
 COMMENT ON COLUMN users.preferences IS 'JSON object containing user preferences: { theme?: "light" | "dark" | "system", emailNotifications?: boolean, weeklyDigest?: boolean }';
 COMMENT ON COLUMN user_problem_status.code_snippets IS 'JSON array of code solutions: [{ language: string, code: string, timestamp: string }]';
 COMMENT ON COLUMN user_problem_status.status IS 'Problem status: todo (not started), in_progress (working on it), solved (completed), reviewed (reviewed after solving)';
+
+-- Create user_education table
+CREATE TABLE IF NOT EXISTS user_education (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  uid TEXT REFERENCES users(uid) ON DELETE CASCADE,
+  school TEXT NOT NULL,
+  degree TEXT,
+  field_of_study TEXT,
+  start_date TIMESTAMPTZ,
+  end_date TIMESTAMPTZ,
+  grade TEXT,
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create user_work_experience table
+CREATE TABLE IF NOT EXISTS user_work_experience (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  uid TEXT REFERENCES users(uid) ON DELETE CASCADE,
+  company TEXT NOT NULL,
+  role TEXT NOT NULL,
+  start_date TIMESTAMPTZ,
+  end_date TIMESTAMPTZ,
+  description TEXT,
+  technologies JSONB DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create user_strategies table
+CREATE TABLE IF NOT EXISTS user_strategies (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  uid TEXT REFERENCES users(uid) ON DELETE CASCADE,
+  company_id TEXT, -- Can be linked to companies(id) but might be optional if company not in DB
+  company_name TEXT NOT NULL,
+  preparation_strategy TEXT, -- Markdown or text
+  focus_topics JSONB DEFAULT '[]'::jsonb, -- Array of strings
+  todo_items JSONB DEFAULT '[]'::jsonb, -- Array of objects: { id, task, isCompleted }
+  saved_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indexes for new tables
+CREATE INDEX IF NOT EXISTS idx_user_education_uid ON user_education(uid);
+CREATE INDEX IF NOT EXISTS idx_user_work_experience_uid ON user_work_experience(uid);
+CREATE INDEX IF NOT EXISTS idx_user_strategies_uid ON user_strategies(uid);
+CREATE INDEX IF NOT EXISTS idx_user_strategies_company ON user_strategies(company_id);
+
+-- Add triggers for updated_at
+CREATE TRIGGER update_user_education_updated_at
+  BEFORE UPDATE ON user_education
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_user_work_experience_updated_at
+  BEFORE UPDATE ON user_work_experience
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_user_strategies_updated_at
+  BEFORE UPDATE ON user_strategies
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- Create contact_messages table
+CREATE TABLE IF NOT EXISTS contact_messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  message TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);

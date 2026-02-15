@@ -3,24 +3,15 @@
  * Handles core user CRUD operations
  */
 
-import {
-  deleteDoc,
-  doc,
-  getDoc,
-  serverTimestamp,
-  setDoc,
-  updateDoc,
-} from "firebase/firestore";
-
 import { User as UserEntity } from "@/core/domain/entities/user.entity";
-import { auth, db } from "@/shared/lib/api/firebase";
+import { createSupabaseBrowserClient } from "@/shared/lib/api/supabase-browser";
 import { Logger } from "@/shared/lib/utils/logger";
 
 import type {
   CreateUserDTO,
   UpdateUserDTO,
 } from "../../interfaces/user.repository.interface";
-import { type UserDocument, UserMapper } from "../../mappers/user.mapper";
+import { UserMapper } from "../../mappers/user.mapper";
 
 /**
  * Interface for user operations
@@ -72,6 +63,8 @@ export interface UserOperations {
  * Implementation of user operations
  */
 export class UserOperationsImpl implements UserOperations {
+  private supabase = createSupabaseBrowserClient();
+
   /**
    * Find a user by their unique identifier
    * @param id - The user's unique identifier (uid)
@@ -82,35 +75,21 @@ export class UserOperationsImpl implements UserOperations {
       return null;
     }
     try {
-      const userDocRef = doc(db, "users", id);
-      const docSnap = await getDoc(userDocRef);
+      const { data, error } = await this.supabase
+        .from("users")
+        .select("*")
+        .eq("uid", id)
+        .single();
 
-      if (!docSnap.exists()) {
+      if (error || !data) {
+        // PGRST116 code indicates 0 rows returned for single()
+        if (error?.code !== "PGRST116") {
+            Logger.error("Error fetching user by ID", error, { id });
+        }
         return null;
       }
-
-      const data = docSnap.data();
-
-      // Security: Check authorization
-      const currentUser = auth.currentUser;
-      const isOwner = currentUser && currentUser.uid === id;
-
-      // Create "Public Profile" view for non-owners
-      // If the requester is not the owner, we strip sensitive fields
-      const email = isOwner ? (data.email ?? null) : null;
-      const preferences = isOwner ? data.preferences : {};
-
-      const userDoc: UserDocument = {
-        uid: docSnap.id,
-        email: email,
-        displayName: data.displayName ?? null,
-        photoUrl: data.photoUrl,
-        preferences: preferences,
-        lastSyncedAt: data.lastSyncedAt?.toDate?.() ?? data.lastSyncedAt,
-        createdAt: data.createdAt?.toDate?.() ?? data.createdAt,
-      };
-
-      return UserMapper.toDomain(userDoc);
+    
+      return UserMapper.toDomain(data);
     } catch (error) {
       Logger.error("Error fetching user by ID", error, { id });
       return null;
@@ -124,7 +103,7 @@ export class UserOperationsImpl implements UserOperations {
    */
   async save(data: CreateUserDTO): Promise<UserEntity> {
     try {
-      const currentUser = auth.currentUser;
+      const { data: { user: currentUser } } = await this.supabase.auth.getUser();
       if (!currentUser) {
         throw new Error("User is not authenticated");
       }
@@ -136,31 +115,29 @@ export class UserOperationsImpl implements UserOperations {
         }
       }
 
-      const uid = currentUser.uid;
-      const userDocRef = doc(db, "users", uid);
-
-      const userData = {
-        uid,
-        email: data.email,
-        displayName: data.displayName,
-        photoUrl: data.photoUrl,
-        preferences: data.preferences ?? {},
-        createdAt: serverTimestamp(),
-        lastSyncedAt: serverTimestamp(),
-      };
-
-      await setDoc(userDocRef, userData);
-
-      return UserEntity.create(
+      const uid = currentUser.id;
+      
+      const userEntity = UserEntity.create(
         {
           email: data.email,
           displayName: data.displayName,
           photoUrl: data.photoUrl,
           preferences: data.preferences ?? {},
-          lastSyncedAt: new Date(),
         },
         uid
       );
+
+      const row = UserMapper.toRow(userEntity);
+
+      const { error } = await this.supabase
+        .from("users")
+        .insert(row);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return userEntity;
     } catch (error) {
       Logger.error("Error saving user", error);
       throw error;
@@ -175,27 +152,28 @@ export class UserOperationsImpl implements UserOperations {
    */
   async update(id: string, data: UpdateUserDTO): Promise<UserEntity> {
     try {
-      const userDocRef = doc(db, "users", id);
+      const updates: any = {
+        updated_at: new Date().toISOString(),
+      };
 
-      const updates: Record<string, unknown> = {};
-      if (data.email !== undefined) {
-        updates.email = data.email;
-      }
+      if (data.email !== undefined) updates.email = data.email;
       if (data.displayName !== undefined) {
-        if (data.displayName && /[<>]/.test(data.displayName)) {
-          throw new Error("Display name contains invalid characters.");
-        }
-        updates.displayName = data.displayName;
+         if (data.displayName && /[<>]/.test(data.displayName)) {
+           throw new Error("Display name contains invalid characters.");
+         }
+         updates.display_name = data.displayName;
       }
-      if (data.photoUrl !== undefined) {
-        updates.photoUrl = data.photoUrl;
-      }
-      if (data.preferences !== undefined) {
-        updates.preferences = data.preferences;
-      }
-      updates.lastSyncedAt = serverTimestamp();
+      if (data.photoUrl !== undefined) updates.photo_url = data.photoUrl;
+      if (data.preferences !== undefined) updates.preferences = data.preferences;
 
-      await updateDoc(userDocRef, updates);
+      const { error } = await this.supabase
+        .from("users")
+        .update(updates)
+        .eq("uid", id);
+
+      if (error) {
+        throw new Error(error.message);
+      }
 
       const updatedUser = await this.findById(id);
       if (!updatedUser) {
@@ -215,8 +193,14 @@ export class UserOperationsImpl implements UserOperations {
    */
   async delete(id: string): Promise<void> {
     try {
-      const userDocRef = doc(db, "users", id);
-      await deleteDoc(userDocRef);
+      const { error } = await this.supabase
+        .from("users")
+        .delete()
+        .eq("uid", id);
+
+      if (error) {
+        throw new Error(error.message);
+      }
     } catch (error) {
       Logger.error("Error deleting user", error, { id });
       throw error;
@@ -233,9 +217,15 @@ export class UserOperationsImpl implements UserOperations {
       return false;
     }
     try {
-      const userDocRef = doc(db, "users", id);
-      const docSnap = await getDoc(userDocRef);
-      return docSnap.exists();
+       const { count, error } = await this.supabase
+        .from("users")
+        .select("uid", { count: "exact", head: true })
+        .eq("uid", id);
+      
+      if (error) {
+           return false;
+      }
+      return (count ?? 0) > 0;
     } catch (error) {
       Logger.error("Error checking user existence", error, { id });
       return false;
@@ -271,7 +261,6 @@ export class UserOperationsImpl implements UserOperations {
       };
     }
 
-    // Security: Validate display name to prevent stored XSS or injection
     if (/[<>]/.test(trimmedName)) {
       Logger.warn("Blocked attempt to set display name with invalid characters", {
         userId,
@@ -283,13 +272,18 @@ export class UserOperationsImpl implements UserOperations {
       };
     }
 
-    const userDocRef = doc(db, "users", userId);
     try {
-      await updateDoc(userDocRef, { displayName: trimmedName });
+      const { error } = await this.supabase
+        .from("users")
+        .update({ display_name: trimmedName, updated_at: new Date().toISOString() })
+        .eq("uid", userId);
+
+      if (error) {
+          throw new Error(error.message);
+      }
       return { success: true };
     } catch (error) {
-      // Security: Return generic error message to prevent leaking internal details
-      Logger.error("Error updating user display name in Firestore", error);
+      Logger.error("Error updating user display name in Supabase", error);
       return {
         success: false,
         error: "An unexpected error occurred while updating display name.",
@@ -308,53 +302,53 @@ export class UserOperationsImpl implements UserOperations {
     displayName: string | null
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      // Security: Always derive UID from the authenticated session
-      const currentUser = auth.currentUser;
+      const { data: { user: currentUser } } = await this.supabase.auth.getUser();
       if (!currentUser) {
         return { success: false, error: "User is not authenticated." };
       }
-      const uid = currentUser.uid;
+      const uid = currentUser.id;
 
-      const userDocRef = doc(db, "users", uid);
-
-      const updates: Record<string, unknown> = {
+      const updates: any = {
         uid,
-        lastSyncedAt: serverTimestamp(),
+        last_synced_at: new Date().toISOString(),
       };
 
-      // Security: Prioritize authenticated email if available
+      // Only update fields if they are provided/changed? 
+      // Upsert will handle create or update.
+      // We want to ensure specific fields are set.
+      
       if (currentUser.email) {
         updates.email = currentUser.email;
       } else if (email) {
-        // Fallback to provided email only if auth email is unavailable (e.g. phone auth)
         updates.email = email;
       }
 
       if (displayName) {
-        // Security: Sanitize display name
         let safeName = displayName.trim();
-        // Truncate if too long (max 50 chars to match updateUserDisplayName limit)
         if (safeName.length > 50) {
           safeName = safeName.substring(0, 50);
         }
-
-        // Security: Remove invalid characters
         if (/[<>]/.test(safeName)) {
           safeName = safeName.replace(/[<>]/g, "");
         }
-
         if (safeName.length > 0) {
-          updates.displayName = safeName;
+          updates.display_name = safeName;
         }
       }
+      
+      // Upsert: Create if not exists, update if exists
+      // We do NOT update created_at, but we update last_synced_at
+      const { error } = await this.supabase
+        .from("users")
+        .upsert(updates, { onConflict: "uid" });
 
-      // We use setDoc with merge: true which creates if not exists, or updates if exists.
-      await setDoc(userDocRef, updates, { merge: true });
+      if (error) {
+          throw new Error(error.message);
+      }
 
       return { success: true };
     } catch (error) {
-      // Security: Return generic error message to prevent leaking internal details
-      Logger.error("Error syncing user profile to Firestore", error);
+      Logger.error("Error syncing user profile to Supabase", error);
       return {
         success: false,
         error: "An unexpected error occurred while syncing user profile.",

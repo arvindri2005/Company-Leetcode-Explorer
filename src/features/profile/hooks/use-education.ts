@@ -5,7 +5,7 @@
 
 import { useCallback, useState } from "react";
 
-import type { User as FirebaseUser } from "firebase/auth";
+import type { User } from "@supabase/supabase-js";
 
 import { userService } from "@/features/profile/services/user.service";
 import { useToast } from "@/shared/hooks/use-toast";
@@ -26,10 +26,10 @@ export interface EducationData {
 /**
  * Hook for managing education history
  * 
- * @param user - Firebase user object
+ * @param user - Supabase user object
  * @returns EducationData object with education data and functions
  */
-export function useEducation(user: FirebaseUser | null): EducationData {
+export function useEducation(user: User | null): EducationData {
   const { toast } = useToast();
   const [educationHistory, setEducationHistory] = useState<EducationExperience[]>([]);
   const [isLoadingEducation, setIsLoadingEducation] = useState(false);
@@ -37,10 +37,10 @@ export function useEducation(user: FirebaseUser | null): EducationData {
   const [isEducationDialogOpen, setIsEducationDialogOpen] = useState(false);
 
   const fetchEducation = useCallback(async () => {
-    if (user?.uid) {
+    if (user?.id) {
       setIsLoadingEducation(true);
       try {
-        const result = await userService.getUserEducation(user.uid);
+        const result = await userService.getUserEducation(user.id);
         if (result.isSuccess) {
           setEducationHistory(result.value);
         } else {
@@ -70,7 +70,7 @@ export function useEducation(user: FirebaseUser | null): EducationData {
     if (!user) {
       return;
     }
-    const result = await userService.addUserEducation(user.uid, data);
+    const result = await userService.addUserEducation(user.id, data);
     if (result.isSuccess && result.value.id) {
       toast({
         title: "Education Added",

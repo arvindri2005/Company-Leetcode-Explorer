@@ -33,7 +33,7 @@ import type { GenerateProblemInsightsOutput } from "@/features/ai/lib/flows/gene
 import type { GroupQuestionsOutput } from "@/features/ai/lib/flows/group-questions";
 import { aiService } from "@/features/ai/lib/services/ai.service";
 import { companyService } from "@/features/companies/services/company.service"; // needed for revalidate lookup
-import { auth } from "@/shared/lib/api/firebase"; // For current user ID
+import { createSupabaseServerClient } from "@/shared/lib/api/supabase-server"; // For current user ID
 import {
   type ApiResponse,
   errorResponse,
@@ -236,8 +236,9 @@ export async function generateCompanyStrategyAction(
   const start = Date.now();
   Logger.info("AI company strategy generation started", { companyId, targetRoleLevel });
   try {
-      const firebaseUser = auth.currentUser;
-      const result = await aiService.generateCompanyStrategy(companyId, firebaseUser?.uid, targetRoleLevel);
+      const supabase = await createSupabaseServerClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      const result = await aiService.generateCompanyStrategy(companyId, user?.id, targetRoleLevel);
 
       const companyResult = await companyService.getCompanyById(companyId);
       if (companyResult.isSuccess) {

@@ -2,82 +2,86 @@
 
 import React, {
   createContext,
-  type ReactNode,
-  useCallback,
   useEffect,
   useMemo,
   useState,
+  type ReactNode,
 } from "react";
 
-import type { User as FirebaseUser } from "firebase/auth";
-import { onAuthStateChanged } from "firebase/auth";
+import type { User } from "@supabase/supabase-js";
 
-import { auth } from "@/shared/lib/api/firebase";
+import { createSupabaseBrowserClient } from "@/shared/lib/api/supabase-browser";
 import { Logger } from "@/shared/lib/utils/logger";
 
-import { authService } from "../services/auth.service";
+import { userService } from "@/features/profile/services/user.service";
 import type { AuthContextType } from "../types";
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 /**
  * @function AuthProvider
- * @description Provides authentication context to its children components.
- * It manages the current user's state, loading status, and profile synchronization with the backend.
+ * @description Provides authentication context to its children components using Supabase.
+ * It manages the current user's state, loading status, and sessions.
  * @param {{ children: ReactNode }} props - The props for the component.
  * @returns {JSX.Element} The provider component.
  */
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<FirebaseUser | null>(null);
-  // Always initialize loading to true for consistent SSR/client initial render
-  // This ensures server and client render the same initial state
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  
-  const syncUserProfileIfNeeded = useCallback(
-    async (firebaseUser: FirebaseUser, force = false) => {
-      if (!firebaseUser) {
-        return;
-      }
+  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
-      const result = await authService.syncUserProfile(firebaseUser, force);
+  // Sync user profile function (kept for compatibility, though largely handled by DB/callback now)
+  const syncUserProfileIfNeeded = async (
+    supabaseUser: User,
+    force = false,
+  ) => {
+    if (!supabaseUser) { return; }
 
-      if (!result.success) {
-        Logger.error("Failed to sync user profile", result.error, {
-          userId: firebaseUser.uid,
-        });
-      }
-    },
-    [],
-  );
+    // Logic to upsert user profile if needed
+    // In Supabase, we might use a trigger on auth.users -> public.users
+    // Or we can manually upsert here
+    if (!force) {
+        // Simple check or skip if we rely on Triggers
+    }
+
+    try {
+        // Map Supabase attributes to our internal syncing logic if necessary
+        // For now, we mainly ensure the user exists in our public table
+        await userService.syncUserProfile(supabaseUser.email || null, supabaseUser.user_metadata.display_name || null);
+    } catch (error) {
+        Logger.error("Failed to sync user profile", error);
+    }
+  };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
+    // Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
       setLoading(false);
-
-      if (firebaseUser) {
-        // Set cookie to indicate user is authenticated
-        document.cookie =
-          "auth_status=authenticated; path=/; max-age=2592000; SameSite=Strict; Secure"; // 30 days
-
-        // Reset sync flag on new auth state if needed, or manage more carefully
-        // For simplicity here, we'll attempt sync if user is present.
-        // A more robust solution might check a flag in localStorage or Firestore
-        // to avoid re-syncing unnecessarily on every page load after login.
-        // For now, this will call sync on first load if user is already logged in.
-        await syncUserProfileIfNeeded(firebaseUser);
-      } else {
-        // Remove cookie on logout
-        document.cookie =
-          "auth_status=; path=/; max-age=0; SameSite=Strict; Secure";
+      if (session?.user) {
+          syncUserProfileIfNeeded(session.user);
       }
     });
 
-    return () => unsubscribe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // isUserProfileSynced removed from deps to avoid loop if sync fails
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false); // Ensure loading is false on any auth change
 
-  // Memoize the context value to prevent unnecessary re-renders in consumers
+      if (session?.user) {
+        // Optional: Sync user profile to public table on login
+         await syncUserProfileIfNeeded(session.user);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supabase]);
+
   const value = useMemo(
     () => ({
       user,
@@ -85,14 +89,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       syncUserProfileIfNeeded,
       setUser,
     }),
-    [user, loading, syncUserProfileIfNeeded],
+    [user, loading],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
-
-
-
-
-

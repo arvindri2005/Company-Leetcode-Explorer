@@ -2,7 +2,7 @@
 
 import { memo, useState } from "react";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 import { Loader2 } from "lucide-react";
 
@@ -10,7 +10,6 @@ import { GoogleIcon } from "@/shared/components/icons/google-icon";
 import { Button } from "@/shared/components/ui/button";
 import { useOnlineStatus } from "@/shared/hooks/use-online-status";
 import { useToast } from "@/shared/hooks/use-toast";
-import { isValidRedirectUrl } from "@/shared/lib/utils/url";
 
 import { authService } from "../services/auth.service";
 
@@ -19,22 +18,16 @@ interface GoogleAuthButtonProps {
 }
 
 /**
- * A button component that handles Google Sign-In.
+ * A button component that handles Google Sign-In via Supabase OAuth.
  *
  * @component
  * @description
- * This component is wrapped in `React.memo` to prevent unnecessary re-renders
- * when used inside forms (like LoginForm/SignupForm). Since forms re-render
- * on every keystroke (when using controlled inputs or watching state),
- * memoizing this button prevents it from re-rendering unless the `disabled`
- * prop changes.
- *
- * Performance impact: Reduces re-renders of this component from N (number of keystrokes)
- * to 1 (only when submission state changes).
+ * This component triggers a redirect to Google for authentication.
+ * Success/Failure is handled by the callback route, not here.
  */
 const GoogleAuthButton = memo(function GoogleAuthButton({ disabled }: GoogleAuthButtonProps) {
   const { toast } = useToast();
-  const router = useRouter();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const isOnline = useOnlineStatus();
@@ -51,41 +44,26 @@ const GoogleAuthButton = memo(function GoogleAuthButton({ disabled }: GoogleAuth
 
     setIsLoading(true);
     try {
-      // Use the centralized authService which handles:
-      // 1. Lazy loading of GoogleAuthProvider (Performance)
-      // 2. Profile synchronization with Firestore (including caching/deduplication)
-      // 3. Error logging
+      // Triggers a redirect - no return value handling needed for success path used effectively
       const response = await authService.loginWithGoogle();
 
-      if (response.success && response.data) {
-        toast({
-          title: "Login Successful! 🎉",
-          description: `Welcome back, ${response.data.displayName || "User"}!`,
-        });
-
-        const redirectUrl = searchParams.get("redirectUrl");
-        if (redirectUrl && isValidRedirectUrl(redirectUrl)) {
-          router.push(redirectUrl);
-        } else {
-          router.push("/profile");
-        }
-      } else {
-        // Handle failure
-        toast({
+      if (!response.success && response.error) {
+         toast({
           title: "Login Failed",
-          description: response.error || "An unknown error occurred. Please try again.",
+          description: response.error,
           variant: "destructive",
         });
+        setIsLoading(false);
       }
+      // If success, page will redirect, so we don't need to unset isLoading ideally,
+      // but if user cancels or something weird happens (though usually redirect is immediate),
+      // we might want to reset. For now, leave as loading to prevent double clicks.
     } catch {
-      // This catch block might not be reached if authService handles everything,
-      // but kept for safety against unexpected errors in the component logic itself.
       toast({
         title: "Login Failed",
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };

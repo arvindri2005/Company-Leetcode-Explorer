@@ -3,15 +3,7 @@
  * Handles strategy query operations
  */
 
-import {
-  collection,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-} from "firebase/firestore";
-
-import { db } from "@/shared/lib/api/firebase";
+import { createSupabaseBrowserClient } from "@/shared/lib/api/supabase-browser";
 import { Logger } from "@/shared/lib/utils/logger";
 import type {
   FocusTopic,
@@ -35,6 +27,8 @@ export interface StrategyQueries {
  * Implementation of strategy query operations
  */
 export class StrategyQueriesImpl implements StrategyQueries {
+  private supabase = createSupabaseBrowserClient();
+
   /**
    * Get user's strategy todo lists
    * @param userId - The user's unique identifier
@@ -45,34 +39,23 @@ export class StrategyQueriesImpl implements StrategyQueries {
       return [];
     }
     try {
-      const todoListsColRef = collection(db, "users", userId, "strategyTodoLists");
-      const q = query(todoListsColRef, orderBy("companyName", "asc"), limit(MAX_PAGE_SIZE));
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map((docSnap) => {
-        const data = docSnap.data();
-        const items = Array.isArray(data.items)
-          ? data.items.map((item: unknown) => {
-              const typedItem = item as Partial<StrategyTodoItem>;
-              return {
-                ...typedItem,
-                text: typeof typedItem.text === "string" ? typedItem.text : "",
-                isCompleted:
-                  typeof typedItem.isCompleted === "boolean" ? typedItem.isCompleted : false,
-              };
-            })
-          : [];
-        const focusTopics = Array.isArray(data.focusTopics) ? data.focusTopics : [];
-        return {
-          companyId: data.companyId || docSnap.id,
-          companyName: data.companyName || "Unknown Company",
-          savedAt: data.savedAt?.toDate
-            ? data.savedAt.toDate()
-            : new Date(data.savedAt || Date.now()),
-          preparationStrategy: data.preparationStrategy || "",
-          focusTopics: focusTopics as FocusTopic[],
-          items: items as StrategyTodoItem[],
-        } as SavedStrategyTodoList;
-      });
+      const { data, error } = await this.supabase
+        .from("user_strategies")
+        .select("*")
+        .eq("uid", userId)
+        .order("company_name", { ascending: true }) // Changed from companyName to company_name
+        .limit(MAX_PAGE_SIZE);
+
+      if (error) throw error;
+
+      return (data || []).map((row) => ({
+        companyId: row.company_id,
+        companyName: row.company_name || "Unknown Company",
+        savedAt: row.saved_at ? new Date(row.saved_at) : new Date(row.created_at || Date.now()),
+        preparationStrategy: row.preparation_strategy || "",
+        focusTopics: (row.focus_topics as FocusTopic[]) || [],
+        items: (row.todo_items as StrategyTodoItem[]) || [],
+      } as SavedStrategyTodoList));
     } catch (error) {
       Logger.error(`Error fetching strategy todo lists`, error, { userId });
       return [];

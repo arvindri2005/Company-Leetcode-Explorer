@@ -52,7 +52,7 @@ const AllProblemsList: React.FC<AllProblemsListProps> = ({
       isLoadingMore={isLoadingMore}
       hasMore={hasMoreState}
       observerTargetRef={observerTargetRef}
-      userId={user?.uid}
+      userId={user?.id}
       globalStats={globalStats}
       actions={actions}
     />

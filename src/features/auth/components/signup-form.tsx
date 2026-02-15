@@ -1,27 +1,15 @@
-/**
- * @fileoverview Defines the user registration (sign-up) form component.
- *
- * This client-side component provides a form for new users to create an account
- * with their display name, email, and password. It uses `react-hook-form` for
- * form management, `zod` for validation, and Firebase Authentication for the
- * user creation process. It handles loading states, error messages, and redirects
- * upon successful registration.
- */
 "use client";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { Loader2, UserPlusIcon } from "lucide-react";
-import { Check } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { z } from "zod";
 
-import { useAuth } from "@/providers";
 import { Button } from "@/shared/components/ui/button";
 import {
   Form,
@@ -32,45 +20,31 @@ import {
   FormMessage,
 } from "@/shared/components/ui/form";
 import { Input } from "@/shared/components/ui/input";
-import { PasswordInput } from "@/shared/components/ui/password-input";
 import { useOnlineStatus } from "@/shared/hooks/use-online-status";
 import { useToast } from "@/shared/hooks/use-toast";
-import { auth } from "@/shared/lib/api/firebase";
-import { cn } from "@/shared/lib/utils";
-import { Logger } from "@/shared/lib/utils/logger";
-import { isValidRedirectUrl } from "@/shared/lib/utils/url";
 
 import { authService } from "../services/auth.service";
-
 import GoogleAuthButton from "./google-auth-button";
 import { SignupPasswordStrength } from "./signup-password-strength";
 
 /**
- * Zod schema for validating the sign-up form fields.
+ * Zod schema for validating the signup form fields.
  */
-export const signupFormSchema = z.object({
+const signupFormSchema = z.object({
   displayName: z
     .string()
-    .trim()
     .min(2, { message: "Display name must be at least 2 characters." })
-    .max(50)
-    .refine((s) => !/[<>]/.test(s), {
-      message: "Display name cannot contain HTML characters (<, >).",
+    .max(50, { message: "Display name must be less than 50 characters." })
+    .regex(/^[a-zA-Z0-9\s-_]+$/, {
+        message: "Display name can only contain letters, numbers, spaces, hyphens, and underscores.",
     }),
-  email: z
-    .string()
-    .email({ message: "Please enter a valid email address." })
-    .max(255, { message: "Email must be less than 255 characters." }),
+  email: z.string().email({ message: "Please enter a valid email address." }),
   password: z
     .string()
     .min(8, { message: "Password must be at least 8 characters." })
     .max(128, { message: "Password must be less than 128 characters." })
-    .regex(/[A-Z]/, {
-      message: "Password must contain at least one uppercase letter.",
-    })
-    .regex(/[a-z]/, {
-      message: "Password must contain at least one lowercase letter.",
-    })
+    .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter." })
+    .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter." })
     .regex(/[0-9]/, { message: "Password must contain at least one number." })
     .regex(/[^A-Za-z0-9]/, {
       message: "Password must contain at least one special character.",
@@ -79,43 +53,29 @@ export const signupFormSchema = z.object({
 
 type SignupFormValues = z.infer<typeof signupFormSchema>;
 
-/**
- * Renders an interactive sign-up form.
- *
- * This component handles the entire user registration flow:
- * - Displays display name, email, and password input fields.
- * - Validates user input using the `signupFormSchema`.
- * - On submission, it creates a new user with Firebase Authentication.
- * - Updates the user's Firebase profile with their display name.
- * - Triggers a sync to create a corresponding user profile in Firestore.
- * - Shows a loading indicator during submission.
- * - Displays success or error notifications (toasts).
- * - Redirects the user to their profile upon successful sign-up.
- *
- * @returns {JSX.Element} The rendered sign-up form component.
- */
 export default function SignupForm() {
   const { toast } = useToast();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { syncUserProfileIfNeeded } = useAuth();
   const isOnline = useOnlineStatus();
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupFormSchema),
-    mode: "onBlur",
     defaultValues: {
       displayName: "",
+      email: "",
       password: "",
     },
+    mode: "onChange",
   });
 
   async function onSubmit(data: SignupFormValues) {
     if (!isOnline) {
       toast({
         title: "You are offline",
-        description: "Please check your internet connection and try again.",
+        description: "Please check your internet connection.",
         variant: "destructive",
       });
       return;
@@ -123,64 +83,27 @@ export default function SignupForm() {
 
     setIsSubmitting(true);
     try {
-      // Performance: Skip the automatic profile sync triggered by onAuthStateChanged
-      // to avoid a double-write (the first one would have null displayName).
-      // The explicit sync below will handle it with the correct displayName.
-      authService.skipNextAutoSync();
+      const result = await authService.signUp(data.email, data.password, data.displayName);
 
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        data.email,
-        data.password,
-      );
-
-      if (userCredential.user) {
-        await updateProfile(userCredential.user, {
-          displayName: data.displayName,
+      if (result.success) {
+        toast({
+          title: "Account Created! 🎉",
+          description: "Please check your email to verify your account.",
         });
-        await syncUserProfileIfNeeded(userCredential.user, true);
-      }
-
-      toast({
-        title: "Account Created! 🎉",
-        description: "Welcome! You have been successfully signed up.",
-      });
-
-      const redirectUrl = searchParams.get("redirectUrl");
-      if (redirectUrl && isValidRedirectUrl(redirectUrl)) {
-        router.push(redirectUrl);
+        
+        // Redirect to login or verification pending page
+        router.push("/login");
       } else {
-        router.push("/profile");
+        toast({
+          title: "Signup Failed",
+          description: result.error || "Could not create account.",
+          variant: "destructive",
+        });
       }
-    } catch (error) {
-      // If signup failed, we must reset the skip flag so that future auto-syncs (e.g. from immediate login) work correctly.
-      authService.resetSkipAutoSync();
-
-      Logger.error("Signup error", error);
-      let errorMessage = "An unknown error occurred. Please try again.";
-
-      if (error instanceof Error && "code" in error) {
-        const firebaseError = error as { code: string; message: string };
-        switch (firebaseError.code) {
-          case "auth/email-already-in-use":
-            errorMessage = "This email address is already in use.";
-            break;
-          case "auth/invalid-email":
-            errorMessage = "The email address is not valid.";
-            break;
-          case "auth/weak-password":
-            errorMessage = "The password is too weak.";
-            break;
-          default:
-            // Log the raw error internally but show a generic message to the user
-            Logger.error("Unhandled signup error", firebaseError);
-            errorMessage = "An error occurred during sign up. Please try again.";
-        }
-      }
-
+    } catch {
       toast({
         title: "Signup Failed",
-        description: errorMessage,
+        description: "An unexpected error occurred.",
         variant: "destructive",
       });
     } finally {
@@ -188,187 +111,122 @@ export default function SignupForm() {
     }
   }
 
-  // NOTE: Removed opacity-0 to prevent visibility issues after animation.
-  // Using animationFillMode: 'both' ensures initial state (opacity 0 from fade-in) applies during delay.
-
-  const redirectParams = searchParams.get("redirectUrl");
-  const loginUrl = `/login${
-    redirectParams ? `?redirectUrl=${encodeURIComponent(redirectParams)}` : ""
-  }`;
-
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500"
-      >
-        <div
-          className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100"
-          style={{ animationFillMode: "both" }}
-        >
-          <GoogleAuthButton disabled={isSubmitting} />
-        </div>
+    <div className="space-y-6">
+      <GoogleAuthButton disabled={isSubmitting} />
 
-        <div
-          className="relative my-6 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-150"
-          style={{ animationFillMode: "both" }}
-        >
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">
-              Or continue with email
-            </span>
-          </div>
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-muted/50" />
         </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">Or</span>
+        </div>
+      </div>
 
-        <FormField
-          control={form.control}
-          name="displayName"
-          render={({ field }) => (
-            <div
-              className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-200"
-              style={{ animationFillMode: "both" }}
-            >
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="displayName"
+            render={({ field }) => (
               <FormItem>
                 <FormLabel>Display Name</FormLabel>
-                <div className="relative">
-                  <FormControl>
-                    <Input
-                      placeholder="Your Name"
-                      {...field}
-                      autoComplete="name"
-                      autoCapitalize="words"
-                      className="h-11 pr-10 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
-                      disabled={isSubmitting}
-                    />
-                  </FormControl>
-                  <div
-                    className={cn(
-                      "absolute right-3 top-3 text-green-500 transition-all duration-200 ease-in-out pointer-events-none",
-                      field.value &&
-                        signupFormSchema.shape.displayName.safeParse(field.value)
-                          .success
-                        ? "opacity-100 scale-100"
-                        : "opacity-0 scale-75",
-                    )}
-                  >
-                    <Check className="h-4 w-4" aria-hidden="true" />
-                  </div>
-                </div>
-                <FormMessage role="alert" />
-              </FormItem>
-            </div>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <div
-              className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-300"
-              style={{ animationFillMode: "both" }}
-            >
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <div className="relative">
-                  <FormControl>
-                    <Input
-                      type="email"
-                      inputMode="email"
-                      placeholder="you@example.com"
-                      {...field}
-                      autoComplete="email"
-                      className="h-11 pr-10 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
-                      disabled={isSubmitting}
-                    />
-                  </FormControl>
-                  <div
-                    className={cn(
-                      "absolute right-3 top-3 text-green-500 transition-all duration-200 ease-in-out pointer-events-none",
-                      field.value &&
-                        signupFormSchema.shape.email.safeParse(field.value)
-                          .success
-                        ? "opacity-100 scale-100"
-                        : "opacity-0 scale-75",
-                    )}
-                  >
-                    <Check className="h-4 w-4" aria-hidden="true" />
-                  </div>
-                </div>
-                <FormMessage role="alert" />
-              </FormItem>
-            </div>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <div
-              className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-400"
-              style={{ animationFillMode: "both" }}
-            >
-              <FormItem>
-                <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <PasswordInput
-                    placeholder="••••••••"
-                    {...field}
-                    autoComplete="new-password"
-                    className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                  <Input
+                    placeholder="John Doe"
+                    autoComplete="name"
                     disabled={isSubmitting}
+                    {...field}
                   />
                 </FormControl>
-                <SignupPasswordStrength password={field.value} />
-                <FormMessage role="alert" />
+                <FormMessage />
               </FormItem>
-            </div>
-          )}
-        />
-        <div
-          className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-500"
-          style={{ animationFillMode: "both" }}
-        >
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="you@example.com"
+                    type="email"
+                    autoComplete="email"
+                    disabled={isSubmitting}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <div className="relative">
+                  <FormControl>
+                    <Input
+                      placeholder="******"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="new-password"
+                      disabled={isSubmitting}
+                      {...field}
+                    />
+                  </FormControl>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+                {/* Password Strength Indicator */}
+                <SignupPasswordStrength password={field.value} />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <Button
             type="submit"
-            disabled={isSubmitting || !isOnline}
-            className="w-full h-11 text-base transition-all duration-200 hover:scale-102 shadow-lg hover:shadow-primary/25"
+            className="w-full"
+            disabled={isSubmitting}
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Signing up...
+                Creating Account...
               </>
             ) : (
-              <>
-                {!isOnline ? (
-                  "You are offline"
-                ) : (
-                  <>
-                    <UserPlusIcon className="mr-2 h-4 w-4" />
-                    Sign Up
-                  </>
-                )}
-              </>
+              "Create Account"
             )}
           </Button>
-        </div>
 
-        <p
-          className="text-center text-sm text-muted-foreground mt-6 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-600"
-          style={{ animationFillMode: "both" }}
-        >
-          Already have an account?{" "}
-          <Link
-            href={loginUrl}
-            className="font-medium text-primary hover:underline transition-colors"
-          >
-            Log in
-          </Link>
-        </p>
-      </form>
-    </Form>
+          <p className="text-center text-sm text-muted-foreground">
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="font-medium text-primary hover:underline underline-offset-4"
+            >
+              Sign in
+            </Link>
+          </p>
+        </form>
+      </Form>
+    </div>
   );
 }

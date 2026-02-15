@@ -1,7 +1,5 @@
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { createSupabaseBrowserClient } from "@/shared/lib/api/supabase-browser";
 import { z } from "zod";
-
-import { db } from "@/shared/lib/api/firebase";
 
 export interface ContactMessageData {
   name: string;
@@ -17,21 +15,27 @@ export const contactMessageSchema = z.object({
 });
 
 export class ContactRepository {
-  async createContactMessage(data: ContactMessageData): Promise<void> {
-    if (!db) {
-      throw new Error("Database not available");
-    }
+  private supabase = createSupabaseBrowserClient();
 
-    // Validate data before sending to Firestore
+  async createContactMessage(data: ContactMessageData): Promise<void> {
+
+    // Validate data before sending to Supabase
     const validationResult = contactMessageSchema.safeParse(data);
     if (!validationResult.success) {
       throw new Error(`Invalid contact message data: ${validationResult.error.message}`);
     }
     
-    await addDoc(collection(db, "contact-messages"), {
-      ...data,
-      createdAt: serverTimestamp(),
-    });
+    const { error } = await this.supabase
+      .from("contact_messages")
+      .insert({
+        name: data.name,
+        email: data.email,
+        message: data.message,
+      });
+
+    if (error) {
+      throw new Error(`Error saving contact message: ${error.message}`);
+    }
   }
 }
 

@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import Link from "next/link";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { sendPasswordResetEmail } from "firebase/auth";
 import { ArrowLeft, Check, Loader2, MailIcon } from "lucide-react";
 import { z } from "zod";
 
@@ -21,9 +20,10 @@ import {
 } from "@/shared/components/ui/form";
 import { Input } from "@/shared/components/ui/input";
 import { useToast } from "@/shared/hooks/use-toast";
-import { auth } from "@/shared/lib/api/firebase";
 import { cn } from "@/shared/lib/utils";
 import { Logger } from "@/shared/lib/utils/logger";
+
+import { authService } from "../services/auth.service";
 
 export const forgotPasswordSchema = z.object({
   email: z
@@ -49,45 +49,28 @@ export default function ForgotPasswordForm() {
   async function onSubmit(data: ForgotPasswordValues) {
     setIsSubmitting(true);
     try {
-      await sendPasswordResetEmail(auth, data.email);
-      setIsEmailSent(true);
-      toast({
-        title: "Email Sent! 📧",
-        description: "Check your inbox and spam folder for the password reset link.",
-      });
-    } catch (error) {
-      Logger.error("Forgot Password error:", error);
-      let errorMessage = "An unknown error occurred. Please try again.";
-
-      if (error instanceof Error && "code" in error) {
-        const firebaseError = error as { code: string; message: string };
-        
-        // SECURITY: Treat user-not-found as success to prevent email enumeration
-        if (firebaseError.code === "auth/user-not-found") {
-          setIsEmailSent(true);
-          toast({
-            title: "Email Sent! 📧",
-            description: "Check your inbox and spam folder for the password reset link.",
-          });
-          return;
-        }
-
-        switch (firebaseError.code) {
-          case "auth/invalid-email":
-            errorMessage = "The email address is not valid.";
-            break;
-           case "auth/too-many-requests":
-            errorMessage = "Too many attempts. Please try again later.";
-            break;
-          default:
-            // Don't leak internal error messages
-            errorMessage = "An error occurred. Please try again.";
-        }
+      // Supabase handles password reset emails
+      const result = await authService.resetPassword(data.email);
+      
+      if (result.success) {
+        setIsEmailSent(true);
+        toast({
+          title: "Email Sent! 📧",
+          description: "Check your inbox for the password reset link.",
+        });
+      } else {
+         toast({
+          title: "Request Failed",
+          description: result.error || "Could not send reset link.",
+          variant: "destructive",
+        });
       }
 
+    } catch (error) {
+      Logger.error("Forgot Password error:", error);
       toast({
         title: "Request Failed",
-        description: errorMessage,
+        description: "An unexpected error occurred.",
         variant: "destructive",
       });
     } finally {

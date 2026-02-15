@@ -26,7 +26,7 @@ import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import { userService } from "@/features/profile/services/user.service";
-import { auth } from "@/shared/lib/api/firebase";
+import { createSupabaseServerClient } from "@/shared/lib/api/supabase-server";
 import {
   type ApiResponse,
   errorResponse,
@@ -65,10 +65,6 @@ const GetStatusInputSchema = z.object({
  * @param {string} problemSlug - The slug of the problem itself.
  * @returns {Promise<ApiResponse<{ isBookmarked: boolean }>>} A promise that resolves to
  * a standardized API response with the new bookmark status.
- *
- * @deprecated This action is currently disabled for security reasons until proper server-side
- * authentication (Admin SDK) is implemented. It currently relies on client-side auth state
- * which is not available on the server.
  */
 export async function toggleBookmarkProblemAction(
   userId: string,
@@ -77,10 +73,11 @@ export async function toggleBookmarkProblemAction(
   problemSlug: string,
 ): Promise<ApiResponse<{ isBookmarked: boolean }>> {
   // SENTINEL: Prevent IDOR by verifying the requested userId matches the authenticated session.
-  // Note: auth.currentUser is likely null in the current Client SDK server setup, causing this to fail safely.
-  const currentUser = auth.currentUser;
-  if (!currentUser || currentUser.uid !== userId) {
-    Logger.warn("Security: Unauthorized attempt to toggle bookmark", { requestedUserId: userId, authenticatedUserId: currentUser?.uid });
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user || user.id !== userId) {
+    Logger.warn("Security: Unauthorized attempt to toggle bookmark", { requestedUserId: userId, authenticatedUserId: user?.id });
     return errorResponse({
       code: "UNAUTHORIZED",
       message: "Unauthorized: Server-side authentication is required to perform this action.",
@@ -165,9 +162,11 @@ export async function setProblemStatusAction(
   problemSlug: string,
 ): Promise<ApiResponse<void>> {
   // SENTINEL: Prevent IDOR by verifying the requested userId matches the authenticated session.
-  const currentUser = auth.currentUser;
-  if (!currentUser || currentUser.uid !== userId) {
-    Logger.warn("Security: Unauthorized attempt to set problem status", { requestedUserId: userId, authenticatedUserId: currentUser?.uid });
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user || user.id !== userId) {
+    Logger.warn("Security: Unauthorized attempt to set problem status", { requestedUserId: userId, authenticatedUserId: user?.id });
     return errorResponse({
       code: "UNAUTHORIZED",
       message: "Unauthorized: Server-side authentication is required to perform this action.",
@@ -249,9 +248,11 @@ export async function getUserProblemStatusesForIdsAction(
   problemIds: string[],
 ): Promise<ApiResponse<Record<string, { isBookmarked: boolean; status?: ProblemStatus }>>> {
   // SENTINEL: Prevent IDOR by verifying the requested userId matches the authenticated session.
-  const currentUser = auth.currentUser;
-  if (!currentUser || currentUser.uid !== userId) {
-    Logger.warn("Security: Unauthorized attempt to fetch user problem statuses", { requestedUserId: userId, authenticatedUserId: currentUser?.uid });
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user || user.id !== userId) {
+    Logger.warn("Security: Unauthorized attempt to fetch user problem statuses", { requestedUserId: userId, authenticatedUserId: user?.id });
     return errorResponse({
       code: "UNAUTHORIZED",
       message: "Unauthorized: Server-side authentication is required to perform this action.",

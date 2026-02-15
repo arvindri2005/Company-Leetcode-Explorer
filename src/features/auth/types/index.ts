@@ -1,20 +1,20 @@
-import type { User as FirebaseUser } from "firebase/auth";
+import type { User } from "@supabase/supabase-js";
 
 /**
  * @description Defines the shape of the authentication context.
  */
 export interface AuthContextType {
-  /** The currently authenticated Firebase user object, or null if not logged in. */
-  user: FirebaseUser | null;
+  /** The currently authenticated Supabase user object, or null if not logged in. */
+  user: User | null;
   /** Boolean indicating if the authentication state is still being loaded. */
   loading: boolean;
-  /** Function to trigger a profile sync with Firestore if needed. */
+  /** Function to trigger a profile sync with Supabase if needed. */
   syncUserProfileIfNeeded: (
-    firebaseUser: FirebaseUser,
+    supabaseUser: User,
     force?: boolean,
   ) => Promise<void>;
   /** Function to set the user state, typically used for testing or specific auth flows. */
-  setUser?: React.Dispatch<React.SetStateAction<FirebaseUser | null>>;
+  setUser?: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
 /**
@@ -42,9 +42,3 @@ export interface RegisterCredentials {
   password: string;
   displayName?: string;
 }
-
-
-
-
-
-

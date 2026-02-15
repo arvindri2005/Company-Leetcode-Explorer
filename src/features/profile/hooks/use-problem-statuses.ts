@@ -5,7 +5,7 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 
-import type { User as FirebaseUser } from "firebase/auth";
+import type { User } from "@supabase/supabase-js";
 
 import { getProblemByCompanySlugAndProblemSlugAction } from "@/features/problems/actions/problem.actions";
 import { useToast } from "@/shared/hooks/use-toast";
@@ -34,7 +34,7 @@ export interface ProblemStatusesData {
 /**
  * Hook for managing problem statuses (solved, attempted, todo)
  *
- * @param user - Firebase user object
+ * @param user - Supabase user object
  * @param authLoading - Whether authentication is loading
  * @param problemStatuses - Map of problem statuses from useProfileData
  * @param hasFetchedStatusMap - Whether status map has been fetched
@@ -43,7 +43,7 @@ export interface ProblemStatusesData {
  * @returns ProblemStatusesData object with status data and functions
  */
 export function useProblemStatuses(
-  user: FirebaseUser | null,
+  user: User | null,
   authLoading: boolean,
   problemStatuses: Record<string, UserProblemStatusInfo>,
   hasFetchedStatusMap: boolean,
@@ -66,7 +66,7 @@ export function useProblemStatuses(
 
   // Hydrates problem details for a specific status (Solved, Attempted, etc.)
   const hydrateProblemsForStatus = useCallback(async (status: ProblemStatus) => {
-    if (!user?.uid) {
+    if (!user?.id) {
       return;
     }
     

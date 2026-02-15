@@ -2,7 +2,7 @@ import React from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import type { Meta, StoryObj } from '@storybook/react';
-import { type User } from 'firebase/auth';
+import { type User } from "@supabase/supabase-js";
 
 import UserInfoCard from './user-info-card';
 
@@ -29,12 +29,17 @@ export default meta;
 type Story = StoryObj<typeof UserInfoCard>;
 
 const mockUser = {
-  uid: '123',
-  displayName: 'Test User',
+  id: '123',
+  aud: 'authenticated',
   email: 'test@example.com',
-  emailVerified: true,
-  metadata: { creationTime: new Date().toISOString() },
-  photoURL: 'https://github.com/shadcn.png',
+  email_confirmed_at: '2023-01-01T00:00:00.000Z',
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+  user_metadata: {
+    display_name: 'Test User',
+    avatar_url: 'https://github.com/shadcn.png',
+  },
+  app_metadata: {},
 } as unknown as User;
 
 export const Default: Story = {

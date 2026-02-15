@@ -2,13 +2,13 @@
 
 import React from "react";
 
-import type { User as FirebaseUser } from "firebase/auth";
+import type { User } from "@supabase/supabase-js";
 
 import { useAICooldown } from "@/features/ai";
 
 const AITooltipContentComponent: React.FC<{
   defaultText: string;
-  user: FirebaseUser | null;
+  user: User | null;
 }> = ({ defaultText, user }) => {
   const { canUseAI, isLoadingCooldown, getFormattedRemainingTime } =
     useAICooldown();

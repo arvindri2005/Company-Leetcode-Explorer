@@ -284,7 +284,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
 
     const fetchGlobalStats = async () => {
         try {
-            const result = await userService.getUserGlobalProblemStats(user.uid);
+            const result = await userService.getUserGlobalProblemStats(user.id);
             if (result.isSuccess) {
               setSolvedProblemIds(new Set(result.value.solvedProblemIds));
               setAttemptedProblemIds(new Set(result.value.attemptedProblemIds));
@@ -502,7 +502,7 @@ const ProblemList: React.FC<ProblemListProps> = ({
                 onBookmarkChanged={handleProblemBookmarkChange}
                 problemStatus={problem.currentStatus || "none"}
                 onProblemStatusChange={handleProblemStatusChange}
-                userId={user?.uid}
+                userId={user?.id}
               />
               {(index + 1) % 20 === 0 && (
                 <AdPlaceholder className="my-4 h-32" title="Sponsored" />

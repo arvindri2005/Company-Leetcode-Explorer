@@ -3,7 +3,7 @@ import { z } from "zod";
 /**
  * @description Valid statuses for a user's progress on a problem.
  */
-export const VALID_USER_PROBLEM_STATUSES = ["solved", "attempted", "todo", "none"] as const;
+export const VALID_USER_PROBLEM_STATUSES = ["solved", "attempted", "todo", "in_progress", "none"] as const;
 
 /**
  * @description Represents the status of a user's progress on a problem.

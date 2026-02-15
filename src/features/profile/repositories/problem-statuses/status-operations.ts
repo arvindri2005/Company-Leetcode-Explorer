@@ -3,18 +3,7 @@
  * Handles problem status CRUD operations
  */
 
-import {
-  arrayUnion,
-  collection,
-  doc,
-  getDocs,
-  orderBy,
-  query,
-  serverTimestamp,
-  writeBatch,
-} from "firebase/firestore";
-
-import { db } from "@/shared/lib/api/firebase";
+import { createSupabaseBrowserClient } from "@/shared/lib/api/supabase-browser";
 import { Logger } from "@/shared/lib/utils/logger";
 import type { ProblemStatus, UserProblemStatusInfo } from "@/shared/types";
 
@@ -52,6 +41,8 @@ export interface StatusOperations {
  * Implementation of problem status operations
  */
 export class StatusOperationsImpl implements StatusOperations {
+  private supabase = createSupabaseBrowserClient();
+
   /**
    * Get all problem statuses for a user
    * @param userId - The user's unique identifier
@@ -65,21 +56,45 @@ export class StatusOperationsImpl implements StatusOperations {
     }
     const statuses: Record<string, UserProblemStatusInfo> = {};
     try {
-      const progressColRef = collection(db, "users", userId, "problemProgress");
-      const q = query(progressColRef, orderBy("updatedAt", "desc"));
-      const querySnapshot = await getDocs(q);
-      querySnapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        if (data.status && data.companySlug && data.problemSlug) {
-          statuses[docSnap.id] = {
-            problemId: docSnap.id,
-            status: data.status as ProblemStatus,
-            companySlug: data.companySlug,
-            problemSlug: data.problemSlug,
-            updatedAt: data.updatedAt?.toDate(),
-          };
-        }
-      });
+      const { data, error } = await this.supabase
+        .from("user_problem_status")
+        .select(`
+          problem_id,
+          status,
+          updated_at,
+          problems (
+            slug,
+            company_problems (
+               companies (
+                 slug
+               )
+            )
+          )
+        `)
+        .eq("uid", userId)
+        .order("updated_at", { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        data.forEach((row: any) => {
+          const problem = row.problems;
+          // Determine company slug from available relationships
+          const companySlug = problem?.company_problems?.[0]?.companies?.slug;
+          
+           if (row.problem_id && row.status && problem?.slug && companySlug) {
+              statuses[row.problem_id] = {
+                problemId: row.problem_id,
+                status: row.status as ProblemStatus,
+                companySlug: companySlug,
+                problemSlug: problem.slug,
+                updatedAt: new Date(row.updated_at),
+              };
+           }
+        });
+      }
       return statuses;
     } catch (error) {
       Logger.error(`Error fetching all problem statuses`, error, { userId });
@@ -101,18 +116,33 @@ export class StatusOperationsImpl implements StatusOperations {
       return { solvedProblemIds: [], attemptedProblemIds: [], bookmarkedProblemIds: [] };
     }
     try {
-      const docRef = doc(db, "users", userId, "aggregates", "problemStats");
-      const docSnap = await (await import("firebase/firestore")).getDoc(docRef);
+      // Execute 3 parallel queries to get the stats
+      const [solvedRes, attemptedRes, bookmarkRes] = await Promise.all([
+        this.supabase
+          .from("user_problem_status")
+          .select("problem_id")
+          .eq("uid", userId)
+          .eq("status", "solved"),
+        this.supabase
+          .from("user_problem_status")
+          .select("problem_id")
+          .eq("uid", userId)
+          .in("status", ["attempted", "in_progress"]), // Assuming these count as attempted
+        this.supabase
+          .from("user_bookmarks")
+          .select("problem_id")
+          .eq("uid", userId)
+      ]);
 
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        return {
-          solvedProblemIds: (data.solvedProblemIds as string[]) || [],
-          attemptedProblemIds: (data.attemptedProblemIds as string[]) || [],
-          bookmarkedProblemIds: (data.bookmarkedProblemIds as string[]) || [],
-        };
-      }
-      return { solvedProblemIds: [], attemptedProblemIds: [], bookmarkedProblemIds: [] };
+      if (solvedRes.error) throw solvedRes.error;
+      if (attemptedRes.error) throw attemptedRes.error;
+      if (bookmarkRes.error) throw bookmarkRes.error;
+
+      return {
+        solvedProblemIds: solvedRes.data?.map(r => r.problem_id) || [],
+        attemptedProblemIds: attemptedRes.data?.map(r => r.problem_id) || [],
+        bookmarkedProblemIds: bookmarkRes.data?.map(r => r.problem_id) || [],
+      };
     } catch (error) {
       Logger.error(`Error fetching global problem stats`, error, { userId });
       return { solvedProblemIds: [], attemptedProblemIds: [], bookmarkedProblemIds: [] };
@@ -139,51 +169,41 @@ export class StatusOperationsImpl implements StatusOperations {
       return { success: false, error: "User ID and Problem ID are required." };
     }
 
-    const statusDocRef = doc(db, "users", userId, "problemProgress", problemId);
-    const aggregateDocRef = doc(db, "users", userId, "aggregates", "problemStats");
-
     try {
-      const batch = writeBatch(db);
-
-      // 1. Update individual problem status
       if (status === "none") {
-        batch.delete(statusDocRef);
+        // Remove status
+        const { error } = await this.supabase
+          .from("user_problem_status")
+          .delete()
+          .eq("uid", userId)
+          .eq("problem_id", problemId);
+          
+        if (error) throw error;
       } else {
-        batch.set(statusDocRef, {
-          status: status,
-          updatedAt: serverTimestamp(),
-          companySlug: companySlug,
-          problemSlug: problemSlug,
-        });
+        // Upsert status
+        const updates: any = {
+           uid: userId,
+           problem_id: problemId,
+           status: status,
+           updated_at: new Date().toISOString()
+        };
+
+        if (status === 'solved') {
+            updates.solved_at = new Date().toISOString();
+        } else if (status === 'attempted' || status === 'in_progress') {
+            updates.last_attempted_at = new Date().toISOString();
+        }
+
+        const { error } = await this.supabase
+          .from("user_problem_status")
+          .upsert(updates, { onConflict: "uid,problem_id" });
+
+        if (error) throw error;
       }
 
-      // 2. Update aggregate stats
-      // Note: We only ADD to the aggregate arrays as requested.
-      // We do not remove from them if status changes or is removed, to keep it as a historical record of "ever solved" or "ever attempted".
-      // If stricter sync is needed later, we can add logic to remove from other arrays.
-      if (status === "solved") {
-        batch.set(
-          aggregateDocRef,
-          {
-            solvedProblemIds: arrayUnion(problemId),
-          },
-          { merge: true }
-        );
-      } else if (status === "attempted") {
-        batch.set(
-          aggregateDocRef,
-          {
-            attemptedProblemIds: arrayUnion(problemId),
-          },
-          { merge: true }
-        );
-      }
-
-      await batch.commit();
       return { success: true };
     } catch (error) {
-      // Security: Return generic error message to prevent leaking internal details
-      Logger.error("Error setting problem status in Firestore", error);
+      Logger.error("Error setting problem status in Supabase", error);
       return {
         success: false,
         error: "An unexpected error occurred while updating problem status.",

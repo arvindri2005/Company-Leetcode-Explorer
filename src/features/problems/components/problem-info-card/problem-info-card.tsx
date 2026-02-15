@@ -63,6 +63,7 @@ const statusIcons: Record<ProblemStatus, React.ElementType> = {
   solved: CheckCircle,
   attempted: XCircle,
   todo: ListTodo,
+  in_progress: Circle,
   none: Circle,
 };
 
@@ -94,7 +95,7 @@ const ProblemInfoCard: React.FC<ProblemInfoCardProps> = ({
     interactionCompanySlug,
     initialIsBookmarked,
     problemStatus,
-    user?.uid,
+    user?.id,
     onBookmarkChanged,
     onProblemStatusChange,
   );

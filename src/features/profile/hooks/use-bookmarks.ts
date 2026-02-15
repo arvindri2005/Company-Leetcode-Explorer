@@ -5,7 +5,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import type { User as FirebaseUser } from "firebase/auth";
+import type { User } from "@supabase/supabase-js";
 
 import { getProblemsByIdsBatchAction } from "@/features/problems/actions/problem.actions";
 import { userService } from "@/features/profile/services/user.service";
@@ -27,12 +27,12 @@ export interface BookmarksData {
 /**
  * Hook for managing bookmarked problems
  * 
- * @param user - Firebase user object
+ * @param user - Supabase user object
  * @param authLoading - Whether authentication is loading
  * @returns BookmarksData object with bookmarks and fetch functions
  */
 export function useBookmarks(
-  user: FirebaseUser | null,
+  user: User | null,
   authLoading: boolean
 ): BookmarksData {
   const { toast } = useToast();
@@ -40,10 +40,10 @@ export function useBookmarks(
   const [isLoadingBookmarks, setIsLoadingBookmarks] = useState(false);
 
   const fetchBookmarkedData = useCallback(async () => {
-    if (user?.uid) {
+    if (user?.id) {
       setIsLoadingBookmarks(true);
       try {
-        const bookmarkInfosResult = await userService.getBookmarkedProblemsInfo(user.uid);
+        const bookmarkInfosResult = await userService.getBookmarkedProblemsInfo(user.id);
         if (!bookmarkInfosResult.isSuccess) {
           toast({
             title: "Error",

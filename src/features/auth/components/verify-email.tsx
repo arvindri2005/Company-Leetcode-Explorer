@@ -3,103 +3,69 @@
 import { useEffect, useState } from "react";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
-import { applyActionCode } from "firebase/auth";
-import { CheckCircle2, Loader2, XCircle } from "lucide-react";
+import { CheckCircle2, XCircle } from "lucide-react";
 
 import { Button } from "@/shared/components/ui/button";
-import { auth } from "@/shared/lib/api/firebase";
-import { Logger } from "@/shared/lib/utils/logger";
 
-interface VerifyEmailProps {
-  oobCode: string | null;
-}
-
-export default function VerifyEmail({ oobCode }: VerifyEmailProps) {
-  const [status, setStatus] = useState<"verifying" | "success" | "error">("verifying");
-  const [message, setMessage] = useState("Verifying your email address...");
+export default function VerifyEmail() {
+  const searchParams = useSearchParams();
+  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
   useEffect(() => {
-    if (!oobCode) {
-      // Schedule state update for next tick to avoid setState in effect
-      const timeoutId = setTimeout(() => {
-        setStatus("error");
-        setMessage("Invalid verification link. The code is missing.");
-      }, 0);
-      return () => clearTimeout(timeoutId);
+    // The callback route (/auth/callback) redirects here with status=success if verification worked
+    const mode = searchParams.get("mode");
+    const statusParam = searchParams.get("status");
+
+    if (mode === "verifyEmail" && statusParam === "success") {
+      setStatus("success");
+    } else {
+      // If we landed here without success param, it might be an error or manual navigation
+      setStatus("error");
     }
+  }, [searchParams]);
 
-    applyActionCode(auth, oobCode)
-      .then(() => {
-        setStatus("success");
-      })
-      .catch((error) => {
-        Logger.error("Email verification error:", error);
-        setStatus("error");
-        if (error.code === "auth/invalid-action-code") {
-            setMessage("This verification link is invalid or has expired.");
-        } else {
-            setMessage("Failed to verify email. Please try again.");
-        }
-      });
-  }, [oobCode]);
-
-  if (status === "verifying") {
-    return (
-      <div
-        className="flex flex-col items-center justify-center space-y-4 py-8"
-        role="status"
-        aria-live="polite"
-      >
-        <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
-        <p className="text-muted-foreground">{message}</p>
-      </div>
-    );
+  if (status === "loading") {
+    // This state is transient as the callback redirects relatively quickly
+    return <div>Verifying...</div>;
   }
 
   if (status === "success") {
     return (
-      <div className="text-center space-y-6" role="status" aria-live="polite">
-        <div className="mx-auto w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center">
-          <CheckCircle2 className="w-8 h-8 text-green-600" aria-hidden="true" />
+      <div className="text-center space-y-6">
+        <div className="mx-auto w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
+          <CheckCircle2 className="w-8 h-8" />
         </div>
         <div className="space-y-2">
-            <h3 className="text-xl font-semibold text-green-600">Email Verified!</h3>
-            <p className="text-muted-foreground">
-                Your email has been successfully verified. You can now access all features.
-            </p>
+          <h3 className="text-xl font-semibold">Email Verified!</h3>
+          <p className="text-muted-foreground">
+            Thank you for verifying your email address. Your account is now fully active.
+          </p>
         </div>
-        <Button asChild className="w-full bg-green-600 hover:bg-green-700">
-            <Link href="/login">
-                Continue to Login
-            </Link>
+        <Button asChild className="w-full">
+          <Link href="/profile">Go to Profile</Link>
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="text-center space-y-6" role="alert" aria-live="assertive">
-      <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
-        <XCircle className="w-8 h-8 text-destructive" aria-hidden="true" />
+    <div className="text-center space-y-6">
+      <div className="mx-auto w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center">
+        <XCircle className="w-8 h-8" />
       </div>
       <div className="space-y-2">
-        <h3 className="text-xl font-semibold text-destructive">
-          Verification Failed
-        </h3>
-            <p className="text-muted-foreground">{message}</p>
-        </div>
-         <Button asChild variant="outline" className="w-full">
-            <Link href="/login">
-                Back to Login
-            </Link>
+        <h3 className="text-xl font-semibold">Verification Failed</h3>
+        <p className="text-muted-foreground">
+          The verification link may be invalid or expired.
+        </p>
+      </div>
+      <div className="space-y-2 w-full">
+         <Button asChild variant="default" className="w-full">
+          <Link href="/login">Back to Login</Link>
         </Button>
+      </div>
     </div>
   );
 }
-
-
-
-
-
-

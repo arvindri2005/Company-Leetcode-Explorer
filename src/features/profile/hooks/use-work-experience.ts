@@ -5,7 +5,7 @@
 
 import { useCallback, useState } from "react";
 
-import type { User as FirebaseUser } from "firebase/auth";
+import type { User } from "@supabase/supabase-js";
 
 import { userService } from "@/features/profile/services/user.service";
 import { useToast } from "@/shared/hooks/use-toast";
@@ -26,10 +26,10 @@ export interface WorkExperienceData {
 /**
  * Hook for managing work experience
  * 
- * @param user - Firebase user object
+ * @param user - Supabase user object
  * @returns WorkExperienceData object with work experience data and functions
  */
-export function useWorkExperience(user: FirebaseUser | null): WorkExperienceData {
+export function useWorkExperience(user: User | null): WorkExperienceData {
   const { toast } = useToast();
   const [workExperience, setWorkExperience] = useState<WorkExperience[]>([]);
   const [isLoadingWorkExperience, setIsLoadingWorkExperience] = useState(false);
@@ -37,10 +37,10 @@ export function useWorkExperience(user: FirebaseUser | null): WorkExperienceData
   const [isWorkDialogOpen, setIsWorkDialogOpen] = useState(false);
 
   const fetchWorkExperience = useCallback(async () => {
-    if (user?.uid) {
+    if (user?.id) {
       setIsLoadingWorkExperience(true);
       try {
-        const result = await userService.getUserWorkExperience(user.uid);
+        const result = await userService.getUserWorkExperience(user.id);
         if (result.isSuccess) {
           setWorkExperience(result.value);
         } else {
@@ -70,7 +70,7 @@ export function useWorkExperience(user: FirebaseUser | null): WorkExperienceData
     if (!user) {
       return;
     }
-    const result = await userService.addUserWorkExperience(user.uid, data);
+    const result = await userService.addUserWorkExperience(user.id, data);
     if (result.isSuccess && result.value.id) {
       toast({
         title: "Work Experience Added",

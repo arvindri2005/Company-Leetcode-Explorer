@@ -5,7 +5,7 @@
 
 import { FormProvider, type UseFormReturn } from "react-hook-form";
 
-import type { User as FirebaseUser } from "firebase/auth";
+import type { User } from "@supabase/supabase-js";
 
 import ProgressStats from "@/features/profile/components/progress-stats";
 import UserInfoCard from "@/features/profile/components/user-info-card";
@@ -15,7 +15,7 @@ type DisplayNameFormValues = {
 };
 
 export interface ProfileHeaderProps {
-  user: FirebaseUser;
+  user: User;
   isEditingDisplayName: boolean;
   setIsEditingDisplayName: (isEditing: boolean) => void;
   onSubmitDisplayName: (data: DisplayNameFormValues) => Promise<void>;

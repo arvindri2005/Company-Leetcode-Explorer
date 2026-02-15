@@ -1,4 +1,4 @@
-import type { User as FirebaseUser } from "firebase/auth";
+import type { User } from "@supabase/supabase-js";
 
 // Re-export from domain for backward compatibility
 export {
@@ -16,14 +16,13 @@ export {
   WorkExperienceSchema,
   WorkExperienceBaseSchema,
   validateWorkExperienceDates,
-} from "@/domain/entities/user.entity";
+} from "@/core/domain/entities/user.entity"; // Adjusted path to core
 export {
   type FocusTopic,
   FocusTopicSchema,
   type StrategyTodoItem,
   StrategyTodoItemSchema,
-} from "@/domain/value-objects";
-
+} from "@/core/domain/value-objects"; // Adjusted path to core if needed
 
 // --- User Authentication and Profile Types ---
 
@@ -31,14 +30,12 @@ export {
  * @description Defines the shape of the authentication context.
  */
 export interface AuthContextType {
-  /** The currently authenticated Firebase user object, or null if not logged in. */
-  user: FirebaseUser | null;
+  /** The currently authenticated Supabase user object, or null if not logged in. */
+  user: User | null;
   /** Boolean indicating if the authentication state is still being loaded. */
   loading: boolean;
-  /** Boolean indicating if the user's profile has been synced with Firestore during the current session. */
-  isUserProfileSynced: boolean;
-  /** Function to trigger a profile sync with Firestore if needed. */
-  syncUserProfileIfNeeded: (firebaseUser: FirebaseUser) => Promise<void>;
+  /** Function to trigger a profile sync if needed. */
+  syncUserProfileIfNeeded: (user: User, force?: boolean) => Promise<void>;
   /** Function to set the user state, typically used for testing or specific auth flows. */
-  setUser?: React.Dispatch<React.SetStateAction<FirebaseUser | null>>;
+  setUser?: React.Dispatch<React.SetStateAction<User | null>>;
 }

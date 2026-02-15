@@ -3,21 +3,7 @@
  * Handles bookmark CRUD operations
  */
 
-import {
-  arrayRemove,
-  arrayUnion,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-  serverTimestamp,
-  writeBatch,
-} from "firebase/firestore";
-
-import { db } from "@/shared/lib/api/firebase";
+import { createSupabaseBrowserClient } from "@/shared/lib/api/supabase-browser";
 import { Logger } from "@/shared/lib/utils/logger";
 import type { BookmarkedProblemInfo } from "@/shared/types";
 
@@ -47,6 +33,8 @@ export interface BookmarkOperations {
  * Implementation of bookmark operations
  */
 export class BookmarkOperationsImpl implements BookmarkOperations {
+  private supabase = createSupabaseBrowserClient();
+
   /**
    * Get bookmarked problems info for a user
    * @param userId - The user's unique identifier
@@ -57,23 +45,51 @@ export class BookmarkOperationsImpl implements BookmarkOperations {
       return [];
     }
     try {
-      const q = query(
-        collection(db, "users", userId, "bookmarkedProblems"),
-        orderBy("bookmarkedAt", "desc"),
-        limit(MAX_PAGE_SIZE)
-      );
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs
-        .map((docSnap) => {
-          const data = docSnap.data();
+      // Fetch bookmarks with problem details and associated companies
+      // We aim to get at least one company slug to construct a valid URL
+      const { data, error } = await this.supabase
+        .from("user_bookmarks")
+        .select(`
+          created_at,
+          problem_id,
+          problems (
+            slug,
+            company_problems (
+              companies (
+                slug
+              )
+            )
+          )
+        `)
+        .eq("uid", userId)
+        .order("created_at", { ascending: false })
+        .limit(MAX_PAGE_SIZE);
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data) return [];
+
+      return data
+        .map((row: any) => {
+          const problem = row.problems;
+          // Try to find a company slug from the joined data
+          // company_problems is an array of { companies: { slug: string } }
+          const companySlug = problem?.company_problems?.[0]?.companies?.slug;
+          
+          if (!problem?.slug || !companySlug) {
+            return null; // Skip if data is incomplete
+          }
+
           return {
-            problemId: docSnap.id,
-            companySlug: data.companySlug,
-            problemSlug: data.problemSlug,
-            bookmarkedAt: data.bookmarkedAt?.toDate(),
+            problemId: row.problem_id,
+            companySlug: companySlug,
+            problemSlug: problem.slug,
+            bookmarkedAt: new Date(row.created_at),
           } as BookmarkedProblemInfo;
         })
-        .filter((info) => info.companySlug && info.problemSlug);
+        .filter((info): info is BookmarkedProblemInfo => info !== null);
     } catch (error) {
       Logger.error(`Error fetching bookmarked problems info`, error, { userId });
       return [];
@@ -100,45 +116,48 @@ export class BookmarkOperationsImpl implements BookmarkOperations {
         error: "User ID and Problem ID are required.",
       };
     }
-    const bookmarkDocRef = doc(db, "users", userId, "bookmarkedProblems", problemId);
-    const aggregateDocRef = doc(db, "users", userId, "aggregates", "problemStats");
 
     try {
-      const docSnap = await getDoc(bookmarkDocRef);
-      const batch = writeBatch(db);
-      let isBookmarked = false;
+      // Check if bookmark exists
+      const { data: existing, error: checkError } = await this.supabase
+        .from("user_bookmarks")
+        .select("problem_id")
+        .eq("uid", userId)
+        .eq("problem_id", problemId)
+        .single();
 
-      if (docSnap.exists()) {
-        batch.delete(bookmarkDocRef);
-        batch.set(
-          aggregateDocRef,
-          {
-            bookmarkedProblemIds: arrayRemove(problemId),
-          },
-          { merge: true }
-        );
-        isBookmarked = false;
-      } else {
-        batch.set(bookmarkDocRef, {
-          bookmarkedAt: serverTimestamp(),
-          companySlug: companySlug,
-          problemSlug: problemSlug,
-        });
-        batch.set(
-          aggregateDocRef,
-          {
-            bookmarkedProblemIds: arrayUnion(problemId),
-          },
-          { merge: true }
-        );
-        isBookmarked = true;
+      if (checkError && checkError.code !== "PGRST116") {
+        throw checkError;
       }
 
-      await batch.commit();
-      return { isBookmarked };
+      if (existing) {
+        // Delete if exists
+        const { error: deleteError } = await this.supabase
+          .from("user_bookmarks")
+          .delete()
+          .eq("uid", userId)
+          .eq("problem_id", problemId);
+
+        if (deleteError) throw deleteError;
+        
+        return { isBookmarked: false };
+      } else {
+        // Insert if not exists
+        // Note: we don't store slugs in user_bookmarks table, relying on relational storage
+        const { error: insertError } = await this.supabase
+          .from("user_bookmarks")
+          .insert({
+            uid: userId,
+            problem_id: problemId,
+            notes: null // notes can be added later
+          });
+
+        if (insertError) throw insertError;
+
+        return { isBookmarked: true };
+      }
     } catch (error) {
-      // Security: Return generic error message to prevent leaking internal details
-      Logger.error("Error toggling bookmark in Firestore", error);
+      Logger.error("Error toggling bookmark in Supabase", error);
       return {
         isBookmarked: false,
         error: "An unexpected error occurred while toggling bookmark.",
