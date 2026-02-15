@@ -14,9 +14,6 @@ export * from "./types";
 // Interfaces - Service and repository contracts
 export * from "./interfaces";
 
-// Utils - Public utilities
-export * from "./utils";
-
 // Constants - Public constants
 export * from "./constants";
 

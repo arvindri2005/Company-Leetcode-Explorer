@@ -4,7 +4,7 @@
  * Handles conversions between:
  * - Domain entities (Problem)
  * - DTOs (LeetCodeProblem, ProblemSummaryDTO)
- * - Firestore documents
+ * - Database documents (Supabase)
  */
 
 import { Problem } from "@/core/domain/entities/problem.entity";
@@ -18,7 +18,7 @@ import type {
 } from "../types";
 
 /**
- * Firestore document structure for problems
+ * Database document structure for problems (Supabase)
  */
 export interface ProblemDocument {
   id: string;
@@ -45,8 +45,8 @@ export interface ProblemDocument {
  */
 export class ProblemMapper {
   /**
-   * Convert a Firestore document to a domain Problem entity
-   * @param doc - The Firestore document data
+   * Convert a database document to a domain Problem entity
+   * @param doc - The database document data
    * @returns Problem domain entity
    */
   static toDomain(doc: ProblemDocument): Problem {
@@ -159,10 +159,10 @@ export class ProblemMapper {
   }
 
   /**
-   * Convert a domain Problem entity to a Firestore document
+   * Convert a domain Problem entity to a database document
    * @param entity - The Problem domain entity
    * @param additionalData - Additional data for the document
-   * @returns Firestore document data (without id)
+   * @returns Database document data (without id)
    */
   static toDocument(
     entity: Problem,

@@ -4,7 +4,7 @@
  * @fileoverview Server-side actions for managing coding problem data.
  *
  * This module provides Next.js server actions for creating and retrieving
- * coding problems from the Firestore database. It includes functions for adding
+ * coding problems from the Supabase database. It includes functions for adding
  * a single problem and fetching details for a batch of problems.
  * These actions also handle data validation and cache revalidation.
  */
