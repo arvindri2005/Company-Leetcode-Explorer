@@ -1,26 +1,29 @@
 /**
  * Bookmark Operations Module
- * Handles bookmark CRUD operations
+ *
+ * Provides CRUD operations for user problem bookmarks backed by Supabase.
+ * Bookmarks live in the `user_bookmarks` table, linked to `problems` and
+ * `companies` via foreign-key joins.
+ *
+ * @module bookmark-operations
  */
 
 import { createSupabaseBrowserClient } from "@/shared/lib/api/supabase-browser";
 import { Logger } from "@/shared/lib/utils/logger";
 import type { BookmarkedProblemInfo } from "@/shared/types";
 
+/** Maximum number of bookmark rows returned per query (pagination guard) */
 const MAX_PAGE_SIZE = 50;
 
 /**
- * Interface for bookmark operations
+ * Interface for bookmark operations.
+ * Defines the contract for bookmark-related data access.
  */
 export interface BookmarkOperations {
-  /**
-   * Get bookmarked problems info for a user
-   */
+  /** Retrieve full bookmark info (with problem/company slugs) for a user */
   getBookmarkedProblemsInfo(userId: string): Promise<BookmarkedProblemInfo[]>;
 
-  /**
-   * Toggle bookmark status for a problem
-   */
+  /** Toggle (add or remove) a bookmark for a specific problem */
   toggleBookmarkProblem(
     userId: string,
     problemId: string,
@@ -30,22 +33,33 @@ export interface BookmarkOperations {
 }
 
 /**
- * Implementation of bookmark operations
+ * Supabase-backed implementation of {@link BookmarkOperations}.
  */
 export class BookmarkOperationsImpl implements BookmarkOperations {
   private supabase = createSupabaseBrowserClient();
 
   /**
-   * Get bookmarked problems info for a user
-   * @param userId - The user's unique identifier
-   * @returns Array of bookmarked problem info
+   * Get bookmarked problems info for a user.
+   *
+   * Performs a nested join: user_bookmarks → problems → company_problems → companies
+   * so that each bookmark includes enough context to construct a problem URL
+   * (companySlug + problemSlug).
+   *
+   * Rows with incomplete join data (missing slug) are filtered out.
+   *
+   * @param userId - The user's uid
+   * @returns Array of bookmarked problem info, sorted newest-first
    */
   async getBookmarkedProblemsInfo(userId: string): Promise<BookmarkedProblemInfo[]> {
     if (!userId) {
+      Logger.debug("[BookmarkOps.getInfo] Skipped — empty userId");
       return [];
     }
+
+    Logger.debug("[BookmarkOps.getInfo] Fetching bookmarked problems", { userId });
+
     try {
-      // Define a specific interface for the query result to avoid 'any'
+      // Type for the raw Supabase join result
       interface BookmarkRow {
         created_at: string;
         problem_id: string;
@@ -59,8 +73,8 @@ export class BookmarkOperationsImpl implements BookmarkOperations {
         } | null;
       }
 
-      // Fetch bookmarks with problem details and associated companies
-      // We aim to get at least one company slug to construct a valid URL
+      // Nested select: join through problems → company_problems → companies
+      // to resolve slugs needed for URL construction
       const { data, error } = await this.supabase
         .from("user_bookmarks")
         .select(`
@@ -80,20 +94,28 @@ export class BookmarkOperationsImpl implements BookmarkOperations {
         .limit(MAX_PAGE_SIZE);
 
       if (error) {
+        Logger.error("[BookmarkOps.getInfo] Supabase query failed", error, { userId });
         throw error;
       }
 
-      if (!data) {return [];}
+      if (!data) {
+        Logger.debug("[BookmarkOps.getInfo] No data returned", { userId });
+        return [];
+      }
 
-      return (data as unknown as BookmarkRow[])
+      // Map raw rows to domain objects, dropping any with incomplete joins
+      const results = (data as unknown as BookmarkRow[])
         .map((row) => {
           const problem = row.problems;
-          // Try to find a company slug from the joined data
-          // company_problems is an array of { companies: { slug: string } }
+          // Pick the first company slug from the many-to-many relationship
           const companySlug = problem?.company_problems?.[0]?.companies?.slug;
           
           if (!problem?.slug || !companySlug) {
-            return null; // Skip if data is incomplete
+            // Incomplete join data — skip this bookmark
+            Logger.debug("[BookmarkOps.getInfo] Skipping bookmark with missing slug data", {
+              problemId: row.problem_id,
+            });
+            return null;
           }
 
           return {
@@ -104,33 +126,51 @@ export class BookmarkOperationsImpl implements BookmarkOperations {
           } as BookmarkedProblemInfo;
         })
         .filter((info): info is BookmarkedProblemInfo => info !== null);
+
+      Logger.debug("[BookmarkOps.getInfo] Fetched bookmarks", {
+        userId,
+        totalRows: data.length,
+        validBookmarks: results.length,
+      });
+
+      return results;
     } catch (error) {
-      Logger.error(`Error fetching bookmarked problems info`, error, { userId });
+      Logger.error("[BookmarkOps.getInfo] Unexpected error", error, { userId });
       return [];
     }
   }
 
   /**
-   * Toggle bookmark status for a problem
-   * @param userId - The user's unique identifier
+   * Toggle bookmark status for a problem.
+   *
+   * Uses a check-then-act pattern:
+   *   1. Query for an existing bookmark (uid + problem_id)
+   *   2. If found → delete it (un-bookmark)
+   *   3. If not found → insert a new row (bookmark)
+   *
+   * Note: PGRST116 from `.single()` means no row matched, which is the
+   * expected case when the problem hasn't been bookmarked yet.
+   *
+   * @param userId - The user's uid
    * @param problemId - The problem's unique identifier
-   * @param companySlug - The company's slug
-   * @param problemSlug - The problem's slug
-   * @returns Result with bookmark status or error
+   * @returns Result with the new bookmark state or error
    */
   async toggleBookmarkProblem(
     userId: string,
     problemId: string,
   ): Promise<{ isBookmarked: boolean; error?: string }> {
     if (!userId || !problemId) {
+      Logger.debug("[BookmarkOps.toggle] Skipped — missing required params", { userId, problemId });
       return {
         isBookmarked: false,
         error: "User ID and Problem ID are required.",
       };
     }
 
+    Logger.debug("[BookmarkOps.toggle] Toggling bookmark", { userId, problemId });
+
     try {
-      // Check if bookmark exists
+      // Step 1: Check if the bookmark already exists
       const { data: existing, error: checkError } = await this.supabase
         .from("user_bookmarks")
         .select("problem_id")
@@ -138,38 +178,56 @@ export class BookmarkOperationsImpl implements BookmarkOperations {
         .eq("problem_id", problemId)
         .single();
 
+      // PGRST116 = no rows found — expected when bookmark doesn't exist
       if (checkError && checkError.code !== "PGRST116") {
+        Logger.error("[BookmarkOps.toggle] Error checking existing bookmark", checkError, {
+          userId,
+          problemId,
+        });
         throw checkError;
       }
 
       if (existing) {
-        // Delete if exists
+        // Step 2a: Bookmark exists → remove it
+        Logger.debug("[BookmarkOps.toggle] Bookmark exists — removing", { userId, problemId });
+
         const { error: deleteError } = await this.supabase
           .from("user_bookmarks")
           .delete()
           .eq("uid", userId)
           .eq("problem_id", problemId);
 
-        if (deleteError) {throw deleteError;}
+        if (deleteError) {
+          Logger.error("[BookmarkOps.toggle] Delete failed", deleteError, { userId, problemId });
+          throw deleteError;
+        }
         
+        Logger.info("[BookmarkOps.toggle] Bookmark removed", { userId, problemId });
         return { isBookmarked: false };
       } else {
-        // Insert if not exists
-        // Note: we don't store slugs in user_bookmarks table, relying on relational storage
+        // Step 2b: Bookmark doesn't exist → create it
+        // Note: slugs are not stored in user_bookmarks; they're resolved
+        // via relational joins at query time.
+        Logger.debug("[BookmarkOps.toggle] Bookmark not found — creating", { userId, problemId });
+
         const { error: insertError } = await this.supabase
           .from("user_bookmarks")
           .insert({
             uid: userId,
             problem_id: problemId,
-            notes: null // notes can be added later
+            notes: null // Notes can be added later via a separate UI
           });
 
-        if (insertError) {throw insertError;}
+        if (insertError) {
+          Logger.error("[BookmarkOps.toggle] Insert failed", insertError, { userId, problemId });
+          throw insertError;
+        }
 
+        Logger.info("[BookmarkOps.toggle] Bookmark created", { userId, problemId });
         return { isBookmarked: true };
       }
     } catch (error) {
-      Logger.error("Error toggling bookmark in Supabase", error);
+      Logger.error("[BookmarkOps.toggle] Unexpected error", error, { userId, problemId });
       return {
         isBookmarked: false,
         error: "An unexpected error occurred while toggling bookmark.",

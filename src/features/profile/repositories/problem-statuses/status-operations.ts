@@ -1,6 +1,11 @@
 /**
  * Problem Status Operations Module
- * Handles problem status CRUD operations
+ *
+ * Provides CRUD operations for tracking user progress on problems (solved,
+ * attempted, in_progress, none). Data is stored in the `user_problem_status`
+ * table with relational joins to `problems` and `companies`.
+ *
+ * @module status-operations
  */
 
 import { createSupabaseBrowserClient } from "@/shared/lib/api/supabase-browser";
@@ -8,7 +13,8 @@ import { Logger } from "@/shared/lib/utils/logger";
 import type { ProblemStatus, UserProblemStatusInfo } from "@/shared/types";
 
 /**
- * Interface for Supabase query result from user_problem_status
+ * Shape of a raw Supabase query result from user_problem_status
+ * with nested joins to problems → company_problems → companies.
  */
 interface UserProblemStatusQueryResult {
   problem_id: string;
@@ -25,38 +31,35 @@ interface UserProblemStatusQueryResult {
 }
 
 /**
- * Interface for problem status updates
+ * Shape of a row used for upsert/insert into user_problem_status.
+ * Includes optional timestamp fields that are set based on the status value.
  */
 interface UserProblemStatusUpdate {
   uid: string;
   problem_id: string;
   status: string;
   updated_at: string;
+  /** Set when status transitions to "solved" */
   solved_at?: string;
+  /** Set when status transitions to "attempted" or "in_progress" */
   last_attempted_at?: string;
 }
 
 /**
- * Interface for problem status operations
+ * Interface for problem status operations.
  */
 export interface StatusOperations {
-  /**
-   * Get all problem statuses for a user
-   */
+  /** Get all problem statuses for a user (used on the profile page) */
   getAllUserProblemStatuses(userId: string): Promise<Record<string, UserProblemStatusInfo>>;
 
-  /**
-   * Get user's global problem stats
-   */
+  /** Get aggregated global problem stats (solved/attempted/bookmarked counts) */
   getUserGlobalProblemStats(userId: string): Promise<{
     solvedProblemIds: string[];
     attemptedProblemIds: string[];
     bookmarkedProblemIds: string[];
   }>;
 
-  /**
-   * Set problem status for a user
-   */
+  /** Set (or remove) the problem status for a specific user + problem pair */
   setProblemStatus(
     userId: string,
     problemId: string,
@@ -67,22 +70,31 @@ export interface StatusOperations {
 }
 
 /**
- * Implementation of problem status operations
+ * Supabase-backed implementation of {@link StatusOperations}.
  */
 export class StatusOperationsImpl implements StatusOperations {
   private supabase = createSupabaseBrowserClient();
 
   /**
-   * Get all problem statuses for a user
-   * @param userId - The user's unique identifier
-   * @returns Record of problem ID to status info
+   * Get all problem statuses for a user.
+   *
+   * Performs a nested join: user_problem_status → problems → company_problems → companies
+   * to resolve both the problem slug and company slug for URL construction.
+   * Rows with incomplete join data are silently skipped.
+   *
+   * @param userId - The user's uid
+   * @returns Record mapping problem ID → status info
    */
   async getAllUserProblemStatuses(
     userId: string
   ): Promise<Record<string, UserProblemStatusInfo>> {
     if (!userId) {
+      Logger.debug("[StatusOps.getAll] Skipped — empty userId");
       return {};
     }
+
+    Logger.debug("[StatusOps.getAll] Fetching all problem statuses", { userId });
+
     const statuses: Record<string, UserProblemStatusInfo> = {};
     try {
       const { data, error } = await this.supabase
@@ -104,37 +116,57 @@ export class StatusOperationsImpl implements StatusOperations {
         .order("updated_at", { ascending: false });
 
       if (error) {
+        Logger.error("[StatusOps.getAll] Supabase query failed", error, { userId });
         throw error;
       }
+
+      let skippedCount = 0;
 
       if (data) {
         (data as unknown as UserProblemStatusQueryResult[]).forEach((row) => {
           const problem = row.problems;
-          // Determine company slug from available relationships
+          // Resolve the company slug from the first company_problems join
           const companySlug = problem?.company_problems?.[0]?.companies?.slug;
           
-           if (row.problem_id && row.status && problem?.slug && companySlug) {
-              statuses[row.problem_id] = {
-                problemId: row.problem_id,
-                status: row.status as ProblemStatus,
-                companySlug: companySlug,
-                problemSlug: problem.slug,
-                updatedAt: new Date(row.updated_at),
-              };
-           }
+          if (row.problem_id && row.status && problem?.slug && companySlug) {
+            statuses[row.problem_id] = {
+              problemId: row.problem_id,
+              status: row.status as ProblemStatus,
+              companySlug: companySlug,
+              problemSlug: problem.slug,
+              updatedAt: new Date(row.updated_at),
+            };
+          } else {
+            // Row has incomplete join data — skip it
+            skippedCount++;
+          }
         });
       }
+
+      Logger.debug("[StatusOps.getAll] Problem statuses fetched", {
+        userId,
+        totalRows: data?.length ?? 0,
+        mapped: Object.keys(statuses).length,
+        skipped: skippedCount,
+      });
+
       return statuses;
     } catch (error) {
-      Logger.error(`Error fetching all problem statuses`, error, { userId });
+      Logger.error("[StatusOps.getAll] Unexpected error", error, { userId });
       return {};
     }
   }
 
   /**
-   * Get user's global problem stats
-   * @param userId - The user's unique identifier
-   * @returns User's global problem stats
+   * Get user's global problem stats.
+   *
+   * Runs three parallel queries for efficiency:
+   *   1. Solved problem IDs (status = "solved")
+   *   2. Attempted problem IDs (status IN ["attempted", "in_progress"])
+   *   3. Bookmarked problem IDs (from user_bookmarks table)
+   *
+   * @param userId - The user's uid
+   * @returns Aggregated stats with arrays of problem IDs
    */
   async getUserGlobalProblemStats(userId: string): Promise<{
     solvedProblemIds: string[];
@@ -142,10 +174,14 @@ export class StatusOperationsImpl implements StatusOperations {
     bookmarkedProblemIds: string[];
   }> {
     if (!userId) {
+      Logger.debug("[StatusOps.getStats] Skipped — empty userId");
       return { solvedProblemIds: [], attemptedProblemIds: [], bookmarkedProblemIds: [] };
     }
+
+    Logger.debug("[StatusOps.getStats] Fetching global problem stats", { userId });
+
     try {
-      // Execute 3 parallel queries to get the stats
+      // Execute 3 independent queries in parallel for better performance
       const [solvedRes, attemptedRes, bookmarkRes] = await Promise.all([
         this.supabase
           .from("user_problem_status")
@@ -156,35 +192,61 @@ export class StatusOperationsImpl implements StatusOperations {
           .from("user_problem_status")
           .select("problem_id")
           .eq("uid", userId)
-          .in("status", ["attempted", "in_progress"]), // Assuming these count as attempted
+          .in("status", ["attempted", "in_progress"]),
         this.supabase
           .from("user_bookmarks")
           .select("problem_id")
           .eq("uid", userId)
       ]);
 
-      if (solvedRes.error) {throw solvedRes.error;}
-      if (attemptedRes.error) {throw attemptedRes.error;}
-      if (bookmarkRes.error) {throw bookmarkRes.error;}
+      // Throw on the first query that failed
+      if (solvedRes.error) {
+        Logger.error("[StatusOps.getStats] Solved query failed", solvedRes.error, { userId });
+        throw solvedRes.error;
+      }
+      if (attemptedRes.error) {
+        Logger.error("[StatusOps.getStats] Attempted query failed", attemptedRes.error, { userId });
+        throw attemptedRes.error;
+      }
+      if (bookmarkRes.error) {
+        Logger.error("[StatusOps.getStats] Bookmarks query failed", bookmarkRes.error, { userId });
+        throw bookmarkRes.error;
+      }
 
-      return {
+      const stats = {
         solvedProblemIds: solvedRes.data?.map(r => r.problem_id) || [],
         attemptedProblemIds: attemptedRes.data?.map(r => r.problem_id) || [],
         bookmarkedProblemIds: bookmarkRes.data?.map(r => r.problem_id) || [],
       };
+
+      Logger.debug("[StatusOps.getStats] Global stats fetched", {
+        userId,
+        solved: stats.solvedProblemIds.length,
+        attempted: stats.attemptedProblemIds.length,
+        bookmarked: stats.bookmarkedProblemIds.length,
+      });
+
+      return stats;
     } catch (error) {
-      Logger.error(`Error fetching global problem stats`, error, { userId });
+      Logger.error("[StatusOps.getStats] Unexpected error", error, { userId });
       return { solvedProblemIds: [], attemptedProblemIds: [], bookmarkedProblemIds: [] };
     }
   }
 
   /**
-   * Set problem status for a user
-   * @param userId - The user's unique identifier
+   * Set (or remove) a problem status for a user.
+   *
+   * Behaviour varies by status value:
+   *   - `"none"` → DELETE the status row (user resets their progress)
+   *   - Any other status → UPSERT with the new status value
+   *
+   * Timestamp side-effects:
+   *   - `"solved"` → sets `solved_at` to now
+   *   - `"attempted"` / `"in_progress"` → sets `last_attempted_at` to now
+   *
+   * @param userId - The user's uid
    * @param problemId - The problem's unique identifier
-   * @param status - The new status
-   * @param companySlug - The company's slug
-   * @param problemSlug - The problem's slug
+   * @param status - The new status value
    * @returns Result indicating success or error
    */
   async setProblemStatus(
@@ -193,21 +255,29 @@ export class StatusOperationsImpl implements StatusOperations {
     status: ProblemStatus
   ): Promise<{ success: boolean; error?: string }> {
     if (!userId || !problemId) {
+      Logger.debug("[StatusOps.set] Skipped — missing required params", { userId, problemId });
       return { success: false, error: "User ID and Problem ID are required." };
     }
 
+    Logger.debug("[StatusOps.set] Setting problem status", { userId, problemId, status });
+
     try {
       if (status === "none") {
-        // Remove status
+        // Remove the status row entirely (user wants to reset progress)
+        Logger.debug("[StatusOps.set] Status is 'none' — deleting row", { userId, problemId });
+
         const { error } = await this.supabase
           .from("user_problem_status")
           .delete()
           .eq("uid", userId)
           .eq("problem_id", problemId);
           
-        if (error) {throw error;}
+        if (error) {
+          Logger.error("[StatusOps.set] Delete failed", error, { userId, problemId });
+          throw error;
+        }
       } else {
-        // Upsert status
+        // Upsert: create or update the status row
         const updates: UserProblemStatusUpdate = {
            uid: userId,
            problem_id: problemId,
@@ -215,22 +285,36 @@ export class StatusOperationsImpl implements StatusOperations {
            updated_at: new Date().toISOString()
         };
 
+        // Set additional timestamp fields based on the status transition
         if (status === 'solved') {
             updates.solved_at = new Date().toISOString();
+            Logger.debug("[StatusOps.set] Marking as solved — setting solved_at", { userId, problemId });
         } else if (status === 'attempted' || status === 'in_progress') {
             updates.last_attempted_at = new Date().toISOString();
+            Logger.debug("[StatusOps.set] Marking as attempted/in_progress — setting last_attempted_at", {
+              userId, problemId,
+            });
         }
 
         const { error } = await this.supabase
           .from("user_problem_status")
           .upsert(updates, { onConflict: "uid,problem_id" });
 
-        if (error) {throw error;}
+        if (error) {
+          Logger.error("[StatusOps.set] Upsert failed", error, { userId, problemId, status });
+          throw error;
+        }
       }
+
+      Logger.info("[StatusOps.set] Problem status updated successfully", {
+        userId,
+        problemId,
+        status,
+      });
 
       return { success: true };
     } catch (error) {
-      Logger.error("Error setting problem status in Supabase", error);
+      Logger.error("[StatusOps.set] Unexpected error", error, { userId, problemId, status });
       return {
         success: false,
         error: "An unexpected error occurred while updating problem status.",
