@@ -22,6 +22,13 @@ export interface UserValidators {
    * @returns True if text contains invalid characters, false otherwise
    */
   hasInvalidCharacters(text: string | undefined | null): boolean;
+
+  /**
+   * Sanitize display name by removing invalid characters and truncating
+   * @param text - The display name to sanitize
+   * @returns Sanitized display name or null if input is null/undefined
+   */
+  sanitizeDisplayName(text: string | undefined | null): string | null;
 }
 
 /**
@@ -47,8 +54,39 @@ export class UserValidatorsImpl implements UserValidators {
     if (!text) {
       return false;
     }
-    // Security: Block specific characters commonly used in XSS, while allowing standard punctuation
-    // We block '<' to prevent HTML tag opening, but allow '>' for things like "GPA > 3.0"
-    return /[<]/.test(text);
+    // Security: Block specific characters commonly used in XSS and spoofing
+    // Block:
+    // - '<' and '>' to prevent HTML injection
+    // - ASCII control characters (\x00-\x1F, \x7F)
+    // - Unicode BiDi overrides (\u202A-\u202E, \u2066-\u2069)
+    return /[<>]|[\x00-\x1F\x7F]|[\u202A-\u202E\u2066-\u2069]/.test(text);
+  }
+
+  /**
+   * Sanitize display name by removing invalid characters and truncating
+   * @param text - The display name to sanitize
+   * @returns Sanitized display name or null if input is null/undefined
+   */
+  sanitizeDisplayName(text: string | undefined | null): string | null {
+    if (!text) {
+      return null;
+    }
+
+    let sanitized = text.trim();
+
+    // Security: Remove invalid characters
+    // Remove ASCII control characters
+    sanitized = sanitized.replace(/[\x00-\x1F\x7F]/g, "");
+    // Remove Unicode BiDi overrides
+    sanitized = sanitized.replace(/[\u202A-\u202E\u2066-\u2069]/g, "");
+    // Remove < and >
+    sanitized = sanitized.replace(/[<>]/g, "");
+
+    // Truncate to 50 characters
+    if (sanitized.length > 50) {
+      sanitized = sanitized.substring(0, 50);
+    }
+
+    return sanitized;
   }
 }
