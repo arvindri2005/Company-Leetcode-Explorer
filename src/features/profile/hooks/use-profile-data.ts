@@ -66,11 +66,14 @@ export function useProfileData(
         // But for now, let's update this hook to use Supabase User type.
         const statusResult = await userService.getAllUserProblemStatuses(user.id);
         if (statusResult.isSuccess) {
+          console.log("[useProfileData] Successfully fetched statuses:", Object.keys(statusResult.value).length);
           setProblemStatuses(statusResult.value);
         } else {
+          console.error("[useProfileData] Failed to fetch statuses API error:", statusResult.error);
           // Silent fail or toast
         }
-      } catch {
+      } catch (err) {
+        console.error("[useProfileData] Exception during fetchStatusMap:", err);
         toast({
           title: "Error",
           description: "Could not fetch problem statuses.",

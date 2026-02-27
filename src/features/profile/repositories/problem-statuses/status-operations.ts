@@ -138,12 +138,22 @@ export class StatusOperationsImpl implements StatusOperations {
             };
           } else {
             // Row has incomplete join data — skip it
+            Logger.warn("[StatusOps.getAll] Skipping problem status due to missing data", {
+              userId,
+              problemId: row.problem_id,
+              status: row.status,
+              hasProblemNode: !!problem,
+              problemSlug: problem?.slug,
+              companySlug: companySlug,
+              companyProblemsExists: !!problem?.company_problems,
+              companyProblemsCount: problem?.company_problems?.length ?? 0
+            });
             skippedCount++;
           }
         });
       }
 
-      Logger.debug("[StatusOps.getAll] Problem statuses fetched", {
+      Logger.info("[StatusOps.getAll] Problem statuses fetched successfully", {
         userId,
         totalRows: data?.length ?? 0,
         mapped: Object.keys(statuses).length,
@@ -213,13 +223,17 @@ export class StatusOperationsImpl implements StatusOperations {
         throw bookmarkRes.error;
       }
 
+      if (!solvedRes.data) Logger.warn("[StatusOps.getStats] Solved problem data is null", { userId });
+      if (!attemptedRes.data) Logger.warn("[StatusOps.getStats] Attempted problem data is null", { userId });
+      if (!bookmarkRes.data) Logger.warn("[StatusOps.getStats] Bookmark problem data is null", { userId });
+
       const stats = {
         solvedProblemIds: solvedRes.data?.map(r => r.problem_id) || [],
         attemptedProblemIds: attemptedRes.data?.map(r => r.problem_id) || [],
         bookmarkedProblemIds: bookmarkRes.data?.map(r => r.problem_id) || [],
       };
 
-      Logger.debug("[StatusOps.getStats] Global stats fetched", {
+      Logger.info("[StatusOps.getStats] Global stats fetched successfully", {
         userId,
         solved: stats.solvedProblemIds.length,
         attempted: stats.attemptedProblemIds.length,

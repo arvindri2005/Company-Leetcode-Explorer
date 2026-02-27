@@ -93,12 +93,17 @@ export class UserOperationsImpl implements UserOperations {
         if (error?.code !== "PGRST116") {
             Logger.error("[UserOps.findById] Supabase query failed", error, { id });
         } else {
-            Logger.debug("[UserOps.findById] No user row found (first visit?)", { id });
+            Logger.info("[UserOps.findById] No user row found (first visit?)", { id });
         }
         return null;
       }
 
-      Logger.debug("[UserOps.findById] User found, mapping to domain entity", { id });
+      Logger.info("[UserOps.findById] User found, mapping to domain entity", { 
+        id, 
+        email: data.email, 
+        hasDisplayName: !!data.display_name,
+        hasPreferences: !!data.preferences
+      });
       return UserMapper.toDomain(data);
     } catch (error) {
       Logger.error("[UserOps.findById] Unexpected error", error, { id });

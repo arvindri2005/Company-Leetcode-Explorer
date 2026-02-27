@@ -99,7 +99,7 @@ export class BookmarkOperationsImpl implements BookmarkOperations {
       }
 
       if (!data) {
-        Logger.debug("[BookmarkOps.getInfo] No data returned", { userId });
+        Logger.info("[BookmarkOps.getInfo] No data returned", { userId });
         return [];
       }
 
@@ -112,8 +112,14 @@ export class BookmarkOperationsImpl implements BookmarkOperations {
           
           if (!problem?.slug || !companySlug) {
             // Incomplete join data — skip this bookmark
-            Logger.debug("[BookmarkOps.getInfo] Skipping bookmark with missing slug data", {
+            Logger.warn("[BookmarkOps.getInfo] Skipping bookmark due to missing join data", {
+              userId,
               problemId: row.problem_id,
+              hasProblemNode: !!problem,
+              problemSlug: problem?.slug,
+              companySlug: companySlug,
+              companyProblemsExists: !!problem?.company_problems,
+              companyProblemsCount: problem?.company_problems?.length ?? 0
             });
             return null;
           }
@@ -127,7 +133,7 @@ export class BookmarkOperationsImpl implements BookmarkOperations {
         })
         .filter((info): info is BookmarkedProblemInfo => info !== null);
 
-      Logger.debug("[BookmarkOps.getInfo] Fetched bookmarks", {
+      Logger.info("[BookmarkOps.getInfo] Fetched bookmarks successfully", {
         userId,
         totalRows: data.length,
         validBookmarks: results.length,
