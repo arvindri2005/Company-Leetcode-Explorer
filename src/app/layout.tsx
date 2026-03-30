@@ -148,6 +148,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${geistMono.variable}`}>
       <head>
+        <script defer src="https://cloud.umami.is/script.js" data-website-id="3b720452-7acc-4b71-9ec2-bf707df75aa5"></script>
         <Script
           async
           custom-element="amp-ad"
