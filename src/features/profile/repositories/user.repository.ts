@@ -62,9 +62,9 @@ export class UserRepository implements IUserRepository {
 
   constructor() {
     // Initialize all module dependencies
-    this.userOperations = new UserOperationsImpl();
-    this.userQueries = new UserQueriesImpl();
     this.userValidators = new UserValidatorsImpl();
+    this.userOperations = new UserOperationsImpl(this.userValidators);
+    this.userQueries = new UserQueriesImpl();
     this.bookmarkOperations = new BookmarkOperationsImpl();
     this.bookmarkQueries = new BookmarkQueriesImpl();
     this.statusOperations = new StatusOperationsImpl();

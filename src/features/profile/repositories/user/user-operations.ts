@@ -21,6 +21,7 @@ import type {
   UpdateUserDTO,
 } from "../../interfaces/user.repository.interface";
 import { type UserDocument, UserMapper } from "../../mappers/user.mapper";
+import type { UserValidators } from "./user-validators";
 
 /**
  * Interface for user operations
@@ -72,6 +73,12 @@ export interface UserOperations {
  * Implementation of user operations
  */
 export class UserOperationsImpl implements UserOperations {
+  private validators: UserValidators;
+
+  constructor(validators: UserValidators) {
+    this.validators = validators;
+  }
+
   /**
    * Find a user by their unique identifier
    * @param id - The user's unique identifier (uid)
@@ -92,6 +99,8 @@ export class UserOperationsImpl implements UserOperations {
       const data = docSnap.data();
 
       // Security: Check authorization
+      // Note: We use auth.currentUser directly here instead of validators.isAuthorized
+      // because findById is used internally and handles its own permission logic (public/private views)
       const currentUser = auth.currentUser;
       const isOwner = currentUser && currentUser.uid === id;
 
@@ -131,7 +140,7 @@ export class UserOperationsImpl implements UserOperations {
 
       if (data.displayName) {
         // Security: Validate display name to prevent stored XSS or injection
-        if (/[<>]/.test(data.displayName)) {
+        if (this.validators.hasInvalidCharacters(data.displayName)) {
           throw new Error("Display name contains invalid characters.");
         }
       }
@@ -182,7 +191,10 @@ export class UserOperationsImpl implements UserOperations {
         updates.email = data.email;
       }
       if (data.displayName !== undefined) {
-        if (data.displayName && /[<>]/.test(data.displayName)) {
+        if (
+          data.displayName &&
+          this.validators.hasInvalidCharacters(data.displayName)
+        ) {
           throw new Error("Display name contains invalid characters.");
         }
         updates.displayName = data.displayName;
@@ -272,7 +284,7 @@ export class UserOperationsImpl implements UserOperations {
     }
 
     // Security: Validate display name to prevent stored XSS or injection
-    if (/[<>]/.test(trimmedName)) {
+    if (this.validators.hasInvalidCharacters(trimmedName)) {
       Logger.warn("Blocked attempt to set display name with invalid characters", {
         userId,
         displayName: trimmedName,
@@ -332,18 +344,9 @@ export class UserOperationsImpl implements UserOperations {
 
       if (displayName) {
         // Security: Sanitize display name
-        let safeName = displayName.trim();
-        // Truncate if too long (max 50 chars to match updateUserDisplayName limit)
-        if (safeName.length > 50) {
-          safeName = safeName.substring(0, 50);
-        }
+        const safeName = this.validators.sanitizeDisplayName(displayName);
 
-        // Security: Remove invalid characters
-        if (/[<>]/.test(safeName)) {
-          safeName = safeName.replace(/[<>]/g, "");
-        }
-
-        if (safeName.length > 0) {
+        if (safeName && safeName.length > 0) {
           updates.displayName = safeName;
         }
       }
